@@ -1,0 +1,108 @@
+#!/usr/bin/python
+
+#____________________________________________________________________________ 
+#                                                                      Lumos #
+#                                                                      0.0.0 #
+#                                                              Configuration #
+#                                                              Check Utility #
+#____________________________________________________________________________#
+#
+from optparse import OptionParser
+from Show     import Show
+import sys
+#@@REL@@sys.tracebacklimit=0
+
+#========================================================================
+# Command-line option processing
+#========================================================================
+
+parser = OptionParser(usage="%prog [-hv] config-files...", version='0.0')
+parser.add_option('-v', '--verbose', action='store_true', help='Enable more descriptive output')
+(options, files) = parser.parse_args()
+
+for file in files:
+	if options.verbose: print "Checking", file
+	s = Show()
+	s.load(open(file))
+	if options.verbose:
+		print "SHOW DESCRIBED BY FILE '%s':" % file
+		print " Title:", s.title
+		print " Description:", s.description
+		print "-" * 78
+		print " POWER SOURCES:"
+	non_gfci = 0
+	maxload = {}
+	unitnames = {}
+	for sourceID in sorted(s.powerSources):
+		source = s.powerSources[sourceID]
+		maxload[sourceID] = 0
+		if options.verbose: print "  %-10s %5gA" % (source.id, source.amps),
+		if source.gfci: 
+			if options.verbose: print "[GFCI]"
+		else: 
+			non_gfci += 1
+			if options.verbose: print
+	if non_gfci > 0:
+		print "*** WARNING *** %d CIRCUIT%s NOT GFCI-PROTECTED!" % (non_gfci, ('S ARE' if non_gfci>1 else ' IS'))
+		print "*** WARNING *** POSSIBLE SAFETY ISSUE--VERIFY GROUND-FAULT HAZARD AT VENUE"
+
+	if options.verbose:
+		print "-" * 78
+		print " COMMUNICATIONS PARAMETERS"
+		print "  NETWRK PORT  SPEED BPSXR DESCRIPTION"
+		for netID in sorted(s.networks):
+			net = s.networks[netID]
+			X=R='-'
+			if net.xonxoff: X='X'
+			if net.rtscts:  R='R'
+			
+			print "  %-6s %4s %6d %d%s%d%s%s %s" %(
+				net.id, net.port, net.baudrate, net.bits, net.parity[0],
+				net.stop, X, R, net.description)
+
+	if options.verbose:
+		print "-" * 78
+		print " DEVICE CONTROLLERS:"
+		print "  NETWRK UNIT     POWER DESCRIPTION"
+		for netID in sorted(s.networks):
+			net = s.networks[netID]
+			for unitID in sorted(net.units):
+				unit = net.units[unitID]
+				print "  %-6s %-8s %5s %s" % (netID, unitID, unit.powerSource.id, unit)
+			
+		print "-" * 78
+		print " DEVICE CHANNELS:"
+		print "  NETWRK UNIT     CHAN LOAD D WARM DESCRIPTION"
+
+	for netID in sorted(s.networks):
+		net = s.networks[netID]
+		for unitID in sorted(net.units):
+			unit = net.units[unitID]
+			if unitID in unitnames:
+				raise ValueError, "Unit '%s' is not unique!" % unitID
+			unitnames[unitID] = 1
+			for chanID in sorted(unit.channels):
+				channel = unit.channels[chanID]
+				if options.verbose:
+					D = '-'
+					if channel.dimmer: D = 'D'
+					print "  %-6s %-8s %4s %3gA %s %3d%% %s" %(
+						netID, unitID, chanID, channel.load, D,
+						channel.pctDimmerValue(channel.warm), channel.name)
+				maxload[unit.powerSource.id] += channel.load
+	
+	if options.verbose:
+		print "-" * 78
+		print " POWER LOAD SUMMARY:"
+
+	for ps in sorted(s.powerSources):
+		if options.verbose:
+			print "  %-10s Loaded to %3d%%" % (ps, ((maxload[ps]*100) // s.powerSources[ps].amps))
+		if maxload[ps] > s.powerSources[ps].amps:
+			over = -(s.powerSources[ps].amps - maxload[ps])
+			print "*** WARNING ***", ps, "OVERLOADED BY", over, \
+				("AMPS" if over != 1 else "AMP"), "IF ALL CHANNELS ON!"
+		elif maxload[ps] == s.powerSources[ps].amps:
+			print "*** WARNING ***", ps, "AT 100% LOAD CAPACITY IF ALL CHANNELS ON!"
+		elif maxload[ps]/float(s.powerSources[ps].amps) > 0.80:
+			print "*** WARNING ***", ps, "NEAR CAPACITY (%d%%)" % ((maxload[ps]*100) // s.powerSources[ps].amps)

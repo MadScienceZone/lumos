@@ -1,0 +1,43 @@
+Checking show.conf
+SHOW DESCRIBED BY FILE 'show.conf':
+ Title: Example Show
+ Description: This is an example of how to set up a Lumos show.conf file.
+You should take this file and edit it to reflect
+your actual show setup.
+------------------------------------------------------------------------------
+ POWER SOURCES:
+  1             20A [GFCI]
+  2a            15A
+  2b          15.5A
+*** WARNING *** 2 CIRCUITS ARE NOT GFCI-PROTECTED!
+*** WARNING *** POSSIBLE SAFETY ISSUE--VERIFY GROUND-FAULT HAZARD AT VENUE
+------------------------------------------------------------------------------
+ COMMUNICATIONS PARAMETERS
+  NETWRK PORT  SPEED BPSXR DESCRIPTION
+  floods    2   1200 8n1-- X10 network for the floodlights.
+  misc      1   9600 8n1-- Everything that's not a floodlight or a tree.
+  trees     0  19200 8n1-- Separate network of controllers for tree displays.
+------------------------------------------------------------------------------
+ DEVICE CONTROLLERS:
+  NETWRK UNIT     POWER DESCRIPTION
+  floods floodX10    2b LynX-10/TW523 Controller
+  misc   a           2a 48-Channel SSR Controller, address=9
+  misc   b           2a 48-Channel SSR Controller, address=10
+  trees  treea1       1 48-Channel SSR Controller, address=0
+  trees  treea2       1 48-Channel SSR Controller, address=1
+  trees  treeb1       1 48-Channel SSR Controller, address=2
+  trees  treeb2       1 48-Channel SSR Controller, address=3
+------------------------------------------------------------------------------
+ DEVICE CHANNELS:
+  NETWRK UNIT     CHAN LOAD D WARM DESCRIPTION
+  floods floodX10   A1   1A D   6% West flood, blue
+  floods floodX10   A2   1A D   6% West flood, green
+  floods floodX10   C1  20A -   0% Snowman power
+  trees  treea1      0 0.3A D   0% Tree 1 RED 1
+  trees  treea1      1 0.3A D   0% Tree 1 RED 2
+------------------------------------------------------------------------------
+ POWER LOAD SUMMARY:
+  1          Loaded to   3%
+  2a         Loaded to   0%
+  2b         Loaded to 141%
+*** WARNING *** 2b OVERLOADED BY 6.5 AMPS IF ALL CHANNELS ON!

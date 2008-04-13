@@ -1,0 +1,6 @@
+NETWORK: sends commands to controllers attached to it
+	CONTROLLER: knows how to talk to controller hardware
+		CHANNEL: tracks status changes of a particular channel
+
+POWERSOURCE: knows capacity of a particular circuit
+

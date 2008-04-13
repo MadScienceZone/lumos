@@ -1,0 +1,79 @@
+.TH LCHECK 1 "Lumos" "Software Alchemy" "User Commands"
+.SH NAME
+lcheck \- Check integrity of show configuration file
+.SH SYNOPSIS
+.B lcheck
+.RB [ \-hv ]
+.RB [ \-\-version ]
+.IR files ...
+.SH DESCRIPTION
+.LP
+When creating or modifying your show configuration file, it is recommended
+that you run 
+.B lcheck
+to perform some basic sanity checks on your configuration.
+.LP
+This will load up the system descriptions (power sources, loads, networks,
+controllers, etc.) exactly as the rest of the Lumos system will,
+and in the process will attempt to discover and report any illegal combination
+of parameters, missing fields, etc.  If these are reported, you must fix them
+and re-run 
+.B lcheck
+until no problems are reported, before trying to run a show with that
+configuration file.
+.LP
+In addition, 
+.B lcheck
+will warn you of some potential hazards and other problems, such as lack
+of GFIC protection and overloaded circuits.  Note, however, that the load
+calculated by 
+.B lcheck
+is merely the sum of the loads placed on a given power source, and represents
+the maximum load drawn if all channels were turned on at the same time.  The
+scene player tools will also watch for circuit overload conditions, considering
+which loads are actually on at any given moment in time during the scene.
+Due to the potential for hardware, software or communication error, it is 
+possible that more circuits might be energized than the scene directs, so it
+is wise to avoid letting the max load as reported by
+.B lcheck
+exceed the stated capacity of the power source, even if you don't intend to 
+run all the loads at once.
+.SH OPTIONS
+.LP
+The following options may be given to
+.BR lcheck :
+.TP
+.B \-h
+.RB ( \-\-help )
+Print a basic help message and exit.
+.TP
+.B \-v
+.RB ( \-\-verbose )
+Print a summary of the show configuration.  By default,
+.B lcheck
+only reports on errors it sees.  The verbose output is a good way to visually
+check that the configuration specified in the file looks correct once it's 
+interpreted.  The verbose output is also useful to print out and use as a 
+reference when hooking up the actual load hardware.
+.TP
+.B \-\-version
+Prints the version number of the program and exits.
+.SH HISTORY
+.LP
+The
+.B lcheck
+utility appeared in version 1.1 of Lumos.
+.SH AUTHOR
+.LP
+Steve Willoughby, support@alchemy.com
+.SH BUGS
+.LP
+Does not detect superfluous config file sections or data fields.  These will
+simply be silently ignored in some cases.  However, extra data fields in 
+some device specification sections (e.g., controller unit definitions) will
+be caught by
+.B lcheck
+and reported.
+.LP
+The error messages aren't always very user-friendly and may sometimes be
+outright cryptic.
