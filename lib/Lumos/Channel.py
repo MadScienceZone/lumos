@@ -1,3 +1,5 @@
+# vi:set ai sm nu ts=4 sw=4 expandtab:
+
 class DimmerError (Exception):
     "Exception thrown for improper usage of dimmer settings."
     def __init__(self, value):

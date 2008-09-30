@@ -1,0 +1,103 @@
+# vi:set ai sm nu ts=4 sw=4 expandtab:
+from Lumos.ControllerUnit import ControllerUnit
+
+#
+# The Olsen 595 is a classic DIY SSR controller.  This driver is 
+# an experimental design based on the protocol description posted
+# on computerchristmas.com.  The author does not have the hardware
+# available to verify that this works.  Hopefully someone with a '595
+# can verify this and give feedback about it to the author.
+#
+# This driver should also drive a Grinch board.
+#
+# This is a parallel protocol (well, actually it's "serial" but we
+# use the PC's parallel port, manipulating three of the output pins
+# to implement a synchronous serial bitstream).  These bits are 
+# ultimately shifted out to the output SSR channels.
+#
+# For each bit you wish to send, set up the bit in D0 and set the
+# /STROBE line high to clock it out.  Repeat until all bits have 
+# been sent to the hardware.
+# 
+# When they've all been transmitted, clock the /AUTO_FEED line high 
+# to have the controller latch all those bits out to the output lines 
+# driving the SSRs.
+# 
+# This does not use Channel objects since all we're doing is changing
+# them from on to off.  This may change in the future, though.
+#
+
+class Olsen595ControllerUnit (ControllerUnit):
+    """
+    ControllerUnit subclass for the classic "Olsen 595" and
+    "Grinch" DIY SSR controllers.  
+
+    ***THE STATUS OF THIS DRIVER IS EXPERIMENTAL***
+    THIS HAS NOT YET BEEN VERIFIED TO WORK WITH ACTUAL HARDWARE
+
+    If you have an Olsen 595 and/or a Grinch controller, we would
+    appreciate any feedback you'd like to offer about this driver,
+    if you're willing to try it and help us test/debug this code.
+    """
+
+    def __init__(self, power, network, channels=64):
+        """
+        Constructor for an Olsen 595/Grinch controller object:
+            Olsen595ControllerUnit(power, network, [channels])
+
+        Specify the correct PowerSource object for this unit,
+        the network this board (or chained set of boards) talks
+        through.  Also specify the number of channels implemented
+        on this (set of) controller(s).  The default is 64.  Lumos
+        will transmit that many bits on each update.
+        """
+
+        ControllerUnit.__init__(self, power, network)
+        self.type = 'Olsen595 Controller'
+        self.channels = [0] * channels
+        self.needs_update = False
+
+    def __str__(self):
+        return "%s (%d channels)" % (self.type, len(self.channels))
+
+    def add_channel(self, id, name=None, load=None):
+        try:
+            id = int(id)
+            assert 0 <= id < len(self.channels)
+        except:
+            raise ValueError("This Olsen595's channel IDs must be integers from 0-%d" % self.max_bits)
+
+    def set_channel(self, id, level):
+        if level == 0:
+            self.set_channel_off(id)
+        else:
+            self.set_channel_on(id)
+
+    def set_channel_on(self, id):
+        self.channels[int(id)] = 1
+        self.needs_update = True
+
+    def set_channel_off(self, id):
+        self.channels[int(id)] = 0
+        self.needs_update = True
+
+    def kill_channel(self, id):
+        self.set_channel_off(id)
+
+    def kill_all_channels(self):
+        self.channels = [0] * len(self.channels)
+        self.needs_update = True
+
+    def all_channels_off(self):
+        self.kill_all_channels()
+
+    def initialize_device(self):
+        self.all_channels_off()
+        self.flush()
+
+    def flush(self):
+        if self.needs_update:
+            for bit in self.channels:
+                self.network.send(bit)
+            self.network.latch()
+            self.needs_update = False

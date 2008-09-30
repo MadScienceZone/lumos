@@ -1,5 +1,6 @@
+# vi:set ai sm nu ts=4 sw=4 expandtab:
 import serial
-from Network import Network
+from Lumos.Network import Network
 
 class SerialNetwork (Network):
     """
@@ -10,13 +11,9 @@ class SerialNetwork (Network):
     bytes sent at a particular baud rate and flow control.
     """
     
-    def __init__(self, id, description=None, port=0, baudrate=9600, bits=8, parity='none', stop=1, xonxoff=False, rtscts=False):
+    def __init__(self, description=None, port=0, baudrate=9600, bits=8, parity='none', stop=1, xonxoff=False, rtscts=False, open_device=True):
         """
-        Constructor for the Network class:
-            Network(ID, [description], [port], [baudrate], [bits], [parity], [stop],
-                [xonxoff], [rtscts])
-        
-        ID:          The ID tag for this network
+        Constructor for the SerialNetwork class.
 
         description: A short description of what this network is 
                      responsible for.
@@ -43,9 +40,14 @@ class SerialNetwork (Network):
 
         rtscts:      Boolean; whether to use RTS/CTS flow control.
                      [False]
+
+        open_device: Boolean: whether to actually open the serial 
+                     device upon construction.  If you don't let it
+                     open here, you'll need to call the open()
+                     method later.  [True]
         """
         
-        Network.__init__(self, id, description)
+        Network.__init__(self, description)
         
         self.port = port
         self.baudrate = int(baudrate)
@@ -56,25 +58,21 @@ class SerialNetwork (Network):
         self.rtscts = bool(rtscts)
 
         if self.parity not in ('none', 'even', 'odd'):
-            raise ValueError, "'%s' is not a valid parity type (network %s)" % (parity, id)
-		# conform to PySerial values
-		self.parity = {
-			'none': 'N',
-			'even': 'E',
-			'odd':  'O'
-		}[self.parity]
+            raise ValueError, "'%s' is not a valid parity type" % parity
+        # conform to PySerial values
+        self._parity = self.parity.upper()[0]
 
-		if self.parity not in serial.PARITIES:
-			raise ValueError, "IMPLEMENTATION BUG: parity %s does not match to serial parity label" % parity
+        if self._parity not in serial.Serial.PARITIES:
+            raise ValueError, "IMPLEMENTATION BUG: parity %s (%s) does not match to serial parity label" % (parity, self._parity)
 
-        if self.bits not in serial.BYTESIZES:
-            raise ValueError, "%d is not a valid number of bits per byte (network %s)" % (self.bits, id)
+        if self.bits not in serial.Serial.BYTESIZES:
+            raise ValueError, "%d is not a valid number of bits per byte" % self.bits
 
-        if self.stop not in serial.STOPBITS:
-            raise ValueError, "%d is not a valid number of stop bits (network %s)" % (self.stop, id)
+        if self.stop not in serial.Serial.STOPBITS:
+            raise ValueError, "%d is not a valid number of stop bits" % self.stop
 
-		if self.baudrate not in serial.BAUDRATES:
-            raise ValueError, "%d is not a valid baud rate (network %s)" % (self.baudrate, id)
+        if self.baudrate not in serial.Serial.BAUDRATES:
+            raise ValueError, "%d is not a valid baud rate" % self.baudrate
 
         # If the port can be a simple integer, make it so.
         try:
@@ -82,17 +80,27 @@ class SerialNetwork (Network):
         except:
             pass
 
+        self.dev = None
+        if open_device:
+            self.open()
+
+    def open(self):
         self.dev = serial.Serial(
-			port=self.port, 
-			baudrate=self.baudrate, 
-			bytesize=self.bits, 
-			parity=self.parity, 
-			stopbits=self.stop, 
-			xonxoff=self.xonxoff, 
-			rtscts=self.rtscts)
+            port=self.port, 
+            baudrate=self.baudrate, 
+            bytesize=self.bits, 
+            parity=self._parity, 
+            stopbits=self.stop, 
+            xonxoff=self.xonxoff, 
+            rtscts=self.rtscts)
 
     def send(self, cmd):
         raise self.dev.write(cmd)
 
     def close(self):
-		self.dev.close()
+        self.dev.close()
+        self.dev = None
+
+    def __str__(self):
+        if self.description is not None: return self.description
+        return "SerialNetwork (port %s)" % self.port
