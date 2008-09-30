@@ -1,0 +1,49 @@
+Lumos 0.0 (EXP) "RELEASE_NOTES"
+
+CONTENTS
+  0.0 EXPERIMENTAL
+  About Version Numbers and Release Notations
+
+0.0 EXPERIMENTAL (not released)
+  This release brings together unreleased code earlier written and used
+  privately by the author (code named "Aurora"), with major updating and
+  reorganization of the device driver code, and a considerable number of
+  new features.  This project will be called "Lumos" (derived from the 
+  Latin "lumen" (="light") and "os" for "Orchestration System").
+
+About Version Numbers and Release Notations:
+  Lumos version numbers consist of two or three numbers separated by 
+  dots (".").  These are not decimal points--the next release after 1.9 
+  would be 1.10.  The first number is the MAJOR RELEASE NUMBER.  This 
+  number is zero (0) during initial development, and will change to one
+  (1) for the first actual product release.  Thereafter, it will increment
+  every time a major change is made to the Lumos program functionality, 
+  structure, architecture, etc.  The second number is the MINOR RELEASE
+  NUMBER.  This is set to zero (0) every time the major release number
+  changes, and increments thereafter when minor changes are made to program
+  functionality.  An optional third number is the PATCH RELEASE NUMBER,
+  and is incremented when a defect-fix change is made with no added features.
+  Thus, you can generally assume that a release called 1.5.2 will look and
+  act the same as 1.5 and 1.5.1 did, except that it should be a more correct
+  implementation (i.e., corrected for defects discovered in the previous 
+  versions), while 1.6 would have at least some minor change to its feature
+  set. 
+
+  In addition, version numberss are followed by a notation indicating what
+  level of stability and verification it has attained:
+    EXPERIMENTAL  -- still under active development, volatile
+    ALPHA         -- development complete, initial test group evaluation
+	BETA          -- wider set of quasi-public testers
+	GAMMA         -- additional test/eval groups if needed after beta
+	RELEASE/(none)-- official release to the public for use
+
+  These are in chronological order, and changes (generally only defect
+  corrections) may be introduced as the code moves down this list.  Generally
+  speaking, the code should not be put into real production use until it
+  gets the "RELEASE" stage.
+
+  Notwithstanding our best good-faith effort to ensure the quality of this
+  software, and the use of terms like "EXPERIMENTAL", "RELEASE", etc., this
+  software and all accompanying materials are provided "AS-IS" with no 
+  warranty of any kind whatsoever to the extent allowed by applicable law
+  (see LICENSE file for full details).

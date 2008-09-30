@@ -1,4 +1,4 @@
 Traceback (most recent call last):
-  File "./lcheck", line 82, in <module>
+  File "../bin/lcheck", line 83, in <module>
     raise ValueError, "Unit '%s' is not unique!" % unitID
 ValueError: Unit 'a' is not unique!

@@ -1,47 +1,69 @@
 import unittest
-from FirecrackerX10ControllerUnit  import FirecrackerX10ControllerUnit
-from PowerSource                   import PowerSource
+from Lumos.Device.FirecrackerX10ControllerUnit \
+                                    import FirecrackerX10ControllerUnit
+from Lumos.Device.X10ControllerUnit import X10ControllerUnit
+from Lumos.ControllerUnit           import ControllerUnit
+from Lumos.PowerSource              import PowerSource
+from TestNetwork                    import TestNetwork
 
 def P(data):
-	stream = ''
-	for i in data:
-		stream += "\xd5\xaa" + i + "\xad"
-	return stream
+    stream = ''
+    for i in data:
+        stream += "=D5=AA" + i + "=AD"
+    return stream
+
+def PP(data):
+    return data.replace('=\n', '')
 
 class FirecrackerX10ControllerUnitTest (unittest.TestCase):
-	def setUp(self):
-		p = PowerSource('testpower', amps=1)
-		self.fc = FirecrackerX10ControllerUnit(p)
-		self.fc.add_channel('A1', load=.3)
-		self.fc.add_channel('A2', load=1)
-		self.fc.add_channel('B1', load=.3, warm=10)
-		self.fc.add_channel('B2', load=1, dimmer=False)
+    def setUp(self):
+        self.n = TestNetwork()
+        p = PowerSource('testpower', amps=1)
+        self.fc = FirecrackerX10ControllerUnit(p, network=self.n)
+        self.fc.add_channel('A1', load=.3)
+        self.fc.add_channel('A2', load=1)
+        self.fc.add_channel('B7', load=.3, warm=10)
+        self.fc.add_channel('M16', load=1, dimmer=False)
 
-	def tearDown(self):
-		self.fc = None
+    def tearDown(self):
+        self.fc = None
+        self.n = None
 
-	def testInit(self):
-		self.assertEqual(self.fc.kill_all_channels(), '')
-		self.assertEqual(self.fc.all_channels_off(),  P(('\x70\x00',)) + (18 * P(('\x70\x98',))))
+    def testCons(self):
+        self.assertEqual(self.fc.type, 'X-10 CM17a "Firecracker" Controller')
+        self.assertEqual(str(self.fc), 'X-10 CM17a "Firecracker" Controller')
+        self.assertEqual(self.fc.resolution, 21)
+        self.assert_(isinstance(self.fc, FirecrackerX10ControllerUnit))
+        self.assert_(isinstance(self.fc, X10ControllerUnit))
+        self.assert_(isinstance(self.fc, ControllerUnit))
 
-	def testInitDev(self):
-		self.assertEqual(self.fc.initialize_device(), P(('\x60\x20','\x60\x30','\x70\x20','\x70\x30','\x70\x00')) + (18 * P(('\x70\x98',))))
+    def testFirstInit(self):
+        self.fc.initialize_device()
+        # kill all channels + level-set dimmers
+        # a1   a2   b7   m16 off, b7 on, b7->10%
+        # 6020 6030 7068 0478     7048 (18x) 7098
+        #  `sp  ` 0  p h    x      p H (18x)  p 
+        self.assertEqual(PP(self.n.buffer), 
+           P(['` ','=04x','`0','ph','pH'] + (18 * ['p=98'])))
 
-#	def testOnOff(self):
-#		self.assertEqual(self.ssr.setChannelOn(2), "\x9c\x42")Error: testInit (FirecrackerX10ControllerUnitTest.FirecrackerX10ControllerUnitTest)
-#		self.assertEqual(self.ssr.setChannelOn(3), "\x9c\x43")
-#		self.assertEqual(self.ssr.setChannelOff(0), "\x9c\x00")
-#		self.assertEqual(self.ssr.setChannelOff(2), "\xac\x02\x03")
-#	
-#	def testDimmer(self):
-#		self.assertEqual(self.ssr.setChannel(0, 0),   "\x9c\x00")
-#		self.assertEqual(self.ssr.setChannel(0, 15),  "\xac\x00\x0f")
-#		self.assertEqual(self.ssr.setChannel(2, 15),  "\xac\x02\x0f")
-#		self.assertEqual(self.ssr.setChannel(2, 31),  "\x9c\x42")
-#		self.assertEqual(self.ssr.setChannel(2, 30),  "\xac\x02\x1e")
-#	
-#	def testWarm(self):
-#		self.assertEqual(self.ssr.allChannelsOff(),  "\x9c\x00\x9c\x01\xac\x02\x03\x9c\x03")
-#		for i,j in ((0,3), (1,3), (2,3), (3,3), (4,4), (5,5),
-#			(6,6),(7,7),(8,8),(10,10),(20,20),(30,30)):
-#			self.assertEqual(self.ssr.setChannel(2, i), "\xac\x02%c" % chr(j), "setChannel(2, %d)" % i)
+    def testInit(self):
+        self.fc.kill_all_channels()
+        self.assertEqual(PP(self.n.buffer), '')
+        self.fc.set_channel_on('A1')
+        self.fc.set_channel_on('B7')
+        # 6000 7048
+        #  `    p H
+        self.assertEqual(PP(self.n.buffer), P(('`=00','pH')))
+        self.n.reset()
+        self.fc.kill_all_channels()
+        self.assertEqual(PP(self.n.buffer), P(['` ','ph']))
+
+    def testOnOff(self):
+        self.fc.set_channel_on('A2')
+        self.fc.set_channel_on('M16')
+        self.fc.set_channel_off('M16')
+        self.fc.set_channel_off('A2')
+        # on a2 m16     off m16 a2
+        # 6010 0458        0478 6030
+        #  `      X           x  ` 0
+        self.assertEqual(PP(self.n.buffer), P(['`=10','=04X','=04x','`0']))

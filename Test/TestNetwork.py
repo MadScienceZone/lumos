@@ -1,35 +1,48 @@
-from Network import Network
+# vi:set ai sm nu ts=4 sw=4 expandtab:
+from Lumos.Network import Network
+from quopri        import encodestring
+import sys
 
 class TestNetwork (Network):
     """
-	This is a network type for debugging purposes.  Instead of talking
-	to an external device, it simply prints its commands to stdout.
+    This is a network type for debugging purposes.  Instead of talking
+    to an external device, it simply prints its commands to stdout.
     """
-    
-    def __init__(self, id, **kwargs):
-        self.id = id
+    def __init__(self, description='test network', **kwargs):
         self.units = {}
-		self.closed = False
-		print "DEBUG: TestNetwork: cons(%s, %s)" % (
-			id, ', '.join(["%s=%s" % (k, v) for k, v in kwargs.items()])
-		)
-
-    def add_unit(self, id, unit):
-        "Add a new controller unit to the network."
-		if self.closed: raise ValueError, "Device already closed!"
-        self.units[id] = unit
-		print "DEBUG: TestNetwork: add_unit(%s, %s)" % (
-			id, unit
-		)
+        self.description = description
+        self.buffer = ''
+        self.closed = False
+        self.args = kwargs
+        for key in 'port', 'baudrate', 'bits':
+            if key in self.args:
+                try:
+                    self.args[key] = int(self.args[key])
+                except:
+                    pass
 
     def send(self, cmd):
         "Send a command string to the hardware device."
-		if self.closed: raise ValueError, "Device already closed!"
-		print "DEBUG: TestNetwork: send(%s)" % cmd ; # XXX Needs binary protection
+        if self.closed: raise ValueError, "Device already closed!"
+        if cmd:
+            self.buffer += encodestring(cmd)
 
     def close(self):
         """Close the network device; no further operations are
         possible for it."""
-		if self.closed: raise ValueError, "Device already closed!"
-		print "DEBUG: TestNetwork: close()"
-		self.closed = True
+        if self.closed: raise ValueError, "Device already closed!"
+        self.closed = True
+
+    def reset(self):
+        "Reset output buffer for easier testing (of isolated events)"
+        self.buffer = ''
+
+class TestParallelNetwork (TestNetwork):
+    def send(self, bit):
+        if   bit == 0: self.buffer += '0'
+        elif bit == 1: self.buffer += '1'
+        else:
+            raise ValueError('Parallel Network given bogus value %s' % bit)
+
+    def latch(self):
+        self.buffer += 'X'

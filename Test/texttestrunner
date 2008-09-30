@@ -1,5 +1,5 @@
 #!/usr/bin/python
 import sys, unittest
-sys.path.append('Test')
+sys.path.append('../lib')
 import Test
 unittest.TextTestRunner().run(Test.suite())

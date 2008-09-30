@@ -1,0 +1,61 @@
+UI sees sequences as set of (t,c,ch,v) events with normalized value like
+real percentages or 0-255
+	sequence event types:
+		on
+		off
+		all off
+		kill
+		all kill
+		level(n)
+		fade(start,end,interval)
+		*repeats?
+		*subsequences?
+		*background tracks?
+	
+Sequence builder looks at devices, resolutions, etc to build event list
+for playback, something like (t,c,ch,rawval) or even (t,net,bytes)
+
+
+EventType objects?
+	
+	set value to n over time delta t
+		that pretty much sums it all up for light controllers, not for
+		other things like readerboards, but we still have to figure out
+		how those work with Lumos anyway.
+	
+
+sequence:
+	list of timed events:
+		(time, controller, channel, value)
+		(ms, controller_obj, method_obj, arglist)
+
+controller:
+	sends events to network
+
+	__init__(power, network, [resolution-steps])
+	add_channel(id, [name], [load], [dimmer], [warm], [resolution], ...)
+
+	set_channel(id, level)
+		id can be string or int depending on type of unit
+		level is number (int? float? %? raw?) or None
+			None: turn completely off as opposed to dim down to 0%
+	set_channel_on(id)
+	set_channel_off(id)
+	kill_channel(id)
+		kill is like off but ignores warm setting
+	kill_all_channels()
+	all_channels_off()
+	initialize_device()
+	flush()
+
+channel:
+	__init__(id, [name], [load], [dimmer], [warm], [resolution])
+	raw_dimmer_value(pct) -> nn   (None->0)
+	pct_dimmer_value(nn) -> pct   (None->0)
+	normalized_value(pct, [override]) -> pct' (adjusted for warm limit)
+	set_level(newlevel, [override]) -> (oldraw, newraw)
+		enforces warm, max/min limits
+	set_on()
+	set_off()
+	kill()
+		

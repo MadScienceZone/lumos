@@ -1,0 +1,131 @@
+% Lumos 0.0 "HACKING.tex"
+%
+% Hacking (i.e., "software development") notes for the Lumos light orchestration
+% system are contained in this document.
+%
+% This is the LaTeX source for the document.  It should be processed by the
+% LaTeX program in order to see or print it properly.  For your convenience,
+% Lumos comes with an already-formatted version of this file in PDF format.
+% 
+\documentclass{article}
+\begin{document}
+What follows are some basic working notes I jotted down while designing and
+implementing Lumos (and its predecessor, an un-released project internally
+code-named ``Aurora'').  These notes describe the class hierarchy used within
+Lumos and the basic architecture of the system.  This will be useful to anyone
+trying to understand how the code inside Lumos works ``under the hood.''
+
+\section{Overall Architecture}
+
+The system is divided into the following major components:
+
+\subsection{Show Orchestration}
+This set of components drives everything that happens.  This includes
+the {\tt Show} object, which describes all the controllable hardware 
+elements in use for a show (based on a prepared configuration file).
+It also includes a set of user applications which create, edit and playback
+sequences of events, sending the effects of those events to the hardware
+devices via the device and network drivers.
+
+\subsection{Device Drivers}
+Each hardware device under Lumos' control, such as an X10 lamp dimmer module
+or a string of lights plugged into a solid-state relay (SSR), is represented 
+within Lumos by an object of the {\tt Channel} class.  
+(A ``channel'' is a single circuit which can be manipulated by Lumos.) 
+
+Channels don't exist all by themselves, however.  Some sort of controller 
+must exist to interface the computer running Lumos to the circuits being
+controlled.  For X10 devices, this is typically some sort of interface box
+which goes between the computer and the power line, and talks to the
+individual X10 modules based on commands given to it by Lumos.  The separation
+between ``controller'' and ``channel'' is tangible, and in fact the 
+channel-controlling X10 modules may be a fair physical distance away from the
+controller (X10 PC interface).
+
+For most other devices, the separation between ``controller'' and
+``channel'' is less apparent and more philosophical, as they are usually
+housed in the same box (and in fact may be different parts of a single
+circuit board).  Here you'll have a number of SSR controller products
+which accept commands over a serial or parallel cable and directly
+control a number of output channels.
+
+From Lumos' point of view, in either case the part that accepts Lumos'
+commands is the ``controller'', which is a sort of container for some
+number of known ``channels''.  
+
+The {\tt ControllerUnit} class provides an abstract description of what
+any controller looks and acts like (and in fact all controllers are 
+defined as subclasses of 
+the {\tt ControllerUnit} superclass).  The actual code to implement the
+protocols used by each type of controller are found in individual 
+modules contained in the {\tt Lumos/Device} directory, and form a basic
+``device driver'' for those units.  
+
+These are only concerned with the
+\emph{command} protocol understood by the controller.  The process of
+getting those bits transmitted correctly out to the device is the job
+of the network drivers.  Each controller object knows which network
+object is handling its connection to the physical hardware, and sends
+the desired command codes to that network object any time it wants to
+change the hardware state.
+
+See the documentation for each individual device driver for notes
+about how Lumos controls that specific hardware and how the driver 
+is implemented.
+
+\subsubsection{Power Sources}
+Every supply circuit powering your light display is represented by
+a {\tt PowerSource} object.  Each channel is assigned to receive power
+from a certain power source.  This allows Lumos to make some useful
+reports about power load balancing, but otherwise doesn't come into
+play when running the actual show sequence.
+
+\subsection{Network Drivers}
+One or more hardware devices (``controllers'') are connected to the
+computer running Lumos via some sort of data port.  We call these
+``networks'' because often (at least in the author's experience) these
+are RS-485 serial networks to which many controlles may be attached.
+They can, however, be as simple as a single controller plugged into a
+PC serial or parallel port.
+
+The basic concept of a network driver is seen in the abstract base class
+{\tt Network}, from which all the specific network drivers are derived.
+Any time a particular type of port or communications protocol is needed,
+it will require a network driver to handle it.  For example, Lumos comes
+with two serial port network drivers:  the {\tt SerialNetwork} class
+handles byte-at-a-time data streams over RS-232 ports, which most serial
+devices will use.  However, the X10 CM17A (``Firecracker'') controller
+uses a unique bit-at-a-time protocol by manipulating only two of the
+handshaking lines of a serial port.  This is special enough that a
+regular serial driver won't work, so Lumos has the {\tt FirecrackerNetwork}
+driver as well.
+
+Network drivers normally accept command bytes via their {\tt send()} method,
+but they also have a {\tt flush()} method which may be called at any time
+that Lumos wishes to suggest that a discrete set of changes has been completed
+and should be pushed out to the hardware if that hasn't already happened.
+Individual drivers may elect to buffer up data until explicitly flushed, or
+to send data as it arrives, as appropriate for that device.
+
+The orchestration system will call {\tt flush()} in all affected networks
+after a set of events have been processed for a given time interval.  
+While many serial-driven controllers will want their data up front, consider
+a device such as the Olsen~595, which expects all channel data to be 
+re-transmitted in a block in order to change any channels.  In this case,
+a special ``block update'' parallel-port network driver could make note of
+changes sent via the {\tt send()} method, but wait until a {\tt flush()} 
+is ordered to transmit all the changes in one step to the hardware
+controller.  If there were a need to have the hardware periodically 
+refreshed, the network driver could take care of that independently of the
+device driver.
+
+Note that network drivers are responsible for delivery of data, and may 
+need to buffer output bytes anyway due to handshaking and data transmission
+speeds, and should continue feeding buffered data to the hardware in the
+background without the device drivers or orchestration components needing
+to know about it.
+
+XXX thinking this through, it seems to make more sense to have the device
+drivers handle the flush events and internal block state and such, and 
+let the net drivers only deal with pushing bits around.
+\end{document}

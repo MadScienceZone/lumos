@@ -1,5 +1,5 @@
 import unittest
-from PowerSource import PowerSource
+from Lumos.PowerSource import PowerSource
 
 class PowerSourceTest (unittest.TestCase):
 	def testCons(self):

@@ -1,5 +1,5 @@
 import unittest
-from Channel import Channel, DimmerError
+from Lumos.Channel import Channel, DimmerError
 
 class ChannelTest (unittest.TestCase):
 	def testCons(self):
