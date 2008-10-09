@@ -57,6 +57,9 @@ class FireGodControllerUnit (ControllerUnit):
     def __str__(self):
         return "%s, module #%d (%d channels)" % (self.type, self.address, len(self.channels))
 
+    def iter_channels(self):
+        return range(len(self.channels))
+
     def add_channel(self, id, name=None, load=None, dimmer=True, warm=None, resolution=None):
         try:
             id = int(id)

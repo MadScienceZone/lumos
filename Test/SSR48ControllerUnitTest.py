@@ -55,3 +55,6 @@ class SSR48ControllerUnitTest (unittest.TestCase):
     def testFirstInit(self):
         self.ssr.initialize_device()
         self.assertEqual(self.n.buffer, "=FCa=8C=AC=02=03")
+
+    def test_iterator(self):
+        self.assertEquals(sorted(self.ssr.iter_channels()), range(48))

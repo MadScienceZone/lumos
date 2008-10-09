@@ -122,6 +122,12 @@ class Sequence (object):
         self._controllers = []
         self._controller_index = {}
         self._controller_channel_index = {}
+        #
+        # self._controllers = [
+        #   { 'obj' : controller_object, 'fld': [channel_id,...] },
+        # ...
+        # ]
+        #  
 
         for ts in sorted(self._event_list):
             for e in self._event_list[ts]:
@@ -162,6 +168,77 @@ class Sequence (object):
         "Retrieve list of Event objects occurring at specified time."
 
         return self._event_list[timestamp]
+
+    def compile(self):
+        '''Compile the sequence into a ready-to-execute list of
+        device updates.  This will return a list of discrete,
+        device-specific updates in the form:
+            [(timestamp, controller_object, method, arglist), ...]
+        To play the sequence on the actual hardware, all you
+        need to do at that point is to make each method call:
+            controller_object.method(*arglist)
+        when <timestamp> milliseconds have elapsed.
+
+        This will resolve all the high-level concepts from the
+        Event/Sequence model into low-level actions by the hardware
+        (for example, the event "Transition a channel from current
+        value to 10% over a period of 5 seconds" would become a
+        series of individual channel value changes over that 5-second
+        interval, depending on the hardware's dimmer resolution.
+        
+        NOTE: This code assumes that all channels begin at 0%
+        dimmer levels at the start of the sequence.  If this is
+        not the case, the scene should begin either with an explicit
+        level-set event for every channel or fade effects
+        may not be evaluated correctly.  All other effects should
+        work fine in any event.
+        
+        NOTE: The result is undefined if multiple concurrent events
+        exist which modify the same channel.  For example, if an 
+        event fades a channel from its current value to 0 over a
+        period of 3 seconds, while another event changes that
+        channel's value during the period it is already fading
+        (before the effects of the first event complete).
+        '''
+
+        self._build_controller_list()
+        current_state = {}
+        ev_list = []
+
+        for timestamp in sorted(self._event_list):
+            for event in self._event_list[timestamp]:
+                unit_list = [event.unit] if event.unit is not None else [i['obj'] for i in self._controllers]
+                for target_unit in unit_list:
+                    channel_list = [event.channel] if event.channel is not None else sorted(target_unit.iter_channels())
+                    if event.channel is None and event.level == 0 and event.delta == 0:
+                        ev_list.append((timestamp, target_unit.all_channels_off, ()))
+                    else:
+                        if event.delta == 0:
+                            for channel in channel_list:
+                                ev_list.append((timestamp, target_unit.set_channel, (channel, 
+                                    target_unit.channels[channel].raw_dimmer_level(event.level))))
+                        else:
+                            for channel in channel_list:
+                                start_value = target_unit.channels[channel].raw_dimmer_level(
+                                    current_state.setdefault((target_unit.id, channel), 0))
+                                fade_steps = abs(start_value - event.value)
+                                fade_incr = 1 if start_value < event.value else -1
+                                if fade_steps == 1:
+                                    ev_list.append((timestamp + event.delta, target_unit.set_channel,
+                                        (channel, target_unit.channels[channel].raw_dimmer_level(event.level))))
+                                if fade_steps > 1:
+                                    for i in range(fade_steps):
+                                        ev_list.append((timestamp + ((event.delta * i) / (fade_steps - 1)),
+                                            target_unit.set_channel,
+                                            (channel, target_unit.channels[channel].raw_dimmer_level(
+                                                start_value + (fade_incr * (i + 1))))))
+
+                        for channel in channel_list:
+                            current_state[(target_unit.id,channel)] = event.level
+
+            return ev_list
+
+            # [(2000*i)/13 for i in range(14)]
 
     def __getattr__(self, name):
         if name == 'intervals':

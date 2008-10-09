@@ -24,6 +24,9 @@ class SSR48ControllerUnit (ControllerUnit):
     def __str__(self):
         return "%s, address=%d" % (self.type, self.address)
 
+    def iter_channels(self):
+        return range(48)
+
     def add_channel(self, id, name=None, load=None, dimmer=True, warm=None, resolution=None):
         try:
             id = int(id)

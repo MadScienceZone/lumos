@@ -71,3 +71,7 @@ class ControllerUnit (object):
         when flush() is called.
         """
         pass
+
+    def iter_channels(self):
+        "Iterate over the list of channel IDs, not necessarily in any order."
+        return iter(self.channels)

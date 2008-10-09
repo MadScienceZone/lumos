@@ -101,3 +101,7 @@ class Olsen595ControllerUnit (ControllerUnit):
                 self.network.send(bit)
             self.network.latch()
             self.needs_update = False
+
+    def iter_channels(self):
+        return range(len(self.channels))
+

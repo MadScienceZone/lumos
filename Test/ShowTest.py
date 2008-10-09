@@ -95,3 +95,16 @@ class ShowTest (unittest.TestCase):
         #finally:
             #for name in 'savetest.out.conf', 'savetest.out2.conf':
                 #if os.path.exists(name): os.remove(name)
+
+    def test_controller_map(self):
+        g = Show()
+        g.load_file('show.conf')
+        self.assertEqual(g.controllers, {
+            'floodX10': g.networks['floods'].units['floodX10'],
+            'a':        g.networks['misc'].units['a'],
+            'b':        g.networks['misc'].units['b'],
+            'treea1':   g.networks['trees'].units['treea1'],
+            'treea2':   g.networks['trees'].units['treea2'],
+            'treeb1':   g.networks['trees'].units['treeb1'],
+            'treeb2':   g.networks['trees'].units['treeb2'],
+        })

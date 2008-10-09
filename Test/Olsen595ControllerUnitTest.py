@@ -75,3 +75,5 @@ class Olsen595ControllerUnitTest (unittest.TestCase):
         self.assertEqual(self.n.buffer, '10100000X')
     
     # test that it doesn't send redundant changes
+    def test_iterator(self):
+        self.assertEquals(sorted(self.ssr.iter_channels()), range(8))

@@ -1,3 +1,6 @@
+#
+# vi:set ai sm nu ts=4 sw=4 expandtab:
+#
 import unittest, quopri
 from Lumos.Device.X10ControllerUnit  import X10ControllerUnit
 from Lumos.ControllerUnit            import ControllerUnit
@@ -37,3 +40,10 @@ class X10ControllerUnitTest (unittest.TestCase):
         self.assertRaises(ValueError, self.x10.add_channel, ('123',), {'load':12})
         self.assertRaises(ValueError, self.x10.add_channel, ('P17',), {'load':12})
         self.assertRaises(ValueError, self.x10.add_channel, ('Q7',), {'load':12})
+
+    def test_iterator(self):
+        self.x10.add_channel('b7', load=1)
+        self.x10.add_channel('c8', load=1)
+        self.x10.add_channel('f7', load=1)
+        self.x10.add_channel('m10', load=1)
+        self.assertEquals(sorted(self.x10.iter_channels()), ['B7','C8','F7','M10'])

@@ -1,3 +1,6 @@
+#
+# vi:set ai sm nu ts=4 sw=4 expandtab:
+#
 import unittest
 from Lumos.Device.FirecrackerX10ControllerUnit \
                                     import FirecrackerX10ControllerUnit
@@ -67,3 +70,6 @@ class FirecrackerX10ControllerUnitTest (unittest.TestCase):
         # 6010 0458        0478 6030
         #  `      X           x  ` 0
         self.assertEqual(PP(self.n.buffer), P(['`=10','=04X','=04x','`0']))
+
+    def test_iterator(self):
+        self.assertEquals(sorted(self.fc.iter_channels()), ['A1','A2','B7','M16'])

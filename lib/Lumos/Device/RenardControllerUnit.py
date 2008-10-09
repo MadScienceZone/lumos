@@ -122,6 +122,9 @@ class RenardControllerUnit (ControllerUnit):
                     self.send_escaped_int(channel.level)
             self.update_pending = False
 
+    def iter_channels(self):
+        return range(len(self.channels))
+
     def send_escaped_int(self, i):
         if i is None: i = 0
         if   i == 0x7d: self.network.send('\x7f/')

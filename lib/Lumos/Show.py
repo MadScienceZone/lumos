@@ -45,6 +45,7 @@ class Show (object):
     def _clear(self):
         self.power_sources = {}
         self.networks = {}
+        self.controllers = {}
         self.title = None
         self.description = None
 
@@ -92,6 +93,7 @@ class Show (object):
                 }, self.power_sources)
                 self.networks[net_ID].add_unit(unit_ID, controller_unit_factory(
                     unit_type, network=self.networks[net_ID], **unit_args))
+                self.controllers[unit_ID] = self.networks[net_ID].units[unit_ID]
                 #
                 # CHANNELS IN CONTROLLER UNIT
                 #

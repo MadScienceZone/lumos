@@ -119,3 +119,5 @@ class RenardControllerUnitTest (unittest.TestCase):
         self.assertEqual(self.n.buffer, "~=82=00=00=19=00=00=00=00=00")
 
     # test that it doesn't send redundant changes
+    def test_iterator(self):
+        self.assertEquals(sorted(self.ssr.iter_channels()), range(8))

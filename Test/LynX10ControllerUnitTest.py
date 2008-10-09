@@ -72,3 +72,6 @@ class LynX10ControllerUnitTest (unittest.TestCase):
             else:
                 self.assertEqual(self.n.buffer, "N016\rD%s\r" % j, 
                     "set_channel('B7', %d) -> %s, expected ...D%s" % (i,self.n.buffer,j) )
+
+    def test_iterator(self):
+        self.assertEquals(sorted(self.x10.iter_channels()), ['A1','A2','B7','M16'])
