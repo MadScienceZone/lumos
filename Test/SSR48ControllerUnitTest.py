@@ -8,11 +8,15 @@ class SSR48ControllerUnitTest (unittest.TestCase):
     def setUp(self):
         self.n = TestNetwork()
         p = PowerSource('testpower', amps=1)
-        self.ssr = SSR48ControllerUnit(p, address=12, network=self.n)
+        self.ssr = SSR48ControllerUnit('ssr1', p, address=12, network=self.n)
         self.ssr.add_channel(0, load=.3)
         self.ssr.add_channel(1, load=1)
         self.ssr.add_channel(2, load=.3, warm=10)
         self.ssr.add_channel(3, load=1, dimmer=False)
+
+
+    def test_unit_id(self):
+        self.assertEqual(self.ssr.id, 'ssr1')
 
     def tearDown(self):
         self.ssr = None
@@ -57,4 +61,4 @@ class SSR48ControllerUnitTest (unittest.TestCase):
         self.assertEqual(self.n.buffer, "=FCa=8C=AC=02=03")
 
     def test_iterator(self):
-        self.assertEquals(sorted(self.ssr.iter_channels()), range(48))
+        self.assertEquals(sorted(self.ssr.iter_channels()), [0, 1, 2, 3])

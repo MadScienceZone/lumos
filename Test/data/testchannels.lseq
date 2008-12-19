@@ -1,0 +1,11 @@
+V2,"Lumos sequence file ""testchannels"""
+U,floods,C7
+U,tree,0,1,2,3
+T,0
+E,0,0,100,0
+T,1
+E,1,0,100,0
+T,2
+E,1,1,100,0
+T,3
+E,1,2,100,0

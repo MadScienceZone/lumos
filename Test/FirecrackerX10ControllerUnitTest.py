@@ -22,7 +22,7 @@ class FirecrackerX10ControllerUnitTest (unittest.TestCase):
     def setUp(self):
         self.n = TestNetwork()
         p = PowerSource('testpower', amps=1)
-        self.fc = FirecrackerX10ControllerUnit(p, network=self.n)
+        self.fc = FirecrackerX10ControllerUnit('testFC', p, network=self.n)
         self.fc.add_channel('A1', load=.3)
         self.fc.add_channel('A2', load=1)
         self.fc.add_channel('B7', load=.3, warm=10)
@@ -39,6 +39,10 @@ class FirecrackerX10ControllerUnitTest (unittest.TestCase):
         self.assert_(isinstance(self.fc, FirecrackerX10ControllerUnit))
         self.assert_(isinstance(self.fc, X10ControllerUnit))
         self.assert_(isinstance(self.fc, ControllerUnit))
+
+    def test_unit_id(self):
+        "In response to a design change (controller units should track their on ID)."
+        self.assertEqual(self.fc.id, 'testFC')
 
     def testFirstInit(self):
         self.fc.initialize_device()

@@ -10,7 +10,7 @@ class LynX10ControllerUnitTest (unittest.TestCase):
     def setUp(self):
         self.n = TestNetwork()
         p = PowerSource('testpower', amps=12)
-        self.x10 = LynX10ControllerUnit(p, network=self.n)
+        self.x10 = LynX10ControllerUnit('LX', p, network=self.n)
         self.x10.add_channel('A1', load=.3)
         self.x10.add_channel('A2', load=1)
         self.x10.add_channel('B7', load=.3, warm=20)
@@ -19,6 +19,9 @@ class LynX10ControllerUnitTest (unittest.TestCase):
     def tearDown(self):
         self.x10 = None
         self.n = None
+
+    def test_unit_id(self):
+        self.assertEqual(self.x10.id, 'LX')
 
     def testCons(self):
         self.assertEqual(self.x10.type, 'LynX-10/TW523 Controller')

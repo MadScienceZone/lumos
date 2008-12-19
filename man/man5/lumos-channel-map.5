@@ -1,0 +1,150 @@
+.TH LUMOS-CHANNEL-MAP 5
+.SH NAME
+Lumos Channel Map File \- Assignment of Vixen Channels to Lumos Channels
+.SH SYNOPSIS
+.LP
+.B #Comment
+.LP
+.IB idx , name , controller , channel
+.SH DESCRIPTION
+.LP
+This document describes the format of files used by Lumos to define
+mappings between channels referenced by external sequence sources
+(e.g., Vixen sequence files) and Lumos channels used by a particular
+show.
+.LP
+The overall file format is standard CSV (comma-separated value).
+This allows you to edit the file using a spreadsheet program
+(e.g., OpenOffice Calc or Microsoft Office Excel) if that's 
+preferred, so long as you save the file into CSV format.
+.LP
+Specifically:
+.TP 
+(1)
+The file is organized into a sequential collection of records,
+each describing a single \*(lqmapping\*(rq or \*(lqcomment\*(rq
+(q.v.).  Each record is stored on a single line (terminated by
+a carriage-return and linefeed) of the file.
+.TP 
+(2)
+Each record is further divided into \*(lqfields\*(rq, separated
+from one another by commas 
+.RB ( , ).
+.TP 
+(3)
+If a data field itself contains one or more commas, it must be
+enclosed in double quote characters 
+.RB ( \(dq ).  
+Surrounding other
+data fields in quotes is permitted but not required.
+.TP
+(4)
+Literal double-quote characters inside a quoted field are
+specified by doubling them
+.RB ( \(dq\(dq ),
+for example:
+.RS
+.B "12,\(dqChannel \(dq\(dqX\(dq\(dq...\(dq,a,0"
+.RE
+.TP
+(5)
+A newline may appear inside a quoted field.  That field, including
+the newline, continues on the next line of the file.  This is discouraged
+and not guaranteed to be supported in future versions.
+.TP
+(6)
+All data in the file should be printable ASCII characters.
+.TP
+(7)
+Blank space around commas should
+.I not
+be included in the file unless you intend for the field
+contents to include those spaces as part of the data
+field.
+.SS Comments
+.LP
+Any record whose first field begins with a 
+.B #
+character is assumed to be a comment, and the entire record
+is ignored.  Be aware, however, that all the rules
+for the CSV file format must still be adhered to.
+.SS Mappings
+.LP
+A mapping record describes a single assignment of an external
+(e.g., Vixen) output channel to a single Lumos channel:
+.RS
+.IB idx , name , controller , channel
+.RE
+The source (Vixen) channel is specified in the first two fields, which 
+are:
+.TP 13
+.I idx
+The index number of the channel.  The first channel appearing in the
+sequence file is number 0, the next is 1, and so on.
+.TP
+.I name
+The text name of the channel as displayed in the Vixen sequence editing grid.
+.LP
+If you generate this file via 
+.B vixen2lumos
+with the
+.B \-\-genmap
+option, both
+.I idx
+and
+.I name
+fields will be filled in.  However, it is permitted for one of these to 
+be empty.  If only
+.I idx
+is given, whatever channel is in that position in the sequence file will 
+be used.  If 
+.I name
+is given, the channel with that name is found.  If both are used, they must
+both apply (i.e., the named channel must be at that index position in the file).
+.LP
+The same source channel may not be mapped more than one time, however multiple
+source channels may be mapped to the same destination channel (although this
+might not be useful).
+.LP
+The destination channel is specified by the third and fourth fields:
+.TP 13
+.I controller
+The name of the controller supplying this channel, as defined in the Lumos
+show configuration file.
+.TP
+.I channel
+The channel name within the designated controller.
+.SH EXAMPLE
+.LP
+A mapping from the first three Vixen channels (called
+\*(lqA\*(rq, \*(lqB\*(rq, and \*(lqC\*(rq) to, respectively,
+Lumos controller \*(lqfloods\*(rq channel 12 and \*(lqtrees\*(rq
+channels 1 and 2, would look like this:
+.LP
+.RS
+.nf
+.na
+# Lumos map file for my show
+0,A,floods,12
+1,B,trees,1
+2,C,trees,2
+.ad
+.fi
+.RE
+.LP
+.SH VERSION
+.LP
+This documents the Lumos mapping file version 1, for software version 1.1.  Not 
+released yet.
+.SH "SEE ALSO"
+.LP
+.BR lumos (1),
+.BR vixen2lumos (1).
+.SH AUTHOR
+.LP
+Steve Willoughby / steve@alchemy.com
+.SH HISTORY
+.LP
+This file format first appeared for
+.B vixen2lumos
+as part of the 1.1 software release.

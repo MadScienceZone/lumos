@@ -5,6 +5,7 @@ from Lumos.Device.SSR48ControllerUnit  import SSR48ControllerUnit
 from Lumos.Device.FirecrackerX10ControllerUnit import FirecrackerX10ControllerUnit
 from Lumos.Device.RenardControllerUnit import RenardControllerUnit
 from Lumos.Device.Olsen595ControllerUnit import Olsen595ControllerUnit
+from Lumos.Device.FireGodControllerUnit import FireGodControllerUnit
 #
 # List of supported controller device drivers, mapping the name as used
 # in the show.conf file (and other interfaces) to the actual class
@@ -16,6 +17,7 @@ supported_controller_types = {
     'cm17a':    FirecrackerX10ControllerUnit,
     'renard':   RenardControllerUnit,
     'olsen595': Olsen595ControllerUnit,
+    'firegod':  FireGodControllerUnit,
 }
 
 def controller_unit_factory(type, **kwargs):

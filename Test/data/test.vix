@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Program>
+  <Time>25208</Time>
+  <EventPeriodInMilliseconds>250</EventPeriodInMilliseconds>
+  <MinimumLevel>0</MinimumLevel>
+  <MaximumLevel>255</MaximumLevel>
+  <AudioDevice>-1</AudioDevice>
+  <AudioVolume>0</AudioVolume>
+  <Channels>
+    <Channel color="-65536" output="0" id="633619151491875000" enabled="True">A</Channel>
+    <Channel color="-16711936" output="1" id="633619151492031250" enabled="True">Two</Channel>
+    <Channel color="-16776961" output="2" id="633619151492187500" enabled="True">Channel 3</Channel>
+    <Channel color="-1" output="3" id="633619151492343750" enabled="True">Di Si</Channel>
+    <Channel color="-65536" output="4" id="633619151492500000" enabled="True">Channel V</Channel>
+  </Channels>
+  <PlugInData>
+    <PlugIn name="Olsen 595" key="976887715" id="0" enabled="True" from="1" to="5">
+      <parallel1 from="1" to="3" />
+      <parallel2 from="0" to="0" />
+      <parallel3 from="0" to="0" />
+    </PlugIn>
+    <PlugIn name="FG Dimmer" key="-1259862514" id="1" enabled="True" from="1" to="5">
+      <Serial>
+        <Name>COM1</Name>
+        <Baud>115200</Baud>
+        <Parity>None</Parity>
+        <Data>8</Data>
+        <Stop>One</Stop>
+      </Serial>
+      <HoldPort>False</HoldPort>
+      <ACOperation>False</ACOperation>
+      <Modules>
+        <Module enabled="True" id="1" start="4" />
+        <Module enabled="False" id="2" />
+        <Module enabled="False" id="3" />
+        <Module enabled="False" id="4" />
+      </Modules>
+    </PlugIn>
+  </PlugInData>
+  <SortOrders lastSort="-1" />
+  <Audio filename="v_clip.mp3" duration="25208">v_clip.mp3</Audio>
+  <EventValues>AAAAAAAAAAAA/wAAAAAAAAAAAAAAAAAAAAAAAAD/AAAAAAAAAP8AAAAAAAD/AAAAAAAA/wAAAAAAAAD/AAD/AP8AAAAA/wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFy5FXHOLornQ5///2raRbUgkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/wAAAAAA/wAAAAAAAAAA//8AAAAAAAAAAAAAAAAAAAAAAAD/AAAAAAAAAAD/AAAAAAAA/////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/wAAAAAAAAAAAAAAAAAAAAD/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==</EventValues>
+  <LoadableData />
+  <EngineType>Standard</EngineType>
+  <Extensions>
+    <Extension type=".vix" />
+  </Extensions>
+  <WindowSize>1604,1158</WindowSize>
+  <ChannelWidth>300</ChannelWidth>
+</Program>

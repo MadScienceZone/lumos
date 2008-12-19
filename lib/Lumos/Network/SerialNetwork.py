@@ -95,7 +95,7 @@ class SerialNetwork (Network):
             rtscts=self.rtscts)
 
     def send(self, cmd):
-        raise self.dev.write(cmd)
+        return self.dev.write(cmd)
 
     def close(self):
         self.dev.close()

@@ -30,10 +30,10 @@ class FireGodControllerUnit (ControllerUnit):
     appreciate any feedback you'd like to offer about this driver,
     if you're willing to try it and help us test/debug this code.
     """
-    def __init__(self, power, network, address, resolution=101, channels=32):
+    def __init__(self, id, power, network, address, resolution=101, channels=32):
         """
         Constructor for a FireGod dimmable 128-channel SSR board object:
-            FireGodControllerUnit(power, network, address, [resolution], [channels])
+            FireGodControllerUnit(power, id, network, address, [resolution], [channels])
 
         Specify the correct PowerSource object for this unit and
         the module address (1-4).  The number of channels defaults to 32, but this
@@ -45,11 +45,12 @@ class FireGodControllerUnit (ControllerUnit):
         use 101 dimmer levels (0%-100%), so that's the default for that parameter.
         """
 
-        ControllerUnit.__init__(self, power, network, resolution)
+        ControllerUnit.__init__(self, id, power, network, resolution)
         self.address = int(address)
         self.type = 'FireGod SSR Controller (%d channels)' % channels
         self.channels = [None] * channels
         self.update_pending = False
+        self.iter_channels = self._iter_non_null_channel_list
 
         if not 1 <= self.address <= 4:
             raise ValueError("Address %d out of range for a FireGod SSR Controller Module" % self.address)
@@ -57,8 +58,11 @@ class FireGodControllerUnit (ControllerUnit):
     def __str__(self):
         return "%s, module #%d (%d channels)" % (self.type, self.address, len(self.channels))
 
-    def iter_channels(self):
-        return range(len(self.channels))
+    def channel_id_from_string(self, channel):
+        return int(channel)
+
+    #def iter_channels(self):
+        #return range(len(self.channels))
 
     def add_channel(self, id, name=None, load=None, dimmer=True, warm=None, resolution=None):
         try:

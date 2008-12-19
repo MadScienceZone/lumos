@@ -34,10 +34,10 @@ class RenardControllerUnit (ControllerUnit):
     appreciate any feedback you'd like to offer about this driver,
     if you're willing to try it and help us test/debug this code.
     """
-    def __init__(self, power, network, address, resolution=256, channels=64):
+    def __init__(self, id, power, network, address, resolution=256, channels=64):
         """
         Constructor for a Renard SSR board object:
-            RenardControllerUnit(power, network, address, [resolution], [channels])
+            RenardControllerUnit(id, power, network, address, [resolution], [channels])
 
         Specify the correct PowerSource object for this unit and
         the unit address (0-127).  (We will call the first unit address 0,
@@ -53,14 +53,18 @@ class RenardControllerUnit (ControllerUnit):
         use 256 dimmer levels, so that's the default for that parameter.
         """
 
-        ControllerUnit.__init__(self, power, network, resolution)
+        ControllerUnit.__init__(self, id, power, network, resolution)
         self.address = int(address)
         self.type = 'Renard SSR Controller (%d channels)' % channels
         self.channels = [None] * channels
         self.update_pending = False
+        self.iter_channels = self._iter_non_null_channel_list
 
         if not 0 <= self.address < 127:
             raise ValueError("Address %d out of range for a Renard SSR Controller" % self.address)
+
+    def channel_id_from_string(self, channel):
+        return int(channel)
 
     def __str__(self):
         return "%s, address=%d (%d channels)" % (self.type, self.address, len(self.channels))
@@ -122,8 +126,8 @@ class RenardControllerUnit (ControllerUnit):
                     self.send_escaped_int(channel.level)
             self.update_pending = False
 
-    def iter_channels(self):
-        return range(len(self.channels))
+    #def iter_channels(self):
+        #return range(len(self.channels))
 
     def send_escaped_int(self, i):
         if i is None: i = 0

@@ -8,9 +8,10 @@ class ControllerUnit (object):
     This class describes attributes and behaviors common to all controller 
     unit types.
     """
-    def __init__(self, power, network, resolution=100):
+    def __init__(self, id, power, network, resolution=100):
         """
         Constructor for basic controller units.
+        id:          the ID tag this unit instance is known by.
         power:       a PowerSource instance describing the power 
                      feed for this unit.
         network:     a Network instance describing the communications
@@ -18,10 +19,18 @@ class ControllerUnit (object):
         resolution:  default dimmer resolution for channels of this 
                      device. [def=100]
         """
+        self.id = id
         self.power_source = power
         self.channels = {}
         self.resolution = resolution
         self.network = network
+
+    def channel_id_from_string(self, channel):
+        '''Given a string with a channel name, return the proper channel
+        ID this device wants to see.  This may be, for example, an
+        integer value instead of a character string with digits in it.'''
+
+        raise NotImplementedError("Subclasses of ControllerUnit must define a channel_id_from_string() method.")
 
     def add_channel(self, id, name=None, load=None, dimmer=True, warm=None, resolution=None):
         """
@@ -75,3 +84,14 @@ class ControllerUnit (object):
     def iter_channels(self):
         "Iterate over the list of channel IDs, not necessarily in any order."
         return iter(self.channels)
+
+    def _iter_non_null_channel_list(self):
+        '''For units where the channel list is a linear list of objects,
+        this method implements an generator function which will return the
+        channel IDs which are actually initialized.  So, for example, if
+        a unit had 48 physical channels but only 13 were set up in a show
+        profile, only those 13 would be returned.'''
+
+        for i in range(len(self.channels)):
+            if self.channels[i] is not None:
+                yield i

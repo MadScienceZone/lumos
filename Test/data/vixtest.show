@@ -1,0 +1,44 @@
+; show conf file for vixen import test(s)
+[show]
+powersources=x
+networks=y
+title=Test show config
+description=This is used for our unit/acceptance/integration tests.
+
+[power x]
+amps=20
+gfci=yes
+
+[net y]
+description=A network
+type=serial
+port=0
+baudrate=19200
+units=x10 fg12
+
+[unit x10]
+power=x
+type=lynx10
+
+[unit fg12]
+power=x
+type=firegod
+address=1
+
+[chan x10.f3]
+name=X10 F3
+load=.3
+
+[chan x10.M4]
+name=X10 M4
+load=.3
+
+[chan fg12.0]
+name=foo
+load=.1
+[chan fg12.2]
+name=foo
+load=.1
+[chan fg12.17]
+name=foo
+load=.1

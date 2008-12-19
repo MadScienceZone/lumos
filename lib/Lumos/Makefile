@@ -1,4 +1,4 @@
-DIRLIST=Device GUI Network
+DIRLIST=Device GUI Network Extras
 
 clean:
 	rm -f *.pyc

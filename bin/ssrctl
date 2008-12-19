@@ -1,0 +1,233 @@
+#!/usr/bin/python
+# vi:set ai sm nu ts=4 sw=4 expandtab:
+#_______________________________________________________________________ 
+#                                                                 Lumos #
+#                                                                 0.0.0 #
+#                                                           SSR Control #
+#                                                               Utility #
+#_______________________________________________________________________#
+#
+# Load and play a sequence of events in real time
+
+import Lumos
+from Lumos.Show import Show
+from optparse import OptionParser
+import sys, re
+#@@REL@@sys.tracebacklimit=0
+
+#========================================================================
+# Command-line option processing
+#========================================================================
+
+# commands:
+#  [<unit>|*][.<channel>|*][=<value>[/msec] | ? | k]
+#  
+parser = OptionParser(usage="%prog [-hTvz] [-c config] [commands...]", version='0.0')
+parser.add_option('-c', '--config',  metavar='FILE', help='Specify config file [./lumos.conf]')
+parser.add_option('-T', '--test',    action='store_true', help="Describe actions, don't actually do them")
+parser.add_option('-v', '--verbose', action='store_true', help='Enable more descriptive output')
+parser.add_option('-z', '--zero',    action='store_true', help='Zero all channels first')
+parser.set_defaults(config='lumos.conf')
+(options, command_list) = parser.parse_args()
+
+#========================================================================
+# Create show object from config file
+#========================================================================
+
+show = Show()
+show.load_file(options.config, open_device=(not options.test))
+
+#========================================================================
+# Functions to support --test mode (real time trace of what actions
+# would have been taken on a real run)
+#========================================================================
+
+def trace_event_format(func, arglist):
+    '''
+Output format for traced events via --test option:
+::TEST:: <controller>: <action>
+    '''
+    try:
+        obj_name = func.im_self.id
+    except:
+        try:
+            obj_name = 'unknown ' + `func`
+        except:
+            obj_name = 'unknown'
+
+    return obj_name + ": " + func.__name__ + `arglist`
+    
+
+#========================================================================
+# Play each sequence
+#========================================================================
+
+if options.verbose:
+    print "Lumos SSR Control Utility, version", parser.version
+    print "Show:", show.title
+    print "     ", show.description
+
+interactive_mode = False
+if len(command_list) == 0:
+    interactive_mode = True
+
+def set_target(target_name):
+    '''Parses a target in the form [unit.][channel], handles
+    defaults, and returns the target controller unit object.'''
+    global current_unit, current_channel, show
+
+    m = re.match(r'((\w+)\.)?(\w+)?', target_name)
+    if m:
+        if m.group(2):
+            current_unit = m.group(2)
+            current_channel = None
+        if m.group(3):
+            current_channel = m.group(3)
+
+    if current_unit is None:
+        raise KeyError("No controller unit specified.")
+
+    if current_unit != '*':
+        if current_unit not in show.controllers:
+            raise KeyError("No such controller unit '%s' exists." % current_unit)
+
+#        device = show.controllers[current_unit]
+
+def fail(message):
+    global interactive_mode
+
+    if interactive_mode:
+        print message
+    else:
+        print >>sys.stderr, "Fatal error:", message
+        sys.exit(1)
+
+
+def do_command(command):
+    #
+    # Interpret a command from standard input or the command line.
+    #
+    # A command consists of these parts:
+    # [<unit>.]
+    #   unit name ("*" for all units).  If no unit is specified, use
+    #   the unit from the previous command.
+    # [<channel>]
+    #   channel name or number ("*" for all channels of the unit)
+    #   If no channel is specified, use the channel from the previous
+    #   command.
+    # <action>
+    #   What to do to the specified unit(s)/channel(s). This can be
+    #   one of the following:
+    #     =<value>[/<time>]
+    #       set output level to <value> percent (a floating point value
+    #       between 0 and 100).  Normally this is instantaneous, but if
+    #       you want to gradually effect the change, append a slash
+    #       followed by an integer number of milliseconds during which
+    #       the transition should take place.
+    #     :k
+    #       kill channel (may be different from "=0" for some kinds 
+    #       of devices.  Kills power even if a "warm" configuration
+    #       specifies a minimum value, which is different from "=0".
+    #     :p
+    #       print the current state of the channel(s).
+    #     :x
+    #       turn OFF channel (may be different from "=0" for some kinds
+    #       of devices).  Respects "warm" configuration values.
+    #
+    m = re.match(r'((?P<unit>(\w+))\.)?(?P<channel>\w+)?(=(?P<level>\d+(\.\d+)?)(/(?P<time>\d+))?|:(?P<cmd>[kpx]))', command)
+    if not m:
+        fail("Can't understand command \"" + command + '"')
+        return
+
+    if m.group('level'):
+        # EVENT unit,channel,level,time
+    elif m.group('cmd') == 'k':
+        # send kill
+    elif m.group('cmd') == 'p':
+        # show channel
+    elif m.group('cmd') == 'x':
+        # send off
+
+#
+#
+#
+#
+#    colon = command.find(':')
+#    if colon >= 0:
+#        set_target(command[:colon])
+#        if command[colon+1:] == "k":
+#            # kill channel(s) on controller
+#        elif command[colon+1:] == "p":
+#            # print state of channel
+#    else:
+#        equals = command.find('=')
+#        if equals >= 0:
+#            set_target(command[:equals])
+#            slash = 
+#            new_value, time_interval = command[equals:].split('/', maxsplit=1)
+#            if time_interval 
+#
+#    
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#    sequence = Sequence()
+#    sequence.load_file(file, show.controllers)
+#    if options.verbose:
+#        print 'Sequence "%s": duration %s; %d intervals' % (
+#            file, trace_time_stamp(sequence.total_time),
+#            len(sequence.intervals)
+#        )
+#    schedule = sched.scheduler(time.time, time.sleep)
+#    if options.test:
+#        # queue up event trace calls, paying as much runtime penalty
+#        # as possibe NOW instead of during playback
+#        print trace_event_header()
+#        for time_stamp, method, arglist in sequence.compile():
+#            schedule.enter(time_stamp / 1000.0, 0, trace_event, 
+#                (trace_event_format(time_stamp, method, arglist),))
+#        start_point = time.time()
+#    else:
+#        for time_stamp, method, arglist in sequence.compile():
+#            schedule.enter(time_stamp / 1000.0, 0, method, arglist)
+#
+#    schedule.run()
+#
+#if options.verbose:
+#    print "Scene complete."
+
+if interactive_mode:
+    print '''Lumos SSR Control Utility
+To set a channel's level:
+   > [[controller.]channel]=percentage[/time]
+   If time given, make change over that many milliseconds
+To turn a channel OFF (may be different than 0% level)
+   > [[controller.]channel]:x
+To kill a channel's output (like off/0% but ignores "warm" level)
+   > [[controller.]channel]:k
+To print current state of a channel
+   > [[controller.]channel]:p
+
+If controller or channel name omitted, reuse one from previous command.
+Either controller or channel may be "*", which means "all".  So, turning
+all outputs on all controllers fully off is "*.*:k".
+
+Type EOF (^D on unix; ^Z on Windows/DOS) to quit.
+'''
+
+
+    while True:
+        try:
+            do_command(raw_input("> "))
+        except EOFError:
+            print
+            sys.exit(0)
+else:
+    for command in command_list:
+        do_command(command)

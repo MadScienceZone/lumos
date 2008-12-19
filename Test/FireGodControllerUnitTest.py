@@ -8,7 +8,7 @@ class FireGodControllerUnitTest (unittest.TestCase):
     def setUp(self):
         self.n = TestNetwork()
         p = PowerSource('testpower', amps=1)
-        self.ssr = FireGodControllerUnit(p, address=2, network=self.n)
+        self.ssr = FireGodControllerUnit('fg', p, address=2, network=self.n)
         self.ssr.add_channel(0, load=.3)
         self.ssr.add_channel(1, load=1)
         self.ssr.add_channel(2, load=.3, warm=10)
@@ -17,6 +17,9 @@ class FireGodControllerUnitTest (unittest.TestCase):
     def tearDown(self):
         self.ssr = None
         self.n = None
+
+    def test_unit_id(self):
+        self.assertEqual(self.ssr.id, 'fg')
 
     def testInit(self):
         self.ssr.kill_all_channels()
@@ -104,4 +107,4 @@ class FireGodControllerUnitTest (unittest.TestCase):
 
     # test that it doesn't send redundant changes
     def test_iterator(self):
-        self.assertEquals(sorted(self.ssr.iter_channels()), range(32))
+        self.assertEquals(sorted(self.ssr.iter_channels()), [0, 1, 2, 3])

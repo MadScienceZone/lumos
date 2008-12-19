@@ -1,0 +1,112 @@
+#!/usr/bin/python
+# vi:set ai sm nu ts=4 sw=4 expandtab:
+#_______________________________________________________________________ 
+#                                                                 Lumos #
+#                                                                 0.0.0 #
+#                                                              Sequence #
+#                                                                Player #
+#_______________________________________________________________________#
+#
+# Load and play a sequence of events in real time
+
+import Lumos
+from Lumos.Show import Show
+from Lumos.Sequence import Sequence
+from optparse import OptionParser
+import sys, sched, time
+#@@REL@@sys.tracebacklimit=0
+
+#========================================================================
+# Command-line option processing
+#========================================================================
+
+parser = OptionParser(usage="%prog [-hTv] [-c config] sequence-files...", version='0.0')
+parser.add_option('-c', '--config',  metavar='FILE', help='Specify config file [./lumos.conf]')
+parser.add_option('-T', '--test',    action='store_true', help="Describe playback, don't actually do it")
+parser.add_option('-v', '--verbose', action='store_true', help='Enable more descriptive output')
+parser.set_defaults(config='lumos.conf')
+(options, files) = parser.parse_args()
+
+#========================================================================
+# Create show object from config file
+#========================================================================
+
+show = Show()
+show.load_file(options.config, open_device=(not options.test))
+
+#========================================================================
+# Functions to support --test mode (real time trace of what actions
+# would have been taken on a real run)
+#========================================================================
+
+def trace_event_format(expected_time, func, arglist):
+    '''
+Output format for traced events via --test option:
+ACTUAL------ SCHEDULED--- CONTROLLER----- ACTION------------------------
+00:00:00.000 00:00:00.000 floodlights     set_channel(17, 0)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+             This function returns this portion of the output
+    '''
+    try:
+        obj_name = func.im_self.id
+    except:
+        try:
+            obj_name = 'unknown ' + `func`
+        except:
+            obj_name = 'unknown'
+
+    return "%s %15s %s%s" % (
+        trace_time_stamp(expected_time), obj_name, func.__name__, arglist)
+    
+
+def trace_event_header():
+    return "ACTUAL------ SCHEDULED--- -----CONTROLLER ACTION------------------------"
+
+def trace_time_stamp(msec):
+    "format and return milliseconds as h:m:s.ms"
+    return "%02d:%02d:%02d.%03d" % (
+        msec / 3600000,
+        (msec / 60000) % 60,
+        (msec / 1000) % 60,
+        msec % 1000
+    )
+
+def trace_event(str):
+    "Describe what the event would do if it were really called."
+
+    print trace_time_stamp((time.time() - start_point) * 1000), str
+
+#========================================================================
+# Play each sequence
+#========================================================================
+
+if options.verbose:
+    print "Lumos Sequence Player, version", parser.version
+    print "Show:", show.title
+    print "     ", show.description
+
+for file in files:
+    sequence = Sequence()
+    sequence.load_file(file, show.controllers)
+    if options.verbose:
+        print 'Sequence "%s": duration %s; %d intervals' % (
+            file, trace_time_stamp(sequence.total_time),
+            len(sequence.intervals)
+        )
+    schedule = sched.scheduler(time.time, time.sleep)
+    if options.test:
+        # queue up event trace calls, paying as much runtime penalty
+        # as possibe NOW instead of during playback
+        print trace_event_header()
+        for time_stamp, method, arglist in sequence.compile():
+            schedule.enter(time_stamp / 1000.0, 0, trace_event, 
+                (trace_event_format(time_stamp, method, arglist),))
+        start_point = time.time()
+    else:
+        for time_stamp, method, arglist in sequence.compile():
+            schedule.enter(time_stamp / 1000.0, 0, method, arglist)
+
+    schedule.run()
+
+if options.verbose:
+    print "Scene complete."

@@ -3,6 +3,7 @@ from unittest import TestSuite, findTestCases
 def suite():
     modules_to_test = (
       'ChannelTest',
+	  'ChannelMapTest',
 	  'ControllersTest',
       'ControllerUnitTest',
 	  'DeviceTest',
@@ -26,6 +27,7 @@ def suite():
 	  'SSR48ControllerUnitTest',
 	  'TestNetworkTest',
 	  'TestParallelNetworkTest',
+	  'VixenSequenceTest',
       'X10ControllerUnitTest'
     )
     suite = TestSuite()

@@ -73,10 +73,14 @@ class Sequence (object):
                     raise InvalidUnitDefinition('Badly formed U record "%s"' % record)
                 if record[1] not in controller_map:
                     raise InvalidUnitDefinition('Unknown controller unit "%s" used in sequence' % record[1])
+                target_controller = controller_map[record[1]]
                 self._controllers.append({
-                    'obj': controller_map[record[1]],
-                    'fld': record[2:]
+                    'obj': target_controller,
+                    'fld': []
                 })
+                # adjust channel names to be of appropriate type for controller
+                for channel_id in record[2:]:
+                    self._controllers[-1]['fld'].append(target_controller.channel_id_from_string(channel_id))
 
             #
             # T,timestamp
@@ -146,10 +150,11 @@ class Sequence (object):
 
     def save_file(self, filename):
         "Save sequence data to the named file."
+        self.save(file(filename, 'wb'))
 
+    def save(self, outputfile):
         self._build_controller_list()
 
-        outputfile = file(filename, 'wb')
         output_csv = csv.writer(outputfile)
 
         output_csv.writerow(('V2','Lumos sequence file "%s"' % outputfile.name))
@@ -173,10 +178,10 @@ class Sequence (object):
         '''Compile the sequence into a ready-to-execute list of
         device updates.  This will return a list of discrete,
         device-specific updates in the form:
-            [(timestamp, controller_object, method, arglist), ...]
+            [(timestamp, method, arglist), ...]
         To play the sequence on the actual hardware, all you
         need to do at that point is to make each method call:
-            controller_object.method(*arglist)
+            method(*arglist)
         when <timestamp> milliseconds have elapsed.
 
         This will resolve all the high-level concepts from the
@@ -202,43 +207,70 @@ class Sequence (object):
         '''
 
         self._build_controller_list()
-        current_state = {}
+        current_state = {}  # current raw dimmer level for each channel
         ev_list = []
 
         for timestamp in sorted(self._event_list):
+            #print "==", timestamp, "==", len(self._event_list[timestamp]), "events"
             for event in self._event_list[timestamp]:
                 unit_list = [event.unit] if event.unit is not None else [i['obj'] for i in self._controllers]
+                #print "EVENT", event, "units:", unit_list
                 for target_unit in unit_list:
                     channel_list = [event.channel] if event.channel is not None else sorted(target_unit.iter_channels())
                     if event.channel is None and event.level == 0 and event.delta == 0:
+                        #print "(adding all-channel-off event)"
                         ev_list.append((timestamp, target_unit.all_channels_off, ()))
                     else:
-                        if event.delta == 0:
-                            for channel in channel_list:
-                                ev_list.append((timestamp, target_unit.set_channel, (channel, 
-                                    target_unit.channels[channel].raw_dimmer_level(event.level))))
-                        else:
-                            for channel in channel_list:
-                                start_value = target_unit.channels[channel].raw_dimmer_level(
-                                    current_state.setdefault((target_unit.id, channel), 0))
-                                fade_steps = abs(start_value - event.value)
-                                fade_incr = 1 if start_value < event.value else -1
+                        #print "(adding channel event...)"
+                        for channel in channel_list:
+                            #print "...channel", channel
+                            if target_unit.channels[channel] is None:
+                                raise InvalidEvent("Sequence uses channel %s.%s which is not configured." % (
+                                    target_unit.id, channel))
+
+                            start_raw_value = current_state.setdefault((target_unit.id, channel), 
+                                target_unit.channels[channel].raw_dimmer_value(0))
+                            end_raw_value = target_unit.channels[channel].raw_dimmer_value(event.level)
+
+                            #print "...start:", start_raw_value, "end:", end_raw_value, "time:", event.delta
+
+                            if event.delta == 0:
+                                if start_raw_value != end_raw_value:
+                                    #print "Adding set event: unit %s ch %s -> %d (%d)" % (
+                                    #    target_unit.id, repr(channel), event.level, end_raw_value)
+                                    ev_list.append((timestamp, target_unit.set_channel, (channel, end_raw_value)))
+                            else:
+                                fade_steps = abs(start_raw_value - end_raw_value)
+                                fade_incr = 1 if start_raw_value < end_raw_value else -1
+
                                 if fade_steps == 1:
+                                    #print "Adding fade sequence (one-step) for %d-%d: unit %s ch %s" % (
+                                    #    start_raw_value, end_raw_value, target_unit.id, repr(channel))
                                     ev_list.append((timestamp + event.delta, target_unit.set_channel,
-                                        (channel, target_unit.channels[channel].raw_dimmer_level(event.level))))
+                                        (channel, end_raw_value)))
+
                                 if fade_steps > 1:
                                     for i in range(fade_steps):
+                                        #print "Adding fade sequence step %d of %d in %d-%d: unit %s ch %s" % (
+                                        #    i+1, fade_steps, start_raw_value, end_raw_value, target_unit.id, repr(channel))
                                         ev_list.append((timestamp + ((event.delta * i) / (fade_steps - 1)),
                                             target_unit.set_channel,
-                                            (channel, target_unit.channels[channel].raw_dimmer_level(
-                                                start_value + (fade_incr * (i + 1))))))
+                                            (channel, start_raw_value + (fade_incr * (i + 1)))))
 
-                        for channel in channel_list:
-                            current_state[(target_unit.id,channel)] = event.level
+                    for channel in channel_list:
+                        if target_unit.channels[channel] is None:
+                            continue
+                        current_state[(target_unit.id,channel)] = target_unit.channels[channel].raw_dimmer_value(event.level)
+                        #print "setting current(", target_unit.id, ",", channel, ") to", target_unit.channels[channel].raw_dimmer_value(event.level)
 
-            return ev_list
+        return ev_list
 
             # [(2000*i)/13 for i in range(14)]
+
+
+    def add(self, timestamp, event_obj):
+        "Add a new event to the sequence."
+        self._event_list.setdefault(timestamp, []).append(event_obj)
 
     def __getattr__(self, name):
         if name == 'intervals':

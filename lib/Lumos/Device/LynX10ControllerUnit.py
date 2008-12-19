@@ -182,8 +182,8 @@ from Lumos.Device.X10ControllerUnit import X10ControllerUnit
 #   adjust them.  This will use the flush function
 
 class LynX10ControllerUnit (X10ControllerUnit):
-    def __init__(self, power, network, resolution=16):
-        X10ControllerUnit.__init__(self, power, network, resolution)
+    def __init__(self, id, power, network, resolution=16):
+        X10ControllerUnit.__init__(self, id, power, network, resolution)
         self.type = 'LynX-10/TW523 Controller'
 
     def _x10_to_lynx_id(self, x10_id):

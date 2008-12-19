@@ -5,27 +5,31 @@ class SSR48ControllerUnit (ControllerUnit):
     """
     ControllerUnit subclass for my custom 48-channel SSR boards.
     """
-    def __init__(self, power, network, address, resolution=32):
+    def __init__(self, id, power, network, address, resolution=32):
         """
         Constructor for a 48-Channel SSR board object:
-            SSR48ControllerUnit(power, address, [resolution])
+            SSR48ControllerUnit(id, power, address, [resolution])
 
         Specify the correct PowerSource object for this unit and
         the unit address (0-15).  The resolution defaults to 32,
         which is correct for the 3.1 revision of the boards.
         """
 
-        ControllerUnit.__init__(self, power, network, resolution)
+        ControllerUnit.__init__(self, id, power, network, resolution)
         self.address = int(address)
         self.type = '48-Channel SSR Controller'
+        self.iter_channels = self._iter_non_null_channel_list
         if not 0 <= self.address <= 15:
             raise ValueError, "Address %d out of range for 48-Channel SSR Controller" % self.address
 
     def __str__(self):
         return "%s, address=%d" % (self.type, self.address)
 
-    def iter_channels(self):
-        return range(48)
+    def channel_id_from_string(self, channel):
+        return int(channel)
+
+    #def iter_channels(self):
+    #    return range(48)
 
     def add_channel(self, id, name=None, load=None, dimmer=True, warm=None, resolution=None):
         try:

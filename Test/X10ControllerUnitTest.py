@@ -11,11 +11,14 @@ class X10ControllerUnitTest (unittest.TestCase):
     def setUp(self):
         self.n = TestNetwork()
         p = PowerSource('testpower', amps=12)
-        self.x10 = X10ControllerUnit(p, network=self.n)
+        self.x10 = X10ControllerUnit('myx10', p, network=self.n)
 
     def tearDown(self):
         self.x10 = None
         self.n = None
+
+    def test_unit_id(self):
+        self.assertEquals(self.x10.id, 'myx10')
 
     def testCons(self):
         self.assertEqual(self.x10.type, 'X-10 Controller')

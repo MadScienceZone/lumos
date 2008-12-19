@@ -8,7 +8,7 @@ class Olsen595ControllerUnitTest (unittest.TestCase):
     def setUp(self):
         self.n = TestParallelNetwork()
         p = PowerSource('testpower', amps=1)
-        self.ssr = Olsen595ControllerUnit(p, network=self.n, channels=8)
+        self.ssr = Olsen595ControllerUnit('o595', p, network=self.n, channels=8)
         self.ssr.add_channel(0, load=.3)
         self.ssr.add_channel(1, load=1)
         self.ssr.add_channel(2, load=.3)
@@ -21,6 +21,9 @@ class Olsen595ControllerUnitTest (unittest.TestCase):
     def testFirstInit(self):
         self.ssr.initialize_device()
         self.assertEqual(self.n.buffer, "00000000X")
+
+    def test_unit_id(self):
+        self.assertEqual(self.ssr.id, 'o595')
 
     def testInit(self):
         self.ssr.kill_all_channels()

@@ -91,6 +91,7 @@ class Show (object):
                     'power': 'objlist',
                     'type':  'ignore'
                 }, self.power_sources)
+                unit_args['id'] = unit_ID
                 self.networks[net_ID].add_unit(unit_ID, controller_unit_factory(
                     unit_type, network=self.networks[net_ID], **unit_args))
                 self.controllers[unit_ID] = self.networks[net_ID].units[unit_ID]
@@ -447,7 +448,7 @@ class Show (object):
             print >>file, "[unit %s]" % unitID
 #           print >>file, 'network=%s' % unit_network_id[unitID]
             print >>file, 'power=%s' % o.power_source.id
-            dump_object_constructor(file, o, supported_controller_types, skip=('power', 'network'))
+            dump_object_constructor(file, o, supported_controller_types, skip=('power', 'network', 'id'))
             print >>file
             global_channel_list[unitID] = o.channels
         print >>file, '''

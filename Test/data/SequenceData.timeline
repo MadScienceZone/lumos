@@ -1,0 +1,1464 @@
+       0 ()         <bound method FireGodControllerUnit.all_channels_off of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+       0 ()         <bound method LynX10ControllerUnit.all_channels_off of <Lumos.Device.LynX10ControllerUnit.LynX10ControllerUnit object at 0xb7bdb62c>>
+
+    1000 (0, 100)   <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    1000 ('C7', 1)  <bound method LynX10ControllerUnit.set_channel of <Lumos.Device.LynX10ControllerUnit.LynX10ControllerUnit object at 0xb7bdb62c>>
+
+    1142 ('C7', 2)  <bound method LynX10ControllerUnit.set_channel of <Lumos.Device.LynX10ControllerUnit.LynX10ControllerUnit object at 0xb7bdb62c>>
+
+    1285 ('C7', 3)  <bound method LynX10ControllerUnit.set_channel of <Lumos.Device.LynX10ControllerUnit.LynX10ControllerUnit object at 0xb7bdb62c>>
+
+    1428 ('C7', 4)  <bound method LynX10ControllerUnit.set_channel of <Lumos.Device.LynX10ControllerUnit.LynX10ControllerUnit object at 0xb7bdb62c>>
+
+    1571 ('C7', 5)  <bound method LynX10ControllerUnit.set_channel of <Lumos.Device.LynX10ControllerUnit.LynX10ControllerUnit object at 0xb7bdb62c>>
+
+    1714 ('C7', 6)  <bound method LynX10ControllerUnit.set_channel of <Lumos.Device.LynX10ControllerUnit.LynX10ControllerUnit object at 0xb7bdb62c>>
+
+    1857 ('C7', 7)  <bound method LynX10ControllerUnit.set_channel of <Lumos.Device.LynX10ControllerUnit.LynX10ControllerUnit object at 0xb7bdb62c>>
+
+    2000 (0, 0)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    2000 (1, 100)   <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    2000 ('C7', 8)  <bound method LynX10ControllerUnit.set_channel of <Lumos.Device.LynX10ControllerUnit.LynX10ControllerUnit object at 0xb7bdb62c>>
+
+    2142 ('C7', 9)  <bound method LynX10ControllerUnit.set_channel of <Lumos.Device.LynX10ControllerUnit.LynX10ControllerUnit object at 0xb7bdb62c>>
+
+    2285 ('C7', 10) <bound method LynX10ControllerUnit.set_channel of <Lumos.Device.LynX10ControllerUnit.LynX10ControllerUnit object at 0xb7bdb62c>>
+
+    2428 ('C7', 11) <bound method LynX10ControllerUnit.set_channel of <Lumos.Device.LynX10ControllerUnit.LynX10ControllerUnit object at 0xb7bdb62c>>
+
+    2571 ('C7', 12) <bound method LynX10ControllerUnit.set_channel of <Lumos.Device.LynX10ControllerUnit.LynX10ControllerUnit object at 0xb7bdb62c>>
+
+    2714 ('C7', 13) <bound method LynX10ControllerUnit.set_channel of <Lumos.Device.LynX10ControllerUnit.LynX10ControllerUnit object at 0xb7bdb62c>>
+
+    2857 ('C7', 14) <bound method LynX10ControllerUnit.set_channel of <Lumos.Device.LynX10ControllerUnit.LynX10ControllerUnit object at 0xb7bdb62c>>
+
+    3000 (1, 0)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    3000 (2, 100)   <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    3000 ('C7', 15) <bound method LynX10ControllerUnit.set_channel of <Lumos.Device.LynX10ControllerUnit.LynX10ControllerUnit object at 0xb7bdb62c>>
+
+    4000 (2, 0)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    4000 (3, 100)   <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5000 (0, 1)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5010 (0, 2)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5020 (0, 3)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5030 (0, 4)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5040 (0, 5)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5050 (0, 6)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5060 (0, 7)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5070 (0, 8)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5080 (0, 9)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5090 (0, 10)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5101 (0, 11)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5111 (0, 12)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5121 (0, 13)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5131 (0, 14)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5141 (0, 15)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5151 (0, 16)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5161 (0, 17)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5171 (0, 18)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5181 (0, 19)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5191 (0, 20)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5202 (0, 21)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5212 (0, 22)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5222 (0, 23)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5232 (0, 24)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5242 (0, 25)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5252 (0, 26)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5262 (0, 27)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5272 (0, 28)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5282 (0, 29)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5292 (0, 30)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5303 (0, 31)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5313 (0, 32)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5323 (0, 33)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5333 (0, 34)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5343 (0, 35)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5353 (0, 36)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5363 (0, 37)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5373 (0, 38)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5383 (0, 39)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5393 (0, 40)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5404 (0, 41)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5414 (0, 42)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5424 (0, 43)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5434 (0, 44)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5444 (0, 45)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5454 (0, 46)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5464 (0, 47)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5474 (0, 48)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5484 (0, 49)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5494 (0, 50)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5505 (0, 51)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5515 (0, 52)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5525 (0, 53)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5535 (0, 54)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5545 (0, 55)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5555 (0, 56)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5565 (0, 57)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5575 (0, 58)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5585 (0, 59)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5595 (0, 60)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5606 (0, 61)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5616 (0, 62)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5626 (0, 63)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5636 (0, 64)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5646 (0, 65)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5656 (0, 66)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5666 (0, 67)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5676 (0, 68)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5686 (0, 69)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5696 (0, 70)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5707 (0, 71)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5717 (0, 72)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5727 (0, 73)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5737 (0, 74)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5747 (0, 75)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5757 (0, 76)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5767 (0, 77)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5777 (0, 78)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5787 (0, 79)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5797 (0, 80)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5808 (0, 81)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5818 (0, 82)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5828 (0, 83)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5838 (0, 84)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5848 (0, 85)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5858 (0, 86)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5868 (0, 87)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5878 (0, 88)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5888 (0, 89)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5898 (0, 90)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5909 (0, 91)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5919 (0, 92)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5929 (0, 93)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5939 (0, 94)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5949 (0, 95)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5959 (0, 96)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5969 (0, 97)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5979 (0, 98)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    5989 (0, 99)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6000 (0, 100)   <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6000 (1, 1)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6010 (1, 2)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6020 (1, 3)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6030 (1, 4)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6040 (1, 5)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6050 (1, 6)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6060 (1, 7)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6070 (1, 8)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6080 (1, 9)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6090 (1, 10)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6101 (1, 11)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6111 (1, 12)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6121 (1, 13)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6131 (1, 14)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6141 (1, 15)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6151 (1, 16)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6161 (1, 17)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6171 (1, 18)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6181 (1, 19)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6191 (1, 20)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6202 (1, 21)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6212 (1, 22)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6222 (1, 23)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6232 (1, 24)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6242 (1, 25)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6252 (1, 26)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6262 (1, 27)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6272 (1, 28)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6282 (1, 29)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6292 (1, 30)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6303 (1, 31)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6313 (1, 32)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6323 (1, 33)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6333 (1, 34)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6343 (1, 35)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6353 (1, 36)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6363 (1, 37)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6373 (1, 38)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6383 (1, 39)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6393 (1, 40)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6404 (1, 41)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6414 (1, 42)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6424 (1, 43)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6434 (1, 44)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6444 (1, 45)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6454 (1, 46)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6464 (1, 47)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6474 (1, 48)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6484 (1, 49)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6494 (1, 50)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6505 (1, 51)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6515 (1, 52)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6525 (1, 53)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6535 (1, 54)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6545 (1, 55)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6555 (1, 56)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6565 (1, 57)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6575 (1, 58)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6585 (1, 59)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6595 (1, 60)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6606 (1, 61)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6616 (1, 62)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6626 (1, 63)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6636 (1, 64)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6646 (1, 65)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6656 (1, 66)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6666 (1, 67)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6676 (1, 68)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6686 (1, 69)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6696 (1, 70)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6707 (1, 71)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6717 (1, 72)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6727 (1, 73)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6737 (1, 74)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6747 (1, 75)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6757 (1, 76)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6767 (1, 77)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6777 (1, 78)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6787 (1, 79)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6797 (1, 80)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6808 (1, 81)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6818 (1, 82)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6828 (1, 83)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6838 (1, 84)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6848 (1, 85)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6858 (1, 86)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6868 (1, 87)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6878 (1, 88)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6888 (1, 89)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6898 (1, 90)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6909 (1, 91)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6919 (1, 92)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6929 (1, 93)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6939 (1, 94)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6949 (1, 95)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6959 (1, 96)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6969 (1, 97)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6979 (1, 98)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    6989 (1, 99)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7000 (1, 100)   <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7000 (2, 1)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7000 ('C7', 7)  <bound method LynX10ControllerUnit.set_channel of <Lumos.Device.LynX10ControllerUnit.LynX10ControllerUnit object at 0xb7bdb62c>>
+
+    7010 (2, 2)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7020 (2, 3)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7030 (2, 4)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7040 (2, 5)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7050 (2, 6)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7060 (2, 7)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7070 (2, 8)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7080 (2, 9)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7090 (2, 10)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7101 (2, 11)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7111 (2, 12)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7121 (2, 13)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7131 (2, 14)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7141 (2, 15)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7151 (2, 16)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7161 (2, 17)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7171 (2, 18)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7181 (2, 19)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7191 (2, 20)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7202 (2, 21)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7212 (2, 22)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7222 (2, 23)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7232 (2, 24)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7242 (2, 25)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7252 (2, 26)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7262 (2, 27)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7272 (2, 28)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7282 (2, 29)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7292 (2, 30)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7303 (2, 31)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7313 (2, 32)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7323 (2, 33)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7333 (2, 34)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7343 (2, 35)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7353 (2, 36)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7363 (2, 37)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7373 (2, 38)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7383 (2, 39)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7393 (2, 40)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7404 (2, 41)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7414 (2, 42)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7424 (2, 43)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7434 (2, 44)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7444 (2, 45)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7454 (2, 46)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7464 (2, 47)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7474 (2, 48)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7484 (2, 49)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7494 (2, 50)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7505 (2, 51)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7515 (2, 52)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7525 (2, 53)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7535 (2, 54)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7545 (2, 55)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7555 (2, 56)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7565 (2, 57)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7575 (2, 58)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7585 (2, 59)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7595 (2, 60)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7606 (2, 61)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7616 (2, 62)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7626 (2, 63)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7636 (2, 64)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7646 (2, 65)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7656 (2, 66)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7666 (2, 67)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7676 (2, 68)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7686 (2, 69)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7696 (2, 70)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7707 (2, 71)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7717 (2, 72)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7727 (2, 73)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7737 (2, 74)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7747 (2, 75)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7757 (2, 76)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7767 (2, 77)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7777 (2, 78)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7787 (2, 79)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7797 (2, 80)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7808 (2, 81)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7818 (2, 82)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7828 (2, 83)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7838 (2, 84)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7848 (2, 85)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7858 (2, 86)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7868 (2, 87)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7878 (2, 88)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7888 (2, 89)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7898 (2, 90)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7909 (2, 91)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7919 (2, 92)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7929 (2, 93)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7939 (2, 94)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7949 (2, 95)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7959 (2, 96)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7969 (2, 97)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7979 (2, 98)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    7989 (2, 99)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+    8000 (2, 100)   <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10000 (0, 99)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10000 (1, 99)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10000 (2, 99)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10000 (3, 99)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10000 ('C7', 6)  <bound method LynX10ControllerUnit.set_channel of <Lumos.Device.LynX10ControllerUnit.LynX10ControllerUnit object at 0xb7bdb62c>>
+
+   10010 (0, 98)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10010 (1, 98)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10010 (2, 98)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10010 (3, 98)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10020 (0, 97)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10020 (1, 97)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10020 (2, 97)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10020 (3, 97)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10030 (0, 96)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10030 (1, 96)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10030 (2, 96)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10030 (3, 96)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10040 (0, 95)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10040 (1, 95)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10040 (2, 95)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10040 (3, 95)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10050 (0, 94)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10050 (1, 94)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10050 (2, 94)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10050 (3, 94)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10060 (0, 93)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10060 (1, 93)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10060 (2, 93)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10060 (3, 93)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10070 (0, 92)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10070 (1, 92)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10070 (2, 92)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10070 (3, 92)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10080 (0, 91)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10080 (1, 91)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10080 (2, 91)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10080 (3, 91)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10090 (0, 90)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10090 (1, 90)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10090 (2, 90)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10090 (3, 90)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10101 (0, 89)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10101 (1, 89)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10101 (2, 89)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10101 (3, 89)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10111 (0, 88)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10111 (1, 88)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10111 (2, 88)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10111 (3, 88)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10121 (0, 87)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10121 (1, 87)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10121 (2, 87)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10121 (3, 87)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10131 (0, 86)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10131 (1, 86)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10131 (2, 86)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10131 (3, 86)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10141 (0, 85)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10141 (1, 85)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10141 (2, 85)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10141 (3, 85)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10151 (0, 84)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10151 (1, 84)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10151 (2, 84)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10151 (3, 84)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10161 (0, 83)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10161 (1, 83)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10161 (2, 83)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10161 (3, 83)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10166 ('C7', 5)  <bound method LynX10ControllerUnit.set_channel of <Lumos.Device.LynX10ControllerUnit.LynX10ControllerUnit object at 0xb7bdb62c>>
+
+   10171 (0, 82)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10171 (1, 82)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10171 (2, 82)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10171 (3, 82)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10181 (0, 81)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10181 (1, 81)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10181 (2, 81)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10181 (3, 81)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10191 (0, 80)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10191 (1, 80)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10191 (2, 80)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10191 (3, 80)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10202 (0, 79)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10202 (1, 79)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10202 (2, 79)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10202 (3, 79)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10212 (0, 78)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10212 (1, 78)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10212 (2, 78)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10212 (3, 78)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10222 (0, 77)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10222 (1, 77)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10222 (2, 77)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10222 (3, 77)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10232 (0, 76)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10232 (1, 76)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10232 (2, 76)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10232 (3, 76)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10242 (0, 75)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10242 (1, 75)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10242 (2, 75)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10242 (3, 75)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10252 (0, 74)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10252 (1, 74)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10252 (2, 74)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10252 (3, 74)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10262 (0, 73)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10262 (1, 73)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10262 (2, 73)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10262 (3, 73)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10272 (0, 72)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10272 (1, 72)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10272 (2, 72)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10272 (3, 72)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10282 (0, 71)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10282 (1, 71)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10282 (2, 71)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10282 (3, 71)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10292 (0, 70)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10292 (1, 70)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10292 (2, 70)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10292 (3, 70)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10303 (0, 69)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10303 (1, 69)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10303 (2, 69)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10303 (3, 69)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10313 (0, 68)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10313 (1, 68)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10313 (2, 68)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10313 (3, 68)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10323 (0, 67)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10323 (1, 67)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10323 (2, 67)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10323 (3, 67)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10333 (0, 66)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10333 (1, 66)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10333 (2, 66)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10333 (3, 66)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10333 ('C7', 4)  <bound method LynX10ControllerUnit.set_channel of <Lumos.Device.LynX10ControllerUnit.LynX10ControllerUnit object at 0xb7bdb62c>>
+
+   10343 (0, 65)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10343 (1, 65)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10343 (2, 65)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10343 (3, 65)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10353 (0, 64)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10353 (1, 64)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10353 (2, 64)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10353 (3, 64)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10363 (0, 63)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10363 (1, 63)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10363 (2, 63)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10363 (3, 63)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10373 (0, 62)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10373 (1, 62)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10373 (2, 62)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10373 (3, 62)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10383 (0, 61)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10383 (1, 61)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10383 (2, 61)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10383 (3, 61)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10393 (0, 60)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10393 (1, 60)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10393 (2, 60)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10393 (3, 60)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10404 (0, 59)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10404 (1, 59)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10404 (2, 59)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10404 (3, 59)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10414 (0, 58)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10414 (1, 58)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10414 (2, 58)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10414 (3, 58)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10424 (0, 57)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10424 (1, 57)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10424 (2, 57)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10424 (3, 57)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10434 (0, 56)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10434 (1, 56)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10434 (2, 56)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10434 (3, 56)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10444 (0, 55)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10444 (1, 55)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10444 (2, 55)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10444 (3, 55)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10454 (0, 54)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10454 (1, 54)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10454 (2, 54)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10454 (3, 54)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10464 (0, 53)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10464 (1, 53)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10464 (2, 53)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10464 (3, 53)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10474 (0, 52)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10474 (1, 52)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10474 (2, 52)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10474 (3, 52)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10484 (0, 51)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10484 (1, 51)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10484 (2, 51)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10484 (3, 51)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10494 (0, 50)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10494 (1, 50)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10494 (2, 50)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10494 (3, 50)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10500 ('C7', 3)  <bound method LynX10ControllerUnit.set_channel of <Lumos.Device.LynX10ControllerUnit.LynX10ControllerUnit object at 0xb7bdb62c>>
+
+   10505 (0, 49)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10505 (1, 49)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10505 (2, 49)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10505 (3, 49)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10515 (0, 48)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10515 (1, 48)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10515 (2, 48)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10515 (3, 48)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10525 (0, 47)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10525 (1, 47)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10525 (2, 47)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10525 (3, 47)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10535 (0, 46)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10535 (1, 46)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10535 (2, 46)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10535 (3, 46)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10545 (0, 45)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10545 (1, 45)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10545 (2, 45)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10545 (3, 45)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10555 (0, 44)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10555 (1, 44)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10555 (2, 44)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10555 (3, 44)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10565 (0, 43)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10565 (1, 43)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10565 (2, 43)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10565 (3, 43)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10575 (0, 42)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10575 (1, 42)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10575 (2, 42)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10575 (3, 42)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10585 (0, 41)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10585 (1, 41)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10585 (2, 41)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10585 (3, 41)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10595 (0, 40)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10595 (1, 40)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10595 (2, 40)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10595 (3, 40)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10606 (0, 39)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10606 (1, 39)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10606 (2, 39)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10606 (3, 39)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10616 (0, 38)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10616 (1, 38)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10616 (2, 38)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10616 (3, 38)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10626 (0, 37)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10626 (1, 37)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10626 (2, 37)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10626 (3, 37)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10636 (0, 36)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10636 (1, 36)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10636 (2, 36)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10636 (3, 36)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10646 (0, 35)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10646 (1, 35)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10646 (2, 35)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10646 (3, 35)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10656 (0, 34)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10656 (1, 34)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10656 (2, 34)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10656 (3, 34)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10666 (0, 33)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10666 (1, 33)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10666 (2, 33)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10666 (3, 33)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10666 ('C7', 2)  <bound method LynX10ControllerUnit.set_channel of <Lumos.Device.LynX10ControllerUnit.LynX10ControllerUnit object at 0xb7bdb62c>>
+
+   10676 (0, 32)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10676 (1, 32)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10676 (2, 32)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10676 (3, 32)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10686 (0, 31)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10686 (1, 31)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10686 (2, 31)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10686 (3, 31)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10696 (0, 30)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10696 (1, 30)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10696 (2, 30)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10696 (3, 30)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10707 (0, 29)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10707 (1, 29)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10707 (2, 29)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10707 (3, 29)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10717 (0, 28)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10717 (1, 28)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10717 (2, 28)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10717 (3, 28)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10727 (0, 27)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10727 (1, 27)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10727 (2, 27)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10727 (3, 27)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10737 (0, 26)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10737 (1, 26)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10737 (2, 26)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10737 (3, 26)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10747 (0, 25)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10747 (1, 25)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10747 (2, 25)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10747 (3, 25)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10757 (0, 24)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10757 (1, 24)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10757 (2, 24)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10757 (3, 24)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10767 (0, 23)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10767 (1, 23)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10767 (2, 23)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10767 (3, 23)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10777 (0, 22)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10777 (1, 22)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10777 (2, 22)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10777 (3, 22)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10787 (0, 21)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10787 (1, 21)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10787 (2, 21)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10787 (3, 21)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10797 (0, 20)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10797 (1, 20)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10797 (2, 20)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10797 (3, 20)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10808 (0, 19)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10808 (1, 19)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10808 (2, 19)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10808 (3, 19)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10818 (0, 18)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10818 (1, 18)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10818 (2, 18)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10818 (3, 18)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10828 (0, 17)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10828 (1, 17)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10828 (2, 17)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10828 (3, 17)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10833 ('C7', 1)  <bound method LynX10ControllerUnit.set_channel of <Lumos.Device.LynX10ControllerUnit.LynX10ControllerUnit object at 0xb7bdb62c>>
+
+   10838 (0, 16)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10838 (1, 16)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10838 (2, 16)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10838 (3, 16)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10848 (0, 15)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10848 (1, 15)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10848 (2, 15)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10848 (3, 15)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10858 (0, 14)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10858 (1, 14)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10858 (2, 14)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10858 (3, 14)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10868 (0, 13)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10868 (1, 13)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10868 (2, 13)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10868 (3, 13)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10878 (0, 12)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10878 (1, 12)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10878 (2, 12)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10878 (3, 12)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10888 (0, 11)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10888 (1, 11)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10888 (2, 11)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10888 (3, 11)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10898 (0, 10)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10898 (1, 10)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10898 (2, 10)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10898 (3, 10)    <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10909 (0, 9)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10909 (1, 9)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10909 (2, 9)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10909 (3, 9)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10919 (0, 8)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10919 (1, 8)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10919 (2, 8)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10919 (3, 8)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10929 (0, 7)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10929 (1, 7)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10929 (2, 7)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10929 (3, 7)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10939 (0, 6)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10939 (1, 6)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10939 (2, 6)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10939 (3, 6)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10949 (0, 5)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10949 (1, 5)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10949 (2, 5)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10949 (3, 5)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10959 (0, 4)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10959 (1, 4)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10959 (2, 4)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10959 (3, 4)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10969 (0, 3)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10969 (1, 3)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10969 (2, 3)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10969 (3, 3)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10979 (0, 2)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10979 (1, 2)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10979 (2, 2)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10979 (3, 2)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10989 (0, 1)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10989 (1, 1)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10989 (2, 1)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   10989 (3, 1)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   11000 (0, 0)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   11000 (1, 0)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   11000 (2, 0)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   11000 (3, 0)     <bound method FireGodControllerUnit.set_channel of <Lumos.Device.FireGodControllerUnit.FireGodControllerUnit object at 0xb7bdbfac>>
+
+   11000 ('C7', 0)  <bound method LynX10ControllerUnit.set_channel of <Lumos.Device.LynX10ControllerUnit.LynX10ControllerUnit object at 0xb7bdb62c>>
+
