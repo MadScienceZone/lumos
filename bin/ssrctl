@@ -10,9 +10,11 @@
 # Load and play a sequence of events in real time
 
 import Lumos
-from Lumos.Show import Show
-from optparse import OptionParser
-import sys, re
+from Lumos.Show     import Show
+from Lumos.Sequence import Sequence
+from Lumos.Event    import Event
+from optparse       import OptionParser
+import sys, re, sched, time
 #@@REL@@sys.tracebacklimit=0
 
 #========================================================================
@@ -37,10 +39,15 @@ parser.set_defaults(config='lumos.conf')
 show = Show()
 show.load_file(options.config, open_device=(not options.test))
 
+seq = Sequence()
+
 #========================================================================
 # Functions to support --test mode (real time trace of what actions
 # would have been taken on a real run)
 #========================================================================
+
+def trace_event(str):
+    print '::TEST::', str
 
 def trace_event_format(func, arglist):
     '''
@@ -55,11 +62,11 @@ Output format for traced events via --test option:
         except:
             obj_name = 'unknown'
 
-    return obj_name + ": " + func.__name__ + `arglist`
+    return obj_name + ': ' + func.__name__ + `arglist`
     
 
 #========================================================================
-# Play each sequence
+# 
 #========================================================================
 
 if options.verbose:
@@ -71,28 +78,6 @@ interactive_mode = False
 if len(command_list) == 0:
     interactive_mode = True
 
-def set_target(target_name):
-    '''Parses a target in the form [unit.][channel], handles
-    defaults, and returns the target controller unit object.'''
-    global current_unit, current_channel, show
-
-    m = re.match(r'((\w+)\.)?(\w+)?', target_name)
-    if m:
-        if m.group(2):
-            current_unit = m.group(2)
-            current_channel = None
-        if m.group(3):
-            current_channel = m.group(3)
-
-    if current_unit is None:
-        raise KeyError("No controller unit specified.")
-
-    if current_unit != '*':
-        if current_unit not in show.controllers:
-            raise KeyError("No such controller unit '%s' exists." % current_unit)
-
-#        device = show.controllers[current_unit]
-
 def fail(message):
     global interactive_mode
 
@@ -102,8 +87,11 @@ def fail(message):
         print >>sys.stderr, "Fatal error:", message
         sys.exit(1)
 
-
+current_controller = None
+current_channel = None
 def do_command(command):
+    global current_controller, current_channel
+
     #
     # Interpret a command from standard input or the command line.
     #
@@ -134,73 +122,95 @@ def do_command(command):
     #       turn OFF channel (may be different from "=0" for some kinds
     #       of devices).  Respects "warm" configuration values.
     #
-    m = re.match(r'((?P<unit>(\w+))\.)?(?P<channel>\w+)?(=(?P<level>\d+(\.\d+)?)(/(?P<time>\d+))?|:(?P<cmd>[kpx]))', command)
+    m = re.match(r'((?P<unit>(\w+|\*))\.)?(?P<channel>(\w+|\*))?(=(?P<level>\d+(\.\d+)?)(/(?P<time>\d+))?|:(?P<cmd>[kpx]))', command)
     if not m:
         fail("Can't understand command \"" + command + '"')
         return
 
-    if m.group('level'):
-        # EVENT unit,channel,level,time
-    elif m.group('cmd') == 'k':
-        # send kill
-    elif m.group('cmd') == 'p':
-        # show channel
-    elif m.group('cmd') == 'x':
-        # send off
+    if m.group('unit'):
+        current_controller = m.group('unit')
+        current_channel = None
 
-#
-#
-#
-#
-#    colon = command.find(':')
-#    if colon >= 0:
-#        set_target(command[:colon])
-#        if command[colon+1:] == "k":
-#            # kill channel(s) on controller
-#        elif command[colon+1:] == "p":
-#            # print state of channel
-#    else:
-#        equals = command.find('=')
-#        if equals >= 0:
-#            set_target(command[:equals])
-#            slash = 
-#            new_value, time_interval = command[equals:].split('/', maxsplit=1)
-#            if time_interval 
-#
-#    
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#    sequence = Sequence()
-#    sequence.load_file(file, show.controllers)
-#    if options.verbose:
-#        print 'Sequence "%s": duration %s; %d intervals' % (
-#            file, trace_time_stamp(sequence.total_time),
-#            len(sequence.intervals)
-#        )
-#    schedule = sched.scheduler(time.time, time.sleep)
-#    if options.test:
-#        # queue up event trace calls, paying as much runtime penalty
-#        # as possibe NOW instead of during playback
-#        print trace_event_header()
-#        for time_stamp, method, arglist in sequence.compile():
-#            schedule.enter(time_stamp / 1000.0, 0, trace_event, 
-#                (trace_event_format(time_stamp, method, arglist),))
-#        start_point = time.time()
-#    else:
-#        for time_stamp, method, arglist in sequence.compile():
-#            schedule.enter(time_stamp / 1000.0, 0, method, arglist)
-#
-#    schedule.run()
-#
-#if options.verbose:
-#    print "Scene complete."
+    if m.group('channel'):
+        current_channel = m.group('channel')
+
+    if current_controller == '*':
+        controller_obj = None
+        if current_channel != '*':
+            fail('If the controller is "*", then channels must also be "*".')
+            return
+    else:
+        if current_controller in show.controllers:
+            controller_obj = show.controllers[current_controller]
+        else:
+            fail('No such controller unit "' + current_controller + '"')
+            return
+
+    if current_channel == '*':
+        channel_id = None
+    else:
+        channel_id = controller_obj.channel_id_from_string(current_channel)
+
+    if m.group('level'):
+        # set channel(s) to certain level.
+        # to make this easier, especially with multiple channels
+        # and time intervals, we just use the Sequence class to
+        # convert and compile the device-specific (and timed)
+        # events.
+        try:
+            level = float(m.group('level'))
+        except:
+            fail('New level value must be a percentage from 0.0 to 100.0.')
+            return
+
+        if m.group('time'):
+            try:
+                time_interval = int(m.group('time'))
+            except:
+                fail('Time interval must be an integer number of milliseconds.')
+                return
+        else:
+            time_interval = 0
+
+        seq.clear()
+        seq.add(0, Event(controller_obj, channel_id, level, time_interval))
+        schedule = sched.scheduler(time.time, time.sleep)
+        if options.test:
+            for time_stamp, method, arglist in seq.compile(keep_state = True):
+                schedule.enter(time_stamp / 1000.0, 0, trace_event, 
+                    (trace_event_format(method, arglist),))
+        else:
+            for time_stamp, method, arglist in seq.compile(keep_state = True):
+                schedule.enter(time_stamp / 1000.0, 0, method, arglist)
+
+        schedule.run()
+    else:
+        # perform a command on each controller and channel specified.
+        if controller_obj is None:
+            controllers = show.controllers.values()
+        else:
+            controllers = [controller_obj]
+
+        for c_obj in controllers:
+            if channel_id is None:
+                chans = c_obj.iter_channels()
+            else:
+                chans = [channel_id]
+
+            for chan in chans:
+                if m.group('cmd') == 'k':
+                    c_obj.kill_channel(chan)
+                elif m.group('cmd') == 'p':
+                    if c_obj.channels[chan].level is None:
+                        print "%s.%s = OFF" % (c_obj.id, chan)
+                    else:
+                        print "%s.%s = %d (%.1f%%)" % (c_obj.id, chan, c_obj.channels[chan].level, 
+                            c_obj.channels[chan].pct_dimmer_value(c_obj.channels[chan].level))
+                elif m.group('cmd') == 'x':
+                    c_obj.set_channel_off(chan)
+                else:
+                    fail('BUG: Unrecognized (and uncaught!) command "%s".' % m.group('cmd'))
+                    return
 
 if interactive_mode:
     print '''Lumos SSR Control Utility

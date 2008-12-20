@@ -34,6 +34,7 @@ class Sequence (object):
         self.total_time = 0
         self._controllers = []
         self._event_list = {}
+        self.current_state = {}
 
     def load_file(self, filename, controller_map):
         csvfile = file(filename, 'rb')
@@ -174,7 +175,7 @@ class Sequence (object):
 
         return self._event_list[timestamp]
 
-    def compile(self):
+    def compile(self, keep_state=False):
         '''Compile the sequence into a ready-to-execute list of
         device updates.  This will return a list of discrete,
         device-specific updates in the form:
@@ -204,10 +205,15 @@ class Sequence (object):
         period of 3 seconds, while another event changes that
         channel's value during the period it is already fading
         (before the effects of the first event complete).
+
+        If the keep_state parameter is given a True value, the
+        previously-known dimmer state.  Otherwise, zero values
+        are assumed for all channels.
         '''
 
         self._build_controller_list()
-        current_state = {}  # current raw dimmer level for each channel
+        if not keep_state:
+            self.current_state = {}  # current raw dimmer level for each channel
         ev_list = []
 
         for timestamp in sorted(self._event_list):
@@ -228,7 +234,7 @@ class Sequence (object):
                                 raise InvalidEvent("Sequence uses channel %s.%s which is not configured." % (
                                     target_unit.id, channel))
 
-                            start_raw_value = current_state.setdefault((target_unit.id, channel), 
+                            start_raw_value = self.current_state.setdefault((target_unit.id, channel), 
                                 target_unit.channels[channel].raw_dimmer_value(0))
                             end_raw_value = target_unit.channels[channel].raw_dimmer_value(event.level)
 
@@ -260,7 +266,7 @@ class Sequence (object):
                     for channel in channel_list:
                         if target_unit.channels[channel] is None:
                             continue
-                        current_state[(target_unit.id,channel)] = target_unit.channels[channel].raw_dimmer_value(event.level)
+                        self.current_state[(target_unit.id,channel)] = target_unit.channels[channel].raw_dimmer_value(event.level)
                         #print "setting current(", target_unit.id, ",", channel, ") to", target_unit.channels[channel].raw_dimmer_value(event.level)
 
         return ev_list
@@ -271,6 +277,10 @@ class Sequence (object):
     def add(self, timestamp, event_obj):
         "Add a new event to the sequence."
         self._event_list.setdefault(timestamp, []).append(event_obj)
+
+    def clear(self):
+        "Clear the event list."
+        self._event_list = {}
 
     def __getattr__(self, name):
         if name == 'intervals':
