@@ -1,0 +1,30 @@
+#!/usr/bin/perl
+# vim:set syntax=perl:
+use File::Basename;
+
+$PDF_DIR = shift;
+while ($search_dir = shift) {
+	push(@{$MAN_FILES{$search_dir}}, glob("$search_dir/*.[12345678]"));
+}
+
+foreach $dir (sort(keys(%MAN_FILES))) {
+	foreach $file (@{$MAN_FILES{$dir}}) {
+		$PDF_LIST .= " $PDF_DIR/" . (fileparse($file, qr/\.\d/))[0] . '.pdf';
+	}
+}
+
+while (<STDIN>) {
+	if (/\@\@PDF_BUILD_RULES\@\@/) {
+		foreach $dir (sort(keys(%MAN_FILES))) {
+			print "\n#Manpages found in $dir:\n";
+			foreach $file (@{$MAN_FILES{$dir}}) {
+				print "$PDF_DIR/", (fileparse($file, qr/\.\d/))[0], '.pdf: ', $file, "\n";
+				print "\tgroff -man \$< | ps2pdf -sPaperSize=Letter - \$\@\n";
+				print "\n";
+			}
+		}
+		next;
+	}
+	s/\@\@PDF_LIST\@\@/$PDF_LIST/g;
+	print;
+}
