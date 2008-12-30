@@ -193,7 +193,8 @@ other fields:
 .LP
 Any line beginning with a semi-colon
 .RB (\*(lq ; \*(rq)
-or pound sign (octothorpe, sharp, whatever you want to call it)
+or pound sign 
+'\"(octothorpe, sharp, whatever you want to call it)
 .RB (\*(lq # \*(rq)
 is considered to be a comment and is ignored completely.
 .SH DETAILS
@@ -287,7 +288,7 @@ Specify true here if the circuit in question has ground-fault protection.
 .SS "Networks"
 .LP
 The controlled devices are connected to the host computer via one or
-more serial communications networks (typically RS-232 or RS-485).  The
+more communications networks.  The
 list of networks which are used with a given show configuration are listed
 in the \*(lqnetworks\*(rq value in the
 .B [show]
@@ -305,8 +306,9 @@ space between the word
 and the ID tag.
 .LP
 This section contains the parameters necessary to understand how to
-interact with the devices on that network.  It contains the following
-values:
+interact with the devices on that network.  The exact parameters required
+depend on the kind of network being described, however all types include
+the following values:
 .TP
 .BI description= text
 A short description of what the network is for.
@@ -318,9 +320,22 @@ alphanumeric identifiers which are descriptive of the purpose of the network.
 They must be globally unique.  Each of them will be 
 described in more detail in a Controller Unit section (see below).
 .TP
+.BI type= type
+The network type being described here.  This must be one of the supported
+network types and have a network device driver installed to handle it.  The
+following network types are supplied with this version of Lumos:
+.RS
+.TP 10
+.B serial
+This is the standard byte-at-a-time serial interface popular with commercial 
+and DIY controller units.  The additional network-type-specific parameters 
+used by serial networks include:
+.RS
+.TP
 .BI port= int\fR|\fPname
 The serial port to use for communications with this network.  Typically
-this is a simple integer.  Port 0 (zero) is the system's \*(lqfirst\*(rq
+this is a simple integer.  Port 0 (zero, the default) is the system's 
+\*(lqfirst\*(rq
 serial port (however that device is named by the operating system), port 1 
 is the next one, and so forth.  Alternatively, you can specify a device
 string such as 
@@ -345,8 +360,12 @@ If this value is not present, it defaults to
 .BR parity=none | even | odd
 The parity to use.  Use
 .RB \*(lq none \*(rq
-if using 8 bits/byte, otherwise you can specify no parity,
-even parity, or odd parity.  
+if using 8 bits/byte, otherwise you can specify no parity
+.RB (\*(lq none \*(rq),
+even parity
+.RB (\*(lq even \*(rq), 
+or odd parity 
+.RB (\*(lq odd \*(rq).
 If this value is not present, it defaults to
 .BR none .
 .TP
@@ -367,6 +386,38 @@ If this value is not present, it defaults to
 Whether to use RTS/CTS (hardware) flow control on the line. 
 If this value is not present, it defaults to
 .BR no .
+.RE
+.TP
+.B serialbit
+This is a bit-at-a-time serial arrangement, where serial port status lines 
+are toggled individually to signal device commands.  The special fields
+required for this network type include:
+.RS
+.TP 10
+.BI port= name
+Specifies the serial port to use, as described above.
+.RE
+.TP
+.B parallel
+This is a byte-at-a-time protocol over a parallel port.
+The special fields required for this network type include:
+.RS
+.TP 10
+.BI port= name
+Specifies the parallel port to use, as described above.
+.RE
+.TP
+.B parbit
+This is a bit-at-a-time protocol over a parallel port, where individual
+data or status bits are manipulated to signal device commands rather than
+sending bytes via the 8-bit data port in the traditional way.
+The special fields required for this network type include:
+.RS
+.TP 10
+.BI port= name
+Specifies the parallel port to use, as described above.
+.RE
+.RE
 .LP
 For example, consider this section:
 .RS
@@ -374,6 +425,7 @@ For example, consider this section:
 .na
 .B "[net trees]"
 .B "description=Separate network of controllers for tree displays."
+.B "type=serial"
 .B "port=0"
 .B "baudrate=19200"
 .B "units=treea1 treea2 treeb1 treeb2"
@@ -440,6 +492,12 @@ of sending X10 signals on the power lines, this device is particularly
 ill-suited for use in fast-changing animated light displays.  It could,
 however, be used in more static displays or displays where at most one
 X10 device at a time is being changed.
+This type of device is usually attached to a
+.B serialbit
+type network, and should be the
+.I only
+controller on its network (since the controller device is not
+individually addressable).
 .TP
 .B lynx10
 This is another model of X-10 serial controller.  It can control up to
@@ -458,6 +516,12 @@ command propagation time inherent in X10 systems, it's capable of making
 reasonable scene-changing fade effects in mostly-static parts of the 
 show.  X10 devices are generally unsuitable for use in rapidly-changing
 animated light displays.
+This type of device is usually attached to a
+.B serial
+type network, and should be the
+.I only
+controller on its network (since the controller device is not
+individually addressable).
 .TP
 .B 48ssr
 This is the 48-channel SSR controller circuit that I designed for my
@@ -476,89 +540,90 @@ The controller address used for sending commands to a particular
 controller unit.  Must be a number in the range
 .RI 0<= address <=15.
 .RE
-.TP
-.B spectrum
-A readerboard of the Spectrum Alpha line or something compatible with them.
-This is something rather different than the kinds of controllers described
-elsewhere, but it may often be desirable to display readerboard messages
-as part of the show.  These devices will probably be on their own 
-network, separate from the other controllers.  These units require the
-following additional fields:
-.RS
-.TP
-.BI address= int
-The address of a particular readerboard.  These are simply numbers from 0 
-to 255.
-.TP
-.BI memory= labels
-This is an optional field which lists all the memory slots you wish to
-reserve for use in the readerboard programs.  If nothing is specified,
-the signs default to a single text slot called \*(lqA\*(rq.  If you 
-wish to allocate separate text, string, or bitmap slots, you will need
-to list their labels here, separated by spaces.  (Labels may each be
-a single upper-case letter or a digit.)  Then, you need to define
-a 
-.B "[spectrum memory"
-.IB label ]
-section describing each memory slot allocated.  These each contain the 
-following fields:
-.RS
-.TP
-.BR type=text | string | image
-The type of data to be stored in this slot.  Text slots are the usual
-places for holding messages, and may include color, special attributes,
-transition effects, etc.  They may also include images and strings as
-stored in other slots.  Strings are the storage used for values included in
-text slots.  These may be dynamically changed, and the readerboard message
-updated, without having to transmit a whole new text message to the
-readerboard, which looks much better for updating only part of a message at
-a time.  Image slots are used for storing bitmap images which may be
-included into text slots as well.
-.TP
-.BI size= int
-The allocated size in bytes of the field.  For image slots, use the
-.B rows
-and 
-.B cols
-fields instead.
-.TP
-.BI locked= bool
-If true, this memory slot may not be overwritten using the IR remote 
-control for the readerboard.  (Default is locked if this is not specified.)
-.TP
-.BI start= time
-The time of day to begin displaying this slot's contents.  The value of
-.I time
-may be an integer hour number (0=midnight, 23=11:00 PM) or the string
-.RB \*(lq never \*(rq
-(to always hide this slot from view) or
-.RB \*(lq always \*(rq
-(to always display this slot).  Default is 
-.RB \*(lq always \*(rq.
-This only applies to text slots.
-.TP
-.BI end= int
-If a start time is given, the time of day to end display of the slot may
-be specified here, as an integer hour number.
-.TP
-.BI colors= int
-The number of colors to display for a bitmap image slot.  Supported values
-are 1 (monochrome), 3, and 8.  The number of colors specified here does 
-not include the \*(lqoff\*(rq state as a \*(lqcolor\*(rq.  Bitmap slots
-only.  Default is 1 (monochrome).
-.TP
-.BI rows= int
-The number of pixels high the image will be (the
-.I y
-dimension).  Bitmap slots only.
-.TP
-.BI cols= int
-The number of pixels wide the image will be (the
-.I x
-dimension).  Bitmap slots only.
-.RE
-.RE
-.RE
+'\".TP
+'\".B spectrum
+'\"A readerboard of the Spectrum Alpha line or something compatible with them.
+'\"This is something rather different than the kinds of controllers described
+'\"elsewhere, but it may often be desirable to display readerboard messages
+'\"as part of the show.  These devices will probably be on their own 
+'\"network, separate from the other controllers.  These units require the
+'\"following additional fields:
+'\".RS
+'\".TP
+'\".BI address= int
+'\"The address of a particular readerboard.  These are simply numbers from 0 
+'\"to 255.
+'\".TP
+'\".BI memory= labels
+'\"This is an optional field which lists all the memory slots you wish to
+'\"reserve for use in the readerboard programs.  If nothing is specified,
+'\"the signs default to a single text slot called \*(lqA\*(rq.  If you 
+'\"wish to allocate separate text, string, or bitmap slots, you will need
+'\"to list their labels here, separated by spaces.  (Labels may each be
+'\"a single upper-case letter or a digit.)  Then, you need to define
+'\"a 
+'\".B "[spectrum memory"
+'\".IB label ]
+'\"section describing each memory slot allocated.  These each contain the 
+'\"following fields:
+'\".RS
+'\".TP
+'\".BR type=text | string | image
+'\"The type of data to be stored in this slot.  Text slots are the usual
+'\"places for holding messages, and may include color, special attributes,
+'\"transition effects, etc.  They may also include images and strings as
+'\"stored in other slots.  Strings are the storage used for values included in
+'\"text slots.  These may be dynamically changed, and the readerboard message
+'\"updated, without having to transmit a whole new text message to the
+'\"readerboard, which looks much better for updating only part of a message at
+'\"a time.  Image slots are used for storing bitmap images which may be
+'\"included into text slots as well.
+'\".TP
+'\".BI size= int
+'\"The allocated size in bytes of the field.  For image slots, use the
+'\".B rows
+'\"and 
+'\".B cols
+'\"fields instead.
+'\".TP
+'\".BI locked= bool
+'\"If true, this memory slot may not be overwritten using the IR remote 
+'\"control for the readerboard.  (Default is locked if this is not specified.)
+'\".TP
+'\".BI start= time
+'\"The time of day to begin displaying this slot's contents.  The value of
+'\".I time
+'\"may be an integer hour number (0=midnight, 23=11:00 PM) or the string
+'\".RB \*(lq never \*(rq
+'\"(to always hide this slot from view) or
+'\".RB \*(lq always \*(rq
+'\"(to always display this slot).  Default is 
+'\".RB \*(lq always \*(rq.
+'\"This only applies to text slots.
+'\".TP
+'\".BI end= int
+'\"If a start time is given, the time of day to end display of the slot may
+'\"be specified here, as an integer hour number.
+'\".TP
+'\".BI colors= int
+'\"The number of colors to display for a bitmap image slot.  Supported values
+'\"are 1 (monochrome), 3, and 8.  The number of colors specified here does 
+'\"not include the \*(lqoff\*(rq state as a \*(lqcolor\*(rq.  Bitmap slots
+'\"only.  Default is 1 (monochrome).
+'\".TP
+'\".BI rows= int
+'\"The number of pixels high the image will be (the
+'\".I y
+'\"dimension).  Bitmap slots only.
+'\".TP
+'\".BI cols= int
+'\"The number of pixels wide the image will be (the
+'\".I x
+'\"dimension).  Bitmap slots only.
+'\".RE
+'\".RE
+'\".RE
+XXX ADD REMAINING UNITS HERE XXX
 .TP
 .BI resolution= int
 Any controller capable of dimming may specify this value.  This is the

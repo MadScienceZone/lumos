@@ -15,7 +15,7 @@ show.
 .LP
 The overall file format is standard CSV (comma-separated value).
 This allows you to edit the file using a spreadsheet program
-(e.g., OpenOffice Calc or Microsoft Office Excel) if that's 
+(e.g., OpenOffice Calc*, GNU Gnumeric*, or Microsoft Office Excel*) if that's 
 preferred, so long as you save the file into CSV format.
 .LP
 Specifically:
@@ -23,8 +23,8 @@ Specifically:
 (1)
 The file is organized into a sequential collection of records,
 each describing a single \*(lqmapping\*(rq or \*(lqcomment\*(rq
-(q.v.).  Each record is stored on a single line (terminated by
-a carriage-return and linefeed) of the file.
+(q.v.).  Each record is stored on a single line of the file
+(terminated by a carriage-return and linefeed).
 .TP 
 (2)
 Each record is further divided into \*(lqfields\*(rq, separated
@@ -71,10 +71,12 @@ for the CSV file format must still be adhered to.
 .SS Mappings
 .LP
 A mapping record describes a single assignment of an external
-(e.g., Vixen) output channel to a single Lumos channel:
+(e.g., Vixen) output channel to a single Lumos channel, in this format:
+.LP
 .RS
 .IB idx , name , controller , channel
 .RE
+.LP
 The source (Vixen) channel is specified in the first two fields, which 
 are:
 .TP 13
@@ -86,7 +88,7 @@ sequence file is number 0, the next is 1, and so on.
 The text name of the channel as displayed in the Vixen sequence editing grid.
 .LP
 If you generate this file via 
-.B vixen2lumos
+.BR vixen2lumos (1)
 with the
 .B \-\-genmap
 option, both
@@ -132,6 +134,19 @@ channels 1 and 2, would look like this:
 .fi
 .RE
 .LP
+If the index positions of these were not known, the names alone
+could be used:
+.LP
+.RS
+.nf
+.na
+# Lumos map file for my show
+,A,floods,12
+,B,trees,1
+,C,trees,2
+.ad
+.fi
+.RE
 .SH VERSION
 .LP
 This documents the Lumos mapping file version 1, for software version 1.1.  Not 
@@ -148,3 +163,6 @@ Steve Willoughby / steve@alchemy.com
 This file format first appeared for
 .B vixen2lumos
 as part of the 1.1 software release.
+.SH NOTES
+.LP
+*Names of third-party products or organizations are the property of their respective owners and may be trademarks owned by them.
