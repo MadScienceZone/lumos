@@ -1,4 +1,29 @@
 .TH LUMOS-CHANNEL-MAP 5
+'\"
+'\" LUMOS DOCUMENTATION:
+'\" $Header: /tmp/cvsroot/lumos/man/man5/lumos-channel-map.5,v 1.3 2008-12-30 22:58:02 steve Exp $
+'\"
+'\" Lumos Light Orchestration System
+'\" Copyright © 2005, 2006, 2007, 2008 by Steven L. Willoughby, Aloha,
+'\" Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
+'\" License version 3.0.
+'\"
+'\" This product is provided for educational, experimental or personal
+'\" interest use, in accordance with the terms and conditions of the
+'\" aforementioned license agreement, ON AN "AS IS" BASIS AND WITHOUT
+'\" WARRANTY, EITHER EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION,
+'\" THE WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A
+'\" PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY OF THE ORIGINAL
+'\" WORK IS WITH YOU.  (See the license agreement for full details, 
+'\" including disclaimer of warranty and limitation of liability.)
+'\"
+'\" Under no curcumstances is this product intended to be used where the
+'\" safety of any person, animal, or property depends upon, or is at
+'\" risk of any kind from, the correct operation of this software or
+'\" the hardware devices which it controls.
+'\"
+'\" USE THIS PRODUCT AT YOUR OWN RISK.
+'\" 
 .SH NAME
 Lumos Channel Map File \- Assignment of Vixen Channels to Lumos Channels
 .SH SYNOPSIS
@@ -105,8 +130,9 @@ is given, the channel with that name is found.  If both are used, they must
 both apply (i.e., the named channel must be at that index position in the file).
 .LP
 The same source channel may not be mapped more than one time, however multiple
-source channels may be mapped to the same destination channel (although this
-might not be useful).
+source channels may be mapped to the same destination channel (merging
+their events so any action taken on either of the original channels
+affects the same Lumos channel).
 .LP
 The destination channel is specified by the third and fourth fields:
 .TP 13
@@ -154,7 +180,20 @@ released yet.
 .SH "SEE ALSO"
 .LP
 .BR lumos (1),
+.BR lumos-sequence (5),
 .BR vixen2lumos (1).
+.SH COPYRIGHT
+.LP
+Lumos Light Orchestration System,
+Copyright \(co 2005, 2006, 2007, 2008 by Steven L. Willoughby, Aloha,
+Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
+License version 3.0.  See the
+.B LICENSE
+file accompanying the Lumos software distribution for full terms
+and conditions of use, disclaimer of warranty, limitation of liability
+and other information, or see:
+.br
+http://www.opensource.org/licenses/osl-3.0.php.
 .SH AUTHOR
 .LP
 Steve Willoughby / steve@alchemy.com
@@ -162,7 +201,10 @@ Steve Willoughby / steve@alchemy.com
 .LP
 This file format first appeared for
 .B vixen2lumos
-as part of the 1.1 software release.
+as part of the Lumos 0.3 software release.
 .SH NOTES
 .LP
 *Names of third-party products or organizations are the property of their respective owners and may be trademarks owned by them.
+'\" 
+'\" $Log: not supported by cvs2svn $
+'\" 

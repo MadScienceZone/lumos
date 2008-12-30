@@ -1,16 +1,54 @@
-Lumos 0.0 (EXP) "RELEASE_NOTES"
+______________________________________________________________________________
+Lumos 0.3a1 (ALPHA) "RELEASE_NOTES"
 
 CONTENTS
-  0.0 EXPERIMENTAL
+  Current Release
+  Previous Versions
+  Future Versions
   About Version Numbers and Release Notations
 
-0.0 EXPERIMENTAL (not released)
-  This release brings together unreleased code earlier written and used
-  privately by the author (code named "Aurora"), with major updating and
-  reorganization of the device driver code, and a considerable number of
-  new features.  This project will be called "Lumos" (derived from the 
-  Latin "lumen" (="light") and "os" for "Orchestration System").
+______________________________________________________________________________
+CURRENT RELEASE:
+  Lumos 0.3a1 [31 December 2008]
+    **ALPHA TEST RELEASE**
+    This product is still in ACTIVE DEVELOPMENT and is released for 
+	evaluation and testing purposes, not for actual production use.
 
+    Newer design features over previous versions.  
+	Final product name "Lumos" chosen and SourceForge project created.
+    Added separate device drivers and the ability to easily add more kinds 
+	of controllers (Lumos 0.1~0.2 was designed to drive the author's own 
+	"48SSR" controller circuits.)
+	Added separate network drivers, including bit- and byte-at-once 
+	concepts for serial and parallel interfaces.
+	Added Lumos sequence import utility.
+	Much refactoring of old code, bugs fixed, more unit tests and docs.
+
+  KNOWN ISSUES:
+  	* Most of the device drivers are still untested. 
+	* Only "serial" networks have been tested yet.
+
+______________________________________________________________________________
+PREVIOUS VERSIONS:
+  Lumos 0.2 [2006]
+    Previously known by internal working title "Aurora 1.1"; never released
+	for public use.  Incremental improvements over the 0.1 product before
+	the newer architecture introduced for 0.3.
+
+  Lumos 0.1 [2005]
+    Previously known by internal working title "Aurora 1.0"; never released
+	for public use.  Included some basic sequence playback functionality,
+	using a CSV file format with the intent of using a spreadsheet as a scene
+	editor.  (Note that the Lumos 1.0 CSV "V2" sequence file format is 
+	completely redesigned and incompatible with this older "V1" format.)
+
+______________________________________________________________________________
+FUTURE VERSIONS:
+  Lumos 1.0 [expected 2009]
+    This will be the first product release when enough basic functionality
+	has been implemented to call it a fully usable product.
+
+______________________________________________________________________________
 About Version Numbers and Release Notations:
   Lumos version numbers consist of two or three numbers separated by 
   dots (".").  These are not decimal points--the next release after 1.9 
@@ -31,19 +69,29 @@ About Version Numbers and Release Notations:
 
   In addition, version numberss are followed by a notation indicating what
   level of stability and verification it has attained:
-    EXPERIMENTAL  -- still under active development, volatile
-    ALPHA         -- development complete, initial test group evaluation
-	BETA          -- wider set of quasi-public testers
-	GAMMA         -- additional test/eval groups if needed after beta
-	RELEASE/(none)-- official release to the public for use
-
-  These are in chronological order, and changes (generally only defect
-  corrections) may be introduced as the code moves down this list.  Generally
-  speaking, the code should not be put into real production use until it
-  gets the "RELEASE" stage.
+    a1, a2, ...   -- ALPHA release #1, #2, etc.  This is a release of code
+	                 under active development, and not considered stable at 
+					 all.  Anything at all may change at any time during
+					 the alpha stage.
+	b1, b2, ...   -- BETA test release #1, #2, etc.  The product is nearing
+	                 release condition, and should only change to fix bugs.
+					 It has not yet been considered to be stable, nor
+					 intended for use other than for testing purposes.
+	pr1, pr2, ... -- PRE-RELEASE release #1, #2, etc.  Final testing to 
+	                 discover any issues before officially releasing the
+					 product for general use.
+					 
+  These are in chronological order (so a product version 1.5.2 would progress
+  from 1.5.2a1 to 1.5.2a2, 1.5.2a3, ..., 1.5.2b1, ..., 1.5.2pr1, ..., and 
+  finally 1.5.2), and changes (generally only defect corrections) may be 
+  introduced as the code moves down this list.  Generally speaking, the code 
+  should not be put into real production use until it gets to the "RELEASE" 
+  stage.
 
   Notwithstanding our best good-faith effort to ensure the quality of this
   software, and the use of terms like "EXPERIMENTAL", "RELEASE", etc., this
   software and all accompanying materials are provided "AS-IS" with no 
   warranty of any kind whatsoever to the extent allowed by applicable law
   (see LICENSE file for full details).
+
+

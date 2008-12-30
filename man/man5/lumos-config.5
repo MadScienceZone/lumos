@@ -1,6 +1,31 @@
-.TH SHOW.CONF 5 "Lumos" "Software Alchemy" "File Formats"
+.TH LUMOS-CONFIG 5 "Lumos" "Software Alchemy" "File Formats"
+'\"
+'\" LUMOS DOCUMENTATION:
+'\" $Header: /tmp/cvsroot/lumos/man/man5/lumos-config.5,v 1.2 2008-12-30 22:58:02 steve Exp $
+'\"
+'\" Lumos Light Orchestration System
+'\" Copyright © 2005, 2006, 2007, 2008 by Steven L. Willoughby, Aloha,
+'\" Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
+'\" License version 3.0.
+'\"
+'\" This product is provided for educational, experimental or personal
+'\" interest use, in accordance with the terms and conditions of the
+'\" aforementioned license agreement, ON AN "AS IS" BASIS AND WITHOUT
+'\" WARRANTY, EITHER EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION,
+'\" THE WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A
+'\" PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY OF THE ORIGINAL
+'\" WORK IS WITH YOU.  (See the license agreement for full details, 
+'\" including disclaimer of warranty and limitation of liability.)
+'\"
+'\" Under no curcumstances is this product intended to be used where the
+'\" safety of any person, animal, or property depends upon, or is at
+'\" risk of any kind from, the correct operation of this software or
+'\" the hardware devices which it controls.
+'\"
+'\" USE THIS PRODUCT AT YOUR OWN RISK.
+'\" 
 .SH NAME
-show.conf \- show hardware configuration definition file format
+lumos-config \- show hardware configuration definition file format
 .SH DESCRIPTION
 .LP
 When setting up a show with electrical loads managed by Lumos,
@@ -8,7 +33,7 @@ you need to create a configuration file describing the arrangement of hardware
 devices to be controlled.
 .LP
 Generically, we refer to this file as
-.RB \*(lq show.conf ,\*(rq
+the \*(lqshow configuration file,\*(rq
 although in fact it can be called anything at all.  If you will set up
 the same (or similar) hardware for more than one show, it would be useful
 to keep a collection of these files on hand to make it easier to set up
@@ -477,8 +502,9 @@ One of the ideosyncracies of the CM17A is that it does
 .I not
 actually receive commands on the serial data port; instead,
 it communicates using signal pulses on the serial port's DTR
-and RTS lines.  As such, it ignores all of the serial configuration
-parameters specified for its network.
+and RTS lines.  
+'\"As such, it ignores all of the serial configuration
+'\"parameters specified for its network.
 The channel addresses as used by Lumos include
 house/unit codes in the standard letter-number format used by X-10 equipment,
 as 
@@ -539,6 +565,69 @@ These units require one additional field:
 The controller address used for sending commands to a particular
 controller unit.  Must be a number in the range
 .RI 0<= address <=15.
+.RE
+.TP
+.B firegod
+This is a classic do-it-yourself SSR controller whose
+plans are available on hobbyist websites.  Up to four
+Firegod controllers may be plugged into the same 
+.B serial
+network, and each controls up to 32 output channels
+numbered 0 to 31.  Some Firegod units can be built
+to output a different number of channels (see below).
+These units require the following additional fields:
+.RS
+.TP
+.BI address= int
+The controller address for this particular unit.  Must be
+a number in the range
+.RI 1<= address <=4.
+.TP
+.BI channels= int
+The number of output circuits provided by this controller.  If
+no
+.B channels
+attribute is provided here, this will default to 32.
+.RE
+.TP
+.B olsen595
+Another classic DIY SSR controller popular with Christmas
+light hobbyists, the Olsen 595 is driven by a bit-at-a-time
+data stream on a parallel port (so this should be used with
+a
+.B parbit
+network type).  Note that Grinch boards (another DIY controller
+model) uses the same protocol and should be able to be driven
+by Lumos by using the
+.B olsen595
+configuration type here.
+Only one of these units may be plugged into a single
+network at a time, so no unit addressing is used.
+These units require the following additional field:
+.RS
+.TP
+.BI channels= int
+The number of output channels supplied by the controller.
+This is an optional field; if not specified, it defaults to
+64.
+.RE
+.TP
+.B renard
+The Renard DIY SSR controller board is similar in concept
+to the Firegod unit.  It uses a
+.B serial
+network interface, and up to 128 units may be plugged into
+the same network together.  These are addressed 0 to 127,
+where 0 is the first Firegod unit in the network daisy chain,
+1 is the next one down the line, and so on.
+These units require the following additional field:
+.RS
+.TP
+.BI channels= int
+The number of output channels supplied by the controller.
+This is an optional field; if not specified, it defaults to
+64.  There are known Renard controllers for 8, 16, 24, 32,
+and 64 output channels, and possibly others as well.
 .RE
 '\".TP
 '\".B spectrum
@@ -622,8 +711,7 @@ controller unit.  Must be a number in the range
 '\"dimension).  Bitmap slots only.
 '\".RE
 '\".RE
-'\".RE
-XXX ADD REMAINING UNITS HERE XXX
+.RE
 .TP
 .BI resolution= int
 Any controller capable of dimming may specify this value.  This is the
@@ -720,10 +808,34 @@ Some examples:
 .fi
 .ad
 .RE
+.SH VERSION
+.LP
+This document describes the show configuration file format
+used by Lumos version 0.3.
+.SH HISTORY
+.LP
+A show configuration file appeared in Lumos 0.1, although the
+contents of the file have evolved over time.
+.SH COPYRIGHT
+.LP
+Lumos Light Orchestration System,
+Copyright \(co 2005, 2006, 2007, 2008 by Steven L. Willoughby, Aloha,
+Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
+License version 3.0.  See the
+.B LICENSE
+file accompanying the Lumos software distribution for full terms
+and conditions of use, disclaimer of warranty, limitation of liability
+and other information, or see:
+.br
+http://www.opensource.org/licenses/osl-3.0.php.
 .SH AUTHOR
 .LP
 Steve Willoughby, support@alchemy.com
 .SH "SEE ALSO"
 .BR lcheck (1),
+.BR lumos (1),
 .BR printf (3).
 .SH BUGS
+'\" 
+'\" $Log: not supported by cvs2svn $
+'\" 

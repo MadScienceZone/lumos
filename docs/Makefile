@@ -1,4 +1,6 @@
-all: HACKING.pdf
+all: builddocs
+
+builddocs: HACKING.pdf
 
 clean:
 	rm -f *.dvi *.log *.aux

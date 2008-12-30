@@ -1,4 +1,29 @@
 .TH LUMOS-CONTROLLER 4 "Lumos" "Software Alchemy" "Device Drivers"
+'\"
+'\" LUMOS DOCUMENTATION:
+'\" $Header: /tmp/cvsroot/lumos/man/man4/lumos-controller.4,v 1.2 2008-12-30 22:58:02 steve Exp $
+'\"
+'\" Lumos Light Orchestration System
+'\" Copyright © 2005, 2006, 2007, 2008 by Steven L. Willoughby, Aloha,
+'\" Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
+'\" License version 3.0.
+'\"
+'\" This product is provided for educational, experimental or personal
+'\" interest use, in accordance with the terms and conditions of the
+'\" aforementioned license agreement, ON AN "AS IS" BASIS AND WITHOUT
+'\" WARRANTY, EITHER EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION,
+'\" THE WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A
+'\" PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY OF THE ORIGINAL
+'\" WORK IS WITH YOU.  (See the license agreement for full details, 
+'\" including disclaimer of warranty and limitation of liability.)
+'\"
+'\" Under no curcumstances is this product intended to be used where the
+'\" safety of any person, animal, or property depends upon, or is at
+'\" risk of any kind from, the correct operation of this software or
+'\" the hardware devices which it controls.
+'\"
+'\" USE THIS PRODUCT AT YOUR OWN RISK.
+'\" 
 .SH NAME
 lumos-controller \- Lumos controller device driver implementation notes
 .SH DESCRIPTION
@@ -16,9 +41,8 @@ of hardware controller.
 .LP
 Each device driver class describes a certain kind of hardware device.
 The main application software will create an instance of each driver class
-for each controller described in the 
-.B show.conf
-file, and will then call the
+for each controller described in the show configuration file,
+and will then call the
 .B add_channel()
 method in each, to set up the active channels used in the show.  (Your device
 driver should not depend on all physical channels being constructed, nor
@@ -33,8 +57,8 @@ During the operation of the show, various channel manipulation methods
 .BR set_channel() )
 are called to make changes in each device's outputs.  These methods 
 can invoke the 
-.B _send_to_device()
-method to pass the appropriate command codes to the hardware.
+.B self.network.send()
+method to pass the appropriate command codes immediately to the hardware.
 Some kinds of controllers might choose to buffer up several state changes 
 before actually transmitting command bytes.  For example, a device requiring 
 all channel data to be sent for each update (e.g., the \*(lqOlson 595\*(rq),
@@ -59,9 +83,9 @@ which is an abstract base class describing the essential attributes and
 behaviors of all controller types.  If you haven't already done so, look
 over the documentation for that module (the simplest way is to type the
 command
-.RB \*(lq "pydoc ControllerUnit" \*(rq
-from inside the Lumos source directory (or from anywhere if you have that directory in your 
-.BR PYTHONPATH .)
+.RB \*(lq "pydoc Lumos.ControllerUnit" \*(rq
+from inside the Lumos source directory (or from anywhere once Lumos is installed
+on your system).
 .LP
 Note also that where there are some general groupings of similar kinds of 
 controllers, intermediate classes have been created.  Thus, while 
@@ -100,6 +124,12 @@ indicated there (as far as number or position of arguments, which are optional, 
 You MUST define device-specific versions of these methods (unless you
 are inheriting from an intermediate class which does define them sufficiently):
 .TP
+.BI channel_id_from_string( chan )
+Returns a channel ID in the approprate type (integer, string, etc.) as
+expected (i.e., for indexing 
+.BR self.channels ), 
+given a string representation of that channel's name.
+.TP
 .B all_channels_off()
 Turns off all device channels.  In this case,
 \*(lqoff\*(rq means to take the channels to the minimum allowed level
@@ -112,8 +142,10 @@ within the driver (usually a set of
 .B Channel
 objects) and then send the appropriate set of commands to the hardware
 via the
-.B _send_to_device()
-method.
+.B self.network.send()
+method (or track state and wait until
+.B flush()
+is called).
 .TP
 .B initialize_device()
 Performs whatever setup is necessary to ensure that the controller is on-line,
@@ -140,23 +172,23 @@ object associated with the given
 for this controller, instructing it to set its value to
 .IR level .
 .TP
-.BI setChannelOff( id )
+.BI set_channel_off( id )
 Turns off (respecting any minimum
 .I warm
 level) the specified channel.
 .TP
-.BI setChannelOn( id )
+.BI set_channel_on( id )
 Turns the specified channel fully on.
 .\" .LP
 .\" You SHOULD define extensions of these methods:
 .LP
 You MAY, but possibly won't need to, extend the following methods:
 .TP
-.RI \fBaddChannel(\fP id ", [" name "], [" load "], [" dimmer "], [" warm "], [" resolution "], ...\fB)\fP"
+.RI \fBadd_channel(\fP id ", [" name "], [" load "], [" dimmer "], [" warm "], [" resolution "], ...\fB)\fP"
 This method will be called by the Lumos application based on the
 show configuration data, to assign active channels to your controller 
 unit.  The default implementation of 
-.B addChannel()
+.B add_channel()
 is a simple 
 .B Channel
 object factory which creates a new
@@ -167,18 +199,15 @@ attribute.  That's usually sufficient.
 .RS
 .LP
 Note that this method will be passed the 
-fields from the
-.B show.conf
-file as keyword arguments.  
+fields from the show configuration file
+as keyword arguments.  
 Except for the
 .IR load ,
 .IR dimmer ,
 and
 .I warm
 fields, which are appropriate native types, the fields will be strings
-as written in the
-.BR show.conf 
-file.
+as written in the configuration file.
 .RE
 .TP
 .BR __init__( ... )
@@ -188,7 +217,7 @@ you inherit from
 This will create the following attributes which your other methods may use:
 .RS
 .TP
-.B powerSource
+.B power_source
 A reference to the 
 .B PowerSource
 object supplying power to this unit, as passed in the
@@ -203,25 +232,34 @@ or the value 100 if nothing was passed when the new
 controller object was created.  If your device has a different
 resolution default, you can either make your own constructor
 to offer that different default, or just handle it in your
-.B addChannel()
+.B add_channel()
 method.
+.TP
 .B channels
-The constructor also creates an empty dictionary to hold the 
+The constructor also creates an empty collection (which
+may be a list or dictionary or something else as long as
+the channel ID values returned by
+.B channel_id_from_string()
+can be used as subscripts to the
+.B channels
+attribute) to hold the 
 channel objects for this controller, so your
-.B addChannel()
+.B add_channel()
 method can simply add to this exsiting attribute.
+.TP
+.B id
+The controller unit instance's id.
 .LP
 Note that the constructor function for a given class will be passed the 
-fields from the
-.B show.conf
-file as keyword arguments.  The 
+fields from the config file
+as keyword arguments.  The 
 .I type
 field is not passed.  The
 .I power
 field value will be a
 .B PowerSource
 class object instance.  The rest will be strings as written in
-.BR show.conf .
+config file.
 .LP
 One addittional parameter passed to the constructor is
 .IR network ,
@@ -229,22 +267,55 @@ which is a reference to the network driver object this particular device is
 connected to.
 .RE
 .TP
-.BI _send_to_device( cmd )
-Transmit the bytes in the
-.I cmd
-string to the hardware device itself.  This will pass 
-.I cmd
-to the associated 
-.B Network
-object, which in turn will transmit it to the device using the proper
-communications device and protocol.
-.TP
 .B flush()
 For devices which batch up bulk update command sequences, this method is
 their cue to flush out all pending changes to the hardware.  The default
 .B flush()
 method does nothing (most known devices at the time Lumos was written do
 not operate this way).
+.TP
+.B iter_channels()
+Returns an iterator over the list of channel ids defined for use
+in this show.  The base class
+.B ControllerUnit
+defines a default
+.B iter_channels()
+method which returns a simple iterator over the collection
+.BR self.channels .
+Just letting your class inherit this from
+.B ControllerUnit
+is sufficient if your
+.B channels
+attribute is a dictionary or a list whose elements will
+always be defined and active in the show.  However, if
+your
+.B channels
+collection is a simple list but not all channels might be
+defined by the show configuration file (and therefore 
+your
+.B add_channel()
+method might not be called for every one of them), then
+.B iter_channels()
+should return an iterator which only yields the list of
+channel indices actually defined for this show.  The
+.B ControllerUnit
+base class provides a sample method which does this as
+well:
+.BR _iter_non_null_channel_list() .
+If you have this kind of
+.B channels
+collection, just redefine your
+.B iter_channels()
+method to this instead.  For example, in your class'
+.B __init__()
+method, you can do this:
+.RS
+.na
+.nf
+.B "self.iter_channels = self._iter_non_null_channel_list"
+.fi
+.ad
+.RE
 .LP
 Since the drivers which ship with Lumos are available as source files,
 it would be instructive to examine them as a pattern to follow when creating
@@ -288,14 +359,29 @@ file might look like this:
 .fi
 .ad
 .RE
+.SH COPYRIGHT
+.LP
+Lumos Light Orchestration System,
+Copyright \(co 2005, 2006, 2007, 2008 by Steven L. Willoughby, Aloha,
+Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
+License version 3.0.  See the
+.B LICENSE
+file accompanying the Lumos software distribution for full terms
+and conditions of use, disclaimer of warranty, limitation of liability
+and other information, or see:
+.br
+http://www.opensource.org/licenses/osl-3.0.php.
 .SH AUTHOR
 .LP
 Steve Willoughby, support@alchemy.com
 .SH "SEE ALSO"
-.BR Channel "(Lumos Module),"
-.BR ControllerUnit "(Lumos Module),"
-.BR lcheck (1),
 .BR lumos (1),
-.BR lumos-network (4),
-.BR show.conf (5).
+.BR lumos-config (5),
+.BR lumos-network (4).
+.LP
+Also refer to the \*(lqHACKING\*(rq document supplied with the Lumos
+source code.
 .SH BUGS
+'\" 
+'\" $Log: not supported by cvs2svn $
+'\" 

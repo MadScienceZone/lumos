@@ -1,11 +1,12 @@
-Lumos 0.0 (EXP) "README"
+______________________________________________________________________________
+Lumos 0.3a1 (ALPHA RELEASE) "README"
 
 This is Lumos, a lightweight system for orchestrating light displays.
 It is designed to be simple and flexible, and not tied to any proprietary
 operating system or development platform.  It should run equally well on
 a Macintosh, Windows, or Linux/Unix system.  
 
-This is an EXPERIMENTAL DEVELOPMENT RELEASE (pre-alpha).  It is still
+This is an EXPERIMENTAL DEVELOPMENT RELEASE (alpha).  It is still
 very much a work in progress, and not yet ready for widespread use.  If
 you would like to get an early preview of the software and/or assist with
 testing and providing feedback to the developer, feel free to do so, but
@@ -13,15 +14,11 @@ don't expect a solid, finished product yet.  See the RELEASE_NOTES file
 for more information.
 
 The files contained in this distribution are arranged as follows:
-  bin/            -- user programs (this directory should be in your PATH)
-    keycues         -- provide synchronization to music track
-    lcheck          -- check validity of show config file
-    lpanel          -- interactive control panel for power outputs
-    lumos           -- main Lumos application (place-holder for now)
-  lib/            -- library of modules which implements Lumos functions
-    Device/         -- directory of device drivers for power controllers
-    Network/        -- directory of device drivers for communcation nets
-  man/            -- documentation for commands, file formats and drivers
+  dist_bin/*      -- user programs which will be installed in /usr/bin (or
+                     equivalent location for your system, as appropriate)
+  lib/...         -- the Lumos class library which will be installed in
+                     your Python site_packages directory.
+  man/...         -- documentation for commands, file formats and drivers
     man1/           -- command reference manuals (Unix manpage format)
     man4/           -- device driver documentation (Unix manpage format)
     man5/           -- file format documentation (Unix manpage format)
@@ -30,18 +27,10 @@ The files contained in this distribution are arranged as follows:
 
   INSTALL         -- notes on how to obtain, install and validate Lumos
   LICENSE         -- Lumos licensing terms, disclaimer of warranty
-  Makefile        -- used to orchestrate builds
   README          -- this file
   RELEASE_NOTES   -- changes and issues with this release of Lumos
-  show.conf       -- sample show configuration file
-
 
 SEE ALSO
   INSTALL
   RELEASE_NOTES
   LICENSE
-
-
-Development notes:
- - moving files from development to release mode involves the following:
-    1. #@@REL@@ is deleted from lines (allowing prod code to be commented in)

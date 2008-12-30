@@ -1,4 +1,29 @@
 .TH LUMOS-NETWORK 4 "Lumos" "Software Alchemy" "Device Drivers"
+'\"
+'\" LUMOS DOCUMENTATION:
+'\" $Header: /tmp/cvsroot/lumos/man/man4/lumos-network.4,v 1.2 2008-12-30 22:58:02 steve Exp $
+'\"
+'\" Lumos Light Orchestration System
+'\" Copyright © 2005, 2006, 2007, 2008 by Steven L. Willoughby, Aloha,
+'\" Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
+'\" License version 3.0.
+'\"
+'\" This product is provided for educational, experimental or personal
+'\" interest use, in accordance with the terms and conditions of the
+'\" aforementioned license agreement, ON AN "AS IS" BASIS AND WITHOUT
+'\" WARRANTY, EITHER EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION,
+'\" THE WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A
+'\" PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY OF THE ORIGINAL
+'\" WORK IS WITH YOU.  (See the license agreement for full details, 
+'\" including disclaimer of warranty and limitation of liability.)
+'\"
+'\" Under no curcumstances is this product intended to be used where the
+'\" safety of any person, animal, or property depends upon, or is at
+'\" risk of any kind from, the correct operation of this software or
+'\" the hardware devices which it controls.
+'\"
+'\" USE THIS PRODUCT AT YOUR OWN RISK.
+'\" 
 .SH NAME
 lumos-network \- Lumos network protocol device driver implementation notes
 .SH DESCRIPTION
@@ -17,7 +42,7 @@ of network port and the protocol used by it.
 Each network driver class describes a certain kind of communications interface.
 The main application software will create an instance of each network class
 for each network described in the 
-.B show.conf
+show configuration
 file, and will then call the
 .B add_unit()
 method in each, to set up the active controller units used in the show which
@@ -43,19 +68,20 @@ which is an abstract base class describing the essential attributes and
 behaviors of all network types.  If you haven't already done so, look
 over the documentation for that module (the simplest way is to type the
 command
-.RB \*(lq "pydoc Network" \*(rq
-from inside the Lumos source directory (or from anywhere if you have that directory in your 
-.BR PYTHONPATH .)
+.RB \*(lq "pydoc Lumos.Network" \*(rq
+from inside the Lumos source directory (or from anywhere once Lumos is installed
+on your system).
 .LP
 Note also that where there are some general groupings of similar kinds of 
-networks, intermediate classes have been created.  Thus, while 
+networks, intermediate classes should be created.  Thus, while 
 .B SerialNetwork
 is a direct subclass of 
 .BR Network ,
-.B FirecrackerSerialNetwork
-is a subclass of
-.BR SerialNetwork ,
-since it uses a serial port, but in a bit of an unorthodox manner.
+A future network driver which is similar but differs in only some
+minor way would be a subclass of
+.B SerialNetwork
+and merely extend that class rather than duplicating most of the
+same functionality independently.
 .SS "Extending the Network Class"
 .LP
 You need to extend the base 
@@ -81,8 +107,11 @@ to the network.
 The class constructor should open the communications port, create a thread
 or subprocess to handle communications protocols which need to continue 
 transmitting slow bitrates while Lumos continues operating, etc.  It will be passed additional keyword arguments as found in the
-.B show.conf
+show configuration
 file.
+.TP
+.B close()
+This closes the communication port gracefully.
 .LP
 You MAY, but possibly won't need to, extend the following methods:
 .TP
@@ -106,7 +135,7 @@ The
 .RB \*(lq Networks \*(rq
 module provides a mapping from the network device names presented to the
 user (e.g., those usable in the
-.B show.conf
+show configuration
 file's description of controller types), and which actual network driver module
 to use to actually perform the communications.
 .LP
@@ -138,13 +167,30 @@ file might look like this:
 .fi
 .ad
 .RE
+.SH COPYRIGHT
+.LP
+Lumos Light Orchestration System,
+Copyright \(co 2005, 2006, 2007, 2008 by Steven L. Willoughby, Aloha,
+Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
+License version 3.0.  See the
+.B LICENSE
+file accompanying the Lumos software distribution for full terms
+and conditions of use, disclaimer of warranty, limitation of liability
+and other information, or see:
+.br
+http://www.opensource.org/licenses/osl-3.0.php.
 .SH AUTHOR
 .LP
 Steve Willoughby, support@alchemy.com
 .SH "SEE ALSO"
-.BR Network "(Lumos Module),"
 .BR lcheck (1),
 .BR lumos (1),
-.BR lumos-controller (4),
-.BR show.conf (5).
+.BR lumos-config (5),
+.BR lumos-controller (4).
+.LP
+Also refer to the \*(lqHACKING\*(rq document supplied with the Lumos
+source code.
 .SH BUGS
+'\" 
+'\" $Log: not supported by cvs2svn $
+'\" 

@@ -1,4 +1,29 @@
 .TH VIXEN2LUMOS 1 "Lumos" "Software Alchemy" "User Commands"
+'\"
+'\" LUMOS DOCUMENTATION: VIXEN2LUMOS
+'\" $Header: /tmp/cvsroot/lumos/man/man1/vixen2lumos.1,v 1.2 2008-12-30 22:58:02 steve Exp $
+'\"
+'\" Lumos Light Orchestration System
+'\" Copyright © 2005, 2006, 2007, 2008 by Steven L. Willoughby, Aloha,
+'\" Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
+'\" License version 3.0.
+'\"
+'\" This product is provided for educational, experimental or personal
+'\" interest use, in accordance with the terms and conditions of the
+'\" aforementioned license agreement, ON AN "AS IS" BASIS AND WITHOUT
+'\" WARRANTY, EITHER EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION,
+'\" THE WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A
+'\" PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY OF THE ORIGINAL
+'\" WORK IS WITH YOU.  (See the license agreement for full details, 
+'\" including disclaimer of warranty and limitation of liability.)
+'\"
+'\" Under no curcumstances is this product intended to be used where the
+'\" safety of any person, animal, or property depends upon, or is at
+'\" risk of any kind from, the correct operation of this software or
+'\" the hardware devices which it controls.
+'\"
+'\" USE THIS PRODUCT AT YOUR OWN RISK.
+'\" 
 .SH NAME
 vixen2lumos \- Convert Vixen-format sequence file to Lumos format
 .SH SYNOPSIS
@@ -14,21 +39,24 @@ vixen2lumos \- Convert Vixen-format sequence file to Lumos format
 .IR lumosfile ]
 .br
 .B vixen2lumos
-.RB [ \-v ]
+.RB [ \-\-verbose ]
 .B \-\-info
 .BI \-\-input= vixenfile
 .br
 .B vixen2lumos
-.RB [ \-v ]
+.RB [ \-\-verbose ]
 .BI \-\-genmap= mapfile
 .BI \-\-input= vixenfile
 .br
 .B vixen2lumos 
 .B \-\-help
+.br
+.B vixen2lumos
+.B \-\-version
 .SH DESCRIPTION
 .LP
 This is a contributed utility for converting sequence files produced by the
-Vixen program into Lumos sequence files, such as could be read by Lumos'
+Vixen* program into Lumos sequence files, such as could be read by Lumos'
 sequence editor or playback programs.  This is intended to make it easier
 for Vixen users to add Lumos to their tool set and retain the use of their
 existing sequences.  For example, you could decide to continue using Vixen
@@ -212,18 +240,32 @@ such issues as not all known channels being mapped across from input to
 output.
 .SH "SEE ALSO"
 .LP
+.BR lplay (1),
 .BR lumos (1),
 .BR lumos-channel-map (5),
-.BR lumos-show-conf (5).
+.BR lumos-config (5),
+.BR lumos-sequence (5).
 .SH HISTORY
 .LP
 The
 .B vixen2lumos
-utility appeared in version 1.1 of Lumos.
+utility appeared in version 0.3 of Lumos.
+.SH COPYRIGHT
+.LP
+Lumos Light Orchestration System,
+Copyright \(co 2005, 2006, 2007, 2008 by Steven L. Willoughby, Aloha,
+Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
+License version 3.0.  See the
+.B LICENSE
+file accompanying the Lumos software distribution for full terms
+and conditions of use, disclaimer of warranty, limitation of liability
+and other information, or see:
+.br
+http://www.opensource.org/licenses/osl-3.0.php.
 .SH AUTHOR
 .LP
 Steve Willoughby, support@alchemy.com
-.SH NOTE
+.SH NOTES
 .LP
 This is an \*(lqextra\*(rq add-on utility which is not part of the core
 Lumos product itself, but is provided in the hope that it will prove useful
@@ -231,3 +273,17 @@ to Lumos users.  It is considered
 .B \*(lqexperimental\*(rq
 quality and is not guaranteed to correctly handle every possible type
 of Vixen sequence file.
+.LP
+The output plugin(s) associated with the Vixen sequence have a significant
+impact on the data written to the sequence file.  The
+.B vixen2lumos
+import utility expects to see output similar to that produced by Vixen version
+2.0, creating a \*(lqstandard Vixen sequence\*(rq for a \*(lqRenard Dimmer\*(rq
+controller.  That specific profile has been tested with this program, and no
+others.
+.LP
+*Names of third-party products are the property of, and may be trademarks
+or registered trademarks belonging to, their respective owners.
+'\" 
+'\" $Log: not supported by cvs2svn $
+'\" 

@@ -1,0 +1,10 @@
+all: builddocs
+
+builddocs: @@PDF_LIST@@
+
+clean:
+
+distclean: clean
+	rm -f pdf/*
+
+@@PDF_BUILD_RULES@@

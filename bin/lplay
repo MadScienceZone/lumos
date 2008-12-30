@@ -1,12 +1,30 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # vi:set ai sm nu ts=4 sw=4 expandtab:
-#_______________________________________________________________________ 
-#                                                                 Lumos #
-#                                                                 0.0.0 #
-#                                                              Sequence #
-#                                                                Player #
-#_______________________________________________________________________#
 #
+# LUMOS SEQUENCE PLAYER
+# $Header: /tmp/cvsroot/lumos/bin/lplay,v 1.2 2008-12-30 22:58:02 steve Exp $
+#
+# Lumos Light Orchestration System
+# Copyright © 2005, 2006, 2007, 2008 by Steven L. Willoughby, Aloha,
+# Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
+# License version 3.0.
+#
+# This product is provided for educational, experimental or personal
+# interest use, in accordance with the terms and conditions of the
+# aforementioned license agreement, ON AN "AS IS" BASIS AND WITHOUT
+# WARRANTY, EITHER EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION,
+# THE WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A
+# PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY OF THE ORIGINAL
+# WORK IS WITH YOU.  (See the license agreement for full details, 
+# including disclaimer of warranty and limitation of liability.)
+#
+# Under no curcumstances is this product intended to be used where the
+# safety of any person, animal, or property depends upon, or is at
+# risk of any kind from, the correct operation of this software or
+# the hardware devices which it controls.
+#
+# USE THIS PRODUCT AT YOUR OWN RISK.
+# 
 # Load and play a sequence of events in real time
 
 import Lumos
@@ -20,7 +38,7 @@ import sys, sched, time
 # Command-line option processing
 #========================================================================
 
-parser = OptionParser(usage="%prog [-hTv] [-c config] sequence-files...", version='0.0')
+parser = OptionParser(usage="%prog [-hTv] [-c config] sequence-files...", version='0.3a1')
 parser.add_option('-c', '--config',  metavar='FILE', help='Specify config file [./lumos.conf]')
 parser.add_option('-T', '--test',    action='store_true', help="Describe playback, don't actually do it")
 parser.add_option('-v', '--verbose', action='store_true', help='Enable more descriptive output')
@@ -85,6 +103,11 @@ if options.verbose:
     print "Show:", show.title
     print "     ", show.description
 
+if not options.test:
+    for unit_ID in show.controllers:
+        if options.verbose: print 'Initializing device "' + unit_ID + '"'
+        show.controllers[unit_ID].initialize_device()
+
 for file in files:
     sequence = Sequence()
     sequence.load_file(file, show.controllers)
@@ -110,3 +133,6 @@ for file in files:
 
 if options.verbose:
     print "Scene complete."
+#
+# $Log: not supported by cvs2svn $
+#

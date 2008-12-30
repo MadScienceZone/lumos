@@ -15,6 +15,9 @@ code-named ``Aurora'').  These notes describe the class hierarchy used within
 Lumos and the basic architecture of the system.  This will be useful to anyone
 trying to understand how the code inside Lumos works ``under the hood.''
 
+This document itself needs to be updated and cleaned up more before the
+1.0 release of Lumos.
+
 \section{Overall Architecture}
 
 The system is divided into the following major components:
@@ -71,7 +74,8 @@ change the hardware state.
 
 See the documentation for each individual device driver for notes
 about how Lumos controls that specific hardware and how the driver 
-is implemented.
+is implemented.  The ``{\tt lumos-controller}(4)'' manpage describes
+more about the implementation for controller drivers.
 
 \subsubsection{Power Sources}
 Every supply circuit powering your light display is represented by
@@ -97,35 +101,23 @@ handles byte-at-a-time data streams over RS-232 ports, which most serial
 devices will use.  However, the X10 CM17A (``Firecracker'') controller
 uses a unique bit-at-a-time protocol by manipulating only two of the
 handshaking lines of a serial port.  This is special enough that a
-regular serial driver won't work, so Lumos has the {\tt FirecrackerNetwork}
-driver as well.
+regular serial driver won't work, so Lumos has the {\tt SerialBitNetwork}
+class to provide this type of communication.  As of the writing of this
+document, this driver is still being developed but is expected to be
+extensible to handle different arrangements of signals other than
+just what the Firecracker uses.
+
+Similarly, there is the {\tt ParallelNetwork} and {\tt ParallelBitNetwork}
+classes for doing byte-at-a-time and bit-at-a-time data transmission, 
+respectively, over a parallel port.
 
 Network drivers normally accept command bytes via their {\tt send()} method,
-but they also have a {\tt flush()} method which may be called at any time
-that Lumos wishes to suggest that a discrete set of changes has been completed
-and should be pushed out to the hardware if that hasn't already happened.
-Individual drivers may elect to buffer up data until explicitly flushed, or
-to send data as it arrives, as appropriate for that device.
-
-The orchestration system will call {\tt flush()} in all affected networks
-after a set of events have been processed for a given time interval.  
-While many serial-driven controllers will want their data up front, consider
-a device such as the Olsen~595, which expects all channel data to be 
-re-transmitted in a block in order to change any channels.  In this case,
-a special ``block update'' parallel-port network driver could make note of
-changes sent via the {\tt send()} method, but wait until a {\tt flush()} 
-is ordered to transmit all the changes in one step to the hardware
-controller.  If there were a need to have the hardware periodically 
-refreshed, the network driver could take care of that independently of the
-device driver.
+which will be then transmitted in the appropriate fashion to the hardware
+attached to that network.
 
 Note that network drivers are responsible for delivery of data, and may 
 need to buffer output bytes anyway due to handshaking and data transmission
 speeds, and should continue feeding buffered data to the hardware in the
 background without the device drivers or orchestration components needing
 to know about it.
-
-XXX thinking this through, it seems to make more sense to have the device
-drivers handle the flush events and internal block state and such, and 
-let the net drivers only deal with pushing bits around.
 \end{document}

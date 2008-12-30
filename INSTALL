@@ -1,1 +1,64 @@
+________________________________________________________________________________
+Lumos 0.3a1 Installation Notes
 
+Installing Lumos is usually a straightforward task.  Before beginning, check
+that your system includes the following software which Lumos requires:
+
+   * Python 2.5 or later (Lumos has not yet been tested for Python 3.x.  A
+     2.x version of Python is recommended.)
+
+   * PySerial 2.4 or later
+
+   * PyParallel 0.2 or later
+
+   Copies of PySerial and PyParallel are available at lumos.sourceforge.net
+   along with the Lumos distribution if you can't find them at their official
+   distribution sites.
+
+________________________________________________________________________________
+(1) Unpack the Lumos distribution into a temporary working directory, and 
+    change to that directory.  
+	
+	For a typical Linux/Unix system, this would look something like this:
+
+	   $ tar xvzf Lumos-0.3a1.tar.gz
+	   $ cd Lumos-0.3a1
+
+________________________________________________________________________________
+(2) If you wish to validate Lumos, you may run the unit tests which will
+    check out Lumos's internal code to make sure it produces the expected
+	results.  The simplest way to do this is:
+
+	   $ cd Test
+	   $ ./texttestrunner
+	   $ cd ..
+
+	(Alternatively, you could run ./testrunner, which brings up the PyUnit
+	test GUI.  Click the [START] button to launch the test suite.)
+
+________________________________________________________________________________
+(3) To install Lumos onto your system, just run the setup.py script:
+
+       $ python setup.py install
+
+	You will need sufficient permissions to write the Lumos class library
+	files into your Python site_packages directory and the user scripts
+	into a public bin directory (usually /usr/bin by default).  You may
+	choose to have setup.py install these files into another location
+	(for example, if you want them installed in your own home directory).
+	To see the list of options you can give to the setup script, run:
+
+	   $ python setup.py install --help
+
+	In particular, you probably want to use --home if installing Lumos
+	locally in your home directory, or --prefix, --install-purelib,
+	and/or --install-scripts if you are an administrator wishing to
+	install into a non-standard directory.
+
+________________________________________________________________________________
+(4) Note that the documentation files under the "man" directory are not
+    installed anywhere by default.  If you want the Lumos documents added
+	to your "man" command, copy these into the appropriate manpage 
+	directories on your system.  PDF copies of these documents are also
+	available under the "man/pdf" directory.  You can copy these where
+	you can refer to them as needed.

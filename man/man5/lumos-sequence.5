@@ -1,18 +1,104 @@
 .TH LUMOS-SEQUENCE 5
+'\"
+'\" LUMOS DOCUMENTATION: LUMOS-SEQUENCE
+'\" $Header: /tmp/cvsroot/lumos/man/man5/lumos-sequence.5,v 1.3 2008-12-30 22:58:02 steve Exp $
+'\"
+'\" Lumos Light Orchestration System
+'\" Copyright © 2005, 2006, 2007, 2008 by Steven L. Willoughby, Aloha,
+'\" Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
+'\" License version 3.0.
+'\"
+'\" This product is provided for educational, experimental or personal
+'\" interest use, in accordance with the terms and conditions of the
+'\" aforementioned license agreement, ON AN "AS IS" BASIS AND WITHOUT
+'\" WARRANTY, EITHER EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION,
+'\" THE WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A
+'\" PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY OF THE ORIGINAL
+'\" WORK IS WITH YOU.  (See the license agreement for full details, 
+'\" including disclaimer of warranty and limitation of liability.)
+'\"
+'\" Under no curcumstances is this product intended to be used where the
+'\" safety of any person, animal, or property depends upon, or is at
+'\" risk of any kind from, the correct operation of this software or
+'\" the hardware devices which it controls.
+'\"
+'\" USE THIS PRODUCT AT YOUR OWN RISK.
+'\" 
 .SH NAME
 Lumos Sequence File \- script for light displays run by Lumos
+.SH SYNOPSIS
+.LP
+.BI V2, comments
+.br
+.BI U, id , channels...
+.br
+\&...
+.br
+.BI T, timestamp
+.br
+.BI E, unit , channel , value , interval
+.br
+\&...
 .SH DESCRIPTION
 .LP
 The Lumos light orchestration system plays pre-programmed sequences
 of light channel patterns.  This document explains the format of the ASCII
 file which is read by Lumos to load these sequences prior to executing them.
 .LP
-The overall format of the file is the common Comma-Separated Value ('CSV') format.
-Each line of the file describes one record, which may contain sequence data for a
-single light channel, a repeating pattern, or other information.  Each record (line) is 
-divided into fields which are separated by commas.  A field may itself be enclosed
-in double quotes (although it need not be), which allows it to contain embedded 
-commas.  Within a quoted string, a double double quote ('""') signifies a literal double quote character.
+The overall file format is standard CSV (comma-separated value).
+This allows you to edit the file using a spreadsheet program
+(e.g., OpenOffice Calc*, GNU Gnumeric*, or Microsoft Office Excel*) if that's 
+preferred, so long as you save the file into CSV format.
+.LP
+Specifically:
+.TP 
+(1)
+The file is organized into a sequential collection of records,
+each describing a single aspect of a sequence.
+Each record is stored on a single line of the file
+(terminated by a carriage-return and linefeed).
+.TP 
+(2)
+Each record is further divided into \*(lqfields\*(rq, separated
+from one another by commas 
+.RB ( , ).
+.TP 
+(3)
+If a data field itself contains one or more commas, it must be
+enclosed in double quote characters 
+.RB ( \(dq ).  
+Surrounding other
+data fields in quotes is permitted but not required.
+.TP
+(4)
+Literal double-quote characters inside a quoted field are
+specified by doubling them
+.RB ( \(dq\(dq ),
+for example:
+.RS
+.B "U,\(dqThe\(dq\(dqX10\(dq\(dqController\(dq,1,5,7"
+.RE
+.TP
+(5)
+A newline may appear inside a quoted field.  That field, including
+the newline, continues on the next line of the file.  This is discouraged
+and not guaranteed to be supported in future versions.
+.TP
+(6)
+All data in the file should be printable ASCII characters.
+.TP
+(7)
+Blank space around commas should
+.I not
+be included in the file unless you intend for the field
+contents to include those spaces as part of the data
+field.
+.SS Comments
+.LP
+This file format does not support comments other than
+as described for the initial record (See the \*(lqV\*(rq
+record type description below).
+.SS "Record Types"
 .LP
 The first field of every record specifies the record's type, and may have one of 
 the following values:
@@ -125,17 +211,31 @@ E,*,*,0,1000
 .RE
 .SH VERSION
 .LP
-This documents the Lumos sequence file version 2, for software version 1.0.  Not 
-released yet.
+This documents the Lumos sequence file version 2, for the Lumos software version 0.3.
+.SH COPYRIGHT
+.LP
+Lumos Light Orchestration System,
+Copyright \(co 2005, 2006, 2007, 2008 by Steven L. Willoughby, Aloha,
+Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
+License version 3.0.  See the
+.B LICENSE
+file accompanying the Lumos software distribution for full terms
+and conditions of use, disclaimer of warranty, limitation of liability
+and other information, or see:
+.br
+http://www.opensource.org/licenses/osl-3.0.php.
 .SH AUTHOR
 .LP
 Steve Willoughby / steve@alchemy.com
 .SH HISTORY
 .LP
-Version 1 file format created 6 September 2005.  This version is deprecated and
+Version 1 file format created 6 September 2005 for Lumos 0.1.  This version is deprecated and
 no longer supported by Lumos (this was never in a released version of the software).
 .br
 Version 2 file format created 25 September 2008 (described here).
 .SH BUGS
 .LP
 We still need to work out a more sophisticated repeat block protocol.
+'\" 
+'\" $Log: not supported by cvs2svn $
+'\" 
