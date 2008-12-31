@@ -25,7 +25,6 @@ setup(
 		'Lumos', 
 		'Lumos.Device', 
 		'Lumos.Extras', 
-		'Lumos.GUI', 
 		'Lumos.Network',
 	],
 	scripts = [
