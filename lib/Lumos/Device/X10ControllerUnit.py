@@ -2,10 +2,10 @@
 #
 # LUMOS DEVICE DRIVER: X-10 BASE CLASS
 #
-# $Header: /tmp/cvsroot/lumos/lib/Lumos/Device/X10ControllerUnit.py,v 1.4 2008-12-30 22:58:02 steve Exp $
+# $Header: /tmp/cvsroot/lumos/lib/Lumos/Device/X10ControllerUnit.py,v 1.5 2008-12-31 00:25:19 steve Exp $
 #
 # Lumos Light Orchestration System
-# Copyright © 2005, 2006, 2007, 2008 by Steven L. Willoughby, Aloha,
+# Copyright (c) 2005, 2006, 2007, 2008 by Steven L. Willoughby, Aloha,
 # Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
 # License version 3.0.
 #
@@ -54,4 +54,7 @@ class X10ControllerUnit (ControllerUnit):
         ControllerUnit.add_channel(self, id, name, load, dimmer, warm, resolution)
 #
 # $Log: not supported by cvs2svn $
+# Revision 1.4  2008/12/30 22:58:02  steve
+# General cleanup and updating before 0.3 alpha release.
+#
 #

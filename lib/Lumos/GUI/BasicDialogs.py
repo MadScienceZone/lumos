@@ -1,10 +1,10 @@
 # vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS BASIC GUI DIALOGS
-# $Header: /tmp/cvsroot/lumos/lib/Lumos/GUI/BasicDialogs.py,v 1.2 2008-12-30 22:58:02 steve Exp $
+# $Header: /tmp/cvsroot/lumos/lib/Lumos/GUI/BasicDialogs.py,v 1.3 2008-12-31 00:25:19 steve Exp $
 #
 # Lumos Light Orchestration System
-# Copyright © 2008 by Steven L. Willoughby, Aloha,
+# Copyright (c) 2008 by Steven L. Willoughby, Aloha,
 # Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
 # License version 3.0.
 #

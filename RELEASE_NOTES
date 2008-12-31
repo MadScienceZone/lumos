@@ -9,7 +9,7 @@ CONTENTS
 
 ______________________________________________________________________________
 CURRENT RELEASE:
-  Lumos 0.3a1 [31 December 2008]
+  Lumos 0.3a1 [30 December 2008]
     **ALPHA TEST RELEASE**
     This product is still in ACTIVE DEVELOPMENT and is released for 
 	evaluation and testing purposes, not for actual production use.
@@ -27,6 +27,7 @@ CURRENT RELEASE:
   KNOWN ISSUES:
   	* Most of the device drivers are still untested. 
 	* Only "serial" networks have been tested yet.
+	   -- serialbit, parallel and parbit networks have not yet been finished.
 
 ______________________________________________________________________________
 PREVIOUS VERSIONS:
