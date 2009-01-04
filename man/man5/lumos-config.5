@@ -1,7 +1,7 @@
 .TH LUMOS-CONFIG 5 "Lumos" "Software Alchemy" "File Formats"
 '\"
 '\" LUMOS DOCUMENTATION:
-'\" $Header: /tmp/cvsroot/lumos/man/man5/lumos-config.5,v 1.2 2008-12-30 22:58:02 steve Exp $
+'\" $Header: /tmp/cvsroot/lumos/man/man5/lumos-config.5,v 1.3 2009-01-04 21:43:48 steve Exp $
 '\"
 '\" Lumos Light Orchestration System
 '\" Copyright © 2005, 2006, 2007, 2008 by Steven L. Willoughby, Aloha,
@@ -618,10 +618,14 @@ to the Firegod unit.  It uses a
 .B serial
 network interface, and up to 128 units may be plugged into
 the same network together.  These are addressed 0 to 127,
-where 0 is the first Firegod unit in the network daisy chain,
+where 0 is the first Renard unit in the network daisy chain,
 1 is the next one down the line, and so on.
-These units require the following additional field:
+These units require the following additional fields:
 .RS
+.TP
+.BI address= int
+The address of this controller.  This must be a number in the range
+.RI 0<= address <=127.
 .TP
 .BI channels= int
 The number of output channels supplied by the controller.
@@ -838,4 +842,7 @@ Steve Willoughby, support@alchemy.com
 .SH BUGS
 '\" 
 '\" $Log: not supported by cvs2svn $
+'\" Revision 1.2  2008/12/30 22:58:02  steve
+'\" General cleanup and updating before 0.3 alpha release.
+'\"
 '\" 

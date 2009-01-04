@@ -10,7 +10,7 @@ from distutils.core import setup
 
 setup(
 	name = 'Lumos',
-	version = '0.3a1',
+	version = '0.3a2',
 	description = 'Light Orchestration System (SSR Sequencing Control)',
 	long_description = '''
 		Lumos ("Light Orchestration System") is a software application for

@@ -1,5 +1,5 @@
 ______________________________________________________________________________
-Lumos 0.3a1 (ALPHA) "RELEASE_NOTES"
+Lumos 0.3a2 (ALPHA) "RELEASE_NOTES"
 
 CONTENTS
   Current Release
@@ -9,6 +9,22 @@ CONTENTS
 
 ______________________________________________________________________________
 CURRENT RELEASE:
+  Lumos 0.3a2 [04 January 2009]
+    **ALPHA TEST RELEASE**
+    Bug fixes: 
+	  * lcheck wasn't iterating over channels correctly for some kinds
+	    of controllers.
+	
+	Additions:
+	  * Created first draft of Lumos User's Guide document.
+
+  KNOWN ISSUES:
+  	* Most of the device drivers are still untested. 
+	* Only "serial" networks have been tested yet.
+	   -- serialbit, parallel and parbit networks have not yet been finished.
+
+______________________________________________________________________________
+PREVIOUS VERSIONS:
   Lumos 0.3a1 [30 December 2008]
     **ALPHA TEST RELEASE**
     This product is still in ACTIVE DEVELOPMENT and is released for 
@@ -29,8 +45,6 @@ CURRENT RELEASE:
 	* Only "serial" networks have been tested yet.
 	   -- serialbit, parallel and parbit networks have not yet been finished.
 
-______________________________________________________________________________
-PREVIOUS VERSIONS:
   Lumos 0.2 [2006]
     Previously known by internal working title "Aurora 1.1"; never released
 	for public use.  Incremental improvements over the 0.1 product before

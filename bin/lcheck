@@ -2,10 +2,10 @@
 # vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS CONFIGURATION CHECK UTILITY
-# $Header: /tmp/cvsroot/lumos/bin/lcheck,v 1.4 2008-12-31 00:25:19 steve Exp $
+# $Header: /tmp/cvsroot/lumos/bin/lcheck,v 1.5 2009-01-04 21:43:48 steve Exp $
 #
 # Lumos Light Orchestration System
-# Copyright (c) 2005, 2006, 2007, 2008 by Steven L. Willoughby, Aloha,
+# Copyright (c) 2005, 2006, 2007, 2008, 2009 by Steven L. Willoughby, Aloha,
 # Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
 # License version 3.0.
 #
@@ -100,7 +100,7 @@ for file in files:
             if unitID in unitnames:
                 raise ValueError, "Unit '%s' is not unique!" % unitID
             unitnames[unitID] = 1
-            for chanID in sorted(unit.channels):
+            for chanID in sorted(unit.iter_channels()):
                 channel = unit.channels[chanID]
                 if options.verbose:
                     D = '-'
@@ -127,6 +127,9 @@ for file in files:
             print "*** WARNING ***", ps, "NEAR CAPACITY (%d%%)" % ((maxload[ps]*100) // s.power_sources[ps].amps)
 #
 # $Log: not supported by cvs2svn $
+# Revision 1.4  2008/12/31 00:25:19  steve
+# Preparing 0.3a1 release
+#
 # Revision 1.3  2008/12/30 22:58:02  steve
 # General cleanup and updating before 0.3 alpha release.
 #
