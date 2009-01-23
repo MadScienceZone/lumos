@@ -1,6 +1,6 @@
 %
 % LUMOS DOCUMENTATION: USER'S GUIDE
-% $Header: /tmp/cvsroot/lumos/docs/lumos-user-guide.tex,v 1.1 2009-01-04 21:37:48 steve Exp $
+% $Header: /tmp/cvsroot/lumos/docs/lumos-user-guide.tex,v 1.2 2009-01-23 16:33:29 steve Exp $
 %
 % Copyright (c) 2009 by Steven L. Willoughby, Aloha,
 % Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
@@ -23,19 +23,22 @@
 % USE THIS PRODUCT AT YOUR OWN RISK.
 % 
 % $Log: not supported by cvs2svn $
+% Revision 1.1  2009/01/04 21:37:48  steve
+% Wrote user guide.
+%
 % 
 \documentclass{article}
 \usepackage[dvips]{graphicx}
 \begin{document}
 \title{Lumos User's Guide}
 \author{Steve Willoughby}
-\date{4 January 2009 \\ For Lumos Verison 0.3}
+\date{12 January 2009 \\ For Lumos Verison 0.3}
 \maketitle
 \tableofcontents
 \pagebreak
 \vfill
 \begin{flushleft}
-Document revision 0.2, 4 January 2009;
+Document revision 0.3, 4 January 2009;
 for software version 0.3.
 
 Copyright \copyright\ 2009, Steven L.\ Willoughby,
@@ -57,6 +60,18 @@ is an ``alpha'' level release with less functionaity than ultimately planned,
 and not fully tested.  It is provided in this pre-release state for evaluation 
 and experimentation purposes while the implementation of the remainder is 
 being completed.
+
+Lumos is also a class library which provides a framework for applications
+to control SSRs and similar devices.  The included Lumos software (for creating,
+editing, and playing back sequences for such things as synchronized 
+Christmas light displays) is one example of an application suite using this
+framework.  Others exist and may yet be written in the future.  For example,
+the author also created a software package for running game show events,
+with a computer-generated game board, control over contestant buttons and
+displays, scoreboards, as well as control over stage lighting effects
+in sync with the game board effects.  This application incorporates the
+Lumos class library, and uses it to communicate with the various hardware
+devices involved in those productions.
 
 \subsection{Warning and Disclaimer}
 This product is provided for educational, experimental or personal

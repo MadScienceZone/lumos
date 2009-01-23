@@ -1,7 +1,7 @@
 # vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS SHOW CONFIGURATION HANDLER CLASS
-# $Header: /tmp/cvsroot/lumos/lib/Lumos/Show.py,v 1.6 2008-12-31 00:25:19 steve Exp $
+# $Header: /tmp/cvsroot/lumos/lib/Lumos/Show.py,v 1.7 2009-01-23 16:33:29 steve Exp $
 #
 # Lumos Light Orchestration System
 # Copyright (c) 2005, 2006, 2007, 2008 by Steven L. Willoughby, Aloha,
@@ -83,6 +83,9 @@ class Show (object):
 
         show = ConfigParser.SafeConfigParser()
         show.readfp(file)
+        self._load_from_config(show, open_device)
+
+    def _load_from_config(self, show, open_device):
         self.title = show.get('show', 'title')
         self.description = show.get('show', 'description')
         #
@@ -531,6 +534,9 @@ class Show (object):
 # XXX startup all the comm network drivers
 #
 # $Log: not supported by cvs2svn $
+# Revision 1.6  2008/12/31 00:25:19  steve
+# Preparing 0.3a1 release
+#
 # Revision 1.5  2008/12/30 22:58:02  steve
 # General cleanup and updating before 0.3 alpha release.
 #
