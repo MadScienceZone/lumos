@@ -1,5 +1,5 @@
 ______________________________________________________________________________
-Lumos 0.3a2 (ALPHA) "RELEASE_NOTES"
+Lumos 0.3a3 (ALPHA) "RELEASE_NOTES"
 
 CONTENTS
   Current Release
@@ -9,6 +9,22 @@ CONTENTS
 
 ______________________________________________________________________________
 CURRENT RELEASE:
+  Lumos 0.3a3 [23 January 2009]
+    **ALPHA TEST RELEASE**
+
+	Additions:
+	  * Change to implementation of Lumos.Show class which makes it
+	    easier for new classes to extend Lumos.Show.
+
+  KNOWN ISSUES:
+  	* Most of the device drivers are still untested. 
+	* Only "serial" networks have been tested yet.
+	   -- serialbit, parallel and parbit networks have not yet been finished.
+
+
+______________________________________________________________________________
+PREVIOUS VERSIONS:
+
   Lumos 0.3a2 [04 January 2009]
     **ALPHA TEST RELEASE**
     Bug fixes: 
@@ -23,8 +39,6 @@ CURRENT RELEASE:
 	* Only "serial" networks have been tested yet.
 	   -- serialbit, parallel and parbit networks have not yet been finished.
 
-______________________________________________________________________________
-PREVIOUS VERSIONS:
   Lumos 0.3a1 [30 December 2008]
     **ALPHA TEST RELEASE**
     This product is still in ACTIVE DEVELOPMENT and is released for 

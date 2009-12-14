@@ -1,7 +1,7 @@
 # vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS NETWORK CLASS
-# $Header: /tmp/cvsroot/lumos/lib/Lumos/Network/Network.py,v 1.3 2008-12-31 00:25:19 steve Exp $
+# $Header: /usr/local/cvsroot/lumos/lib/Lumos/Network/Network.py,v 1.3 2008/12/31 00:25:19 steve Exp $
 #
 # Lumos Light Orchestration System
 # Copyright (c) 2005, 2006, 2007, 2008 by Steven L. Willoughby, Aloha,
@@ -30,6 +30,11 @@ class Network (object):
     driver class derived from this base class describes a type of
     communications interface and protocol for communicating with a
     set of controllers.
+
+    For now, this is single-threaded.  Output blocks until sent
+    to the devices, and input is polled for.  A future version
+    of Lumos may implement threaded I/O with asynchronous data
+    handling.
 
     This is a virtual base class from which all actual network drivers
     are derived.
@@ -67,7 +72,10 @@ class Network (object):
         possible for it."""
         raise NotImplementedError, "You MUST redefine this method in each Network class."
 #
-# $Log: not supported by cvs2svn $
+# $Log: Network.py,v $
+# Revision 1.3  2008/12/31 00:25:19  steve
+# Preparing 0.3a1 release
+#
 # Revision 1.2  2008/12/30 22:58:02  steve
 # General cleanup and updating before 0.3 alpha release.
 #

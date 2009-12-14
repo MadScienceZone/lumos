@@ -1,5 +1,5 @@
 ________________________________________________________________________________
-Lumos 0.3a2 Installation Notes
+Lumos 0.3a3 Installation Notes
 
 Installing Lumos is usually a straightforward task.  Before beginning, check
 that your system includes the following software which Lumos requires:
@@ -21,8 +21,8 @@ ________________________________________________________________________________
 	
 	For a typical Linux/Unix system, this would look something like this:
 
-	   $ tar xvzf Lumos-0.3a2.tar.gz
-	   $ cd Lumos-0.3a2
+	   $ tar xvzf Lumos-0.3a3.tar.gz
+	   $ cd Lumos-0.3a3
 
 ________________________________________________________________________________
 (2) If you wish to validate Lumos, you may run the unit tests which will
