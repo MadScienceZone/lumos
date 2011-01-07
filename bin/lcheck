@@ -91,7 +91,7 @@ for file in files:
             
         print "-" * 78
         print " DEVICE CHANNELS:"
-        print "  NETWRK UNIT     CHAN LOAD D WARM DESCRIPTION"
+        print "  NETWRK UNIT    CHAN  LOAD D WARM DESCRIPTION"
 
     for netID in sorted(s.networks):
         net = s.networks[netID]
@@ -105,7 +105,7 @@ for file in files:
                 if options.verbose:
                     D = '-'
                     if channel.dimmer: D = 'D'
-                    print "  %-6s %-8s %4s %3gA %s %3d%% %s" %(
+                    print "  %-6s %-7s %4s %4.2gA %s %3d%% %s" %(
                         netID, unitID, chanID, channel.load, D,
                         channel.pct_dimmer_value(channel.warm), channel.name)
                 maxload[unit.power_source.id] += channel.load
