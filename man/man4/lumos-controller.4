@@ -89,7 +89,7 @@ on your system).
 .LP
 Note also that where there are some general groupings of similar kinds of 
 controllers, intermediate classes have been created.  Thus, while 
-.B SSR48Controller
+.B LumosController
 is a direct subclass of 
 .BR ControllerUnit ,
 .B FirecrackerX10ControllerUnit
@@ -349,7 +349,7 @@ file might look like this:
 .B "from WhizzoControllerUnit import WhizzoControllerUnit"
 .B "supported_controller_types = {"
 .B "\ \ \ 'lynx10':  LynX10ControllerUnit,"
-.B "\ \ \ '48ssr':   SSR48ControllerUnit,"
+.B "\ \ \ 'lumos':   LumosControllerUnit,"
 .B "\ \ \ 'cm17a':   FirecrackerX10ControllerUnit,"
 .B "\ \ \ 'whizzo':  WhizzoControllerUnit,"
 .B }
@@ -362,7 +362,7 @@ file might look like this:
 .SH COPYRIGHT
 .LP
 Lumos Light Orchestration System,
-Copyright \(co 2005, 2006, 2007, 2008 by Steven L. Willoughby, Aloha,
+Copyright \(co 2005\-2011 by Steven L. Willoughby, Aloha,
 Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
 License version 3.0.  See the
 .B LICENSE

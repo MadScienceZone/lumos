@@ -4,7 +4,7 @@
 '\" $Header: /tmp/cvsroot/lumos/man/man5/lumos-sequence.5,v 1.3 2008-12-30 22:58:02 steve Exp $
 '\"
 '\" Lumos Light Orchestration System
-'\" Copyright © 2005, 2006, 2007, 2008 by Steven L. Willoughby, Aloha,
+'\" Copyright © 2005-2008, 2011 by Steven L. Willoughby, Aloha,
 '\" Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
 '\" License version 3.0.
 '\"
@@ -28,7 +28,7 @@
 Lumos Sequence File \- script for light displays run by Lumos
 .SH SYNOPSIS
 .LP
-.BI V2, comments
+.BI V3, comments
 .br
 .BI U, id , channels...
 .br
@@ -103,6 +103,42 @@ record type description below).
 The first field of every record specifies the record's type, and may have one of 
 the following values:
 .TP
+.B A
+Audio track.  This record describes the audio to be played with the sequence, if any.
+If there is no audio, this record should not appear in the file at all. The following
+fields occur after the record type field.  Any of them may be left empty to take
+the default value.  If not all fields are present at all, defaults are assumed for
+the remaining missing fields to the end of the record.
+.RS
+.TP 10
+.I filename
+The name of the audio file.  The pathname should be written such that the player
+program can locate it (e.g., if it is a pathname relative to a certain directory,
+that should be the current directory from the point of view of the player process).
+The file may be in any audio format supported by PyGame, but safe options include
+WAV and OGG.  If maximum platform compatibility is desired, OGG would be a good choice.
+.TP
+.I volume
+The playback volume, as a percentage from 0 (quiet) to 100 (full volume).  
+[Default: 100]
+.TP
+.I channels
+The number of audio channels to use.  Should be 1 for mono or 2 for stereo.
+[Default: 2]
+.TP
+.I frequency
+The sample frequency in Hz. 
+[Default: 22050]
+.TP
+.I bits
+The number of bits per sample.  Negative values indicate signed data (e.g., \-12 would mean 12-bit signed values), while positive ones indicate unsigned data (e.g., 8 would mean 8-bit unsigned data).
+[Default: \-16]
+.TP
+.I buffer
+The buffer size to maintain for playback, which should be a power of 2.
+[Default: 4096]
+.RE
+.TP
 .B E
 Event.  This record describes a channel value change event.  This includes 
 four more fields, as follows:
@@ -165,7 +201,7 @@ record referencing this controller unit.
 This must be the first record in the sequence.  The number
 .I n
 specifies what version of this format is being used for this file.  This document
-describes version 2.
+describes version 3.
 The remainder of the record is ignored.
 .SH EXAMPLE
 .LP
@@ -178,7 +214,8 @@ everything to black over a 1s period, would look like this:
 .RS
 .na
 .nf
-V2,Lumos sequence file,test.lseq
+V3,Lumos sequence file,test.lseq
+A,test.ogg,100
 U,floods,C7
 U,tree,0,1,2,3
 T,0
@@ -211,11 +248,11 @@ E,*,*,0,1000
 .RE
 .SH VERSION
 .LP
-This documents the Lumos sequence file version 2, for the Lumos software version 0.3.
+This documents the Lumos sequence file version 3, for the Lumos software version 0.4.
 .SH COPYRIGHT
 .LP
 Lumos Light Orchestration System,
-Copyright \(co 2005, 2006, 2007, 2008 by Steven L. Willoughby, Aloha,
+Copyright \(co 2005\-2008, 2011 by Steven L. Willoughby, Aloha,
 Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
 License version 3.0.  See the
 .B LICENSE
@@ -232,7 +269,10 @@ Steve Willoughby / steve@alchemy.com
 Version 1 file format created 6 September 2005 for Lumos 0.1.  This version is deprecated and
 no longer supported by Lumos (this was never in a released version of the software).
 .br
-Version 2 file format created 25 September 2008 (described here).
+Version 2 file format created 25 September 2008.  This differed from V3 files only in that
+it did not include an \*(lqA\*(rq (audio) record type.
+.br
+Version 3 file format created 29 November 2011 (described here).
 .SH BUGS
 .LP
 We still need to work out a more sophisticated repeat block protocol.
