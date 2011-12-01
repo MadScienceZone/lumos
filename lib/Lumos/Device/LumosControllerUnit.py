@@ -79,8 +79,8 @@ class LumosControllerUnit (ControllerUnit):
     #  Chan c to level v  1010aaaa 00cccccc 000vvvvv
     #  Disable admin cmds 1111aaaa 01100001
 
-    def _proto_set_channel(self, id, old_level, new_level):
-        if old_level == new_level: return ''
+    def _proto_set_channel(self, id, old_level, new_level, force=False):
+        if old_level == new_level and not force: return ''
         if new_level is None or new_level <= 0:
             return chr(0x90 | self.address) + chr(id & 0x3f)
         elif new_level >= self.resolution-1: 
@@ -88,31 +88,31 @@ class LumosControllerUnit (ControllerUnit):
         else:                               
             return chr(0xa0 | self.address) + chr(id & 0x3f) + chr(new_level & 0x1f)
 
-    def set_channel(self, id, level):
-        self.network.send(self._proto_set_channel(id, *self.channels[id].set_level(level)))
+    def set_channel(self, id, level, force=False):
+        self.network.send(self._proto_set_channel(id, *self.channels[id].set_level(level), force=force))
 
-    def set_channel_on(self, id):
-        self.network.send(self._proto_set_channel(id, *self.channels[id].set_on()))
+    def set_channel_on(self, id, force=False):
+        self.network.send(self._proto_set_channel(id, *self.channels[id].set_on(), force=force))
 
-    def set_channel_off(self, id):
-        self.network.send(self._proto_set_channel(id, *self.channels[id].set_off()))
+    def set_channel_off(self, id, force=False):
+        self.network.send(self._proto_set_channel(id, *self.channels[id].set_off(), force=force))
 
-    def kill_channel(self, id):
-        self.network.send(self._proto_set_channel(id, *self.channels[id].kill()))
+    def kill_channel(self, id, force=False):
+        self.network.send(self._proto_set_channel(id, *self.channels[id].kill(), force=force))
 
-    def kill_all_channels(self):
+    def kill_all_channels(self, force=False):
         for ch in self.channels:
             self.channels[ch].kill()
         self.network.send(chr(0x80 | self.address))
 
-    def all_channels_off(self):
+    def all_channels_off(self, force=False):
         for ch in self.channels:
-            self.set_channel_off(ch)
+            self.set_channel_off(ch, force)
 
     def initialize_device(self):
         self.network.send(chr(0xf0 | self.address) + chr(0x61))   # go to normal run mode
-        self.kill_all_channels()
-        self.all_channels_off()
+        self.kill_all_channels(True)
+        self.all_channels_off(True)
 #
 # $Log: not supported by cvs2svn $
 # Revision 1.5  2008/12/30 22:58:02  steve

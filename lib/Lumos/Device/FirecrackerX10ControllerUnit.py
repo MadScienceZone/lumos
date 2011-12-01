@@ -130,8 +130,8 @@ class FirecrackerX10ControllerUnit (X10ControllerUnit):
         X10ControllerUnit.__init__(self, id, power, network, resolution)
         self.type = 'X-10 CM17a "Firecracker" Controller'
 
-    def _proto_set_channel(self, id, old_level, new_level):
-        if new_level == old_level: return ''
+    def _proto_set_channel(self, id, old_level, new_level, force=False):
+        if new_level == old_level and not force: return ''
         #
         # We only turn fully off when we are told to,
         # since if we dim to zero we keep the ability to
@@ -187,34 +187,34 @@ class FirecrackerX10ControllerUnit (X10ControllerUnit):
         return response
 
 
-    def set_channel(self, id, level):
-        self.network.send(self._proto_set_channel(id, *self.channels[id].set_level(level)))
+    def set_channel(self, id, level, force=False):
+        self.network.send(self._proto_set_channel(id, *self.channels[id].set_level(level), force=force))
 
-    def set_channel_on(self, id):
-        self.network.send(self._proto_set_channel(id, *self.channels[id].set_on()))
+    def set_channel_on(self, id, force=False):
+        self.network.send(self._proto_set_channel(id, *self.channels[id].set_on(), force=force))
 
-    def set_channel_off(self, id):
-        self.network.send(self._proto_set_channel(id, *self.channels[id].set_off()))
+    def set_channel_off(self, id, force=False):
+        self.network.send(self._proto_set_channel(id, *self.channels[id].set_off(), force=force))
 
-    def kill_channel(self, id):
-        self.network.send(self._proto_set_channel(id, *self.channels[id].kill()))
+    def kill_channel(self, id, force=False):
+        self.network.send(self._proto_set_channel(id, *self.channels[id].kill(), force=force))
 
-    def kill_all_channels(self):
+    def kill_all_channels(self, force=False):
         for ch in self.channels:
-            self.kill_channel(ch)
+            self.kill_channel(ch, force)
 
-    def all_channels_off(self):
+    def all_channels_off(self, force=False):
         for ch in self.channels:
-            self.set_channel_off(ch)
+            self.set_channel_off(ch, force)
 
     def initialize_device(self):
-        self.kill_all_channels()
+        self.kill_all_channels(True)
         # Force OFF commands to be transmitted out
         # we need to do this because kill_all_channels() won't
         # send anything to change channels it thinks are already
         # off.
-        for ch in self.channels:
-            self.network.send(self._proto_set_channel(ch, 0, None))
+        #for ch in self.channels:
+        #    self.network.send(self._proto_set_channel(ch, 0, None))
         # Then adjust dimmer levels for warmed devices
         self.all_channels_off()
 #

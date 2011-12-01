@@ -106,40 +106,40 @@ class FireGodControllerUnit (ControllerUnit):
 
         ControllerUnit.add_channel(self, id, name, load, dimmer, warm, resolution)
     
-    def set_channel(self, id, level):
+    def set_channel(self, id, level, force=False):
         self.channels[id].set_level(level)
         self.update_pending = True
 
-    def set_channel_on(self, id):
+    def set_channel_on(self, id, force=False):
         self.channels[id].set_on()
         self.update_pending = True
 
-    def set_channel_off(self, id):
+    def set_channel_off(self, id, force=False):
         self.channels[id].set_off()
         self.update_pending = True
 
-    def kill_channel(self, id):
+    def kill_channel(self, id, force=False):
         self.channels[id].kill()
         self.update_pending = True
 
-    def kill_all_channels(self):
+    def kill_all_channels(self, force=False):
         for ch in self.channels:
             if ch is not None:
                 ch.kill()
         self.update_pending = True
 
-    def all_channels_off(self):
+    def all_channels_off(self, force=False):
         for ch in self.channels:
             if ch is not None:
                 ch.set_off()
         self.update_pending = True
 
     def initialize_device(self):
-        self.all_channels_off()
-        self.flush()
+        self.all_channels_off(True)
+        self.flush(True)
 
-    def flush(self):
-        if self.update_pending:
+    def flush(self, force=False):
+        if self.update_pending or force:
             self.network.send('U%c' % self.address)
             for channel in self.channels:
                 if channel is None:

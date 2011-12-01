@@ -97,36 +97,36 @@ class Olsen595ControllerUnit (ControllerUnit):
         except:
             raise ValueError("This Olsen595's channel IDs must be integers from 0-%d" % self.max_bits)
 
-    def set_channel(self, id, level):
+    def set_channel(self, id, level, force=False):
         if level == 0:
-            self.set_channel_off(id)
+            self.set_channel_off(id, force)
         else:
-            self.set_channel_on(id)
+            self.set_channel_on(id, force)
 
-    def set_channel_on(self, id):
+    def set_channel_on(self, id, force=False):
         self.channels[int(id)] = 1
         self.needs_update = True
 
-    def set_channel_off(self, id):
+    def set_channel_off(self, id, force=False):
         self.channels[int(id)] = 0
         self.needs_update = True
 
-    def kill_channel(self, id):
-        self.set_channel_off(id)
+    def kill_channel(self, id, force=False):
+        self.set_channel_off(id, force)
 
-    def kill_all_channels(self):
+    def kill_all_channels(self, force=False):
         self.channels = [0] * len(self.channels)
         self.needs_update = True
 
-    def all_channels_off(self):
-        self.kill_all_channels()
+    def all_channels_off(self, force=False):
+        self.kill_all_channels(force)
 
     def initialize_device(self):
-        self.all_channels_off()
-        self.flush()
+        self.all_channels_off(True)
+        self.flush(True)
 
-    def flush(self):
-        if self.needs_update:
+    def flush(self, force=False):
+        if self.needs_update or force:
             for bit in self.channels:
                 self.network.send(bit)
             self.network.latch()

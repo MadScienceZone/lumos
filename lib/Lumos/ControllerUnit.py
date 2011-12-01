@@ -75,28 +75,28 @@ class ControllerUnit (object):
         if resolution is None: resolution = self.resolution
         self.channels[id] = Channel(id, name, load, dimmer, warm, resolution)
 
-    def set_channel(self, id, level):
+    def set_channel(self, id, level, force=False):
         raise NotImplementedError("Subclasses of ControllerUnit must define their own set_channel method.")
 
-    def set_channel_on(self, id):
+    def set_channel_on(self, id, force=False):
         raise NotImplementedError("Subclasses of ControllerUnit must define their own set_channel_on method.")
 
-    def set_channel_off(self, id):
+    def set_channel_off(self, id, force=False):
         raise NotImplementedError("Subclasses of ControllerUnit must define their own set_channel_off method.")
 
-    def kill_channel(self, id):
+    def kill_channel(self, id, force=False):
         raise NotImplementedError("Subclasses of ControllerUnit must define their own kill_channel method.")
 
-    def kill_all_channels(self):
+    def kill_all_channels(self, force=False):
         raise NotImplementedError("Subclasses of ControllerUnit must define their own kill_all_channels method.")
 
-    def all_channels_off(self):
+    def all_channels_off(self, force=False):
         raise NotImplementedError("Subclasses of ControllerUnit must define their own all_channels_off method.")
 
     def initialize_device(self):
         raise NotImplementedError("Subclasses of ControllerUnit must define their own initialize_device method.")
 
-    def flush(self):
+    def flush(self, force=False):
         """
         Flush any pending device changes to the hardware.  The default action
         is to do nothing, which is appropriate for devices which will transmit

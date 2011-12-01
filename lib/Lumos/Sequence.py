@@ -257,7 +257,7 @@ class Sequence (object):
 
         return self._event_list[timestamp]
 
-    def compile(self, keep_state=False):
+    def compile(self, keep_state=False, force=False):
         '''Compile the sequence into a ready-to-execute list of
         device updates.  This will return a list of discrete,
         device-specific updates in the form:
@@ -289,8 +289,16 @@ class Sequence (object):
         (before the effects of the first event complete).
 
         If the keep_state parameter is given a True value, the
-        previously-known dimmer state.  Otherwise, zero values
-        are assumed for all channels.
+        actions taken will consider the previously-known dimmer 
+        state.  This state is stored in the sequence object.
+        Otherwise, zero values are assumed for all channels.
+        [Default: False]
+
+        If the force parameter is given a True value, events will
+        be generated even if the sequence compiler believes they
+        are unnecessary because the output channel is already
+        at the desired state.
+        [Default: True]
         '''
 
         self._build_controller_list()
@@ -323,10 +331,10 @@ class Sequence (object):
                             #print "...start:", start_raw_value, "end:", end_raw_value, "time:", event.delta
 
                             if event.delta == 0:
-                                if start_raw_value != end_raw_value:
+                                if start_raw_value != end_raw_value or force:
                                     #print "Adding set event: unit %s ch %s -> %d (%d)" % (
                                     #    target_unit.id, repr(channel), event.level, end_raw_value)
-                                    ev_list.append((timestamp, target_unit.set_channel, (channel, end_raw_value)))
+                                    ev_list.append((timestamp, target_unit.set_channel, (channel, end_raw_value, force)))
                             else:
                                 fade_steps = abs(start_raw_value - end_raw_value)
                                 fade_incr = 1 if start_raw_value < end_raw_value else -1
@@ -335,15 +343,22 @@ class Sequence (object):
                                     #print "Adding fade sequence (one-step) for %d-%d: unit %s ch %s" % (
                                     #    start_raw_value, end_raw_value, target_unit.id, repr(channel))
                                     ev_list.append((timestamp + event.delta, target_unit.set_channel,
-                                        (channel, end_raw_value)))
+                                        (channel, end_raw_value, force)))
 
-                                if fade_steps > 1:
+                                elif fade_steps > 1:
                                     for i in range(fade_steps):
                                         #print "Adding fade sequence step %d of %d in %d-%d: unit %s ch %s" % (
                                         #    i+1, fade_steps, start_raw_value, end_raw_value, target_unit.id, repr(channel))
                                         ev_list.append((timestamp + ((event.delta * i) / (fade_steps - 1)),
                                             target_unit.set_channel,
-                                            (channel, start_raw_value + (fade_incr * (i + 1)))))
+                                            (channel, start_raw_value + (fade_incr * (i + 1)), force)))
+
+                                elif force:
+                                    # we get here if there was no change (zero steps) but
+                                    # we need to force output anyway, so we emit an event to
+                                    # output the current state.
+                                    ev_list.append((timestamp, target_unit.set_channel, (channel, end_raw_value), force))
+
 
                     for channel in channel_list:
                         if target_unit.channels[channel] is None:

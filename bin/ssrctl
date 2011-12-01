@@ -24,11 +24,11 @@ import sys, re, sched, time
 # commands:
 #  [<unit>|*][.<channel>|*][=<value>[/msec] | ? | k]
 #  
-parser = OptionParser(usage="%prog [-hTvz] [-c config] [commands...]", version='0.0')
+parser = OptionParser(usage="%prog [-hfTv] [-c config] [commands...]", version='0.4a2')
 parser.add_option('-c', '--config',  metavar='FILE', help='Specify config file [./lumos.conf]')
+parser.add_option('-f', '--force',   action='store_true', help='Force output to device')
 parser.add_option('-T', '--test',    action='store_true', help="Describe actions, don't actually do them")
 parser.add_option('-v', '--verbose', action='store_true', help='Enable more descriptive output')
-#parser.add_option('-z', '--zero',    action='store_true', help='Zero all channels first')
 parser.set_defaults(config='lumos.conf')
 (options, command_list) = parser.parse_args()
 
@@ -176,7 +176,7 @@ def do_command(command):
         seq.add(0, Event(controller_obj, channel_id, level, time_interval))
         schedule = sched.scheduler(time.time, time.sleep)
         if options.test:
-            for time_stamp, method, arglist in seq.compile(keep_state = True):
+            for time_stamp, method, arglist in seq.compile(keep_state = True, force=options.force):
                 schedule.enter(time_stamp / 1000.0, 0, trace_event, 
                     (trace_event_format(method, arglist),))
         else:
