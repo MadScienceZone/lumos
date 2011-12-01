@@ -29,7 +29,7 @@ import os
 from Lumos.ControllerUnit import ControllerUnit
 from Lumos.Device.Controllers import controller_unit_factory
 from Lumos.Device.LynX10ControllerUnit import LynX10ControllerUnit
-from Lumos.Device.SSR48ControllerUnit import SSR48ControllerUnit
+from Lumos.Device.LumosControllerUnit import LumosControllerUnit
 from Lumos.Device.FirecrackerX10ControllerUnit import FirecrackerX10ControllerUnit
 
 import Lumos.PowerSource
@@ -48,8 +48,8 @@ class ControllersTest (unittest.TestCase):
         self.assert_(isinstance(u, FirecrackerX10ControllerUnit))
         self.assert_(isinstance(u, ControllerUnit))
 
-        u = controller_unit_factory(type='48ssr', id='ss', power=ps, address=0, network=nw)
-        self.assert_(isinstance(u, SSR48ControllerUnit))
+        u = controller_unit_factory(type='lumos', id='ss', power=ps, address=0, network=nw)
+        self.assert_(isinstance(u, LumosControllerUnit))
         self.assert_(isinstance(u, ControllerUnit))
 
 # 

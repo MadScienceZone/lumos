@@ -3,7 +3,7 @@ include LICENSE
 include RELEASE_NOTES
 include show.conf
 recursive-include Test *
-recursive-include docs *
+#recursive-include docs *
 recursive-include man *.[123456789] *.pdf
 recursive-include docs *.pdf *.dvi
 prune lib/Lumos/GUI

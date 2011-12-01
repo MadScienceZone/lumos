@@ -27,7 +27,7 @@
 # 
 import Lumos
 from Lumos.Show                 import Show
-from Lumos.Sequence             import Sequence
+from Lumos.Sequence             import Sequence, AudioTrack
 from Lumos.Event                import Event
 from Lumos.Extras.VixenSequence import VixenSequence
 from optparse                   import OptionParser
@@ -40,7 +40,7 @@ import csv
 #========================================================================
 
 parser = OptionParser(usage="%prog [-hIMvz] -c config [-i input] -m map [-o output]", 
-  version='0.3a1', description='''
+  version='0.4a1', description='''
 This command converts (at least basic/simple) Vixen sequence files
 to Lumos sequence files.  This allows you to import your old sequences
 if converting to Vixen, or to simply use Vixen to edit your sequences
@@ -122,6 +122,9 @@ if options.info:
             channel.color[1],
             channel.color[2],
             channel.output)
+    if vixen_data.audio_filename is not None:
+        print '  Audio:   "%s"' % vixen_data.audio_filename
+
     sys.exit(0)
 
 #########################################################################
@@ -327,6 +330,7 @@ for c_id in show.controllers:
         if channel not in mapped_channels[c_id]:
             print >> sys.stderr, 'WARNING: Lumos channel "%s.%s" not mapped from any Vixen channel.' %(
                 c_id, channel)
+
 #
 # Build a Lumos sequence from the data we just imported.
 #
@@ -334,6 +338,12 @@ if options.verbose:
     print "Generating Lumos sequence data"
 
 lumos_data = Sequence()
+
+if vixen_data.audio_filename is not None:
+    if options.verbose:
+        print 'Adding audio track information ("%s")' % vixen_data.audio_filename
+
+    lumos_data.audio = AudioTrack(vixen_data.audio_filename)
 
 if options.zero:
     lumos_data.add(0, Event(None, None, 0, 0))

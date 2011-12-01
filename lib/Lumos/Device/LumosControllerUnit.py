@@ -1,8 +1,8 @@
 # vi:set ai sm nu ts=4 sw=4 expandtab:
 #
-# LUMOS DEVICE DRIVER: 48SSR DIY SSR CONTROLLER
+# LUMOS DEVICE DRIVER: LUMOS DIY SSR CONTROLLER
 #
-# $Header: /tmp/cvsroot/lumos/lib/Lumos/Device/SSR48ControllerUnit.py,v 1.6 2008-12-31 00:25:19 steve Exp $
+# $Header: /tmp/cvsroot/lumos/lib/Lumos/Device/LumosControllerUnit.py,v 1.6 2008-12-31 00:25:19 steve Exp $
 #
 # Lumos Light Orchestration System
 # Copyright (c) 2005, 2006, 2007, 2008 by Steven L. Willoughby, Aloha,
@@ -27,14 +27,14 @@
 # 
 from Lumos.ControllerUnit import ControllerUnit
 
-class SSR48ControllerUnit (ControllerUnit):
+class LumosControllerUnit (ControllerUnit):
     """
     ControllerUnit subclass for my custom 48-channel SSR boards.
     """
     def __init__(self, id, power, network, address, resolution=32):
         """
         Constructor for a 48-Channel SSR board object:
-            SSR48ControllerUnit(id, power, address, [resolution])
+            LumosControllerUnit(id, power, address, [resolution])
 
         Specify the correct PowerSource object for this unit and
         the unit address (0-15).  The resolution defaults to 32,
@@ -43,10 +43,10 @@ class SSR48ControllerUnit (ControllerUnit):
 
         ControllerUnit.__init__(self, id, power, network, resolution)
         self.address = int(address)
-        self.type = '48-Channel SSR Controller'
+        self.type = 'Lumos 48-Channel SSR Controller'
         self.iter_channels = self._iter_non_null_channel_list
         if not 0 <= self.address <= 15:
-            raise ValueError, "Address %d out of range for 48-Channel SSR Controller" % self.address
+            raise ValueError, "Address %d out of range for Lumos 48-Channel SSR Controller" % self.address
 
     def __str__(self):
         return "%s, address=%d" % (self.type, self.address)
@@ -62,7 +62,7 @@ class SSR48ControllerUnit (ControllerUnit):
             id = int(id)
             assert 0 <= id <= 47
         except:
-            raise ValueError, "48SSR channel IDs must be integers from 0-47"
+            raise ValueError, "Lumos 48SSR channel IDs must be integers from 0-47"
 
         if resolution is not None:
             resolution = int(resolution)

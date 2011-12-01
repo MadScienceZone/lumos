@@ -1,5 +1,5 @@
 ________________________________________________________________________________
-Lumos 0.3a3 Installation Notes
+Lumos 0.4a1 Installation Notes
 
 Installing Lumos is usually a straightforward task.  Before beginning, check
 that your system includes the following software which Lumos requires:
@@ -11,6 +11,8 @@ that your system includes the following software which Lumos requires:
 
    * PyParallel 0.2 or later
 
+   * Pygame
+
    Copies of PySerial and PyParallel are available at lumos.sourceforge.net
    along with the Lumos distribution if you can't find them at their official
    distribution sites.
@@ -21,8 +23,8 @@ ________________________________________________________________________________
 	
 	For a typical Linux/Unix system, this would look something like this:
 
-	   $ tar xvzf Lumos-0.3a3.tar.gz
-	   $ cd Lumos-0.3a3
+	   $ tar xvzf Lumos-0.4a1.tar.gz
+	   $ cd Lumos-0.4a1
 
 ________________________________________________________________________________
 (2) If you wish to validate Lumos, you may run the unit tests which will
@@ -32,9 +34,6 @@ ________________________________________________________________________________
 	   $ cd Test
 	   $ ./texttestrunner
 	   $ cd ..
-
-	(Alternatively, you could run ./testrunner, which brings up the PyUnit
-	test GUI.  Click the [START] button to launch the test suite.)
 
 ________________________________________________________________________________
 (3) To install Lumos onto your system, just run the setup.py script:
@@ -58,7 +57,7 @@ ________________________________________________________________________________
 ________________________________________________________________________________
 (4) Note that the documentation files under the "man" directory are not
     installed anywhere by default.  If you want the Lumos documents added
-	to your "man" command, copy these into the appropriate manpage 
-	directories on your system.  PDF copies of these documents are also
-	available under the "man/pdf" directory.  You can copy these where
-	you can refer to them as needed.
+    to your "man" command, copy these into the appropriate manpage 
+    directories on your system.  PDF copies of these documents are also
+    available under the "man/pdf" directory.  You can copy these where
+    you can refer to them as needed.

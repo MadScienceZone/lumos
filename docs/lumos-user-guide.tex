@@ -2,7 +2,7 @@
 % LUMOS DOCUMENTATION: USER'S GUIDE
 % $Header: /tmp/cvsroot/lumos/docs/lumos-user-guide.tex,v 1.2 2009-01-23 16:33:29 steve Exp $
 %
-% Copyright (c) 2009 by Steven L. Willoughby, Aloha,
+% Copyright (c) 2009, 2011 by Steven L. Willoughby, Aloha,
 % Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
 % License version 3.0.
 %
@@ -22,26 +22,22 @@
 %
 % USE THIS PRODUCT AT YOUR OWN RISK.
 % 
-% $Log: not supported by cvs2svn $
-% Revision 1.1  2009/01/04 21:37:48  steve
-% Wrote user guide.
-%
 % 
 \documentclass{article}
 \usepackage[dvips]{graphicx}
 \begin{document}
 \title{Lumos User's Guide}
 \author{Steve Willoughby}
-\date{12 January 2009 \\ For Lumos Verison 0.3}
+\date{29 November 2011 \\ For Lumos Verison 0.4}
 \maketitle
 \tableofcontents
 \pagebreak
 \vfill
 \begin{flushleft}
-Document revision 0.3, 4 January 2009;
-for software version 0.3.
+Document revision 0.4, 29 November 2011;
+for software version 0.4.
 
-Copyright \copyright\ 2009, Steven L.\ Willoughby,
+Copyright \copyright\ 2009, 2011, Steven L.\ Willoughby,
 Aloha, Oregon, USA.  All Rights Reserved.
 
 This document is part of the Lumos Light Orchestration System software package, distributed under the terms and conditions of the Open Software License, version 3.0.  For full details, see the file ``{\tt LICENSING}'' distributed with Lumos, or go to {\tt http://www.opensource.org}.
@@ -55,7 +51,7 @@ complex Christmas light arrangements.  These displays consist of
 pre-programmed sequences of circuit output changes (on, off, and various
 dimmer levels), either as stand-alone patterns or synchronized to music.
 
-Lumos is still a work in progress.  This document describes version 0.3, which
+Lumos is still a work in progress.  This document describes version 0.4, which
 is an ``alpha'' level release with less functionaity than ultimately planned,
 and not fully tested.  It is provided in this pre-release state for evaluation 
 and experimentation purposes while the implementation of the remainder is 
@@ -111,8 +107,11 @@ Lumos includes hardware device drivers for the following circuit controllers:
  \item[Renard:] Yet another popular DIY SSR controller which can be built
   to control 8, 16, 24, 32, or 64 channels with dimming capability.
   {\em (Interface: serial; Status: untested.)\/}
- \item[48SSR:] A custom-designed SSR controller by the author of Lumos, 
-  capable of controlling 48 output channels with dimming capability.
+ \item[Lumos:] A custom-designed SSR controller by the author of Lumos, 
+  capable of controlling 48 output channels with dimming capability.\footnote{Previously,
+  this was referred to as ``48SSR'' or ``SSR48'' until the name Lumos was settled upon.
+  The Lumos software accepts the legacy name ``{\tt 48ssr}'' for this unit, but that
+  will eventually be deprecated.  The name ``{\tt lumos}'' should be used instead.}
   {\em (Interface: serial; Status: tested OK.)\/}
  \item[X-10~CM17a:] Also known as the ``Firecracker,'' sends commands via 
   built-in RF transmitter to an X-10 receiver module.  Each controlled device
@@ -177,8 +176,8 @@ what follows.
 				compatible in order for commands addressed to one to not
 				confuse the others).  
 				Examples of controllers using this type of network include the
-				48SSR (up to 16 per network), 
 				FireGod (up to 4 per network), 
+				Lumos (up to 16 per network), 
 				LynX-10 (one per network),
 				and the 
 				Renard (up to 128 per network).
@@ -291,7 +290,7 @@ automation system.
 
 A future release of Lumos is expected to have a convenient GUI interface for
 managing show configuration profiles, but at present, setting up the show
-configuraiton involves editing a text file.  The format is easy to edit,
+configuration involves editing a text file.  The format is easy to edit,
 however, so this shouldn't prove too difficult.  You will need to use a text
 editor which will produce plain ASCII files (such as vi, EMACS, or Notepad).
 
@@ -414,9 +413,9 @@ Table~\ref{conf:controllers}.
 \begin{center}
 \begin{tabular}{|l|l|l|l|}\hline
 \bf Type   & \bf Network   & \bf Channels & \bf Extra Parameters \\\hline\hline
-48ssr      & serial        & 0--47        & address\\\hline
 cm17a      & serialbit     & A1--P16      & {\it(none)}\\\hline
 firegod    & serial        & 0--31        & address, channels\\\hline
+lumos      & serial        & 0--47        & address\\\hline
 lynx10     & serial        & A1--P16      & {\it(none)}\\\hline
 olsen595   & parbit        & 0--63*       & channels\\\hline
 renard     & serial        & 0--63*       & address, channels\\\hline

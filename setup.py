@@ -10,13 +10,14 @@ from distutils.core import setup
 
 setup(
 	name = 'Lumos',
-	version = '0.3a2',
+	version = '0.4a1',
 	description = 'Light Orchestration System (SSR Sequencing Control)',
 	long_description = '''
 		Lumos ("Light Orchestration System") is a software application for
 		creating and playing pattern sequences for light displays (such as
 		elaborate Christmas light shows, either free-running or synchronized
-		to music).
+		to music).  The name is derived from "Lumen" (Latin for light) and "OS"
+		for "Orchestration System".
 	''',
 	author = 'Steve Willoughby',
 	author_email = 'support@alchemy.com',
@@ -30,12 +31,14 @@ setup(
 	scripts = [
 		'dist_bin/lcheck', 
 		'dist_bin/lplay', 
+		'dist_bin/ssrctl',
 		'dist_bin/vixen2lumos',
 	],
 	package_dir = {'': 'lib'},
 	requires = [
 		'parallel',
 		'serial', 
+		'pygame',
 	],
 	provides = ['Lumos'],
 )

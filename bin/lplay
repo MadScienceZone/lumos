@@ -32,6 +32,7 @@ from Lumos.Show import Show
 from Lumos.Sequence import Sequence
 from optparse import OptionParser
 import sys, sched, time
+import pygame
 #@@REL@@sys.tracebacklimit=0
 
 #========================================================================
@@ -103,6 +104,10 @@ if options.verbose:
     print "Show:", show.title
     print "     ", show.description
 
+pygame.mixer.pre_init(22050, -16, 2, 4096)
+pygame.mixer.init()
+pygame.init()
+
 if not options.test:
     for unit_ID in show.controllers:
         if options.verbose: print 'Initializing device "' + unit_ID + '"'
@@ -111,11 +116,27 @@ if not options.test:
 for file in files:
     sequence = Sequence()
     sequence.load_file(file, show.controllers)
+    if sequence.audio is not None:
+        pygame.mixer.init(sequence.audio.frequency,
+                sequence.audio.bits,
+                sequence.audio.channels,
+                sequence.audio.bufsize)
+        pygame.mixer.music.load(sequence.audio.filename)
+        pygame.mixer.music.set_volume(sequence.audio.volume / 100.0)
+
     if options.verbose:
         print 'Sequence "%s": duration %s; %d intervals' % (
             file, trace_time_stamp(sequence.total_time),
             len(sequence.intervals)
         )
+        if sequence.audio is not None:
+            print 'Audio track "%s" (%d Hz, %d bits, %d chan, %d buffer)' % (
+                    sequence.audio.filename,
+                    sequence.audio.frequency,
+                    sequence.audio.bits,
+                    sequence.audio.channels,
+                    sequence.audio.bufsize)
+
     schedule = sched.scheduler(time.time, time.sleep)
     if options.test:
         # queue up event trace calls, paying as much runtime penalty
@@ -129,7 +150,13 @@ for file in files:
         for time_stamp, method, arglist in sequence.compile():
             schedule.enter(time_stamp / 1000.0, 0, method, arglist)
 
+    if sequence.audio is not None:
+        pygame.mixer.music.play()
+
     schedule.run()
+
+    if sequence.audio is not None:
+        pygame.mixer.music.stop()
 
 if options.verbose:
     print "Scene complete."

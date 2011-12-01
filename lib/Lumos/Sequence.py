@@ -31,6 +31,28 @@ class InvalidFileFormat (Exception): pass
 class InvalidTimestamp (Exception): pass
 class InvalidUnitDefinition (Exception): pass
 class InvalidEvent (Exception): pass
+class InvalidAudioDefinition (Exception): pass
+
+class AudioTrack (object):
+    """Audio track in the sequence.
+
+    Public attributes:
+
+    filename:     the filename of the audio sample.
+    volume:       intended playback volume (0-100)
+    channels:     1=mono, 2=stereo.
+    frequency:    sample frequency (Hz).
+    bits:         sample size (bits): <0=signed, >0=unsigned.
+    bufsize:      intended buffer size for playback.
+    """
+
+    def __init__(self, filename, volume=100, channels=2, frequency=44100, bits=-16, bufsize=4096):
+        self.filename = filename
+        self.volume = volume
+        self.channels = channels
+        self.frequency = frequency
+        self.bits = bits
+        self.bufsize = bufsize
 
 class Sequence (object):
     """The Sequence class represents an ordered collection of Events.
@@ -60,6 +82,7 @@ class Sequence (object):
         self._controllers = []
         self._event_list = {}
         self.current_state = {}
+        self.audio = None
 
     def load_file(self, filename, controller_map):
         csvfile = file(filename, 'rb')
@@ -83,13 +106,37 @@ class Sequence (object):
                 if version == 1:
                     raise InvalidFileFormat('Lumos sequence file format version 1 is deprecated and no longer supported.')
 
-                if version > 2:
-                    raise InvalidFileFormat('This version of Lumos only supports sequence file format V2.')
+                if version > 3:
+                    raise InvalidFileFormat('This version of Lumos only supports sequence file formats V2 and V3.')
             #
             # ----- below this point, you need to have seen the Vn record -----
             #
             elif version is None:
                 raise InvalidFileFormat('No Vn record found before real data!')
+            #
+            # A,filename,volume,channels,freq,bits,bufsize
+            #    audio playback properties (if any)
+            #
+            elif record[0] == 'A':
+                def int_or_else(v, default):
+                    if v is None or v.strip() == '':
+                        return default
+                    return int(v)
+
+                if version < 3:
+                    raise InvalidFileFormat('The A record does not exist in file formats < V3')
+
+                if not 2 <= len(record) <= 7:
+                    raise InvalidAudioDefinition('Badly formed A record "%s"' % record)
+                record += [None] * 5    # fill in defaults
+                self.audio = AudioTrack(
+                        filename = record[1],
+                        volume=   int_or_else(record[2],   100),
+                        channels= int_or_else(record[3],     2),
+                        frequency=int_or_else(record[4], 44100),
+                        bits=     int_or_else(record[5],   -16),
+                        bufsize=  int_or_else(record[6],  4096)
+                )
             #
             # U,unitname,channelname[,...]
             #    declare a controller unit and its channels
@@ -183,7 +230,17 @@ class Sequence (object):
 
         output_csv = csv.writer(outputfile)
 
-        output_csv.writerow(('V2','Lumos sequence file "%s"' % outputfile.name))
+        output_csv.writerow(('V3','Lumos sequence file "%s"' % outputfile.name))
+        if self.audio is not None:
+            output_csv.writerow(['A',
+                self.audio.filename,
+                self.audio.volume,
+                self.audio.channels,
+                self.audio.frequency,
+                self.audio.bits,
+                self.audio.bufsize
+            ])
+
         for controller in self._controllers:
             output_csv.writerow(['U', controller['obj'].id] + controller['fld'])
 

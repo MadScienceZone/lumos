@@ -28,7 +28,7 @@ parser = OptionParser(usage="%prog [-hTvz] [-c config] [commands...]", version='
 parser.add_option('-c', '--config',  metavar='FILE', help='Specify config file [./lumos.conf]')
 parser.add_option('-T', '--test',    action='store_true', help="Describe actions, don't actually do them")
 parser.add_option('-v', '--verbose', action='store_true', help='Enable more descriptive output')
-parser.add_option('-z', '--zero',    action='store_true', help='Zero all channels first')
+#parser.add_option('-z', '--zero',    action='store_true', help='Zero all channels first')
 parser.set_defaults(config='lumos.conf')
 (options, command_list) = parser.parse_args()
 
@@ -228,7 +228,7 @@ If controller or channel name omitted, reuse one from previous command.
 Either controller or channel may be "*", which means "all".  So, turning
 all outputs on all controllers fully off is "*.*:k".
 
-Type EOF (^D on unix; ^Z on Windows/DOS) to quit.
+Type EOF (^D on Unix; ^Z on Windows/DOS) to quit.
 '''
 
 
