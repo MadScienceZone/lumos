@@ -13,18 +13,23 @@ CURRENT RELEASE:
     **ALPHA TEST RELEASE**
 
 	Additions:
-	  * introduced sequence file format V3 which is idential to V2 except
+	  * Introduced sequence file format V3 which is idential to V2 except
 	    it adds support for audio tracks in the sequence.
-	  * vixen2lumos will recognize an audio file attached to the Vixen
+	  * Vixen2lumos will recognize an audio file attached to the Vixen
 	    sequence and include it in the V3 Lumos sequence file it writes.
  	  * Lumos code will read either V2 or V3 files, but always writes V3.
-	  * lplay will now play the audio track attacked to the sequence files
+	  * Lplay will now play the audio track attacked to the sequence files
 	    when running the sequence.
-	  * the "48ssr" controller has been renamed "lumos".  The older name
+	  * The "48ssr" controller has been renamed "lumos".  The older name
 	    is deprecated but still recognized (for now).
-	  * added a new bin utility, "ssrctl" which allows manual setting
+	  * Added a new bin utility, "ssrctl" which allows manual setting
 	    of channel outputs, interactively or in batch (from the command 
 	    line)
+	  * Changed the Windows distribution to have a .py extension on the
+	    executable scripts, so Windows will be able to execute them directly.
+		The user would still need to have the Python script directory in their
+		PATH, however.
+		
 
 	New Dependencies:
 	  * Now requires the pygame module.

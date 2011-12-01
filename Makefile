@@ -1,3 +1,4 @@
+RELEASE=0.4a1
 DIRLIST=docs man Test lib/Lumos
 
 all: builddocs test
@@ -11,6 +12,7 @@ test:
 
 clean:
 	for dir in $(DIRLIST); do (cd $${dir} && $(MAKE) clean); done
+	rm -f setup-Windows.py
 
 distclean: clean
 	for dir in $(DIRLIST); do (cd $${dir} && $(MAKE) distclean); done
