@@ -38,7 +38,9 @@ class ControllerUnit (object):
         Constructor for basic controller units.
         id:          the ID tag this unit instance is known by.
         power:       a PowerSource instance describing the power 
-                     feed for this unit.
+                     feed for this unit  This will be the default
+                     source for all channels unless a channel 
+                     explicitly overrides this.
         network:     a Network instance describing the communications
                      network and protocol connected to this unit.
         resolution:  default dimmer resolution for channels of this 
@@ -57,10 +59,10 @@ class ControllerUnit (object):
 
         raise NotImplementedError("Subclasses of ControllerUnit must define a channel_id_from_string() method.")
 
-    def add_channel(self, id, name=None, load=None, dimmer=True, warm=None, resolution=None):
+    def add_channel(self, id, name=None, load=None, dimmer=True, warm=None, resolution=None, power=None):
         """
         Add an active channel for this controller.
-           add_channel(id, [name], [load], [dimmer], [warm], [resolution])
+           add_channel(id, [name], [load], [dimmer], [warm], [resolution], [power])
 
         This constructs a channel object of the appropriate type and 
         adds it to this controller unit.  This may be of the the base 
@@ -73,7 +75,8 @@ class ControllerUnit (object):
         """
 
         if resolution is None: resolution = self.resolution
-        self.channels[id] = Channel(id, name, load, dimmer, warm, resolution)
+        if power is None: power = self.power_source
+        self.channels[id] = Channel(id, name, load, dimmer, warm, resolution, power)
 
     def set_channel(self, id, level, force=False):
         raise NotImplementedError("Subclasses of ControllerUnit must define their own set_channel method.")
@@ -120,6 +123,20 @@ class ControllerUnit (object):
         for i in range(len(self.channels)):
             if self.channels[i] is not None:
                 yield i
+
+    def current_drain(self):
+        '''Report on the current load drawn by this controller at this point in
+        time, based on chanel output levels.  (This assumes any pending flush
+        has happened and channels are already doing what they were last commanded
+        to do.)  The return value is a dictionary mapping channel ID to a tuple
+        of (amps, PowerSource) for each channel in this controller.'''
+        return dict([(k,v.current_drain()) for k,v in self.channels.items()])
+
+    def current_loads(self):
+        '''Report on the loads assigned to this controller during the show.
+        The return value is a dictionary mapping channel ID to a tuple of
+        (amps, PowerSource) for each channel in this controller.'''
+        return dict([(k,v.current_load()) for k,v in self.channels.items()])
 #
 # $Log: not supported by cvs2svn $
 # Revision 1.5  2008/12/30 22:58:02  steve

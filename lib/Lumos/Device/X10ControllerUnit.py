@@ -38,7 +38,7 @@ class X10ControllerUnit (ControllerUnit):
     def channel_id_from_string(self, channel):
         return str(channel).upper().strip()
 
-    def add_channel(self, id, name=None, load=None, dimmer=True, warm=None, resolution=None):
+    def add_channel(self, id, name=None, load=None, dimmer=True, warm=None, resolution=None, power=None):
         try:
             id = self.channel_id_from_string(id)
             assert('A' <= id[0] <= 'P')
@@ -51,7 +51,7 @@ class X10ControllerUnit (ControllerUnit):
         else:
             resolution = self.resolution
 
-        ControllerUnit.add_channel(self, id, name, load, dimmer, warm, resolution)
+        ControllerUnit.add_channel(self, id, name, load, dimmer, warm, resolution, power)
 #
 # $Log: not supported by cvs2svn $
 # Revision 1.4  2008/12/30 22:58:02  steve

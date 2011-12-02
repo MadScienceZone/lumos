@@ -24,7 +24,9 @@
 % 
 % 
 \documentclass{article}
-\usepackage[dvips]{graphicx}
+%\usepackage[dvips]{graphicx}
+\usepackage{graphicx}
+\usepackage{epsfig}
 \begin{document}
 \title{Lumos User's Guide}
 \author{Steve Willoughby}
@@ -776,7 +778,8 @@ spreadsheet).  Figure~\ref{seq:ss} shows our sequence file being edited in
 Gnumeric (an open source spreadsheet program).
 
 \begin{figure}[p]
-\includegraphics{seq-ss}
+%\includegraphics{seq-ss}
+\epsfig{file=seq-ss.png, height=\textheight}
 \caption{Sequence File in Spreadsheet Editor}
 \label{seq:ss}
 \end{figure}
@@ -801,19 +804,22 @@ Note that the import works best when Vixen is set to a profile which uses an
 actual device plug-in (i.e., not just a ``preview window'' plugin).  Using,
 for example, the Renard driver works well:
 
-\noindent\includegraphics{vix-plugin}
+\noindent%\includegraphics{vix-plugin}
+\epsfig{file=vix-plugin.png, width=\textwidth}
 
 Create a profile which uses the set of output channels you need, select the
 Renard plugin, and then define a new ``Vixen standard sequence'':
 
-\noindent\includegraphics{vix-menu}
+\noindent%\includegraphics{vix-menu}
+\epsfig{file=vix-menu.png, width=\textwidth}
 
 Now proceed to build the sequence in Vixen as normal.  Figure~\ref{vix:seq}
 shows the same sequence we discussed in the previous section, but created
 using Vixen rather than by manual editing of the file.
 
 \begin{figure}[p]
-\includegraphics{vix-sequence}
+%\includegraphics{vix-sequence}
+\epsfig{file=vix-sequence.png, width=\textwidth}
 \caption{Sample Sequence in Vixen Editor}
 \label{vix:seq}
 \end{figure}
@@ -838,7 +844,8 @@ ask Vixen to merge your profile data into the sequence.  Pull down the
 ``Profiles'' menu and choose ``Flatten profile into sequence,'' then save your
 sequence again.
 
-\noindent\includegraphics{vix-merge}
+\noindent%\includegraphics{vix-merge}
+\epsfig{file=vix-merge.png, width=\textwidth}
 
 Now re-check with the {\tt --info} option:
 \begin{verbatim}

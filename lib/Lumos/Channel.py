@@ -40,11 +40,11 @@ class Channel (object):
     of channels.
     """
 
-    def __init__(self, id, name=None, load=None, dimmer=True, warm=None, resolution=100):
+    def __init__(self, id, name=None, load=None, dimmer=True, warm=None, resolution=100, power=None):
         """
         Constructor for Channel objects:
 
-        Channel(id, [name], [load], [dimmer], [warm], [resolution])
+        Channel(id, [name], load, [dimmer], [warm], [resolution], power)
 
         id:           unique (within a given controller) ID 
                       for this channel.
@@ -61,7 +61,8 @@ class Channel (object):
                       distinction on some devices (e.g., X10).
                       [default=None]
         resolution:   number of discrete dimmer steps supported.  
-                      [default=value specified at controller level]
+                      [default=100]
+        power:        PowerSource object supplying power to this channel
         """
 
         if name is None:
@@ -69,12 +70,16 @@ class Channel (object):
         else:
             self.name = name
         if load is None:
-            raise ValueError, "Channel %s load parameter is required" % id
+            raise ValueError("Channel %s load parameter is required" % id)
+        if power is None:
+            raise ValueError("Channel %s power parameter is required" % id)
+
 
         self.load = float(load)
         self.dimmer = bool(dimmer)
         self.resolution = int(resolution)
         self.level = None
+        self.power_source = power
         if warm is not None:
             self.warm = self.raw_dimmer_value(warm)
             if not 0 <= self.warm < self.resolution:
@@ -134,7 +139,16 @@ class Channel (object):
         be None to indicate a completely "off" condition.
         '''
         previous = self.level
-
+        #
+        # if we are not capable of dimming, we make any level
+        # less than 50% "off" and anything greater "on".
+        #
+        if not self.dimmer:
+            self.level = None if level < self.resolution / 2.0 else self.resolution-1
+            return (previous, self.level)
+        #
+        # otherwise, figure out proper dimmer handling.
+        #
         if level is None:
             if override_warm or self.warm is None:
                 self.level = None
@@ -168,6 +182,14 @@ class Channel (object):
         '''Turn channel COMPLETELY off, disregarding "warm" setting.  
         Returns same values as setLevel()'''
         return self.set_level(None, override_warm=True)
+
+    def current_drain(self):
+        "Report current load in amps based on output level right now -> (amps, PowerSource)"
+        return ((float(self.level) / self.resolution-1) * self.load, self.power_source)
+
+    def current_load(self):
+        "Report the load assigned to this channel as a tuple (amps, PowerSource)"
+        return (self.load, self.power_source)
 #
 # $Log: not supported by cvs2svn $
 # Revision 1.3  2008/12/30 22:58:02  steve

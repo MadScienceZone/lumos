@@ -91,7 +91,7 @@ class FireGodControllerUnit (ControllerUnit):
     #def iter_channels(self):
         #return range(len(self.channels))
 
-    def add_channel(self, id, name=None, load=None, dimmer=True, warm=None, resolution=None):
+    def add_channel(self, id, name=None, load=None, dimmer=True, warm=None, resolution=None, power=None):
         try:
             id = int(id)
             assert 0 <= id < len(self.channels)
@@ -104,7 +104,7 @@ class FireGodControllerUnit (ControllerUnit):
         else:
             resolution=self.resolution
 
-        ControllerUnit.add_channel(self, id, name, load, dimmer, warm, resolution)
+        ControllerUnit.add_channel(self, id, name, load, dimmer, warm, resolution, power)
     
     def set_channel(self, id, level, force=False):
         self.channels[id].set_level(level)

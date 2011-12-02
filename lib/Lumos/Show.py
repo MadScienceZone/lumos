@@ -53,21 +53,24 @@ class Show (object):
     a show configuration into it.  After that, the following attributes
     will be available:
 
-        power_sources:   A dictionary of PowerSource objects, indexed by 
-                         circuit identifier as given in the show config file.
+        all_power_sources:  A dictionary of PowerSource objects, indexed by 
+                            circuit identifier as given in the show config file.
+        top_power_sources:  A list of PowerSource object IDs which are at the
+                            top level of the power source hierarchy.
 
-        networks:        A dictionary of Network objects, indexed by network
-                         identifier as given in the show config file.  These
-                         networks will contain controller units.
+        networks:           A dictionary of Network objects, indexed by network
+                            identifier as given in the show config file.  These
+                            networks will contain controller units.
 
-        title:           The show title.
-        description:     The show's descriptive text.
+        title:              The show title.
+        description:        The show's descriptive text.
     '''
     def __init__(self):
         self._clear()
 
     def _clear(self):
-        self.power_sources = {}
+        self.all_power_sources = {}
+        self.top_power_sources = []
         self.networks = {}
         self.controllers = {}
         self.title = None
@@ -85,6 +88,28 @@ class Show (object):
         show.readfp(file)
         self._load_from_config(show, open_device)
 
+    def _search_for_sub_sources(self, show, parent_ID, parent_obj):
+        #
+        # SUBORDINATE POWER SOURCES
+        #
+        #   [power primary.secondary]
+        #   definition for "primary.secondary" which is assumed to be
+        #   powered by "primary" (arbitrarily nested)
+        #
+        for source_tag in show.sections():
+            if source_tag.startswith('power '+parent_ID+'.'):
+                source_ID = source_tag[6:]
+                if '.' not in source_ID[len(parent_ID)+1:]: #don't get ahead of ourselves
+                    source_obj = PowerSource(source_ID,
+                            **get_config_dict(show, source_tag, {
+                                'amps': 'float',
+                                'gfci': 'bool'
+                            }))
+                    self.all_power_sources[source_ID] = source_obj
+                    parent_obj.add_subordinate_source(source_obj)
+                    self._search_for_sub_sources(show, source_ID, source_obj)
+
+
     def _load_from_config(self, show, open_device):
         self.title = show.get('show', 'title')
         self.description = show.get('show', 'description')
@@ -92,11 +117,14 @@ class Show (object):
         # POWER SOURCES
         #
         for source_ID in show.get('show', 'powersources').split():
-            self.power_sources[source_ID] = PowerSource(source_ID, 
+            source_obj = PowerSource(source_ID, 
                 **get_config_dict(show, 'power '+source_ID, {
                     'amps': 'float',
                     'gfci': 'bool'
                 }))
+            self.all_power_sources[source_ID] = source_obj
+            self.top_power_sources.append(source_ID)
+            self._search_for_sub_sources(show, source_ID, source_obj)
         #
         # NETWORKS
         #
@@ -117,7 +145,7 @@ class Show (object):
                 unit_args = get_config_dict(show, 'unit '+unit_ID, {
                     'power': 'objlist',
                     'type':  'ignore'
-                }, self.power_sources)
+                }, self.all_power_sources)
                 unit_args['id'] = unit_ID
                 self.networks[net_ID].add_unit(unit_ID, controller_unit_factory(
                     unit_type, network=self.networks[net_ID], **unit_args))
@@ -132,8 +160,9 @@ class Show (object):
                             **get_config_dict(show, channel_ID, {
                                 'load':   'float',
                                 'dimmer': 'bool',
-                                'warm':   'int'
-                            }))
+                                'warm':   'int',
+                                'power':  'objlist',
+                            }, self.all_power_sources))
 
     def load_file(self, filename, open_device=True):
         self.load(open(filename), open_device)
@@ -293,7 +322,7 @@ class Show (object):
 ;   description=...  A longer description of the show.
 ;
 [show]'''
-        print >>file, "powersources=" + ' '.join(sorted(self.power_sources))
+        print >>file, "powersources=" + ' '.join(sorted(self.top_power_sources))
         print >>file, "networks="     + ' '.join(sorted(self.networks))
         print >>file, "title="        + multiline(self.title)
         print >>file, "description="  + multiline(self.description)
@@ -306,6 +335,16 @@ class Show (object):
 ; various properties of the power circuits supplying input power for your
 ; show.
 ;
+; Additionally, subordinate power sources may be declared by naming them
+; [power a.b] to mean that source "a.b" is a load on source "a".  Likewise,
+; [power a.b.c] defines "a.b.c" which is a load on "a.b", which is in turn
+; a load on "a".  Only the "top-level" power sources are listed in the 
+; overall show's powersources value.
+;
+; More power sources than are used may be in the file, but they are ignored
+; unless they are listed in the [show] powersources value or are subordinate 
+; to one of those.
+;
 ;   amps=...         The maximum current rating for this circuit.
 ;                    ***NOTE*** this should be the current available
 ;                    TO YOUR SHOW, after accounting for whatever else
@@ -314,10 +353,10 @@ class Show (object):
 ;   gfci=yes/no      Set to 'yes' if this circuit has ground fault 
 ;                    protection.  The default is 'no'.
 ;'''
-        for powerID in sorted(self.power_sources):
+        for powerID in sorted(self.all_power_sources):
             print >>file, "[power %s]" % powerID
-            print >>file, "amps=%f"    % self.power_sources[powerID].amps
-            print >>file, "gfci=%s"    % ('yes' if self.power_sources[powerID].gfci else 'no')
+            print >>file, "amps=%f"    % self.all_power_sources[powerID].amps
+            print >>file, "gfci=%s"    % ('yes' if self.all_power_sources[powerID].gfci else 'no')
             print >>file
         print >>file, '''
 ;___________________________________________________________________________
@@ -512,6 +551,9 @@ class Show (object):
 ;                   normally.  Default is to disable this feature, and allow
 ;                   the channel to be turned competely off.  A value of 0 
 ;                   will keep the channel on, and dimmed to 0% output minimum.
+;
+;   power=ID        power source ID feeding this channel, if different from the
+;                   one feeding the controller unit as a whole.
 ;'''
         for unitID, unit_channel_list in sorted(global_channel_list.iteritems()):
             unitObj = global_controller_list[unitID]
@@ -519,7 +561,9 @@ class Show (object):
                 print >>file, "[chan %s.%s]" % (unitID, channelID)
                 if o.warm is not None:
                     print >>file, 'warm=%.2f' % o.pct_dimmer_value(o.warm)
-                dump_object_constructor(file, o, None, skip=('id', 'warm'), method=unitObj.add_channel)
+                if o.power_source is not None and o.power is not unitObj.power_source:
+                    print >>file, 'power=%s' % o.power_source.id
+                dump_object_constructor(file, o, None, skip=('id', 'warm', 'power'), method=unitObj.add_channel)
                 print >>file
         print >>file, ''';
 ; End Configuration Profile.

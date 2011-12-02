@@ -52,8 +52,8 @@ for file in files:
     non_gfci = 0
     maxload = {}
     unitnames = {}
-    for sourceID in sorted(s.power_sources):
-        source = s.power_sources[sourceID]
+    for sourceID in sorted(s.all_power_sources):
+        source = s.all_power_sources[sourceID]
         maxload[sourceID] = 0
         if options.verbose: print "  %-10s %5gA" % (source.id, source.amps),
         if source.gfci: 
@@ -91,7 +91,7 @@ for file in files:
             
         print "-" * 78
         print " DEVICE CHANNELS:"
-        print "  NETWRK UNIT    CHAN  LOAD D WARM DESCRIPTION"
+        print "  UNIT    CHAN POWER   LOAD D WARM DESCRIPTION"
 
     for netID in sorted(s.networks):
         net = s.networks[netID]
@@ -102,29 +102,60 @@ for file in files:
             unitnames[unitID] = 1
             for chanID in sorted(unit.iter_channels()):
                 channel = unit.channels[chanID]
+                channel_power, channel_source = channel.current_load()
                 if options.verbose:
                     D = '-'
                     if channel.dimmer: D = 'D'
-                    print "  %-6s %-7s %4s %4.2gA %s %3d%% %s" %(
-                        netID, unitID, chanID, channel.load, D,
+                    print "  %-7s %4s %-6s %4.2gA %s %3d%% %s" %(
+                        unitID, chanID, channel_source.id, channel_power, D,
                         channel.pct_dimmer_value(channel.warm), channel.name)
-                maxload[unit.power_source.id] += channel.load
+                maxload[channel_source.id] += channel_power
     
     if options.verbose:
         print "-" * 78
         print " POWER LOAD SUMMARY:"
 
-    for ps in sorted(s.power_sources):
+    def trace_load_of(pso, maxload):
+        ps = pso.id
+        psmax = maxload[ps]
+        total = psmax + sum([trace_load_of(ss, maxload) for ss in pso.subordinates])
+        
         if options.verbose:
-            print "  %-10s Loaded to %3d%%" % (ps, ((maxload[ps]*100) // s.power_sources[ps].amps))
-        if maxload[ps] > s.power_sources[ps].amps:
-            over = -(s.power_sources[ps].amps - maxload[ps])
-            print "*** WARNING ***", ps, "OVERLOADED BY", over, \
-                ("AMPS" if over != 1 else "AMP"), "IF ALL CHANNELS ON!"
-        elif maxload[ps] == s.power_sources[ps].amps:
-            print "*** WARNING ***", ps, "AT 100% LOAD CAPACITY IF ALL CHANNELS ON!"
-        elif maxload[ps]/float(s.power_sources[ps].amps) > 0.80:
-            print "*** WARNING ***", ps, "NEAR CAPACITY (%d%%)" % ((maxload[ps]*100) // s.power_sources[ps].amps)
+            print "  {0:10s} Loaded to {1:3d}%".format(ps, int(total*100 // pso.amps))
+
+        if total > pso.amps:
+            over = -(pso.amps - total)
+            print "*** WARNING *** {0} OVERLOADED BY {1} AMP{2} IF ALL CHANNELS ON!".format(
+                ps, over, "S" if over != 1 else "")
+        elif total == pso.amps:
+            print "*** WARNING *** {0} AT 100% LOAD CAPACITY IF ALL CHANNELS ON!".format(ps)
+        elif total/float(pso.amps) > 0.80:
+            print "*** WARNING *** {0} NEAR CAPACITY ({1:d}%)".format(
+                    ps, int(total*100 // pso.amps))
+
+        return total
+
+
+
+    total=0
+    for ps in sorted(s.top_power_sources):
+        total += trace_load_of(s.all_power_sources[ps], maxload)
+
+    if options.verbose:
+        print "Total allocated load: {0} Amps".format(total)
+
+
+#    for ps in sorted(s.all_power_sources):
+#        if options.verbose:
+#            print "  %-10s Loaded to %3d%%" % (ps, ((maxload[ps]*100) // s.all_power_sources[ps].amps))
+#        if maxload[ps] > s.all_power_sources[ps].amps:
+#            over = -(s.all_power_sources[ps].amps - maxload[ps])
+#            print "*** WARNING ***", ps, "OVERLOADED BY", over, \
+#                ("AMPS" if over != 1 else "AMP"), "IF ALL CHANNELS ON!"
+#        elif maxload[ps] == s.all_power_sources[ps].amps:
+#            print "*** WARNING ***", ps, "AT 100% LOAD CAPACITY IF ALL CHANNELS ON!"
+#        elif maxload[ps]/float(s.all_power_sources[ps].amps) > 0.80:
+#            print "*** WARNING ***", ps, "NEAR CAPACITY (%d%%)" % ((maxload[ps]*100) // s.all_power_sources[ps].amps)
 #
 # $Log: not supported by cvs2svn $
 # Revision 1.4  2008/12/31 00:25:19  steve

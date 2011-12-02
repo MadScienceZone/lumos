@@ -57,7 +57,7 @@ class LumosControllerUnit (ControllerUnit):
     #def iter_channels(self):
     #    return range(48)
 
-    def add_channel(self, id, name=None, load=None, dimmer=True, warm=None, resolution=None):
+    def add_channel(self, id, name=None, load=None, dimmer=True, warm=None, resolution=None, power=None):
         try:
             id = int(id)
             assert 0 <= id <= 47
@@ -69,7 +69,7 @@ class LumosControllerUnit (ControllerUnit):
         else:
             resolution=self.resolution
 
-        ControllerUnit.add_channel(self, id, name, load, dimmer, warm, resolution)
+        ControllerUnit.add_channel(self, id, name, load, dimmer, warm, resolution, power)
 
     #
     # hardware protocol, for a unit with address <a>
