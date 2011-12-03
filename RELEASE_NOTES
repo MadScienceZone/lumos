@@ -9,6 +9,59 @@ CONTENTS
 
 ______________________________________________________________________________
 CURRENT RELEASE:
+  Lumos 0.5a1 [???]
+    **ALPHA TEST RELEASE**
+
+	Bug Fixes:
+	  * Fixed a problem where the "dimmer" flag in the show configuration
+  	    was not being checked, so channels were able to be dimmed even if
+	    tagged as non-dimmable.
+
+	New Features:
+	  * Power sources can now be plugged into each other as "subordinate"
+ 	    power sources.  This allows for main breaker panels feeding sub-
+	    panels feeding power strips, and even for the case where a single
+	    controller may have multiple circuits feeding channels separately
+	    (as is the case with the Lumos hardware controller).  This way,
+	    each device has its own power rating and tools like lcheck and
+	    the power meter can flag possible overloads at every stage of
+	    the power distribution system.
+
+	  * Channels may now be assigned their own power sources, rather than
+	    all channels in a particular controller being  from a single
+	    source.  This is important for most X-10 devices (which may each
+ 	    be plugged into an arbitrary power circuit) and the Lumos
+	    controller (which allows multiple power circuits to be controlled).
+
+	  * In the core libraries, the methods which change channel states
+	    accept an optional boolean parameter "force".  This generally
+	    defaults to False, which provides the previous behavior of these
+	    methods--updates may be optimized away if the channel is already
+	    at the requested (raw hardware) level.  If force is True, a
+	    command is unconditionally sent to the device anyway.  This is
+	    helpful if for some reason the controller/channel objects are
+	    not aware of the true state of the output channel (such as when
+	    a Lumos program is started but the controller is already outputting
+	    various levels based on previous commands it received from another
+	    source).
+
+	  * Added the "ssrctl" command to manually adjust the output levels
+	    of the show's controller units.  May be used interactively or
+	    as a batch of channel updates on the command line.  This may be
+	    used experimentally or as a way to script otherwise static
+	    lighting cues using a shell script, batch file, or something
+	    similar.
+
+	  * Added the "lpower" command.  This is a "power meter" which 
+	    estimates the power consumed by the show during a given
+	    sequence, reporting out the total number of kilowatt hours
+	    and event-by-event current loads for the power sources
+	    supplying the show.  Graphing capability is not yet implemented
+	    but expected in the future.  The data produced may be graphed
+	    by an external tool such as gnuplot or a spreadsheet program.
+
+______________________________________________________________________________
+PREVIOUS VERSIONS:
   Lumos 0.4a1 [30 November 2011]
     **ALPHA TEST RELEASE**
 
@@ -39,8 +92,6 @@ CURRENT RELEASE:
 	* Only "serial" networks have been tested yet.
 	   -- serialbit, parallel and parbit networks have not yet been finished.
 
-______________________________________________________________________________
-PREVIOUS VERSIONS:
   Lumos 0.3a3 [23 January 2009]
     **ALPHA TEST RELEASE**
 

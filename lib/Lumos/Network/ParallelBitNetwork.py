@@ -80,16 +80,18 @@ class ParallelBitNetwork (Network):
         self.dev.setDataStrobe(0)
 
     def send(self, bit):
-        self.dev.setData(bit)
-        self.dev.setDataStrobe(1)
-        self.dev.setDataStrobe(0)
+        if self.dev is not None:
+            self.dev.setData(bit)
+            self.dev.setDataStrobe(1)
+            self.dev.setDataStrobe(0)
 
 	def latch(self):
 		raise NotImplementedError("LATCH")
 
     def close(self):
-        self.dev.setDataDir(0)
-        self.dev.close()
+        if self.dev is not None:
+            self.dev.setDataDir(0)
+            self.dev.close()
         self.dev = None
 
     def __str__(self):

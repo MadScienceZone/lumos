@@ -79,7 +79,8 @@ class SerialBitNetwork (Network):
 		raise NotImplementedError("SEND")
 
     def close(self):
-        self.dev.close()
+        if self.dev is not None:
+            self.dev.close()
         self.dev = None
 
     def __str__(self):

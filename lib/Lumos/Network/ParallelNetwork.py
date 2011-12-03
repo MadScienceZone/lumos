@@ -76,13 +76,15 @@ class ParallelNetwork (Network):
         self.dev.setDataStrobe(0)
 
     def send(self, cmd):
-        self.dev.setData(cmd)
-        self.dev.setDataStrobe(1)
-        self.dev.setDataStrobe(0)
+        if self.dev is not None:
+            self.dev.setData(cmd)
+            self.dev.setDataStrobe(1)
+            self.dev.setDataStrobe(0)
 
     def close(self):
-        self.dev.setDataDir(0)
-        self.dev.close()
+        if self.dev is not None:
+            self.dev.setDataDir(0)
+            self.dev.close()
         self.dev = None
 
     def __str__(self):

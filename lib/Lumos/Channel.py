@@ -185,7 +185,10 @@ class Channel (object):
 
     def current_drain(self):
         "Report current load in amps based on output level right now -> (amps, PowerSource)"
-        return ((float(self.level) / self.resolution-1) * self.load, self.power_source)
+        if self.level is None:
+            return (0, self.power_source)
+
+        return ((float(self.level) / (self.resolution-1)) * self.load, self.power_source)
 
     def current_load(self):
         "Report the load assigned to this channel as a tuple (amps, PowerSource)"

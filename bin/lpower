@@ -1,0 +1,195 @@
+#!/usr/bin/env python
+# vi:set ai sm nu ts=4 sw=4 expandtab:
+#
+# LUMOS POWER METER
+#
+# Lumos Light Orchestration System
+# Copyright (c) 2005-2008, 2011 by Steven L. Willoughby, Aloha,
+# Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
+# License version 3.0.
+#
+# This product is provided for educational, experimental or personal
+# interest use, in accordance with the terms and conditions of the
+# aforementioned license agreement, ON AN "AS IS" BASIS AND WITHOUT
+# WARRANTY, EITHER EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION,
+# THE WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A
+# PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY OF THE ORIGINAL
+# WORK IS WITH YOU.  (See the license agreement for full details, 
+# including disclaimer of warranty and limitation of liability.)
+#
+# Under no curcumstances is this product intended to be used where the
+# safety of any person, animal, or property depends upon, or is at
+# risk of any kind from, the correct operation of this software or
+# the hardware devices which it controls.
+#
+# USE THIS PRODUCT AT YOUR OWN RISK.
+# 
+# Estimate the power consumption of a sequence
+
+import Lumos
+from Lumos.Show import Show
+from Lumos.Sequence import Sequence
+from optparse import OptionParser
+import sys
+#@@REL@@sys.tracebacklimit=0
+
+#========================================================================
+# Command-line option processing
+#========================================================================
+
+parser = OptionParser(usage="%prog [-hv] [-c config] [-P price] [-V volts] sequence-files...", version='0.5a1')
+parser.add_option('-c', '--config',  metavar='FILE', help='Specify config file [./lumos.conf]')
+parser.add_option('-P', '--price',   metavar='P',    type='float', help='Price per kWh for power')
+parser.add_option('-V', '--volts',   metavar='V',    type='int', help='Line voltage [%default]')
+parser.add_option('-v', '--verbose', action='count', help='Enable more descriptive output')
+parser.set_defaults(config='lumos.conf', volts=120)
+(options, files) = parser.parse_args()
+
+#========================================================================
+# Create show object from config file
+#========================================================================
+
+show = Show()
+show.load_file(options.config, open_device=False)
+
+#========================================================================
+# Run each sequence, tallying up the power consumption at each time mark
+#========================================================================
+
+total_W_mS = 0  # watt-milliseconds
+
+if options.verbose:
+    print "Lumos Power Meter, version", parser.version
+    print "Show:", show.title
+    print "     ", show.description
+
+def trace_time_stamp(msec):
+    "format and return milliseconds as h:m:s.ms"
+    return "%02d:%02d:%02d.%03d" % (
+        msec / 3600000,
+        (msec / 60000) % 60,
+        (msec / 1000) % 60,
+        msec % 1000
+    )
+
+sequence = Sequence()
+events = {}
+peaks = {}
+loads = {}
+averages = {}
+samples = 0
+
+def D(format, *args):
+    global options
+    if options.verbose > 2:
+        print "DEBUG: "+format.format(*args)
+
+for file in files:
+    sequence.load_file(file, show.controllers)
+
+    if options.verbose:
+        print 'Sequence "%s": duration %s; %d intervals' % (
+            file, trace_time_stamp(sequence.total_time),
+            len(sequence.intervals)
+        )
+
+    previous_time=0
+    #
+    # The times from sequence.compile() are almost, but
+    # not quite, chronological order. We need to read them
+    # all in and then sort them before playing them back.
+    #
+
+    for current_time, method, arglist in sequence.compile(keep_state = True):
+        if current_time not in events:
+            events[current_time] = []
+        events[current_time].append((method, arglist))
+
+    for current_time in sorted(events):
+        #
+        # execute whatever happens now
+        #
+        for action, arglist in events[current_time]:
+            action(*arglist)
+        #
+        # measure the power consumption
+        #
+        if loads:
+            #
+            # record the previous time slice's data, since we now
+            # know how long it lasted.
+            #
+            elapsed_mS = current_time - previous_time
+            D("Recording slice {0}-{1} ({2}mS)", trace_time_stamp(previous_time), trace_time_stamp(current_time), elapsed_mS)
+
+            total_W_mS += (
+                    sum([loads[ps_id] for ps_id in show.top_power_sources]) * 
+                    options.volts * elapsed_mS
+            )
+
+            #
+            # calculate peak and running averages for each power source's current
+            # load at this point
+            # 
+            next = samples + elapsed_mS
+            for ps in show.all_power_sources.values():
+                if peaks.setdefault(ps.id, 0) < loads.get(ps.id, 0):
+                    peaks[ps.id] = loads.get(ps.id, 0)
+
+                averages[ps.id] = float( 
+                        averages.get(ps.id, 0) * samples + 
+                        loads.get(ps.id, 0) * elapsed_mS
+                    ) / next
+
+            samples = next
+
+        #
+        # gather next round of load data
+        #
+        loads = {}
+        for controller in show.controllers.values():
+            for amps, source in controller.current_drain().values():
+                while source:
+                    if source.id not in loads:
+                        loads[source.id] = 0
+
+                    loads[source.id] += amps
+                    source = source.parent_source
+        #
+        # we now have a total of the load starting at this time
+        # for all the power sources in the loads dict.  We'll have
+        # to wait for the next event to know how long that lasts,
+        # and the update_load_totals() function will tabulate that
+        # then.
+        #
+        previous_time = current_time
+
+if loads:
+    warned = False
+    for source_id in sorted(loads):
+        value = loads[source_id]
+        if value:
+            if not warned:
+                print "** NOTE **"
+                print "The following circuit(s) had power draining at the end of the show."
+                print "If they remain on after the show, they will consume additional"
+                print "power beyond what this report is showing."
+                warned = True
+            print "{0:6.2f} amps on {1}".format(value, source_id)
+
+#
+# Report out
+# 
+total_kW_h = total_W_mS / 3600000000.0
+print "Total Runtime:      {0} ({1:,d} mS)".format(trace_time_stamp(samples), samples)
+print "Total Power Used:   {0:10.6f} kWh".format(total_kW_h)
+
+if options.price:
+    print "Total Energy Cost: ${0:6.2f} @ ${1:.2f}/kWh".format(total_kW_h * options.price, options.price)
+
+print
+print "POWER SOURCE    PEAK (A)   AVERAGE (A)"
+for ps_id in sorted(peaks):
+    print "{0:15s} {1:8.2f}   {2:11.5f}".format(
+            ps_id, peaks[ps_id], averages[ps_id]
+    )

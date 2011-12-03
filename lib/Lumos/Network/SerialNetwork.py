@@ -120,10 +120,13 @@ class SerialNetwork (Network):
             rtscts=self.rtscts)
 
     def send(self, cmd):
+        if self.dev is None:
+            return None
         return self.dev.write(cmd)
 
     def close(self):
-        self.dev.close()
+        if self.dev is not None:
+            self.dev.close()
         self.dev = None
 
     def __str__(self):
