@@ -150,7 +150,10 @@ Needs a way to specify repeats, loops, and similar effects.  Real-time event
 cues or external sensor triggers would also be nice to add.
 .LP
 Test mode should warn about circuit capacity overload conditions.  This is 
-currently not implemented.
+currently not implemented.  However, the
+.BR lpower (1)
+utility provides a static check for power overloads before running the actual
+show at all.  This is preferred so overloads can be avoided before they happen.
 '\" 
 '\" $Log: not supported by cvs2svn $
 '\" 

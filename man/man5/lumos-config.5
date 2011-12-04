@@ -167,6 +167,11 @@ This is a very long descriptive string
 involving two physical lines of the file
 .RE
 .SS "Variable Substitution"
+.LP 
+This section is for advanced users; feel free to skip over it, but there is one
+rule described here which will affect you: if
+any of your fields will contain percent signs \*(lq%\*(rq, they need to be entered
+as \*(lq%%\*(rq.
 .LP
 Field definitions may contain the values of other fields using 
 .IR printf -style
@@ -305,11 +310,94 @@ Each power source section has two data fields:
 The 
 .I maximum
 load available on that circuit to our show.  
-.B "If other loads are on the same circuit, reduce this value by the"
-.B "maximum load of all those other devices."
+.B "If other (i.e., non-Lumos-controlled) loads are on the same circuit, reduce this value by the"
+.B "maximum load of all those other devices.  This value is the maximum current load Lumos should"
+.B "pull from that power source."
 .TP
 .BI gfci= bool
 Specify true here if the circuit in question has ground-fault protection.
+.LP
+In practice, any given output channel may pass through more than one 
+power distribution device.  It may be plugged into a power strip,
+which is plugged into a sub-panel, which is plugged into the main breaker
+panel.  Each of those devices has their own maximum current rating, which may
+be higher or lower than the other devices upstream or downstream from them in 
+the chain.
+In order to account for this, Lumos allows power sources to be specified in a hierarchy,
+so it is clear how they connect to each other.  
+.LP
+Only the top-level power sources (typically your home power panel's breakers for residential
+Christmas light displays) are listed in the \*(lqpowersources\*(rq value in the 
+.B [show] 
+section.  Subordinate power sources (devices plugged into one of the top-level sources, or into
+another subordinate source) are defined simply by adding a new
+.B [power]
+section for each of them, named
+.B [power
+.IB parent . name ]
+where
+.I parent
+is the full ID tag for the power source it plugs into, and
+.I name
+is the ID tag for the subordinate device being defined here.
+.LP
+For example, if top-level power source \*(lq2a\*(rq was a 20 amp
+circuit breaker on our main panel, which fed a pair of 15 amp 
+breakers in a sub-panel called \*(lqnorth\*(rq and \*(lqsouth\*(rq,
+and there was a 10-amp-rated power strip plugged into the \*(lqsouth\*(rq
+sub-panel breaker, the following sections in the Lumos configuration
+files would be created:
+.LP
+.na
+.nf
+.RS
+.B [show]
+.B powersources=1 2a 2b
+.B ""
+.B [power 2a]
+.B amps=20
+.B ""
+.B [power 2a.north]
+.B amps=15
+.B ""
+.B [power 2a.south]
+.B amps=15
+.B ""
+.B [power 2a.south.strip]
+.B amps=10
+.RE
+.fi
+.ad
+.LP
+Now individual controllers and channels may plug into power sources
+.RB \*(lq 2a \*(rq,
+.RB \*(lq 2a.north \*(rq,
+.RB \*(lq 2a.south \*(rq,
+.RB \*(lq 2a.south.strip \*(rq,
+or one of the other power sources defined in the show configuration file
+.RB (\*(lq 1a \*(rq
+or
+.RB \*(lq 2b \*(rq).
+.LP
+In this example, it is important that even though sub-panel breakers
+.B 2a.north
+and
+.B 2a.south
+can each be loaded to 15 amps, they can't both be near that load at the
+same time, because they are both supplied from a circuit which can only
+be loaded to a total of 20 amps.  When a Lumos sequence is run through the
+Lumos Power Meter utility 
+.BR lpower (1),
+it will check the power ratings as described in this configuration file
+and warn if it sees a circuit overload resulting from the pattern of lights
+displayed.
+.LP
+.B NOTE:
+These power management features are built in to Lumos for your convenience
+in planning your show.  None of this is intended to be your only (or even main)
+line of defense against circuit overloading or other potentially hazardous
+conditions.  Use caution and the help of appropriately skilled personnel when
+planning, setting up, and using any electrical devices.
 .SS "Networks"
 .LP
 The controlled devices are connected to the host computer via one or
@@ -483,6 +571,11 @@ The
 .I tag
 ID (see \*(lqPower Sources\*(rq) for the power circuit supplying the
 load current for this controller unit.
+If this controller is plugged into a subordinate power source, 
+.I that
+source name should be specified here, 
+.I not
+one of the upstream circuits it plugs into.
 .TP
 .BI type= name
 The type of controller unit being described.  The type must be one of
@@ -753,6 +846,17 @@ A short, descriptive name of the load plugged into this channel.
 .BI load= real
 The number of amps this load will consume.
 .TP
+.BI power= tag
+Normally, channels all get power from the single power source supplying their
+controller unit.  If a channel happens to get power from some other source,
+that is specified here by adding a 
+.RB \*(lq power \*(rq
+value and naming the source for that individual channel.  This is common for
+X-10 controllers, which are actually separate modules for each channel, and may
+be plugged into different circuits than each other.  The Lumos SSR controller
+also allows for each block of 8 channels to have a separate power source for
+load balancing flexibility.
+.TP
 .BI dimmer= bool
 Whether this channel's load should be dimmed. 
 If this value is not present, it defaults to
@@ -760,8 +864,12 @@ If this value is not present, it defaults to
 .B NOTE:
 Indicating 
 .RB \*(lq no \*(rq
-here will inform Lumos that it should interpret any non-zero level for that
-channel as fully ON, and zero as fully OFF.  However, we
+here will inform Lumos that it should interpret any level specified for that
+channel as fully ON or fully OFF.  (Typically, controller drivers will consider
+a value up to 50% to be \*(lqoff\*(rq, and anything greater than that to be
+\*(lqon\*(rq, but this may vary between controller drivers.  It's best to always
+specify that these non-dimmable channels be fully on or off in your sequences.)
+However, we
 cannot guarantee that a software or hardware bug or malfunction, 
 communication glitch or other circumstance might
 not cause it to go into dimmer mode anyway.  
@@ -815,7 +923,7 @@ Some examples:
 .SH VERSION
 .LP
 This document describes the show configuration file format
-used by Lumos version 0.3.
+used by Lumos version 0.5.
 .SH HISTORY
 .LP
 A show configuration file appeared in Lumos 0.1, although the
@@ -837,6 +945,7 @@ http://www.opensource.org/licenses/osl-3.0.php.
 Steve Willoughby, support@alchemy.com
 .SH "SEE ALSO"
 .BR lcheck (1),
+.BR lpower (1),
 .BR lumos (1),
 .BR printf (3).
 .SH BUGS

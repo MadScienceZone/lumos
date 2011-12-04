@@ -142,12 +142,12 @@ for file in files:
         # queue up event trace calls, paying as much runtime penalty
         # as possibe NOW instead of during playback
         print trace_event_header()
-        for time_stamp, method, arglist in sequence.compile():
+        for time_stamp, method, arglist in sequence.compile(keep_state = True):
             schedule.enter(time_stamp / 1000.0, 0, trace_event, 
                 (trace_event_format(time_stamp, method, arglist),))
         start_point = time.time()
     else:
-        for time_stamp, method, arglist in sequence.compile():
+        for time_stamp, method, arglist in sequence.compile(keep_state = True):
             schedule.enter(time_stamp / 1000.0, 0, method, arglist)
 
     if sequence.audio is not None:

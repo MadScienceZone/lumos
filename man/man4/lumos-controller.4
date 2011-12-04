@@ -130,7 +130,7 @@ expected (i.e., for indexing
 .BR self.channels ), 
 given a string representation of that channel's name.
 .TP
-.B all_channels_off()
+.BI all_channels_off( \fR[\fPforce\fR]\fP ) 
 Turns off all device channels.  In this case,
 \*(lqoff\*(rq means to take the channels to the minimum allowed level
 (which is either fully off, or the
@@ -146,50 +146,81 @@ via the
 method (or track state and wait until
 .B flush()
 is called).
+It MAY send the device updates immediately, or it may coose to suppress commands
+to the hardware if it believs the ouput of a channel is already at the desired
+level.  If the 
+.I force
+argument is True, then no such optimization will be performed, and every valid
+Lumos command will be carried out.
 .TP
 .B initialize_device()
 Performs whatever setup is necessary to ensure that the controller is on-line,
 with all channels off, and ready to begin receiving commands.
 .TP
-.B kill_all_channels()
+.BI kill_all_channels( \fR[\fPforce\fR]\fP )
 Just like
 .BR all_channels_off() ,
 except that all channels are turned completely off, even if any have minimum
 .I warm
 values defined for them.
+(See
+.B all_channels_off()
+for an explanation of the
+.I force
+parameter.)
 .TP
-.BI kill_channel( id )
+.BI kill_channel( id ", " \fR[\fPforce\fR]\fP )
 Kills a specific channel output, turning it complely off regardless of
 any
 .I warm
 setting in effect.
+(See
+.B all_channels_off()
+for an explanation of the
+.I force
+parameter.)
 .TP
-.BI set_channel( id ", " level )
+.BI set_channel( id ", " level ", \fR[\fP" force "\fR]\fP)"
 This should interact with the 
 .B Channel
 object associated with the given
 .I id
 for this controller, instructing it to set its value to
 .IR level .
+(See
+.B all_channels_off()
+for an explanation of the
+.I force
+parameter.)
 .TP
-.BI set_channel_off( id )
+.BI set_channel_off( id ", " \fR[\fPforce\fR]\fP )
 Turns off (respecting any minimum
 .I warm
 level) the specified channel.
+(See
+.B all_channels_off()
+for an explanation of the
+.I force
+parameter.)
 .TP
-.BI set_channel_on( id )
+.BI set_channel_on( id ", " \fR[\fPforce\fR]\fP )
 Turns the specified channel fully on.
+(See
+.B all_channels_off()
+for an explanation of the
+.I force
+parameter.)
 .\" .LP
 .\" You SHOULD define extensions of these methods:
 .LP
 You MAY, but possibly won't need to, extend the following methods:
 .TP
-.RI \fBadd_channel(\fP id ", [" name "], [" load "], [" dimmer "], [" warm "], [" resolution "], ...\fB)\fP"
+.RI \fBadd_channel(\fP id ", [" name "], [" load "], [" dimmer "], [" warm "], [" resolution "], [" power "], ...\fB)\fP"
 This method will be called by the Lumos application based on the
 show configuration data, to assign active channels to your controller 
 unit.  The default implementation of 
 .B add_channel()
-is a simple 
+is a 
 .B Channel
 object factory which creates a new
 .B Channel
@@ -204,8 +235,9 @@ as keyword arguments.
 Except for the
 .IR load ,
 .IR dimmer ,
+.IR warm ,
 and
-.I warm
+.I power
 fields, which are appropriate native types, the fields will be strings
 as written in the configuration file.
 .RE
@@ -223,6 +255,10 @@ A reference to the
 object supplying power to this unit, as passed in the
 .I power
 argument to the constructor function.
+(Note that it is possible for individual channels to override this
+value if they are supplied power from another source, as is possible
+with X-10 and Lumos controllers for example.  This value is the default
+inherited by this controller's channels.)
 .TP
 .B resolution
 Dimmer resolution as passed in the

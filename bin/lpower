@@ -38,7 +38,7 @@ import sys, csv
 #========================================================================
 
 parser = OptionParser(usage="%prog [-hv] [-c config] [-P price] [-V volts] sequence-files...", version='0.5a1')
-parser.add_option('-c', '--config',  metavar='FILE', help='Specify config file [./lumos.conf]')
+parser.add_option('-c', '--config',  metavar='FILE', help='Specify config file [%default]')
 parser.add_option('-P', '--price',   metavar='P',    type='float', help='Price per kWh for power')
 parser.add_option('-g', '--graph-data', metavar='FILE', help='Dump graphing data to CSV file')
 parser.add_option('-V', '--volts',   metavar='V',    type='int', help='Line voltage [%default]')
@@ -78,6 +78,8 @@ events = {}
 peaks = {}
 loads = {}
 averages = {}
+exceeds = {}
+over80 = {}
 samples = 0
 
 if options.graph_data:
@@ -147,6 +149,12 @@ for file in files:
                         loads.get(ps.id, 0) * elapsed_mS
                     ) / next
 
+                if loads.get(ps.id, 0) >= ps.amps:
+                    exceeds[ps.id] = exceeds.get(ps.id, 0) + elapsed_mS
+
+                if loads.get(ps.id, 0) > ps.amps * .8:
+                    over80[ps.id] = over80.get(ps.id, 0) + elapsed_mS
+
             samples = next
 
         #
@@ -184,6 +192,8 @@ if loads:
                 print "The following circuit(s) had power draining at the end of the show."
                 print "If they remain on after the show, they will consume additional"
                 print "power beyond what this report is showing."
+                print "This final power level was the end-state at the last instant of the"
+                print "sequence, so is not figured into the calculations reported."
                 warned = True
             print "{0:6.2f} amps on {1}".format(value, source_id)
 
@@ -203,3 +213,8 @@ for ps_id in sorted(peaks):
     print "{0:15s} {1:8.2f}   {2:11.5f}".format(
             ps_id, peaks[ps_id], averages[ps_id]
     )
+
+for ps_id in sorted(over80):
+    print "*** WARNING *** {0} OVER 80% LOAD FOR TOTAL OF {1}".format(ps_id, trace_time_stamp(over80[ps_id]))
+for ps_id in sorted(exceeds):
+    print "*** WARNING *** {0} AT OR OVER 100% LOAD FOR TOTAL OF {1}".format(ps_id, trace_time_stamp(exceeds[ps_id]))
