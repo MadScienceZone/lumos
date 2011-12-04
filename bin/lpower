@@ -63,6 +63,7 @@ if options.verbose:
     print "Lumos Power Meter, version", parser.version
     print "Show:", show.title
     print "     ", show.description
+    print
 
 def trace_time_stamp(msec):
     "format and return milliseconds as h:m:s.ms"
@@ -188,12 +189,14 @@ if loads:
         value = loads[source_id]
         if value:
             if not warned:
+                print
                 print "** NOTE **"
                 print "The following circuit(s) had power draining at the end of the show."
                 print "If they remain on after the show, they will consume additional"
                 print "power beyond what this report is showing."
                 print "This final power level was the end-state at the last instant of the"
                 print "sequence, so is not figured into the calculations reported."
+                print
                 warned = True
             print "{0:6.2f} amps on {1}".format(value, source_id)
 
