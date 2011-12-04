@@ -3,8 +3,8 @@
 # Create a manpage out of a template.
 #
 $LUMOS_VERSION='0.5a1';
-$LUMOS_C_YEARS='2005-2008, 2011';
-$LUMOS_N_YEARS='2005\\-2008, 2011';
+$LUMOS_C_YEARS='2005-2009, 2011';
+$LUMOS_N_YEARS='2005\\-2009, 2011';
 
 $LUMOS_C_TEXT= "'\\\" Copyright (c) $LUMOS_C_YEARS by Steven L. Willoughy, Aloha, OR, USA.\
 '\\\" All Rights Reserved.  Licensed under the terms and conditions of the\
@@ -19,6 +19,21 @@ conditions of use, disclaimer of warranty, limitation of liability\
 and other information, or see:\
 .br\
 http://www.opensource.org/licenses/osl-3.0.php.";
+
+print <<EOF;
+'\\"************************************************************************
+'\\"************************************************************************
+'\\"************************************************************************
+'\\"
+'\\" This file has been processed by automated scripts.  DO NOT EDIT this
+'\\" file directly or your edits will be lost!  
+'\\"
+'\\" Edit the corresponding <entry>.<section>.in file instead.
+'\\"
+'\\"************************************************************************
+'\\"************************************************************************
+'\\"************************************************************************
+EOF
 
 while (<>) {
 	s/^'\\"\@\@COPYRIGHT\@\@/$LUMOS_C_TEXT/;

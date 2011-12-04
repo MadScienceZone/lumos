@@ -1,5 +1,5 @@
 ______________________________________________________________________________
-Lumos 0.4a1 (ALPHA) "RELEASE_NOTES"
+Lumos 0.5a1 (ALPHA) "RELEASE_NOTES"
 
 CONTENTS
   Current Release
@@ -9,7 +9,7 @@ CONTENTS
 
 ______________________________________________________________________________
 CURRENT RELEASE:
-  Lumos 0.5a1 [???]
+  Lumos 0.5a1 [04 DEC 2011]
     **ALPHA TEST RELEASE**
 
 	Bug Fixes:
@@ -28,7 +28,7 @@ CURRENT RELEASE:
 	    the power distribution system.
 
 	  * Channels may now be assigned their own power sources, rather than
-	    all channels in a particular controller being  from a single
+	    all channels in a particular controller being from a single
 	    source.  This is important for most X-10 devices (which may each
  	    be plugged into an arbitrary power circuit) and the Lumos
 	    controller (which allows multiple power circuits to be controlled).
@@ -60,6 +60,11 @@ CURRENT RELEASE:
 	    but expected in the future.  The data produced may be graphed
 	    by an external tool such as gnuplot or a spreadsheet program.
 
+  KNOWN ISSUES:
+  	* Most of the device drivers are still untested. 
+	* Only "serial" networks have been tested yet.
+	* The unit tests need to be updated and completed, not all are passing.
+
 ______________________________________________________________________________
 PREVIOUS VERSIONS:
   Lumos 0.4a1 [30 November 2011]
@@ -82,7 +87,6 @@ PREVIOUS VERSIONS:
 	    executable scripts, so Windows will be able to execute them directly.
 		The user would still need to have the Python script directory in their
 		PATH, however.
-		
 
 	New Dependencies:
 	  * Now requires the pygame module.
@@ -202,5 +206,3 @@ About Version Numbers and Release Notations:
   software and all accompanying materials are provided "AS-IS" with no 
   warranty of any kind whatsoever to the extent allowed by applicable law
   (see LICENSE file for full details).
-
-

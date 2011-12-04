@@ -1,13 +1,13 @@
 ______________________________________________________________________________
-Lumos 0.4a1 (ALPHA RELEASE) "README"
+Lumos 0.5a1 (ALPHA RELEASE) "README"
 
 This is Lumos, a lightweight system for orchestrating light displays.
 It is designed to be simple and flexible, and not tied to any proprietary
 operating system or development platform.  It should run equally well on
 a Macintosh, Windows, or Linux/Unix system.  
 
-It has been tested to date on Ubuntu Linux 10.x-11.x, Windows XP, and 
-Windows 7.
+It has been tested to date on Ubuntu Linux 8.x-11.x, Windows XP,
+Windows 7, and FreeBSD 8.2.
 
 This is an EXPERIMENTAL DEVELOPMENT RELEASE (alpha).  It is still
 very much a work in progress, and not yet ready for widespread use.  If

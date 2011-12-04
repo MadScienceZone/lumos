@@ -10,7 +10,7 @@ from distutils.core import setup
 
 setup(
 	name = 'Lumos',
-	version = '0.4a1',
+	version = '0.5a1',
 	description = 'Light Orchestration System (SSR Sequencing Control)',
 	long_description = '''
 		Lumos ("Light Orchestration System") is a software application for
@@ -31,6 +31,7 @@ setup(
 	scripts = [
 		'dist_bin/lcheck', 
 		'dist_bin/lplay', 
+		'dist_bin/lpower',
 		'dist_bin/ssrctl',
 		'dist_bin/vixen2lumos',
 	],

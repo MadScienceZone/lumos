@@ -6,5 +6,6 @@ clean:
 
 distclean: clean
 	rm -f pdf/*
+	rm -f man?/*.[123456789]
 
 @@PDF_BUILD_RULES@@
