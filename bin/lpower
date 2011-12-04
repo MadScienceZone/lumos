@@ -205,10 +205,10 @@ if loads:
 # 
 total_kW_h = total_W_mS / 3600000000.0
 print "Total Runtime:      {0} ({1:,d} mS)".format(trace_time_stamp(samples), samples)
-print "Total Power Used:   {0:10.6f} kWh".format(total_kW_h)
+print "Total Power Used:   {0:.6f} kWh".format(total_kW_h)
 
 if options.price:
-    print "Total Energy Cost: ${0:6.2f} @ ${1:.2f}/kWh".format(total_kW_h * options.price, options.price)
+    print "Total Energy Cost: ${0:.4f} (~${0:.2f}) @ ${1:.4f}/kWh".format(total_kW_h * options.price, options.price)
 
 print
 print "POWER SOURCE    PEAK (A)   AVERAGE (A)"

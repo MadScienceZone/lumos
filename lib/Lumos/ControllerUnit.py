@@ -130,13 +130,19 @@ class ControllerUnit (object):
         has happened and channels are already doing what they were last commanded
         to do.)  The return value is a dictionary mapping channel ID to a tuple
         of (amps, PowerSource) for each channel in this controller.'''
-        return dict([(k,v.current_drain()) for k,v in self.channels.items()])
+        return dict([
+            (k,self.channels[k].current_drain()) 
+                for k in self.iter_channels()
+            ])
 
     def current_loads(self):
         '''Report on the loads assigned to this controller during the show.
         The return value is a dictionary mapping channel ID to a tuple of
         (amps, PowerSource) for each channel in this controller.'''
-        return dict([(k,v.current_load()) for k,v in self.channels.items()])
+        return dict([
+            (k,self.channels[k].current_load()) 
+                for k in self.iter_channels()
+            ])
 #
 # $Log: not supported by cvs2svn $
 # Revision 1.5  2008/12/30 22:58:02  steve

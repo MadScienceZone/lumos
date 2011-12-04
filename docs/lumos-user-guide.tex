@@ -27,20 +27,24 @@
 %\usepackage[dvips]{graphicx}
 \usepackage{graphicx}
 \usepackage{epsfig}
+\usepackage{textcomp}
 \begin{document}
 \title{Lumos User's Guide}
 \author{Steve Willoughby}
-\date{29 November 2011 \\ For Lumos Verison 0.4}
+\date{4 December 2011 \\ For Lumos Verison 0.5}
 \maketitle
 \tableofcontents
 \pagebreak
 \vfill
 \begin{flushleft}
-Document revision 0.4, 29 November 2011;
-for software version 0.4.
+Document revision 0.5, 4 December 2011;
+for software version 0.5.
 
-Copyright \copyright\ 2009, 2011, Steven L.\ Willoughby,
+Copyright \copyright\ 2009, 2011, 
+(Software described \copyright\ 2005--2008, 2011) by
+Steven L.\ Willoughby,
 Aloha, Oregon, USA.  All Rights Reserved.
+
 
 This document is part of the Lumos Light Orchestration System software package, distributed under the terms and conditions of the Open Software License, version 3.0.  For full details, see the file ``{\tt LICENSING}'' distributed with Lumos, or go to {\tt http://www.opensource.org}.
 \end{flushleft}
@@ -53,7 +57,7 @@ complex Christmas light arrangements.  These displays consist of
 pre-programmed sequences of circuit output changes (on, off, and various
 dimmer levels), either as stand-alone patterns or synchronized to music.
 
-Lumos is still a work in progress.  This document describes version 0.4, which
+Lumos is still a work in progress.  This document describes version 0.5, which
 is an ``alpha'' level release with less functionaity than ultimately planned,
 and not fully tested.  It is provided in this pre-release state for evaluation 
 and experimentation purposes while the implementation of the remainder is 
@@ -89,10 +93,11 @@ the hardware devices which it controls.
 {\bf USE THIS PRODUCT AT YOUR OWN RISK.}
 
 \subsection{Supported Platforms}
-Lumos is being developed on the Linux platform (specifically, Ubuntu 8.10).
+Lumos is being developed on the Linux platform.
 It is being developed in a platform-neutral manner and is expected to run on
-most current platforms, including Linux, Unix, MacOS~X, and Windows.  This
-has not yet been extensively tested, however.
+most current platforms, including Linux, Unix, MacOS~X, and Windows.  It has
+been tested and works successfully on Windows~XP, Windows~7, Ubuntu Linux 8.10--11.10,
+and FreeBSD 8.2.
 
 \subsection{Supported Hardware}
 Lumos includes hardware device drivers for the following circuit controllers:
@@ -570,16 +575,17 @@ SHOW DESCRIBED BY FILE 'myshow.conf':
   tree   fgtree      15 FireGod SSR Controller (32 channels), module #1
 --------------------------------------------------------------
  DEVICE CHANNELS:
-  NETWRK UNIT     CHAN LOAD D WARM DESCRIPTION
-  floods home_auto  C2   1A D   6% Flood, red
-  floods home_auto  C5   1A D   6% Flood, green
-  tree   fgtree     10 0.3A D   0% Tree, red
-  tree   fgtree     11 0.3A D   0% Tree, green
-  tree   fgtree     12 0.3A D   0% Tree, blue
+  UNIT     CHAN POWER LOAD D WARM DESCRIPTION
+  home_auto  C2 22b     1A D   6% Flood, red
+  home_auto  C5 22b     1A D   6% Flood, green
+  fgtree     10 15    0.3A D   0% Tree, red
+  fgtree     11 15    0.3A D   0% Tree, green
+  fgtree     12 15    0.3A D   0% Tree, blue
 --------------------------------------------------------------
  POWER LOAD SUMMARY:
   15         Loaded to   4%
   22b        Loaded to  13%
+Total allocated load: 2.9 Amps
 \end{verbatim}
 
 See the manual entry for ``lumos-config(5)'' for full details about the
@@ -636,8 +642,8 @@ of the sequence.  These records are themselves divided into ``fields'' which
 are separated from each other by commas.  The first field in each record
 determines what type of record it is.
 
-A sequence file always begins with the record ``{\tt V2}'' to indicate this is a
-version 2 Lumos sequence file.  
+A sequence file always begins with the record ``{\tt V3}'' to indicate this is a
+version 3 Lumos sequence file.  
 
 Following this is a set of controller unit
 definition records describing the controllers used by this sequence.  
@@ -651,7 +657,7 @@ units we'll be using.
 
 \begin{figure}[hbtp]
 \begin{verbatim}
-V2
+V3
 U,fgtree,10,11,12
 U,home_auto,C2,C5
 \end{verbatim}
@@ -725,7 +731,7 @@ The full text of the sequence file is shown in Figure~\ref{seq:all}.
 
 \begin{figure}[p]
 \begin{verbatim}
-V2
+V3
 U,fgtree,10,11,12
 U,home_auto,C2,C5
 T,0
@@ -901,6 +907,157 @@ $ vixen2lumos --input=sample2.vix --map=sample2.map \
     --conf=myshow.conf --output=sample2.lseq
 \end{verbatim}
 The sequence file {\tt sample2.lseq} can now be played in Lumos.
+
+\section{Adding Audio Tracks to Sequences}
+Each sequence may have an audio track attached to it.  The audio will begin playing
+when the sequence begins running in {\tt lplay}.  If the audio is not finished playing
+by the time the sequence ends, the audio playback will be stopped at that time.
+
+To attach an audio file to a Lumos sequence, you need only add a single line to 
+the sequence file:
+
+\begin{verbatim}
+A,test.ogg,100
+\end{verbatim}
+
+This will cause the audio file {\tt test.ogg} to play at 100\% volume level.  There are
+other optional fields which may also be specified to control mono or stereo output,
+sample frequency, sample bits, and buffer sizes, but these are not usually necessary
+for you to adjust.  See the documentation in lumos-sequence(4) for full details.
+
+Audio files attached to Vixen sequences imported via {\tt vixen2lumos} should generally
+already have the file attachment record added for you to the sequence.  Make sure the
+audio file itself is copied to the directory {\tt lplay} is reading from.
+
+Many popular audio file formats are supported.  We recommend using OGG or WAV files.
+
+\section{Checking Power Usage}
+Before playing your sequences on real hardware, you should check to be sure
+your sequence doesn't cause an overload on one of your circuits.  Ultimately,
+your setup needs to be planned and put together by someone with adequate
+understanding of electrical load management, and protected with circuit breakers
+of the correct type to ensure your safety.  The Lumos system cannot guarantee
+any particular situation \emph{won't} be hazardous, that's your responsibliity
+as you arrange your show and the hardware involved.  However, the following 
+procedure is a valuable tool to assist you in doing that.
+
+The Lumos Power Meter utility {\tt lpower} will run through a set of sequence
+files which you intend to play together as a scene, and calculate the power
+consumed by that scene.  
+
+To get a basic report, run:
+
+\begin{verbatim}
+$ lpower --conf=myshow.conf sample2.lseq
+**NOTE**
+The following circuit(s) had power draining at the end of the show.
+If they remain on after the show, they will consume additional
+power beyond what this report is showing.
+This final power level was the end-state at the last instant of the
+sequence, so is not figured into the calculations reported.
+
+  0.13 amps on 22b
+Total Runtime:      00:00:11.500 (11,500 mS)
+Total Power Used:   0.000430 kWh
+
+POWER SOURCE    PEAK (A)   AVERAGE (A)
+15                  0.30       0.17412
+22b                 1.87       0.94638
+\end{verbatim}
+
+The big warning message at the beginning of the report is letting us
+know that after the scene is finished, some units were still drawing
+power (either we left some of them running, or they have a ``warm''
+setting which keeps a little power flowing into them at all times.
+So we are aware that more power will continue being drawn if we leave
+things as they are after the scene has concluded.
+Specifically, circuit ``22b'' is still seeing a 0.13\,A load.
+
+For the duration of our 11.5 second sequence, we consumed a very small
+number of kilowatt-hours (less than one-thousandth), and we see what the
+peak load was for every power supply circuit, as well as the average
+current levels during the scene.
+
+If we know how much we're paying for power, we can let {\tt lpower}
+calculate an estimated price for the scene, as well.  Suppose we pay
+6\textcent\ per kilowatt-hour:
+
+\begin{verbatim}
+$ lpower --conf=myshow.conf --price=0.06 sample2.lseq
+.
+.
+.
+Total Runtime:      00:00:11.500 (11,500 mS)
+Total Power Used:   0.000430 kWh
+Total Energy Cost: $0.0000 (~$0.00) @ $0.0600/kWh
+
+POWER SOURCE    PEAK (A)   AVERAGE (A)
+15                  0.30       0.17412
+22b                 1.87       0.94638
+\end{verbatim}
+
+The cost for this little sequence turns out to be 0.0026\textcent,
+which is rounded off to \$0.0000 in this report.\footnote{Actually, although Lumos shows the value with a dollar sign
+in front of the value, any currency system will work.  You just indicate how many
+``monetary units'' you are charged per kilowatt-hour, and the number of those units
+Lumos estimates you'll be charged, down to 1/10,000 unit.}
+
+{\bf Note:} Power rate schedules can be complex.  Lumos' {\tt lpower} utility is
+not designed to predict your power bill with complete accuracy, but only to serve
+as a basic guide for estimation purposes, primarily for circuit loading, not for
+billing.
+
+The {\tt lpower} program assumes as 120\,V line power voltage in its calculation
+of kilowatt-hours.\footnote{It uses the simple formula of $P=I\times E$ to convert
+amps ($I$) and volts ($E$) to watts ($P$).}  If your power is at a different voltage,
+you can use the {\tt --volts} option, like so:
+
+\begin{verbatim}
+$ lpower --conf=myshow.conf --volts=110 sample2.lseq
+.
+.
+.
+Total Runtime:      00:00:11.500 (11,500 mS)
+Total Power Used:     0.000394 kWh
+
+POWER SOURCE    PEAK (A)   AVERAGE (A)
+15                  0.30       0.17412
+22b                 1.87       0.94638
+\end{verbatim}
+
+If you want a detailed description of exactly what power is being used by which
+circuits at every instant during your scene, use the {\tt --graph-data} option, 
+which will cause {\tt lpower} to dump a CSV file containing this information:
+
+\begin{verbatim}
+$ lpower --conf=myshow.conf --graph-data=sample2data.csv sample2.lseq
+.
+.
+.
+\end{verbatim}
+
+We can then open the file {\tt sample2data.csv} in any program which understands
+CSV (comma-separated value) files, including a spreadsheet program such as Microsoft
+Office Excel, as shown in figure~\ref{csvexcel}.
+\begin{figure}[htbp]
+\epsfig{file=power-excel.png, width=.5\textwidth}
+\caption{Power usage data in Excel\label{csvexcel}}
+\end{figure}
+
+The first column (``A'') is the elapsed time in the scene.  The other columns
+are the amps drawn by each circuit starting at that point in time, continuing
+on until the next event time (the next row of the spreadsheet).
+
+Many programs can analyze this further.  For example, using Excel we can 
+select ``Insert,'' ``Charts (Scatter),'' ``Scatter with straight lines,''
+and a nice graph is produced showing our power usage, as shown in figure~\ref{csvgraph}.
+The $x$ axis is in seconds, and the $y$ axis is in amps.
+\begin{figure}[htbp]
+\epsfig{file=power-graph.png, width=\textwidth}
+\caption{Power usage graphed in Excel\label{csvgraph}}
+\end{figure}
+
+
 
 \section{Performing (Playing Back) Sequences}
 The playback function in Lumos is currently fairly simple, although much more
