@@ -30,7 +30,7 @@ import Lumos
 from Lumos.Show import Show
 from Lumos.Sequence import Sequence
 from optparse import OptionParser
-import sys
+import sys, csv
 #@@REL@@sys.tracebacklimit=0
 
 #========================================================================
@@ -40,6 +40,7 @@ import sys
 parser = OptionParser(usage="%prog [-hv] [-c config] [-P price] [-V volts] sequence-files...", version='0.5a1')
 parser.add_option('-c', '--config',  metavar='FILE', help='Specify config file [./lumos.conf]')
 parser.add_option('-P', '--price',   metavar='P',    type='float', help='Price per kWh for power')
+parser.add_option('-g', '--graph-data', metavar='FILE', help='Dump graphing data to CSV file')
 parser.add_option('-V', '--volts',   metavar='V',    type='int', help='Line voltage [%default]')
 parser.add_option('-v', '--verbose', action='count', help='Enable more descriptive output')
 parser.set_defaults(config='lumos.conf', volts=120)
@@ -79,11 +80,16 @@ loads = {}
 averages = {}
 samples = 0
 
+if options.graph_data:
+    graph = csv.writer(open(options.graph_data, 'wb'))
+    graph.writerow(['Seconds']+sorted(show.all_power_sources))
+
 def D(format, *args):
     global options
     if options.verbose > 2:
         print "DEBUG: "+format.format(*args)
 
+offset=0
 for file in files:
     sequence.load_file(file, show.controllers)
 
@@ -155,6 +161,9 @@ for file in files:
 
                     loads[source.id] += amps
                     source = source.parent_source
+
+        if options.graph_data:
+            graph.writerow([(current_time+offset)/1000.0] + [loads.get(i,0) for i in sorted(show.all_power_sources)])
         #
         # we now have a total of the load starting at this time
         # for all the power sources in the loads dict.  We'll have
@@ -163,6 +172,7 @@ for file in files:
         # then.
         #
         previous_time = current_time
+    offset += previous_time
 
 if loads:
     warned = False
