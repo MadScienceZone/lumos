@@ -2,14 +2,15 @@
 # vim:set syntax=perl:
 use File::Basename;
 
+$BASE_DIR = shift;
 $PDF_DIR = shift;
 while ($search_dir = shift) {
-	push(@{$MAN_FILES{$search_dir}}, glob("$search_dir/*.[12345678]"));
+	push(@{$MAN_FILES{$search_dir}}, glob("$search_dir/*.[12345678].in"));
 }
 
 foreach $dir (sort(keys(%MAN_FILES))) {
 	foreach $file (@{$MAN_FILES{$dir}}) {
-		$PDF_LIST .= " $PDF_DIR/" . (fileparse($file, qr/\.\d/))[0] . '.pdf';
+		$PDF_LIST .= " $PDF_DIR/" . (fileparse($file, qr/\.\d\.in/))[0] . '.pdf';
 	}
 }
 
@@ -18,9 +19,16 @@ while (<STDIN>) {
 		foreach $dir (sort(keys(%MAN_FILES))) {
 			print "\n#Manpages found in $dir:\n";
 			foreach $file (@{$MAN_FILES{$dir}}) {
-				print "$PDF_DIR/", (fileparse($file, qr/\.\d/))[0], '.pdf: ', $file, "\n";
+				$mansrc = $file;
+				($mandst = $mansrc) =~ s/\.in$//;
+				if ($mansrc eq $mandst) {
+					die("Can't deal with manpage file $file!\n");
+				}
+				print "$PDF_DIR/", (fileparse($file, qr/\.\d\.in/))[0], '.pdf: ', $mandst, "\n";
 				print "\tgroff -man \$< | ps2pdf -sPaperSize=Letter - \$\@\n";
 				print "\n";
+				print "$mandst: $mansrc\n";
+				print "\t$BASE_DIR/update_manpage < \$< > \$\@\n";
 			}
 		}
 		next;

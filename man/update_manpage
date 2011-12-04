@@ -1,0 +1,31 @@
+#!/usr/bin/perl
+#
+# Create a manpage out of a template.
+#
+$LUMOS_VERSION='0.5a1';
+$LUMOS_C_YEARS='2005-2008, 2011';
+$LUMOS_N_YEARS='2005\\-2008, 2011';
+
+$LUMOS_C_TEXT= "'\\\" Copyright (c) $LUMOS_C_YEARS by Steven L. Willoughy, Aloha, OR, USA.\
+'\\\" All Rights Reserved.  Licensed under the terms and conditions of the\
+'\\\" Open Software License version 3.0.";
+
+$LUMOS_N_TEXT="Copyright \\(co $LUMOS_N_YEARS by Steven L. Willoughy, Aloha, OR, USA.\
+All Rights Reserved.  Licensed under the terms and conditions of the\
+Open Software License version 3.0.  See the\
+.B LICENSE\
+file accompanying the Lumos software distribution for full terms and\
+conditions of use, disclaimer of warranty, limitation of liability\
+and other information, or see:\
+.br\
+http://www.opensource.org/licenses/osl-3.0.php.";
+
+while (<>) {
+	s/^'\\"\@\@COPYRIGHT\@\@/$LUMOS_C_TEXT/;
+	s/^\.\.\@\@COPYRIGHT\@\@/$LUMOS_N_TEXT/;
+	s/\@\@VERSION\@\@/$LUMOS_VERSION/g;
+	if (/\@\@/) {
+		die("Unsubstituted \@\@ in source file: $_\n");
+	}
+	print;
+}

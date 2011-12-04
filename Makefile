@@ -4,7 +4,7 @@ DIRLIST=docs man Test lib/Lumos
 all: builddocs test
 
 builddocs:
-	(cd man && ../scripts/build_man_makefile pdf man? <Makefile.in >Makefile && $(MAKE))
+	(cd man && ../scripts/build_man_makefile . pdf man? <Makefile.in >Makefile && $(MAKE))
 	(cd docs && $(MAKE))
 
 test:
