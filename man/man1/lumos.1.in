@@ -4,9 +4,7 @@
 '\" $Header: /tmp/cvsroot/lumos/man/man1/lumos.1,v 1.1 2008-12-30 22:58:02 steve Exp $
 '\"
 '\" Lumos Light Orchestration System
-'\" Copyright © 2005, 2006, 2007, 2008 by Steven L. Willoughby, Aloha,
-'\" Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
-'\" License version 3.0.
+'\"@@COPYRIGHT@@
 '\"
 '\" This product is provided for educational, experimental or personal
 '\" interest use, in accordance with the terms and conditions of the
@@ -119,7 +117,7 @@ document distributed with the Lumos source code.
 .BR vixen2lumos (1).
 .SH VERSION
 .LP
-This document describes Lumos version 0.5.
+This document describes Lumos version @@VERSION@@. 
 .SH HISTORY
 .LP
 This is the first public release of the Lumos product.  Versions 0.1 and 0.2 were used
@@ -128,15 +126,7 @@ designed and developed.
 .SH COPYRIGHT
 .LP
 Lumos Light Orchestration System,
-Copyright \(co 2005, 2006, 2007, 2008, 2011 by Steven L. Willoughby, Aloha,
-Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
-License version 3.0.  See the
-.B LICENSE
-file accompanying the Lumos software distribution for full terms
-and conditions of use, disclaimer of warranty, limitation of liability
-and other information, or see:
-.br
-http://www.opensource.org/licenses/osl-3.0.php.
+..@@COPYRIGHT@@
 .SH AUTHOR
 .LP
 Steve Willoughby, support@alchemy.com

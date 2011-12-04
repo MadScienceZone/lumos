@@ -1,12 +1,9 @@
 .TH LPLAY 1 "Lumos" "Software Alchemy" "User Commands"
 '\"
 '\" LUMOS DOCUMENTATION: LPLAY
-'\" $Header: /tmp/cvsroot/lumos/man/man1/lplay.1,v 1.1 2008-12-30 22:58:02 steve Exp $
 '\"
 '\" Lumos Light Orchestration System
-'\" Copyright © 2005, 2006, 2007, 2008 by Steven L. Willoughby, Aloha,
-'\" Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
-'\" License version 3.0.
+'\"@@COPYRIGHT@@
 '\"
 '\" This product is provided for educational, experimental or personal
 '\" interest use, in accordance with the terms and conditions of the
@@ -132,15 +129,7 @@ beginning with version 0.3.
 .SH COPYRIGHT
 .LP
 Lumos Light Orchestration System,
-Copyright \(co 2005, 2006, 2007, 2008 by Steven L. Willoughby, Aloha,
-Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
-License version 3.0.  See the
-.B LICENSE
-file accompanying the Lumos software distribution for full terms
-and conditions of use, disclaimer of warranty, limitation of liability
-and other information, or see:
-.br
-http://www.opensource.org/licenses/osl-3.0.php.
+..@@COPYRIGHT@@
 .SH AUTHOR
 .LP
 Steve Willoughby, support@alchemy.com
@@ -154,6 +143,3 @@ currently not implemented.  However, the
 .BR lpower (1)
 utility provides a static check for power overloads before running the actual
 show at all.  This is preferred so overloads can be avoided before they happen.
-'\" 
-'\" $Log: not supported by cvs2svn $
-'\" 

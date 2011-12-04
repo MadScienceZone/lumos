@@ -1,12 +1,9 @@
 .TH LCHECK 1 "Lumos" "Software Alchemy" "User Commands"
 '\"
 '\" LUMOS DOCUMENTATION: LCHECK(1)
-'\" $Header: /tmp/cvsroot/lumos/man/man1/lcheck.1,v 1.2 2008-12-30 22:58:02 steve Exp $
 '\"
 '\" Lumos Light Orchestration System
-'\" Copyright © 2005, 2006, 2007, 2008 by Steven L. Willoughby, Aloha,
-'\" Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
-'\" License version 3.0.
+'\"@@COPYRIGHT@@
 '\"
 '\" This product is provided for educational, experimental or personal
 '\" interest use, in accordance with the terms and conditions of the
@@ -113,7 +110,7 @@ Prints the version number of the program and exits.
 .LP
 This document describes
 .B lcheck
-version 0.3.
+version @@VERSION@@.
 .SH HISTORY
 .LP
 The
@@ -125,15 +122,7 @@ Steve Willoughby, support@alchemy.com
 .SH COPYRIGHT
 .LP
 Lumos Light Orchestration System,
-Copyright \(co 2005, 2006, 2007, 2008 by Steven L. Willoughby, Aloha,
-Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
-License version 3.0.  See the
-.B LICENSE
-file accompanying the Lumos software distribution for full terms
-and conditions of use, disclaimer of warranty, limitation of liability
-and other information, or see:
-.br
-http://www.opensource.org/licenses/osl-3.0.php.
+..@@COPYRIGHT@@
 .SH BUGS
 .LP
 Does not detect superfluous config file sections or data fields.  These will
