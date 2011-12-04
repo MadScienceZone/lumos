@@ -1,0 +1,957 @@
+.TH LUMOS-CONFIG 5 "Lumos" "Software Alchemy" "File Formats"
+'\"
+'\" LUMOS DOCUMENTATION:
+'\" $Header: /tmp/cvsroot/lumos/man/man5/lumos-config.5,v 1.3 2009-01-04 21:43:48 steve Exp $
+'\"
+'\" Lumos Light Orchestration System
+'\" Copyright © 2005, 2006, 2007, 2008, 2011 by Steven L. Willoughby, Aloha,
+'\" Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
+'\" License version 3.0.
+'\"
+'\" This product is provided for educational, experimental or personal
+'\" interest use, in accordance with the terms and conditions of the
+'\" aforementioned license agreement, ON AN "AS IS" BASIS AND WITHOUT
+'\" WARRANTY, EITHER EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION,
+'\" THE WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A
+'\" PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY OF THE ORIGINAL
+'\" WORK IS WITH YOU.  (See the license agreement for full details, 
+'\" including disclaimer of warranty and limitation of liability.)
+'\"
+'\" Under no curcumstances is this product intended to be used where the
+'\" safety of any person, animal, or property depends upon, or is at
+'\" risk of any kind from, the correct operation of this software or
+'\" the hardware devices which it controls.
+'\"
+'\" USE THIS PRODUCT AT YOUR OWN RISK.
+'\" 
+.SH NAME
+lumos-config \- show hardware configuration definition file format
+.SH DESCRIPTION
+.LP
+When setting up a show with electrical loads managed by Lumos,
+you need to create a configuration file describing the arrangement of hardware
+devices to be controlled.
+.LP
+Generically, we refer to this file as
+the \*(lqshow configuration file,\*(rq
+although in fact it can be called anything at all.  If you will set up
+the same (or similar) hardware for more than one show, it would be useful
+to keep a collection of these files on hand to make it easier to set up
+the hardware again the same way.
+.LP
+This document describes the file format for this file.  We will begin
+by describing the general format and options, and then describe the
+individual data elements which can appear in the file.
+.LP
+After creating or editing this file, run
+.BR lcheck (1)
+on it to check for errors.
+.SH "FORMAT OVERVIEW"
+.SS Sections
+.LP
+The show configuration file is organized into named \*(lqsections.\*(rq  
+Each section describes a single component of the hardware driven by 
+Lumos, and contains a number of data fields specific to that 
+section.
+.LP
+Each section begins with a line containing the section name in square
+brackets.  For example, the following line begins a section called 
+\*(lqshow\*(rq:
+.RS
+.B "[show]"
+.RE
+.LP
+There will be many sections in a show configuration file, most of them
+given arbitrary names by the author of the file.  However, every file must
+have a 
+.B [show]
+section which provides basic data about the overall show and pointers to
+the other sections.
+.SS "Data Fields"
+.LP
+Each section contains one or more named data fields which provide the 
+data needed by that section.  Each field is defined on a line by itself,
+using the format
+.RS
+.IB name :
+.I value
+.RE
+or
+.RS
+.I name
+.B =
+.I value
+.RE
+.LP
+Note that leading whitespace is stripped from the
+.IR value ,
+so it doesn't matter whether you put spaces around the colons or equals signs.
+.LP
+The field
+.I name
+is case-insensitive, and need only be unique within the section in which it
+appears.
+.SS "Supported Data Types"
+.LP
+The values defined in this file are generally character strings and may
+contain any text characters.  However, where the following descriptions
+mention other data types, the following rules apply:
+.TP
+.I bool
+A Boolean (true/false) value may be written as 
+.RB \*(lq 1 \*(rq,
+.RB \*(lq yes \*(rq,
+.RB \*(lq true \*(rq,
+or
+.RB \*(lq on \*(rq
+to indicate a \*(lqtrue\*(rq value, or as
+.RB \*(lq 0 \*(rq,
+.RB \*(lq no \*(rq,
+.RB \*(lq false \*(rq,
+or
+.RB \*(lq off \*(rq
+to indicate a \*(lqfalse\*(rq value.  Any other value is not allowed and will
+generate an error.  (The quotation marks are
+.I not
+typed in the data value.)
+.TP
+.I int
+An integer value is written as a set of digits 0\-9, optionally preceded by
+a plus or minus sign
+.RB (\*(lq + \*(rq
+or
+.RB \*(lq \- \*(rq).
+.TP
+.I real
+A real number value is written either as for 
+.I int
+values as described above, or as some digits, followed by a decimal
+point
+.RB (\*(lq . \*(rq),
+followed by more digits.  Either (but not both) of the sets of digits may be 
+omitted, so
+.RB \*(lq 12 \*(rq,
+.RB \*(lq \-12.25 \*(rq,
+.RB \*(lq +12. \*(rq,
+.RB \*(lq 0.3 \*(rq,
+and
+.RB \*(lq .3 \*(rq
+are all valid real number values.
+Additionally, numbers may be specified in scientific notation by adding
+the letter 
+.RB \*(lq e \*(rq
+followed by an exponent of 10 to the end of the mantissa.  For example, the
+value
+.RB \*(lq 1.23e5 \*(rq
+represents the real number 123000.0, and the value
+.RB \*(lq 1.23e-5 \*(rq
+represents the real number 0.0000123.
+.SS "Splitting Long Lines"
+.LP
+Ordinarily, each data field is written on its own line, and takes up the entire line.  It must begin in the first column of its line.
+However, a long data value may be split onto multiple lines of the file in
+the same way RFC822 mail headers are: any indented line (i.e., a line beginning
+with whitespace) is assumed to be a continuation of the line above it.  The
+leading whitespace is stripped from the value, but the newline is kept intact.
+.LP
+For example, in the following field definition:
+.RS
+.B "description: This is a very long descriptive string"
+.br
+.B "\ \ \ \ involving two physical lines of the file"
+.RE
+would define the field called \*(lqdescription\*(rq to have the value:
+.RS
+This is a very long descriptive string
+.br
+involving two physical lines of the file
+.RE
+.SS "Variable Substitution"
+.LP 
+This section is for advanced users; feel free to skip over it, but there is one
+rule described here which will affect you: if
+any of your fields will contain percent signs \*(lq%\*(rq, they need to be entered
+as \*(lq%%\*(rq.
+.LP
+Field definitions may contain the values of other fields using 
+.IR printf -style
+formatting controls.  Specifically, anywhere in a data field value where the
+following pattern is found:
+.RS
+.BI %( name )s
+.RE
+This is replaced by the value of the data field called
+.I name
+defined in the same section, or in a special section called
+.BR [DEFAULTS] .
+The value being substituted does not need to have been defined 
+above the line where it is being used.  The substitutions are 
+performed at run-time, after the entire configuration file
+has been read.
+.LP
+You can technically put anything between the 
+.RB \*(lq ) \*(rq
+and the
+.RB \*(lq s \*(rq
+that 
+.BR printf (3)
+would allow, but typically you'd use the pattern exactly as shown here.
+Therefore, we won't go into more detail than that.  Advanced or exceedingly
+curious users can look at the documentation for 
+.B printf
+for more details.
+.LP
+Here is an example where a field is used to define a base value used in
+other fields:
+.RS
+.nf
+.na
+.B "[show]"
+.B "title=Christmas Show"
+.B "description=The hardware layout for %(title)s."
+.B "[DEFAULTS]"
+.B "minilights=.3"
+\&...
+.B "[chan treea1.1]"
+.B "load=%(minilights)s"
+.B "[chan treea1.2]"
+.B "load=%(minilights)s"
+.ad
+.fi
+.RE
+.SS Comments
+.LP
+Any line beginning with a semi-colon
+.RB (\*(lq ; \*(rq)
+or pound sign 
+'\"(octothorpe, sharp, whatever you want to call it)
+.RB (\*(lq # \*(rq)
+is considered to be a comment and is ignored completely.
+.SH DETAILS
+.LP
+The file must contain a 
+.B [show]
+section, which provides global show information.  
+In addition, it defines a set of power sources and power management
+hardware to be controlled.
+The latter is organized into a hierarchy of communications networks, 
+which contain a set of controllers, which contain a set of channels.
+Each channel feeds power to a device (such as a string of Christmas
+lights).
+.SS "Show Section"
+.LP
+There are really just two fields which describe the show, and two
+fields which list what other sections we'll need to load:
+.TP
+.BI title= text
+A short title for the show.
+.TP
+.BI description= text
+A longer description of the show.
+.TP
+.BI powersources= list
+The
+.I list
+value is a space-separated list of power source circuit ID tags.  These
+tags are completely arbitrary names, but we recommend that they be short
+alphanumeric strings.  A good choice would be to use the same circuit
+designations as are used on the breaker panel where these power feeds
+are drawn from.  This will help you locate the proper circuits or breakers
+if necessary.
+.TP
+.BI networks= list
+The
+.I list
+value is a space-separated list of network ID tags.  Like the power source
+tags, these are arbitrary names, but we recommend keeping them to short
+alphanumeric ID strings.  
+.LP
+For example, consider the following file excerpt:
+.RS
+.nf
+.na
+.B "[show]"
+.B "title=Christmas"
+.B "description=Our Christmas light display in the front yard."
+.B "powersources=1 2a 2b
+.B "networks=trees misc floods"
+.ad
+.fi
+.RE
+.LP
+This indicates that elsewhere in the file we will describe three circuits
+of power supplied to us, called 
+\*(lq1\*(rq,
+\*(lq2a\*(rq, and
+\*(lq2b\*(rq; and also three communications networks called
+\*(lqtrees\*(rq,
+\*(lqmisc\*(rq, and
+\*(lqfloods\*(rq.
+.SS "Power Sources"
+.LP
+We need to tell Lumos a little about each circuit supplying
+power to our controlled devices.  Each circuit is listed in the
+\*(lqpowersources\*(rq value in the 
+.B [show]
+section.  The details for that power source are in its own section named
+.RB \*(lq [power
+.IR id \fB]\fP\*(rq,
+where 
+.I id
+is the circuit ID tag we made up for it (note the
+.B single
+space between 
+.RB \*(lq power \*(rq
+and the ID tag name).
+.LP
+Each power source section has two data fields:
+.TP
+.BI amps= real
+The 
+.I maximum
+load available on that circuit to our show.  
+.B "If other (i.e., non-Lumos-controlled) loads are on the same circuit, reduce this value by the"
+.B "maximum load of all those other devices.  This value is the maximum current load Lumos should"
+.B "pull from that power source."
+.TP
+.BI gfci= bool
+Specify true here if the circuit in question has ground-fault protection.
+.LP
+In practice, any given output channel may pass through more than one 
+power distribution device.  It may be plugged into a power strip,
+which is plugged into a sub-panel, which is plugged into the main breaker
+panel.  Each of those devices has their own maximum current rating, which may
+be higher or lower than the other devices upstream or downstream from them in 
+the chain.
+In order to account for this, Lumos allows power sources to be specified in a hierarchy,
+so it is clear how they connect to each other.  
+.LP
+Only the top-level power sources (typically your home power panel's breakers for residential
+Christmas light displays) are listed in the \*(lqpowersources\*(rq value in the 
+.B [show] 
+section.  Subordinate power sources (devices plugged into one of the top-level sources, or into
+another subordinate source) are defined simply by adding a new
+.B [power]
+section for each of them, named
+.B [power
+.IB parent . name ]
+where
+.I parent
+is the full ID tag for the power source it plugs into, and
+.I name
+is the ID tag for the subordinate device being defined here.
+.LP
+For example, if top-level power source \*(lq2a\*(rq was a 20 amp
+circuit breaker on our main panel, which fed a pair of 15 amp 
+breakers in a sub-panel called \*(lqnorth\*(rq and \*(lqsouth\*(rq,
+and there was a 10-amp-rated power strip plugged into the \*(lqsouth\*(rq
+sub-panel breaker, the following sections in the Lumos configuration
+files would be created:
+.LP
+.na
+.nf
+.RS
+.B [show]
+.B powersources=1 2a 2b
+.B ""
+.B [power 2a]
+.B amps=20
+.B ""
+.B [power 2a.north]
+.B amps=15
+.B ""
+.B [power 2a.south]
+.B amps=15
+.B ""
+.B [power 2a.south.strip]
+.B amps=10
+.RE
+.fi
+.ad
+.LP
+Now individual controllers and channels may plug into power sources
+.RB \*(lq 2a \*(rq,
+.RB \*(lq 2a.north \*(rq,
+.RB \*(lq 2a.south \*(rq,
+.RB \*(lq 2a.south.strip \*(rq,
+or one of the other power sources defined in the show configuration file
+.RB (\*(lq 1a \*(rq
+or
+.RB \*(lq 2b \*(rq).
+.LP
+In this example, it is important that even though sub-panel breakers
+.B 2a.north
+and
+.B 2a.south
+can each be loaded to 15 amps, they can't both be near that load at the
+same time, because they are both supplied from a circuit which can only
+be loaded to a total of 20 amps.  When a Lumos sequence is run through the
+Lumos Power Meter utility 
+.BR lpower (1),
+it will check the power ratings as described in this configuration file
+and warn if it sees a circuit overload resulting from the pattern of lights
+displayed.
+.LP
+.B NOTE:
+These power management features are built in to Lumos for your convenience
+in planning your show.  None of this is intended to be your only (or even main)
+line of defense against circuit overloading or other potentially hazardous
+conditions.  Use caution and the help of appropriately skilled personnel when
+planning, setting up, and using any electrical devices.
+.SS "Networks"
+.LP
+The controlled devices are connected to the host computer via one or
+more communications networks.  The
+list of networks which are used with a given show configuration are listed
+in the \*(lqnetworks\*(rq value in the
+.B [show]
+section (as shown above).  Each of those are described in detail in its own
+section, named 
+.B [net
+.IB tag ],
+where
+.I tag
+is the network ID string listed in the \*(lqnetworks\*(rq value.
+Note the
+.B single
+space between the word
+.B net
+and the ID tag.
+.LP
+This section contains the parameters necessary to understand how to
+interact with the devices on that network.  The exact parameters required
+depend on the kind of network being described, however all types include
+the following values:
+.TP
+.BI description= text
+A short description of what the network is for.
+.TP
+.BI units= list
+A space-separated list of controller units attached to this network.
+These names are arbitrary but we recommend they be kept to reasonably short,
+alphanumeric identifiers which are descriptive of the purpose of the network.
+They must be globally unique.  Each of them will be 
+described in more detail in a Controller Unit section (see below).
+.TP
+.BI type= type
+The network type being described here.  This must be one of the supported
+network types and have a network device driver installed to handle it.  The
+following network types are supplied with this version of Lumos:
+.RS
+.TP 10
+.B serial
+This is the standard byte-at-a-time serial interface popular with commercial 
+and DIY controller units.  The additional network-type-specific parameters 
+used by serial networks include:
+.RS
+.TP
+.BI port= int\fR|\fPname
+The serial port to use for communications with this network.  Typically
+this is a simple integer.  Port 0 (zero, the default) is the system's 
+\*(lqfirst\*(rq
+serial port (however that device is named by the operating system), port 1 
+is the next one, and so forth.  Alternatively, you can specify a device
+string such as 
+.RB \*(lq COM1: \*(rq
+or
+.RB \*(lq /dev/ttyS1 \*(rq,
+but this is discouraged unless absolutely necessary.
+.TP
+.BI baudrate= int
+The bits-per-second speed of the port.  If this value is not present,
+it defaults to 
+.BR 9600 .
+.TP
+.BR bits=7 | 8
+The number of bits per data byte.  May be either
+.B 7
+or
+.BR 8 .
+If this value is not present, it defaults to
+.BR 8 .
+.TP
+.BR parity=none | even | odd
+The parity to use.  Use
+.RB \*(lq none \*(rq
+if using 8 bits/byte, otherwise you can specify no parity
+.RB (\*(lq none \*(rq),
+even parity
+.RB (\*(lq even \*(rq), 
+or odd parity 
+.RB (\*(lq odd \*(rq).
+If this value is not present, it defaults to
+.BR none .
+.TP
+.BR stop=1 | 2
+The number of stop bits per frame.  May be either
+.B 1
+or
+.BR 2 .
+If this value is not present, it defaults to
+.BR 1 .
+.TP
+.BI xonxoff= bool
+Whether to use XON/XOFF (software) flow control on the line. 
+If this value is not present, it defaults to
+.BR no .
+.TP
+.BI rtscts= bool
+Whether to use RTS/CTS (hardware) flow control on the line. 
+If this value is not present, it defaults to
+.BR no .
+.RE
+.TP
+.B serialbit
+This is a bit-at-a-time serial arrangement, where serial port status lines 
+are toggled individually to signal device commands.  The special fields
+required for this network type include:
+.RS
+.TP 10
+.BI port= name
+Specifies the serial port to use, as described above.
+.RE
+.TP
+.B parallel
+This is a byte-at-a-time protocol over a parallel port.
+The special fields required for this network type include:
+.RS
+.TP 10
+.BI port= name
+Specifies the parallel port to use, as described above.
+.RE
+.TP
+.B parbit
+This is a bit-at-a-time protocol over a parallel port, where individual
+data or status bits are manipulated to signal device commands rather than
+sending bytes via the 8-bit data port in the traditional way.
+The special fields required for this network type include:
+.RS
+.TP 10
+.BI port= name
+Specifies the parallel port to use, as described above.
+.RE
+.RE
+.LP
+For example, consider this section:
+.RS
+.nf
+.na
+.B "[net trees]"
+.B "description=Separate network of controllers for tree displays."
+.B "type=serial"
+.B "port=0"
+.B "baudrate=19200"
+.B "units=treea1 treea2 treeb1 treeb2"
+.ad
+.fi
+.RE
+This requires that
+.RB \*(lq trees \*(rq
+appear in the \*(lqnetworks\*(rq value in the
+.B [show]
+section of the file.  It defines communications parameters for this
+network on the first system serial port, running at 19,200 bits/sec, 
+8 bits/byte, no parity, no flow control.  There are four controller
+units connected here, which will be described in sections called
+.RB \*(lq [unit\ treea1] \*(rq,
+et al.
+.SS "Controller Units"
+.LP
+Each network lists what controllers are plugged into it (in the
+\*(lqunits\*(rq value in its 
+.B "[net\ ...]"
+section).  Each of those controller units are described in its own
+section named
+.RB \*(lq [unit
+.IB tag ]\fR\*(rq\fP,
+which contains the following paramters:
+.TP
+.BI power= tag
+The 
+.I tag
+ID (see \*(lqPower Sources\*(rq) for the power circuit supplying the
+load current for this controller unit.
+If this controller is plugged into a subordinate power source, 
+.I that
+source name should be specified here, 
+.I not
+one of the upstream circuits it plugs into.
+.TP
+.BI type= name
+The type of controller unit being described.  The type must be one of
+the supported types listed below.  Depending on type, there may be 
+additional parameters the section needs to contain.  If your device
+is not in this list, a driver object class will need to be created
+for it.
+.RS
+.TP
+.B cm17a
+The X-10 CM17A serial interface (popularly known as the 
+\*(lqfirecracker\*(rq).  It can control up to 256 channels
+arranged into 16 \*(lqhouse codes\*(rq of 16 \*(lqunit
+codes\*(rq.  These are controlled via RF (radio) signals
+sent from the firecracker unit to X-10 RF receiver modules.
+One of the ideosyncracies of the CM17A is that it does
+.I not
+actually receive commands on the serial data port; instead,
+it communicates using signal pulses on the serial port's DTR
+and RTS lines.  
+'\"As such, it ignores all of the serial configuration
+'\"parameters specified for its network.
+The channel addresses as used by Lumos include
+house/unit codes in the standard letter-number format used by X-10 equipment,
+as 
+.RB \*(lq A1 \*(rq
+through
+.RB \*(lq P16 \*(rq.
+Dimmer capability and current capacity depend on each individual control 
+unit plugged in to the power line.  Due to the fact that the Firecracker
+can only turn on, off, or dim a single channel at a time, and the slowness
+of sending X10 signals on the power lines, this device is particularly
+ill-suited for use in fast-changing animated light displays.  It could,
+however, be used in more static displays or displays where at most one
+X10 device at a time is being changed.
+This type of device is usually attached to a
+.B serialbit
+type network, and should be the
+.I only
+controller on its network (since the controller device is not
+individually addressable).
+.TP
+.B lynx10
+This is another model of X-10 serial controller.  It can control up to
+256 channels arranged into 16 \*(lqhouse codes\*(rq of 16 \*(lqunit
+codes\*(rq.  The channel addresses as used by Lumos include
+both codes in the standard letter-number format used by X-10 equipment,
+as 
+.RB \*(lq A1 \*(rq
+through
+.RB \*(lq P16 \*(rq.
+Dimmer capability and current capacity depend on each individual control 
+unit plugged in to the power line.
+The LynX10 controller is capable of dimming a set of units which share
+a common house code in tandem, so while it suffers from the slow 
+command propagation time inherent in X10 systems, it's capable of making
+reasonable scene-changing fade effects in mostly-static parts of the 
+show.  X10 devices are generally unsuitable for use in rapidly-changing
+animated light displays.
+This type of device is usually attached to a
+.B serial
+type network, and should be the
+.I only
+controller on its network (since the controller device is not
+individually addressable).
+.TP
+.B lumos
+This is the Lumos 48-channel SSR controller circuit that I designed for my
+own use.  It can control up to 48 channels with full dimmer capability
+with up to 48 amps of current load capacity (in 6 blocks of 8 circuits, 8A
+per block, no more than 5A on any individual circuit).  Its channels are
+numbered simply
+.RB \*(lq 0 \*(rq
+through
+.RB \*(lq 47 \*(rq.
+These units require one additional field:
+.RS
+.TP
+.BI address= int
+The controller address used for sending commands to a particular
+controller unit.  Must be a number in the range
+.RI 0<= address <=15.
+.RE
+.TP
+.B firegod
+This is a classic do-it-yourself SSR controller whose
+plans are available on hobbyist websites.  Up to four
+Firegod controllers may be plugged into the same 
+.B serial
+network, and each controls up to 32 output channels
+numbered 0 to 31.  Some Firegod units can be built
+to output a different number of channels (see below).
+These units require the following additional fields:
+.RS
+.TP
+.BI address= int
+The controller address for this particular unit.  Must be
+a number in the range
+.RI 1<= address <=4.
+.TP
+.BI channels= int
+The number of output circuits provided by this controller.  If
+no
+.B channels
+attribute is provided here, this will default to 32.
+.RE
+.TP
+.B olsen595
+Another classic DIY SSR controller popular with Christmas
+light hobbyists, the Olsen 595 is driven by a bit-at-a-time
+data stream on a parallel port (so this should be used with
+a
+.B parbit
+network type).  Note that Grinch boards (another DIY controller
+model) uses the same protocol and should be able to be driven
+by Lumos by using the
+.B olsen595
+configuration type here.
+Only one of these units may be plugged into a single
+network at a time, so no unit addressing is used.
+These units require the following additional field:
+.RS
+.TP
+.BI channels= int
+The number of output channels supplied by the controller.
+This is an optional field; if not specified, it defaults to
+64.
+.RE
+.TP
+.B renard
+The Renard DIY SSR controller board is similar in concept
+to the Firegod unit.  It uses a
+.B serial
+network interface, and up to 128 units may be plugged into
+the same network together.  These are addressed 0 to 127,
+where 0 is the first Renard unit in the network daisy chain,
+1 is the next one down the line, and so on.
+These units require the following additional fields:
+.RS
+.TP
+.BI address= int
+The address of this controller.  This must be a number in the range
+.RI 0<= address <=127.
+.TP
+.BI channels= int
+The number of output channels supplied by the controller.
+This is an optional field; if not specified, it defaults to
+64.  There are known Renard controllers for 8, 16, 24, 32,
+and 64 output channels, and possibly others as well.
+.RE
+'\".TP
+'\".B spectrum
+'\"A readerboard of the Spectrum Alpha line or something compatible with them.
+'\"This is something rather different than the kinds of controllers described
+'\"elsewhere, but it may often be desirable to display readerboard messages
+'\"as part of the show.  These devices will probably be on their own 
+'\"network, separate from the other controllers.  These units require the
+'\"following additional fields:
+'\".RS
+'\".TP
+'\".BI address= int
+'\"The address of a particular readerboard.  These are simply numbers from 0 
+'\"to 255.
+'\".TP
+'\".BI memory= labels
+'\"This is an optional field which lists all the memory slots you wish to
+'\"reserve for use in the readerboard programs.  If nothing is specified,
+'\"the signs default to a single text slot called \*(lqA\*(rq.  If you 
+'\"wish to allocate separate text, string, or bitmap slots, you will need
+'\"to list their labels here, separated by spaces.  (Labels may each be
+'\"a single upper-case letter or a digit.)  Then, you need to define
+'\"a 
+'\".B "[spectrum memory"
+'\".IB label ]
+'\"section describing each memory slot allocated.  These each contain the 
+'\"following fields:
+'\".RS
+'\".TP
+'\".BR type=text | string | image
+'\"The type of data to be stored in this slot.  Text slots are the usual
+'\"places for holding messages, and may include color, special attributes,
+'\"transition effects, etc.  They may also include images and strings as
+'\"stored in other slots.  Strings are the storage used for values included in
+'\"text slots.  These may be dynamically changed, and the readerboard message
+'\"updated, without having to transmit a whole new text message to the
+'\"readerboard, which looks much better for updating only part of a message at
+'\"a time.  Image slots are used for storing bitmap images which may be
+'\"included into text slots as well.
+'\".TP
+'\".BI size= int
+'\"The allocated size in bytes of the field.  For image slots, use the
+'\".B rows
+'\"and 
+'\".B cols
+'\"fields instead.
+'\".TP
+'\".BI locked= bool
+'\"If true, this memory slot may not be overwritten using the IR remote 
+'\"control for the readerboard.  (Default is locked if this is not specified.)
+'\".TP
+'\".BI start= time
+'\"The time of day to begin displaying this slot's contents.  The value of
+'\".I time
+'\"may be an integer hour number (0=midnight, 23=11:00 PM) or the string
+'\".RB \*(lq never \*(rq
+'\"(to always hide this slot from view) or
+'\".RB \*(lq always \*(rq
+'\"(to always display this slot).  Default is 
+'\".RB \*(lq always \*(rq.
+'\"This only applies to text slots.
+'\".TP
+'\".BI end= int
+'\"If a start time is given, the time of day to end display of the slot may
+'\"be specified here, as an integer hour number.
+'\".TP
+'\".BI colors= int
+'\"The number of colors to display for a bitmap image slot.  Supported values
+'\"are 1 (monochrome), 3, and 8.  The number of colors specified here does 
+'\"not include the \*(lqoff\*(rq state as a \*(lqcolor\*(rq.  Bitmap slots
+'\"only.  Default is 1 (monochrome).
+'\".TP
+'\".BI rows= int
+'\"The number of pixels high the image will be (the
+'\".I y
+'\"dimension).  Bitmap slots only.
+'\".TP
+'\".BI cols= int
+'\"The number of pixels wide the image will be (the
+'\".I x
+'\"dimension).  Bitmap slots only.
+'\".RE
+'\".RE
+.RE
+.TP
+.BI resolution= int
+Any controller capable of dimming may specify this value.  This is the
+number of discrete steps the dimmer can be set to between fully off and
+fully on (inclusive).  For example,
+.RB \*(lq resolution=32 \*(rq
+means that the dimmer can be fully off, fully on, and 30 levels of varying
+brightness inbetween.  If this value is not specified, it will default to
+a typical resolution value for that type of controller.
+Normally, you should
+.I not
+need to supply this value; let the controller driver's built-in defaults
+handle the typical case and only supply this if you have an unusual
+device with a nonstandard resolution.
+.SS "Controller Channels"
+.LP
+Finally, each controller has one or more electrical loads attached
+to it.  Each channel is identified in some way which is specific to
+the particular controller type as previously described.  (For example,
+a house/unit code like 
+.RB \*(lq C10 \*(rq
+for an X-10 style controller.)
+.LP
+Each channel is described in its own section named as
+.RB \*(lq [chan
+.IB unit . channel\fR].\*(rq\fP
+The base set of values required for any channel are described first.
+Depending on the controller unit type, additional fields may also be
+required.  (In the current release, there are no additional fields, but
+this may change in future releases.)
+.TP
+.BI name= text
+A short, descriptive name of the load plugged into this channel.
+.TP
+.BI load= real
+The number of amps this load will consume.
+.TP
+.BI power= tag
+Normally, channels all get power from the single power source supplying their
+controller unit.  If a channel happens to get power from some other source,
+that is specified here by adding a 
+.RB \*(lq power \*(rq
+value and naming the source for that individual channel.  This is common for
+X-10 controllers, which are actually separate modules for each channel, and may
+be plugged into different circuits than each other.  The Lumos SSR controller
+also allows for each block of 8 channels to have a separate power source for
+load balancing flexibility.
+.TP
+.BI dimmer= bool
+Whether this channel's load should be dimmed. 
+If this value is not present, it defaults to
+.BR yes .
+.B NOTE:
+Indicating 
+.RB \*(lq no \*(rq
+here will inform Lumos that it should interpret any level specified for that
+channel as fully ON or fully OFF.  (Typically, controller drivers will consider
+a value up to 50% to be \*(lqoff\*(rq, and anything greater than that to be
+\*(lqon\*(rq, but this may vary between controller drivers.  It's best to always
+specify that these non-dimmable channels be fully on or off in your sequences.)
+However, we
+cannot guarantee that a software or hardware bug or malfunction, 
+communication glitch or other circumstance might
+not cause it to go into dimmer mode anyway.  
+.B "DO NOT"
+connect anything to a dimmable controller output which
+would be damaged if it happens to be dimmed.
+.TP
+.BI warm= int
+The minimum dimmer level (as a percentage) to keep this load
+at all times.  This is intended to keep bulbs always warm, by
+dimming them to a low level where they won't be (too) visible
+instead of turning them fully off and on repeatedly.
+If this value is not present, it means that a dimmer can be
+turned completely off when called for in the show script.
+Contrast this with a 
+.B warm
+value of 0 (zero), which will force Lumos to leave the channel
+\*(lqon\*(rq but dimmed to 0% output level.  On some devices,
+there is no real difference between 0% and \*(lqoff\*(rq, but on
+some (like many X10 dimmer modules), it makes a great deal of 
+difference.  In the case of X10 dimmers, you can't fade up from
+\*(lqoff\*(rq, but you can fade up from \*(lqon but at 0%\*(rq.
+.TP
+.BI resolution= int
+This has the same meaning as indicated for controller units above,
+but allows for each channel to have its own resolution separate from
+the other channels.  This may happen, for example, in X-10 networks
+where each \*(lqchannel\*(rq is actually an independent module which
+may have its own individual characteristics not shared with other modules
+on the same circuit.  If not specified, it defaults to the resolution
+specified for the controller.  In most cases, this should
+.I not
+be specified.
+.LP
+Some examples:
+.RS
+.na
+.nf
+.B "# treea1 controller, channel 0
+.B "[chan treea1.0]"
+.B "name=Tree1 RED 1"
+.B "load=.3"
+.B "# X-10 controller 'floodX10', channel C1"
+.B "[chan floodX10.C1]"
+.B "name=Snowman power"
+.B "load=2"
+.B "dimmer=no"
+.fi
+.ad
+.RE
+.SH VERSION
+.LP
+This document describes the show configuration file format
+used by Lumos version 0.5.
+.SH HISTORY
+.LP
+A show configuration file appeared in Lumos 0.1, although the
+contents of the file have evolved over time.
+.SH COPYRIGHT
+.LP
+Lumos Light Orchestration System,
+Copyright \(co 2005\-2008, 2011 by Steven L. Willoughby, Aloha,
+Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
+License version 3.0.  See the
+.B LICENSE
+file accompanying the Lumos software distribution for full terms
+and conditions of use, disclaimer of warranty, limitation of liability
+and other information, or see:
+.br
+http://www.opensource.org/licenses/osl-3.0.php.
+.SH AUTHOR
+.LP
+Steve Willoughby, support@alchemy.com
+.SH "SEE ALSO"
+.BR lcheck (1),
+.BR lpower (1),
+.BR lumos (1),
+.BR printf (3).
+.SH BUGS
+'\" 
+'\" $Log: not supported by cvs2svn $
+'\" Revision 1.2  2008/12/30 22:58:02  steve
+'\" General cleanup and updating before 0.3 alpha release.
+'\"
+'\" 

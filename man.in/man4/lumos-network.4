@@ -1,0 +1,196 @@
+.TH LUMOS-NETWORK 4 "Lumos" "Software Alchemy" "Device Drivers"
+'\"
+'\" LUMOS DOCUMENTATION:
+'\" $Header: /tmp/cvsroot/lumos/man/man4/lumos-network.4,v 1.2 2008-12-30 22:58:02 steve Exp $
+'\"
+'\" Lumos Light Orchestration System
+'\" Copyright © 2005, 2006, 2007, 2008 by Steven L. Willoughby, Aloha,
+'\" Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
+'\" License version 3.0.
+'\"
+'\" This product is provided for educational, experimental or personal
+'\" interest use, in accordance with the terms and conditions of the
+'\" aforementioned license agreement, ON AN "AS IS" BASIS AND WITHOUT
+'\" WARRANTY, EITHER EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION,
+'\" THE WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A
+'\" PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY OF THE ORIGINAL
+'\" WORK IS WITH YOU.  (See the license agreement for full details, 
+'\" including disclaimer of warranty and limitation of liability.)
+'\"
+'\" Under no curcumstances is this product intended to be used where the
+'\" safety of any person, animal, or property depends upon, or is at
+'\" risk of any kind from, the correct operation of this software or
+'\" the hardware devices which it controls.
+'\"
+'\" USE THIS PRODUCT AT YOUR OWN RISK.
+'\" 
+.SH NAME
+lumos-network \- Lumos network protocol device driver implementation notes
+.SH DESCRIPTION
+.LP
+The Lumos light circuit sequencing program was designed to be extended for
+use with arbitrary hardware by \*(lqplugging in\*(rq device drivers 
+for new types of hardware.  This document describes the general design
+of Lumos' network driver system and how one would go about writing a 
+new driver for a hardware interface for Lumos.
+.LP
+The Lumos program is implemented in Python, and the network drivers are simply
+Python modules which each define an object class describing a particular type
+of network port and the protocol used by it.  
+.SS "Theory of Operation"
+.LP
+Each network driver class describes a certain kind of communications interface.
+The main application software will create an instance of each network class
+for each network described in the 
+show configuration
+file, and will then call the
+.B add_unit()
+method in each, to set up the active controller units used in the show which
+are attached to that network interface.
+.LP
+During the operation of the show, various device drivers will call the
+.B send()
+method in their associated network controllers to transmit bytes out to the
+various controllers attached to the network.
+.LP
+No device is expected to ever send data back to Lumos; these drivers are 
+write-only.
+.SS "Definition of the Network Class"
+.LP
+Each network driver is a separate module (and therefore stored in its own 
+file).  To start a new network driver, create a file with an appropriate name
+such as 
+.RB \*(lq CarrierPigeonNetwork.py \*(rq.
+.LP
+All network driver classes are subclasses of 
+.BR Network ,
+which is an abstract base class describing the essential attributes and 
+behaviors of all network types.  If you haven't already done so, look
+over the documentation for that module (the simplest way is to type the
+command
+.RB \*(lq "pydoc Lumos.Network" \*(rq
+from inside the Lumos source directory (or from anywhere once Lumos is installed
+on your system).
+.LP
+Note also that where there are some general groupings of similar kinds of 
+networks, intermediate classes should be created.  Thus, while 
+.B SerialNetwork
+is a direct subclass of 
+.BR Network ,
+A future network driver which is similar but differs in only some
+minor way would be a subclass of
+.B SerialNetwork
+and merely extend that class rather than duplicating most of the
+same functionality independently.
+.SS "Extending the Network Class"
+.LP
+You need to extend the base 
+.B Network
+class by adding the following methods as appropriate for your device.
+In each case, check with the 
+.B Network
+object class definition (using 
+.B pydoc
+for example) and 
+.I "do not deviate from the call signatures"
+indicated there (as far as number or position of arguments, which are optional, etc.)
+.LP
+You MUST define device-specific versions of these methods (unless you
+are inheriting from an intermediate class which does define them sufficiently):
+.TP
+.BI send( cmd )
+Transmit the command codes in the string value
+.I cmd
+to the network.
+.TP
+.BI __init__( id ", " \fR[\fPdescription\fR]\fP ", \fR...\fP)"
+The class constructor should open the communications port, create a thread
+or subprocess to handle communications protocols which need to continue 
+transmitting slow bitrates while Lumos continues operating, etc.  It will be passed additional keyword arguments as found in the
+show configuration
+file.
+.TP
+.B close()
+This closes the communication port gracefully.
+.LP
+You MAY, but possibly won't need to, extend the following methods:
+.TP
+.BI add_unit( id ", " unit )
+This method will be called by the Lumos application based on the
+show configuration data, to assign active controllers to your network.
+The default implementation of 
+.B add_unit()
+is a simple routine to add the device driver object reference passed
+as 
+.I unit
+to the internal list of units plugged in to this network.
+That's usually sufficient.
+.LP
+Since the drivers which ship with Lumos are available as source files,
+it would be instructive to examine them as a pattern to follow when creating
+new drivers.
+.SS "Registering Your Network Driver"
+.LP
+The 
+.RB \*(lq Networks \*(rq
+module provides a mapping from the network device names presented to the
+user (e.g., those usable in the
+show configuration
+file's description of controller types), and which actual network driver module
+to use to actually perform the communications.
+.LP
+To add your new driver to the list, simply edit 
+.B Networks.py
+and add two lines: an import statement to import the driver class,
+and an entry in the
+.B supported_network_types
+dictionary.  
+For example, if we called our controllers \*(lqpigeon\*(rq in all the
+user-visible areas of Lumos, the first few lines of the
+.B Networks.py
+file might look like this:
+.RS
+.na
+.nf
+\&.
+\&.
+\&.
+.B "from CarrierPigeonNetwork import CarrierPigeonNetwork"
+.B "supported_network_types = {"
+.B "\ \ \ 'serial':  SerialNetwork,"
+.B "\ \ \ 'cm17a':   FirecrackerSerialNetwork,"
+.B "\ \ \ 'pigeon':  CarrierPigeonNetwork,"
+.B }
+\&.
+\&.
+\&.
+.fi
+.ad
+.RE
+.SH COPYRIGHT
+.LP
+Lumos Light Orchestration System,
+Copyright \(co 2005, 2006, 2007, 2008 by Steven L. Willoughby, Aloha,
+Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
+License version 3.0.  See the
+.B LICENSE
+file accompanying the Lumos software distribution for full terms
+and conditions of use, disclaimer of warranty, limitation of liability
+and other information, or see:
+.br
+http://www.opensource.org/licenses/osl-3.0.php.
+.SH AUTHOR
+.LP
+Steve Willoughby, support@alchemy.com
+.SH "SEE ALSO"
+.BR lcheck (1),
+.BR lumos (1),
+.BR lumos-config (5),
+.BR lumos-controller (4).
+.LP
+Also refer to the \*(lqHACKING\*(rq document supplied with the Lumos
+source code.
+.SH BUGS
+'\" 
+'\" $Log: not supported by cvs2svn $
+'\" 
