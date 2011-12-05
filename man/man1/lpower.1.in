@@ -3,9 +3,7 @@
 '\" LUMOS DOCUMENTATION: LPOWER
 '\"
 '\" Lumos Light Orchestration System
-'\" Copyright © 2005-2008, 2011 by Steven L. Willoughby, Aloha,
-'\" Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
-'\" License version 3.0.
+'\"@@COPYRIGHT@@
 '\"
 '\" This product is provided for educational, experimental or personal
 '\" interest use, in accordance with the terms and conditions of the
@@ -156,18 +154,7 @@ This utility appeared in Lumos version 0.5.
 .SH COPYRIGHT
 .LP
 Lumos Light Orchestration System,
-Copyright \(co 2005\-2008, 2011 by Steven L. Willoughby, Aloha,
-Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
-License version 3.0.  See the
-.B LICENSE
-file accompanying the Lumos software distribution for full terms
-and conditions of use, disclaimer of warranty, limitation of liability
-and other information, or see:
-.br
-http://www.opensource.org/licenses/osl-3.0.php.
+..@@COPYRIGHT@@
 .SH AUTHOR
 .LP
 Steve Willoughby, support@alchemy.com
-'\" 
-'\" $Log: not supported by cvs2svn $
-'\" 
