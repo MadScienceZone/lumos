@@ -1,0 +1,173 @@
+.TH LPOWER 1 "Lumos" "Software Alchemy" "User Commands"
+'\"
+'\" LUMOS DOCUMENTATION: LPOWER
+'\"
+'\" Lumos Light Orchestration System
+'\" Copyright © 2005-2008, 2011 by Steven L. Willoughby, Aloha,
+'\" Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
+'\" License version 3.0.
+'\"
+'\" This product is provided for educational, experimental or personal
+'\" interest use, in accordance with the terms and conditions of the
+'\" aforementioned license agreement, ON AN "AS IS" BASIS AND WITHOUT
+'\" WARRANTY, EITHER EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION,
+'\" THE WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A
+'\" PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY OF THE ORIGINAL
+'\" WORK IS WITH YOU.  (See the license agreement for full details, 
+'\" including disclaimer of warranty and limitation of liability.)
+'\"
+'\" Under no curcumstances is this product intended to be used where the
+'\" safety of any person, animal, or property depends upon, or is at
+'\" risk of any kind from, the correct operation of this software or
+'\" the hardware devices which it controls.
+'\"
+'\" USE THIS PRODUCT AT YOUR OWN RISK.
+'\" 
+.SH NAME
+lpower \- Estimate power usage of a Lumos sequence
+.SH SYNOPSIS
+.B lpower
+.RB [ \-\-verbose ]
+.RB [ \-\-config=\fIfile\fP ]
+.RB [ \-\-price=\fIp\fP ]
+.RB [ \-\-graph\-data=\fIfile\fP ]
+.RB [ \-\-volts=\fIv\fP ]
+.IR sequence-files ...
+.LP
+.B lpower
+.B \-\-help
+.br
+.B lpower
+.B \-\-version
+.SH DESCRIPTION
+.LP
+The
+.B lpower
+program estimates the power consumption used by the lights in the
+set of 
+.I sequence-files
+specified on the command line.  It assumes that the entire collection
+of sequences will be played together in the order listed, to make a single
+continuous show (and any outputs left running at the end of one will be
+the starting pattern at the time the next sequence begins).
+.LP
+All the information upon which this estimate is based is taken from
+the Lumos show configuration file, so 
+.BR lpower 's
+accuracy can only possibly be as accurate as the information in that
+file is.
+.LP
+.B "Note:"
+this is a useful tool to check the load balancing of your light show
+power, but in any situation where safety of people, animals, property,
+etc., rely upon safe power loads, don't rely exclusively on this program.
+Use the expertise of a qualified electrician or adequately experienced
+technician and common sense to ensure your circuits are loaded safely.
+In any event, make sure all your power loads are protected by the correct
+circuit breakers including GFCI breakers where applicable.
+.LP
+After simulating the effects of running the sequence(s) on the configured
+show hardware,
+.B lpower
+will report the total kilowatt hours (kWh) of energy consumed during
+the course of the sequence(s), as well as the average and peak current
+load (amps) for each power source.  
+.SH OPTIONS
+.LP
+The following options may be given to
+.BR lpower .
+They may be specified using either short format, e.g.:
+.LP
+.RS
+.na
+.B "lpower \-v \-c show.conf scene1.lseq scene2.lseq"
+.ad
+.RE
+.LP
+Or using the longer format, e.g.:
+.LP
+.RS
+.na
+.B "lpower \-\-verbose \-\-config=show.conf scene1.lseq scene2.lseq"
+.ad
+.RE
+.LP
+Or a combination of both.
+.LP
+The following options may be given to
+.BR lpower :
+.TP 10
+.BI \-c " file"
+.RB ( \-\-config=\fIfile\fP )
+Get show configuration information from the specified
+.IR file .
+This is necessary for Lumos programs such as
+.B lpower
+to know what hardware is part of the show, how to communicate with it, and
+therefore how to interpret what the sequence files are describing.
+.TP
+.BI \-g " file"
+.RB ( \-\-graph\-data=\fIfile\fP )
+In addition to the overall reports already mentioned, this option causes
+a full data dump of the current load on all power sources at every point
+in time during the show.  The data are dumped in CSV format in the specified
+.IR file .
+You may wish to take the data from that file and graph it or produce more
+reports based on it.
+.TP
+.B \-h
+.RB ( \-\-help )
+Print a basic help message and exit.
+.TP
+.BI \-P " p"
+.RB ( \-\-price=\fIp\fP )
+Assuming you are charged a price of
+.I p
+dollars per kWh, estimates the monetary cost of the power consumed in the
+sequence(s), and reports that along with the other output.
+.TP
+.B \-v
+.RB ( \-\-verbose )
+Print information about the sequence, show configuration, and other 
+supposedly interesting facts.
+.TP
+.B \-\-version
+Prints the version number of the program and exits.
+.TP
+.BI \-V " v"
+.RB ( \-\-volts=\fIv\fP )
+Sets the line voltage to 
+.I v
+for the purposes of calculating wattage from the amps configured in the show
+configuration file.  The simple formula 
+.IR P = IE 
+is used for this calculation,
+assuming Lumos will be used with resistive loads such as Christmas lights.
+The default is 120 volts.
+.SH "SEE ALSO"
+.LP
+.BR lcheck (1),
+.BR lplay (1),
+.BR lumos (1),
+.BR lumos-sequence (5).
+.SH HISTORY
+.LP
+This utility appeared in Lumos version 0.5.
+.SH COPYRIGHT
+.LP
+Lumos Light Orchestration System,
+Copyright \(co 2005\-2008, 2011 by Steven L. Willoughby, Aloha,
+Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
+License version 3.0.  See the
+.B LICENSE
+file accompanying the Lumos software distribution for full terms
+and conditions of use, disclaimer of warranty, limitation of liability
+and other information, or see:
+.br
+http://www.opensource.org/licenses/osl-3.0.php.
+.SH AUTHOR
+.LP
+Steve Willoughby, support@alchemy.com
+'\" 
+'\" $Log: not supported by cvs2svn $
+'\" 
