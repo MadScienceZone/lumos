@@ -52,6 +52,7 @@ def suite():
 	  'SSR48ControllerUnitTest',
 	  'TestNetworkTest',
 	  'TestParallelNetworkTest',
+      'TimeRangeTest',
 	  'VixenSequenceTest',
       'X10ControllerUnitTest'
     )
