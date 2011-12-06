@@ -67,28 +67,36 @@ is named all by itself in the argument list, that sequence is
 compiled and played to completion.  This is the normal mode
 of operation.
 .TP
-.BI @ \fR[\fPhh :\fR]\fP mm \fR[\fP: ss\fR]\fP
+.BI @ mm
+'\".BI @ \fR[\fPhh :\fR]\fP mm \fR[\fP: ss\fR]\fP
 Pause until the specified time
 arrives, then go on to the next sequence in the list.
-The time parameter here may include the specific hour, minute, and second
-on the clock to wait for.  Ordinarily,
-this just specifies the minutes on the clock to wait for.  For example,
+The time parameter here \"may include the specific hour, minute, and second
+is the number of minutes
+on the clock to wait for.\"  Ordinarily,
+'\" this just specifies the minutes on the clock to wait for.  
+For example,
 .RB \*(lq @55 \*(rq
-would pause playback until 55 minutes past the hour came around again.
-If two numbers are given, separated by a colon, that represents minutes
-and seconds, thus
-.RB \*(lq @55:30 \*(rq
-pauses until 55 minutes and 30 seconds past the hour.  If three numbers
-are given, that specifies hours, minutes, and seconds.  The way to specify
-a pause until 4:30 P.M. would be
-.RB \*(lq @16:30:00 \*(rq
-(note the use of 24-hour time).
+would pause playback until 55 minutes past the hour.  (If it is currently
+55 minutes past the hour, no delay is taken.)
+'\"If two numbers are given, separated by a colon, that represents minutes
+'\"and seconds, thus
+'\".RB \*(lq @55:30 \*(rq
+'\"pauses until 55 minutes and 30 seconds past the hour.  If three numbers
+'\"are given, that specifies hours, minutes, and seconds.  The way to specify
+'\"a pause until 4:30 P.M. would be
+'\".RB \*(lq @16:30:00 \*(rq
+'\"(note the use of 24-hour time).
 .LP
-Any of these numbers (hour, minute, and second) may be an asterisk
+This number
+'\"Any of these numbers (hour, minute, and second) 
+may be an asterisk
 .RB (\*(lq * \*(rq),
 which means that all possible values are permitted.  Thus, to pause
-until 45 seconds past any minute, you would specify
-.RB \*(lq @*:45 \*(rq.
+'\"until 45 seconds past any minute, you would specify
+'\".RB \*(lq @*:45 \*(rq.
+until the start of the next minute on the clock, you would specify
+.RB \*(lq @* \*(rq.
 .LP
 Ranges and lists are allowed, as well.  To specify that you wish to wait until
 5, 20, or 45 minutes past the hour (whichever comes first), use
@@ -105,9 +113,11 @@ To just wait for the next multiple of 10 minutes past the hour, use
 Ranges may appear in lists, such as
 .RB \*(lq @0-30/10,35-55/5 \*(rq.
 .TP
-.BI + \fR[[\fPhh :\fR]\fP mm \fR]\fP: ss
-Delay the specified number of hours, minutes, and seconds.  
-A single number is assumed to be seconds.
+.BI + sec
+'\".BI + \fR[[\fPhh :\fR]\fP mm \fR]\fP: ss
+Delay the specified number of \"hours, minutes, and 
+seconds.  This may be a real number.
+'\"A single number is assumed to be seconds.
 .TP
 .BI [ n
 Repeat the following sequence(s) (until a single 
@@ -116,12 +126,17 @@ which signals the end of the set to be repeated)
 .I n
 times. 
 .TP
-.BI [@ \fR[\fPhh :\fR]\fP mm \fR[\fP: ss\fR]\fP
+.BI [@ mm
+'\".BI [@ \fR[\fPhh :\fR]\fP mm \fR[\fP: ss\fR]\fP
 Repeat the following sequence(s) (up to a matching
 .RB \*(lq ] \*(rq in the argument list)
 until the specified
 time arrives.  The time is specified as described for the
-real-time delay above.
+real-time delay above.  The time is checked at the start
+of each iteration of the loop.  If the time at that moment
+satisfies the exit condition 
+.RI ( mm
+minutes past the hour, etc.), then the loop terminates.
 .LP
 Note that it is recommended to run
 .BR lcheck (1)

@@ -257,7 +257,7 @@ class Sequence (object):
 
         return self._event_list[timestamp]
 
-    def compile(self, keep_state=False, force=False):
+    def compile(self, keep_state=False, force=False, skew=0):
         '''Compile the sequence into a ready-to-execute list of
         device updates.  This will return a list of discrete,
         device-specific updates in the form:
@@ -307,19 +307,14 @@ class Sequence (object):
         ev_list = []
 
         for timestamp in sorted(self._event_list):
-            #print "==", timestamp, "==", len(self._event_list[timestamp]), "events"
             for event in self._event_list[timestamp]:
                 unit_list = [event.unit] if event.unit is not None else [i['obj'] for i in self._controllers]
-                #print "EVENT", event, "units:", unit_list
                 for target_unit in unit_list:
                     channel_list = [event.channel] if event.channel is not None else sorted(target_unit.iter_channels())
                     if event.channel is None and event.level == 0 and event.delta == 0:
-                        #print "(adding all-channel-off event)"
-                        ev_list.append((timestamp, target_unit.all_channels_off, ()))
+                        ev_list.append((timestamp+skew, target_unit.all_channels_off, ()))
                     else:
-                        #print "(adding channel event...)"
                         for channel in channel_list:
-                            #print "...channel", channel
                             if target_unit.channels[channel] is None:
                                 raise InvalidEvent("Sequence uses channel %s.%s which is not configured." % (
                                     target_unit.id, channel))
@@ -328,43 +323,31 @@ class Sequence (object):
                                 target_unit.channels[channel].raw_dimmer_value(0))
                             end_raw_value = target_unit.channels[channel].raw_dimmer_value(event.level)
 
-                            #print "...start:", start_raw_value, "end:", end_raw_value, "time:", event.delta
-
                             if event.delta == 0:
                                 if start_raw_value != end_raw_value or force:
-                                    #print "Adding set event: unit %s ch %s -> %d (%d)" % (
-                                    #    target_unit.id, repr(channel), event.level, end_raw_value)
-                                    ev_list.append((timestamp, target_unit.set_channel, (channel, end_raw_value, force)))
+                                    ev_list.append((timestamp+skew, target_unit.set_channel, (channel, end_raw_value, force)))
                             else:
                                 fade_steps = abs(start_raw_value - end_raw_value)
                                 fade_incr = 1 if start_raw_value < end_raw_value else -1
 
                                 if fade_steps == 1:
-                                    #print "Adding fade sequence (one-step) for %d-%d: unit %s ch %s" % (
-                                    #    start_raw_value, end_raw_value, target_unit.id, repr(channel))
-                                    ev_list.append((timestamp + event.delta, target_unit.set_channel,
+                                    ev_list.append((timestamp + skew + event.delta, target_unit.set_channel,
                                         (channel, end_raw_value, force)))
 
                                 elif fade_steps > 1:
                                     for i in range(fade_steps):
-                                        #print "Adding fade sequence step %d of %d in %d-%d: unit %s ch %s" % (
-                                        #    i+1, fade_steps, start_raw_value, end_raw_value, target_unit.id, repr(channel))
-                                        ev_list.append((timestamp + ((event.delta * i) / (fade_steps - 1)),
+                                        ev_list.append((timestamp + skew + ((event.delta * i) / (fade_steps - 1)),
                                             target_unit.set_channel,
                                             (channel, start_raw_value + (fade_incr * (i + 1)), force)))
 
                                 elif force:
-                                    # we get here if there was no change (zero steps) but
-                                    # we need to force output anyway, so we emit an event to
-                                    # output the current state.
-                                    ev_list.append((timestamp, target_unit.set_channel, (channel, end_raw_value), force))
+                                    ev_list.append((timestamp + skew, target_unit.set_channel, (channel, end_raw_value), force))
 
 
                     for channel in channel_list:
                         if target_unit.channels[channel] is None:
                             continue
                         self.current_state[(target_unit.id,channel)] = target_unit.channels[channel].raw_dimmer_value(event.level)
-                        #print "setting current(", target_unit.id, ",", channel, ") to", target_unit.channels[channel].raw_dimmer_value(event.level)
 
         return ev_list
 
@@ -382,10 +365,3 @@ class Sequence (object):
     def __getattr__(self, name):
         if name == 'intervals':
             return sorted(self._event_list)
-
-#
-# $Log: not supported by cvs2svn $
-# Revision 1.5  2008/12/30 22:58:02  steve
-# General cleanup and updating before 0.3 alpha release.
-#
-#

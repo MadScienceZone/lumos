@@ -28,9 +28,11 @@
 # Load and play a sequence of events in real time
 
 import Lumos
-from Lumos.Show import Show
-from Lumos.Sequence import Sequence
-from optparse import OptionParser
+from Lumos.Show      import Show
+from Lumos.Sequence  import Sequence
+from Lumos.TimeRange import TimeRange
+from optparse        import OptionParser
+
 import sys, sched, time
 import pygame
 #@@REL@@sys.tracebacklimit=0
@@ -39,11 +41,31 @@ import pygame
 # Command-line option processing
 #========================================================================
 
-parser = OptionParser(usage="%prog [-hTv] [-c config] sequence-files...", version='0.3a1')
+parser = OptionParser(
+        usage="%prog [-hTv] [-c config] [-s skew] sequence-files...", 
+        version='0.6a1',
+        description='''\
+Plays one or more sequence files, with audio if the files include an 
+audio track.  Each sequence-file is played in the order specified. In
+addition, the following special items may be included in place of a
+sequence-file in the list:
+
+@mm Delays until the given minutes on the clock (i.e., @15 pauses until
+15 minutes past the hour) before continuing to the next sequence.
+
++mm Delays for mm seconds.
+
+[n ... ] repeats all the files between brackets n times (note the [n and
+] must be separate arguments by themselves).  Likewise, [@mm ... ]
+repeats all the files between brackets until the clock reads mm (as for @mm above)
+at the start of a loop iteration.
+'''
+)
 parser.add_option('-c', '--config',  metavar='FILE', help='Specify config file [./lumos.conf]')
+parser.add_option('-s', '--skew',    metavar='mS', type='int', help='Delay sequence times vs. audio')
 parser.add_option('-T', '--test',    action='store_true', help="Describe playback, don't actually do it")
 parser.add_option('-v', '--verbose', action='store_true', help='Enable more descriptive output')
-parser.set_defaults(config='lumos.conf')
+parser.set_defaults(config='lumos.conf', skew=0)
 (options, files) = parser.parse_args()
 
 #========================================================================
@@ -113,50 +135,178 @@ if not options.test:
         if options.verbose: print 'Initializing device "' + unit_ID + '"'
         show.controllers[unit_ID].initialize_device()
 
-for file in files:
-    sequence = Sequence()
-    sequence.load_file(file, show.controllers)
-    if sequence.audio is not None:
-        pygame.mixer.init(sequence.audio.frequency,
-                sequence.audio.bits,
-                sequence.audio.channels,
-                sequence.audio.bufsize)
-        pygame.mixer.music.load(sequence.audio.filename)
-        pygame.mixer.music.set_volume(sequence.audio.volume / 100.0)
+file_next = 0
+repeat_stack = []
 
-    if options.verbose:
-        print 'Sequence "%s": duration %s; %d intervals' % (
-            file, trace_time_stamp(sequence.total_time),
-            len(sequence.intervals)
-        )
+class RepeatMarker (object):
+    def __init__(self, return_idx, count=None, until=None):
+        self.return_idx = return_idx
+        self.count = count
+        self.until = until
+
+def wait_for(minutes, query=False):
+    global options
+
+    mm = TimeRange(minutes).list
+    compare_point = time.localtime()
+    if query:
+        return compare_point.tm_min in mm
+
+    while compare_point.tm_min not in mm:
+        if options.verbose:
+            print "{0}: Waiting for {4}, current time is {1:02d}:{2:02d}:{3:02d}...".format(
+                    minutes, 
+                    compare_point.tm_hour, compare_point.tm_min, 
+                    compare_point.tm_sec, mm)
+        time.sleep(60 - compare_point.tm_sec)
+        compare_point = time.localtime()
+    else:
+        if options.verbose:
+            print "{0}: Current time {1:02d}:{2:02d}:{3:02d} in allowed list {4}. Proceeding...".format(
+                    minutes, 
+                    compare_point.tm_hour, compare_point.tm_min, 
+                    compare_point.tm_sec, mm)
+
+while file_next < len(files):
+    file = files[file_next]
+    file_next += 1
+
+    #
+    # Delays:  
+    #
+    # @mm              - delay until time indicated
+    # +sec             - delay number of seconds (may be real number)
+    # [n ... ]         - loop everything up to "]" n times
+    # [@mm ... ]       - repeat until time indicated
+    #
+    # future:
+    #
+    # @hh:mm:ss        - delay until time indicated
+    # +hh:mm:ss        - delay for a certain length of time
+    #
+
+    if file.startswith('[@'):
+        if wait_for(file[2:], query=True):
+            if options.verbose:
+                print "{0}: Skipping repeat because the exit time is already here ({1}).".format(file, time.asctime())
+            level = 1
+            file_next += 1
+            while file_next < len(files):
+                file = files[file_next]
+                file_next += 1
+                if file.startswith('['):
+                    level += 1
+                elif file == ']':
+                    level -= 1
+                    if level <= 0:
+                        break
+
+        else:
+            repeat_stack.append(RepeatMarker(file_next, until=file[2:]))
+            if options.verbose:
+                print "{0}: Starting repeat, target={1}...".format(file, TimeRange(file[2:]).list)
+
+    elif file.startswith('['):
+        try:
+            repeat_stack.append(RepeatMarker(file_next, count=int(file[1:])))
+            if options.verbose:
+                print "{0}: Starting repeat ({1}, level {2})".format(
+                        file, repeat_stack[-1], len(repeat_stack)
+                )
+        except:
+            print "{0}: Can't understand repeat expression (ignored)".format(file)
+
+        continue
+
+    elif file == ']':
+        if not repeat_stack:
+            print "{0}: End-of-repeat marker encountered outside a repeat (ignored)".format(file)
+            continue
+
+        if repeat_stack[-1].until:
+            if wait_for(repeat_stack[-1].until, query=True):
+                if options.verbose:
+                    print "End of repeat, target time {0} is here ({1}), continuing...".format(
+                            repeat_stack[-1].until, time.asctime())
+                repeat_stack.pop()
+                continue
+            if options.verbose:
+                print "End of repeat, looping back until {0} (now {1})".format(
+                        repeat_stack[-1].until, time.asctime())
+                file_next = repeat_stack[-1].return_idx
+                continue
+               
+        elif repeat_stack[-1].count > 1:
+            repeat_stack[-1].count -= 1
+            file_next = repeat_stack[-1].return_idx
+            if options.verbose:
+                print "End of repeat, looping back {0} more time{1}".format(
+                        repeat_stack[-1].count, '' if repeat_stack[-1].count==1 else 's')
+
+        else:
+            repeat_stack.pop()
+
+    elif file.startswith('@'):
+        wait_for(file[1:])
+        continue
+
+    elif file.startswith('+'):
+        try:
+            delay = float(file[1:])
+        except:
+            print "{0}: Can't understand delay count; ignoring this delay.".format(file)
+            continue
+
+        if options.verbose:
+            print "{0}: Delaying {1} seconds...".format(file, delay)
+
+        time.sleep(delay)
+        continue
+
+    else:
+        sequence = Sequence()
+        sequence.load_file(file, show.controllers)
         if sequence.audio is not None:
-            print 'Audio track "%s" (%d Hz, %d bits, %d chan, %d buffer)' % (
-                    sequence.audio.filename,
-                    sequence.audio.frequency,
+            pygame.mixer.init(sequence.audio.frequency,
                     sequence.audio.bits,
                     sequence.audio.channels,
                     sequence.audio.bufsize)
+            pygame.mixer.music.load(sequence.audio.filename)
+            pygame.mixer.music.set_volume(sequence.audio.volume / 100.0)
 
-    schedule = sched.scheduler(time.time, time.sleep)
-    if options.test:
-        # queue up event trace calls, paying as much runtime penalty
-        # as possibe NOW instead of during playback
-        print trace_event_header()
-        for time_stamp, method, arglist in sequence.compile(keep_state = True):
-            schedule.enter(time_stamp / 1000.0, 0, trace_event, 
-                (trace_event_format(time_stamp, method, arglist),))
-        start_point = time.time()
-    else:
-        for time_stamp, method, arglist in sequence.compile(keep_state = True):
-            schedule.enter(time_stamp / 1000.0, 0, method, arglist)
+        if options.verbose:
+            print 'Sequence "%s": duration %s; %d intervals' % (
+                file, trace_time_stamp(sequence.total_time),
+                len(sequence.intervals)
+            )
+            if sequence.audio is not None:
+                print 'Audio track "%s" (%d Hz, %d bits, %d chan, %d buffer)' % (
+                        sequence.audio.filename,
+                        sequence.audio.frequency,
+                        sequence.audio.bits,
+                        sequence.audio.channels,
+                        sequence.audio.bufsize)
 
-    if sequence.audio is not None:
-        pygame.mixer.music.play()
+        schedule = sched.scheduler(time.time, time.sleep)
+        if options.test:
+            # queue up event trace calls, paying as much runtime penalty
+            # as possibe NOW instead of during playback
+            print trace_event_header()
+            for time_stamp, method, arglist in sequence.compile(keep_state=True, skew=options.skew):
+                schedule.enter(time_stamp / 1000.0, 0, trace_event, 
+                    (trace_event_format(time_stamp, method, arglist),))
+            start_point = time.time()
+        else:
+            for time_stamp, method, arglist in sequence.compile(keep_state=True, skew=options.skew):
+                schedule.enter(time_stamp / 1000.0, 0, method, arglist)
 
-    schedule.run()
+        if sequence.audio is not None:
+            pygame.mixer.music.play()
 
-    if sequence.audio is not None:
-        pygame.mixer.music.stop()
+        schedule.run()
+
+        if sequence.audio is not None:
+            pygame.mixer.music.stop()
 
 if options.verbose:
     print "Scene complete."
