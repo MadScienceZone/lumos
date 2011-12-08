@@ -1,6 +1,6 @@
 all: builddocs
 
-builddocs:  pdf/lcheck.pdf pdf/lplay.pdf pdf/lumos.pdf pdf/ssrctl.pdf pdf/vixen2lumos.pdf pdf/lumos-controller.pdf pdf/lumos-network.pdf pdf/lumos-channel-map.pdf pdf/lumos-config.pdf pdf/lumos-sequence.pdf
+builddocs:  pdf/lcheck.pdf pdf/lplay.pdf pdf/lpower.pdf pdf/lumos.pdf pdf/ssrctl.pdf pdf/vixen2lumos.pdf pdf/lumos-controller.pdf pdf/lumos-network.pdf pdf/lumos-channel-map.pdf pdf/lumos-config.pdf pdf/lumos-sequence.pdf
 
 clean:
 
@@ -19,6 +19,11 @@ pdf/lplay.pdf: man1/lplay.1
 	groff -man $< | ps2pdf -sPaperSize=Letter - $@
 
 man1/lplay.1: man1/lplay.1.in
+	./update_manpage < $< > $@
+pdf/lpower.pdf: man1/lpower.1
+	groff -man $< | ps2pdf -sPaperSize=Letter - $@
+
+man1/lpower.1: man1/lpower.1.in
 	./update_manpage < $< > $@
 pdf/lumos.pdf: man1/lumos.1
 	groff -man $< | ps2pdf -sPaperSize=Letter - $@
