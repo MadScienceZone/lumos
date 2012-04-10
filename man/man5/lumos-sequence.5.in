@@ -30,11 +30,12 @@ Lumos Sequence File \- script for light displays run by Lumos
 .br
 .BI U, id , channels...
 .br
+.BI A, file , vol , chans , freq , bits , buffer
 \&...
 .br
 .BI T, timestamp
 .br
-.BI E, unit , channel , value , interval
+.BI E, unit |*, channel |*, value , interval
 .br
 \&...
 .SH DESCRIPTION

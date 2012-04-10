@@ -32,6 +32,14 @@ lplay \- Play a Lumos sequence file
 .IR files ...
 .br
 .B lplay
+.RB [ \-hTv ]
+.RB [ \-c
+.IR file ]
+.RB [ \-s
+.IR mS ]
+.IR files ...
+.br
+.B lplay
 .B \-\-help
 .br
 .B lplay

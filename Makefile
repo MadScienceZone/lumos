@@ -1,4 +1,4 @@
-RELEASE=0.4a1
+RELEASE=0.5
 DIRLIST=docs man Test lib/Lumos
 
 all: builddocs test

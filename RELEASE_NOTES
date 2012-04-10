@@ -1,5 +1,5 @@
 ______________________________________________________________________________
-Lumos 0.5a1 (ALPHA) "RELEASE_NOTES"
+Lumos 0.5 "RELEASE_NOTES"
 
 CONTENTS
   Current Release
@@ -9,6 +9,19 @@ CONTENTS
 
 ______________________________________________________________________________
 CURRENT RELEASE:
+  Lumos 0.5 [10 APR 2011]
+        Bug Fixes:
+          * Compensated for possible timing lag between audio playback and
+            the light sequencing via addition of the --skew (-s) option to
+            lplay.
+
+  KNOWN ISSUES:
+  	* Most of the device drivers are still untested. 
+	* Only "serial" networks have been tested yet.
+	* The unit tests need to be updated and completed, not all are passing.
+
+______________________________________________________________________________
+PREVIOUS VERSIONS:
   Lumos 0.5a1 [04 DEC 2011]
     **ALPHA TEST RELEASE**
 
