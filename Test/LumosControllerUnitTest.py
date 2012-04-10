@@ -26,15 +26,15 @@
 # 
 # vi:set ai sm nu ts=4 sw=4 expandtab:
 import unittest, quopri
-from Lumos.Device.SSR48ControllerUnit  import SSR48ControllerUnit
+from Lumos.Device.LumosControllerUnit  import LumosControllerUnit
 from Lumos.PowerSource                 import PowerSource
 from TestNetwork                       import TestNetwork
 
-class SSR48ControllerUnitTest (unittest.TestCase):
+class LumosControllerUnitTest (unittest.TestCase):
     def setUp(self):
         self.n = TestNetwork()
         p = PowerSource('testpower', amps=1)
-        self.ssr = SSR48ControllerUnit('ssr1', p, address=12, network=self.n)
+        self.ssr = LumosControllerUnit('ssr1', p, address=12, network=self.n)
         self.ssr.add_channel(0, load=.3)
         self.ssr.add_channel(1, load=1)
         self.ssr.add_channel(2, load=.3, warm=10)

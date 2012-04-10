@@ -49,7 +49,7 @@ def suite():
 	  'SequenceTest',
 	  'SerialBitNetworkTest',     # XXX device tests?
 #     'SpectrumReaderboardUnitTest',
-	  'SSR48ControllerUnitTest',
+	  'LumosControllerUnitTest',
 	  'TestNetworkTest',
 	  'TestParallelNetworkTest',
       'TimeRangeTest',

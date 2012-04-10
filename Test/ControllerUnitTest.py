@@ -33,7 +33,7 @@ from Lumos.Device.Controllers          import controller_unit_factory
 from Lumos.ControllerUnit              import ControllerUnit
 from Lumos.Device.X10ControllerUnit    import X10ControllerUnit
 from Lumos.Device.LynX10ControllerUnit import LynX10ControllerUnit
-from Lumos.Device.SSR48ControllerUnit  import SSR48ControllerUnit
+from Lumos.Device.LumosControllerUnit  import LumosControllerUnit
 from Lumos.PowerSource                 import PowerSource
 
 class ControllerUnitTest (unittest.TestCase):
@@ -47,7 +47,7 @@ class ControllerUnitTest (unittest.TestCase):
 
         ssr = controller_unit_factory(type='48ssr', id='48', power=p, network=None, address=12, resolution=20)
         self.assert_(isinstance(ssr, ControllerUnit))
-        self.assert_(isinstance(ssr, SSR48ControllerUnit))
+        self.assert_(isinstance(ssr, LumosControllerUnit))
         self.assertEqual(ssr.resolution, 20)
         self.assertEqual(ssr.id, '48')
 
