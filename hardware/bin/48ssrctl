@@ -1,0 +1,161 @@
+#!/usr/bin/python
+#
+# Directly control a 48-channel ssr controller via the command line.
+# This is primarily intended for configuring and testing a controller
+# unit.  For running an actual show, use an application such as Lumos
+# (see http://lumos.sourceforge.net).
+#
+# Requires: Python 2.5 or later
+#           PySerial module (pyserial.sourceforge.net)
+#
+import optparse
+import time
+import sys
+import serial
+
+serial_port = None
+
+parser = optparse.OptionParser(usage='%prog [options] [channel-levels...]', version='%prog, version 1.0')
+parser.add_option('-a', '--address',        metavar='ADDR', type='int', help='Unit address (0-15)')
+parser.add_option('-c', '--change-address', metavar='NEW', type='int',  help='Change unit address')
+parser.add_option('-d', '--disable-privs',  action='store_true',        help='Run in unprivileged mode')
+parser.add_option('-k', '--kill-all',       action='store_true',        help='Turn off all channel outputs')
+parser.add_option('-n', '--noop',           action='store_true',        help="Don't actually do anything")
+parser.add_option('-P', '--phase',          metavar='P', type='int',    help='Change unit phase offset to P (0-63)')
+parser.add_option('-p', '--port',           metavar='PORT',             help='I/O port to use')
+parser.add_option('-s', '--shutdown',       action='store_true',        help='Shut down controller unit')
+parser.add_option('-v', '--verbose',        action='store_true',        help='Increase output level')
+parser.set_defaults(address=0)
+
+(options, operations) = parser.parse_args()
+
+#
+# validate options
+#
+if not 0 <= options.address <= 15:
+	parser.error('Valid unit addresses are in the range 0..15 only')
+
+if options.change_address is not None and not 0 <= options.change_address <= 15:
+	parser.error('Valid unit addresses are in the range 0..15 only')
+
+if options.phase is not None and not 0 <= options.phase <= 63:
+	parser.error('Valid phase offsets are in the range 0..63 only')
+
+#
+# command packet
+#
+def cmd(addr, cmd):
+	return chr(0x80 | ((cmd & 0x07) << 4) | (addr & 0x0f))
+#
+# data packet
+#
+def data(data):
+	return chr(data & 0x7f)
+#
+# data packet: channel selection
+#
+def chan(ch, onoff=False):
+	return data((0x40 if onoff else 0x00) | (ch & 0x3f))
+#
+# data packet: channel level
+#
+def lev(value):
+	return data(value & 0x1f)
+
+#
+# print packet to stdout
+#
+def bin(byte):
+	b = ''
+	for bit in range(0,8):
+		b = ('1' if ord(byte) & (1<<bit) else '0') + b
+	return b
+
+def dump(byte):
+	print "  -> %s  $%02X" % (bin(byte), ord(byte))
+
+def output(byte):
+	global options, serial_port
+
+	if options.verbose:
+		dump(byte)
+	
+	if not options.noop and serial_port is not None:
+		serial_port.write(byte)
+		serial_port.flush()
+#
+# Act on input parameters
+#
+addr = options.address
+
+if not options.noop:
+	# try to use integer number if that's what we were given
+	try:
+		port_id = int(options.port)
+	except:
+		port_id = options.port
+
+	serial_port = serial.Serial(port=port_id, baudrate=19200, bytesize=8,
+		parity='N', stopbits=1, timeout=None, xonxoff=0, rtscts=0, 
+		writeTimeout=None, dsrdtr=None)
+	
+if options.verbose:
+	print 'Controlling unit', addr
+
+if options.change_address is not None:
+	print 'Changing address from', addr, 'to', options.change_address
+	output(cmd(addr, 7))
+	output(data(0x40 | ((options.change_address & 1) << 4) | (options.change_address & 0x0f)))
+	print 'Waiting 30 seconds for device to settle...'
+	sys.stdout.flush()
+	time.sleep(30)
+	addr = options.change_address
+
+if options.kill_all:
+	print 'Killing all channel outputs.'
+	output(cmd(addr, 0))
+
+if options.phase is not None:
+	print 'Changing phase offset to', options.phase
+	output(cmd(addr, 7))
+	output(data(options.phase & 0x3f))
+
+if options.disable_privs:
+	print 'Switching to normal (non-privileged) run mode.'
+	output(cmd(addr, 7))
+	output(data(0x61))
+
+for channel_setting in operations:
+	try:
+		at = channel_setting.find('@')
+		if at >= 0:
+			channel = int(channel_setting[:at])
+			level = int(channel_setting[at+1:])
+		else:
+			channel = int(channel_setting)
+			level = 31
+		assert 0 <= channel < 48
+		assert 0 <= level   < 32
+	except:
+		print channel_setting + ': invalid channel setting: must be channel[@level]'
+		continue
+	print 'Setting channel', channel, 'to level', level
+	if level == 0:
+		output(cmd(addr, 1))
+		output(chan(channel, False))
+	elif level >= 31:
+		output(cmd(addr, 1))
+		output(chan(channel, True))
+	else:
+		output(cmd(addr, 2))
+		output(chan(channel))
+		output(lev(level))
+
+if options.shutdown:
+	print 'Shutting down unit (must be power cycled to restart).'
+	output(cmd(addr, 7))
+	output(data(0x60))
+
+if serial_port is not None:
+	serial_port.close()
+	serial_port = None

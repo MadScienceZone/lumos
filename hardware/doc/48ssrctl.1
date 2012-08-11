@@ -1,0 +1,156 @@
+.TH 48SSRCTL 1 0.0 "48-Channel SSR Controller" "Utility Commands"
+.SH NAME
+48ssrctl \- Manual control for 48-channel SSR controller
+.SH SYNOPSIS
+.B 48ssrctl
+.RB [ \-dhksv ]
+.RB [ \-a
+.IR addr ]
+.RB [ \-c
+.IR newaddr ]
+.RB [ \-P
+.IR phase ]
+.RB [ \-p
+.IR port ]
+.RI [ channel [\fB@\fP level ]...]
+.SH DESCRIPTION
+.LP
+This command allows you to directly manipulate the state of a
+48-channel SSR controller unit, including administration functions
+such as changing the unit's address, phase offset, etc.
+.LP
+The controller in question is a custom design I created as an
+experiment; this program is merely a utility to help set up and
+test one of these units.
+.LP
+The normal operation is to make a number of channel output level 
+changes as determined by the non-option arguments which are of the
+form:
+.RS
+.I channel
+.RE
+or
+.RS
+.IB channel @ level
+.RE
+.LP
+In the first case, a channel number by itself means to turn on that 
+channel to full brightness.  Otherwise, by specifying a level value
+(a number from 0 to 31, inclusive), that channel's output is dimmed
+to the given level.  Level 31 is the same as turning on to full 
+brightness; level 0 is the same as turning it fully off.
+.LP
+A number of options are provided as described below.  These command
+the SSR controller to perform certain administrative functions or 
+configuration changes.
+.LP
+When giving multiple types of commands in one invocation of this
+program, they will be carried out in the following order:
+.LP
+.nf
+1. Address Change
+2. Kill all channels
+3. Phase change
+4. Disable privileges
+5. Channel(s) off/on/dim
+6. Shutdown
+.fi
+.SH OPTIONS
+.LP
+Each of the following options may be specified by either a long
+option (like
+.RB \*(lq \-\-verbose \*(rq)
+or a shorter option letter (like
+.RB \*(lq \-v \*(rq).
+If an option takes a parameter, it may follow the option as
+.RB \*(lq \-a12 \*(rq,
+.RB \*(lq "\-a 12" \*(rq,
+.RB \*(lq "\-\-address 12" \*(rq,
+or
+.RB \*(lq "\-\-address=12" \*(rq.
+.LP
+Long option names may be abbreviated to any unambiguous initial substring.
+.TP 25
+.BI \-\-address= addr
+.RB ( \-a
+.IR addr )
+Specifies the address of the target controller unit.  The
+.I addr
+value is an integer from 0 to 15, inclusive.  It defaults to 0.
+.TP
+.BI \-\-change-address= newaddr
+.RB ( \-c
+.IR newaddr )
+Tell the unit to change its address to
+.IR newaddr .
+Any subsequent commands sent to the unit in this invocation will
+be addressed to 
+.IR newaddr .
+The effect of this command is permanent; the new address will remain
+in effect for that unit, even if powered off, until another 
+.B \-\-change\-address
+command is given at a future time.
+.TP
+.B \-\-disable-privs
+.RB ( \-d )
+Disable privileged functions on the unit.  This makes the unit ignore
+.BR \-\-change\-address ,
+.BR \-\-phase ,
+and
+.B \-\-shutdown
+commands.  This will remain in effect until the unit is reset or power
+cycled.  (Note that the
+.B \-\-phase
+command resets the unit.)
+.TP
+.B \-\-help
+.RB ( \-h )
+Prints a summary of these options and exits.
+.TP
+.B \-\-kill\-all
+.RB ( \-k )
+Turn off all output channels at once.
+.TP
+.BI \-\-phase= phase
+.RB ( \-P
+.IR phase )
+Change the phase offset for the unit to the new value
+.IR phase ,
+which must be an integer from 0 to 63.
+.I "Only use this function if you absolutely know what you are doing!"
+This affects the timing used by the unit for dimmer control, in case it
+needs to be adjusted to work correctly.
+The effect of this command is permanent; the new phase offset will remain
+in effect for that unit, even if powered off, until another 
+.B \-\-phase
+command is given at a future time.
+.TP
+.BI \-\-port= port
+.RB ( \-p
+.IR port )
+Specify the serial port to use when communicating with the controller
+unit.  This may be a simple integer value (0 for the first serial port
+on the system, 1 for the next one, etc.) or the actual device name
+on your system (such as 
+.RB \*(lq COM1 \*(rq
+or
+.RB \*(lq /dev/ttys0 \*(rq).
+.TP
+.B \-\-shutdown
+.RB ( \-s )
+Shuts down the unit completely.  This will remain in effect until the
+unit is reset or power cycled.
+.TP
+.B \-\-verbose
+.RB ( \-v )
+Output messages to the standard output showing what control bits are being
+transmitted to the unit.
+.SH AUTHOR
+.LP
+Software Alchemy / support@alchemy.com
+.SH HISTORY
+This document describes version 1.0 of this utility, which is the original
+release.  It is compatible with revision 3.1 of the SSR controller unit
+(circuit boards with \*(lq48CTL-3-1\*(rq markings).
+.SH BUGS
+Submit any found to support@alchemy.com

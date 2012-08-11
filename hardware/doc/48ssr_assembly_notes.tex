@@ -1,0 +1,1177 @@
+%
+% vi:set ts=8 sw=8 ai sm wm=3:
+% Lumos 48-Channel SSR Controller 
+% Assembly Notes
+% Steve Willoughby
+%
+%
+\documentclass[12pt]{article}
+\hyphenation{EEPROM}
+\newcommand\mc[1]{{\small #1}}
+\usepackage{bytefield}
+\usepackage{longtable}
+\usepackage{epsfig}
+\begin{document}
+\title{Lumos SSR Assembly and Usage Guide}
+\author{Steve Willoughby \\ for AC controller version 4.0 \\ and DC controller version 1.0.1 \\ (Firmware revision 4.0)}
+\date{31 July 2012}
+\maketitle
+\tableofcontents
+\begin{center}
+\begin{tabular}{|p{4.5in}|}\hline
+{\large\bf\strut SAFETY WARNING!}\\\hline
+\bf \mc{DANGER!  RISK OF FIRE, ELECTROCUTION, SERIOUS    
+INJURY OR DEATH!}  This circuit design, including 
+but not limited to any accompanying plans,       
+designs, board layouts, documentation, and/or    
+components, is \mc{EXPERIMENTAL} and for \mc{EDUCATIONAL}
+purposes only.  It is not a finished consumer-grade product
+and has not been reviewed by a body such as Underwriter's
+Laboratories.  It is assumed that you have the necessary 
+understanding and skill to assemble and/or use electronic
+circuits.
+
+Proceed \mc{ONLY} if you know exactly what you are    
+doing, understand the proper procedures for      
+working with the high voltage present on the     
+components and PC boards, and understand that    
+you do so \mc{ENTIRELY AT YOUR OWN RISK.}
+
+The author makes \mc{NO}
+representation as to suitability or fitness for  
+any purpose whatsoever, and disclaims any and all    
+liability or warranty to the full extent permitted
+by applicable law.\\\hline
+\end{tabular}
+\end{center}
+
+If you got this far, after reading the above safety warning, the rest of this
+document contains some useful but somewhat random notes for assembling, using
+and maintaining the 48-channel SSR unit.  (If you skipped over the safety 
+warning to just start reading this, {\em go back\/} and read it.  I don't want anyone
+getting hurt by experimenting with an idea-in-progress like this.)
+
+{\bf Please read this document completely before you begin construction.}
+
+\newpage
+
+\section{Introduction and Overview}
+This document is simply a collection of notes I'm maintaining about my
+experiments at computer-controlled Christmas light displays.  Like many
+people, I think it would be entertaining to set up large
+displays of lights on my front lawn and synchronize them to music, or at
+least have them change patterns and color schemes at various times
+throughout the night.
+
+To this end, I have designed a controller which will manage up to 48
+circuits of small 120\,V AC loads (like strings of incandescant Christmas 
+lights) under the control of a computer system.  The computer sends
+commands on a serial line to the controller box, which responds by
+making the requested circuit changes.
+
+In the sections that follow, the various components of this controller
+are described, along with notes on assembling them from scratch and how
+to install and use them.
+ 
+Up to 16 of these units may be ``daisy-chained'' together to control a
+total of 768 light circuits from a single serial port.
+
+\section{Version Information}
+This document describes the 48-channel SSR Controller board version 3.1
+(board part markings begin with ``48CTL-3-1'') and the 24-channel SSR Relay
+board version 3.0 (board part markings begin with ``24SSR-3-0'').
+
+The current firmware revision as of this writing is 2.0.
+
+
+\section{Required Supporting Items}
+In order to actually use one or more of these controllers, you will
+need the following supporting items:
+\begin{itemize}
+\item
+{\bf Host Computer.}
+The computer which runs the show doesn't really need to have any 
+particularly spectacular capabilities, other than a serial port (if you
+don't have a serial port, you can get an inexpensive USB-to-serial
+adapter).  I've run my entire display on a small laptop before.
+\item
+{\bf Cabling.}
+The cables connecting the controller(s) to the host computer are, at a
+minimum, unshielded twisted-pair wire.  CAT3 telephone wire is probably
+sufficient for our purposes.  The controller uses a single pair to
+communicate with the host, plus a ground reference wire.
+
+The connectors on the controller are 8-conductor RJ-45 modular jacks,
+with pins 4 and 5 carrying data, and 7 and 8 both grounded.  This configuration 
+allows standard Ethernet cables to be used, and has the added benefit
+of using the two pair that 10- and 100-base-T Ethernet {\em does not\/}
+use.  Note that the cabling must be {\em straight-through\/} and not
+``crossover'' configuration.
+
+The exact pinout of each RJ-45 jack is:
+
+\begin{center}
+\begin{tabular}{|c|l|}\hline
+\bf Pin & \bf Signal \\ \hline\hline
+4 & RS-485 data ``B'' ($-$) \\\hline
+5 & RS-485 data ``A'' (+) \\\hline
+7 & Ground \\\hline
+8 & Ground \\\hline
+\end{tabular}
+\end{center}
+
+\item
+{\bf Power.}
+You will obviously need a source of power to run the controlled 
+circuits and the controllers themselves.  Each unit requires
+one 120V plug for the controller, plus one 120V plug for each block of 8
+circuits being controlled.
+
+Be careful to check the current rating (amps) of the loads you are
+attaching to the controller and make sure they do not exceed the
+capacity of the controller {\em and\/} that the capacity of the power
+supply it's all plugged in to is not exceeded.
+
+\item
+{\bf Software.}
+You'll need some kind of software to control the lights.  The low-level
+protocols used by the controller are documented here.  I have a simple
+Python script I use to send the correct sequence of commands to the
+boards in real-time.
+
+I'm working on a full show control application as well, but this is 
+still in the initial stages of development.
+
+\item
+{\bf RS-485 Converter.}
+The serial communication signals used by these controllers are RS-485
+standard signals.  Most computers use RS-232 signals, so you will need
+an RS-232 to RS-485 converter.  You may also need some kind of adapter
+to get the proper pinout for the controllers.
+
+The first cable will run from your (terminated) converter to the first
+controller.  This plugs into the ``RS-485 IN'' jack.
+
+The next cable goes from the first controller's ``RS-485 OUT'' to the 
+second controller's ``RS-485 IN,'' and so on.  
+
+The ``RS-485 OUT'' jack on the last controller must have a terminator
+plugged in to it.
+
+(Incidentally, there is no difference between the RJ-45 jacks.  You need
+to put the input signal on one, and either a terminator or the output
+to the next unit on the other, but it really doesn't matter which is
+which.)
+\end{itemize}
+
+\section{Relay Board Assembly}
+Please read this {\bf entire} section {\bf before} beginning to assemble
+the unit.
+
+Each relay board contains 24 solid-state relays (SSRs) capable of
+switching on, off, or dimming 120V loads of up to 5A each.  These SSRs
+are arranged into blocks of 8, each block having its own separate power
+supply and 8A fuse.
+
+Each SSR consists mainly of a triac which is optically isolated from
+the logic circuit driving it.  These are negative-logic based, so we
+supply a +5V power signal to every opto-isolator (U$x$) on the board,
+and the controller is connected such that pulling the SSR's control pin
+to ground will activate the relay, and tri-stating it or pushing it up
+to +5V will deactivate the relay, which will shut off at the next AC line
+0V crossing point.
+
+\emph{Exercise caution when the board is powered on!}  Live 120\,V AC mains 
+current is active on several parts of the PC board when power is
+applied.  These include many of the traces on either side of the
+board, terminal blocks, triacs, heat sinks, triac mounting hardware,
+optoisolator pins, fuses, etc.
+
+\subsection{Bill of Materials}
+Check that you have the following parts on hand.  In the following list
+and the text which follows, $x$ in a part ID is the SSR number that
+part belongs to, where $0 \le x \le 23$.
+ \begin{longtable}[c]{|r|c|p{2.25in}|l|}\hline
+  \bf Qty & \bf ID & \bf Value/Description & \bf Digi-Key\\\hline\hline
+  \endhead
+   1 & D0     & LED, T1-3/4 (5mm), Green   & P375-ND  \\\hline
+   3 & F0--F2 & Fuse, 8A, 3AG glass, slo-blo& F2549-ND \\\hline
+   3 &        & Fuse holder, 3AG type      & F1498-ND \\\hline
+   1 & J0     & 26-pin ribbon cable header & MHB26K-ND\\\hline
+   6 & J1--J6 & 10-position terminal strip & ED2225-ND\\\hline
+   1 & R0     & $220\Omega$ resistor, 1/4W & P220BACT-ND\\\hline
+  24 & R$x$0  & $560\Omega$ resistor, 1/4W & P560BACT-ND\\\hline
+  24 & R$x$1  & $100\Omega$ resistor, 1/4W & P100BACT-ND  \\\hline
+  24 & TR$x$  & Triac, 16A, {\em non-insulated\/} tab & MAC16DOS-ND\\\hline
+  24 &        & TO-220 heat sink, horizontal & 345-1023-ND\\\hline
+  24 & U$x$   & MOC3012 optoisolator, triac output, random phase, 5mA
+  emitter current &\\\hline
+ \end{longtable}
+
+The Digi-Key part numbers are given as an example for comparison 
+purposes only.  The parts will likely be available elsewhere, but
+if you substitute parts, be sure they are the same physical size
+as the specific Digi-Key parts, because the PC board is sized to
+accommodate the parts specified above.
+
+Additionally, you will need the power cables to bring power to and from
+the relay units, and appropriate enclosures and mounting hardware, heat
+sink grease, etc.
+\subsection{Assembly Notes}
+The board has fairly tight component spacing, so start with the
+smaller, flatter components and move up to the bigger ones.
+\begin{enumerate}
+\item In the run of PC boards with part numbers beginning with ``24SSR-3-0'', 
+      the mounting holes for the terminal blocks J1--J6 are small enough to 
+      make for a very tight fit.  In fact, they may be just barely tight enough
+      that you could have difficulty inserting the terminal blocks into the holes
+      without damaging them.  We recommend drilling out these holes \emph{just
+      ever so very slightly} (we're talking a couple thousandths of an inch if you can
+      manage it).  When I did this, I used a tiny carbide drill bit held in my bare
+      fingers, twisted it into the holes, and turned it a few turns.  The holes
+      should not be enlarged more than a very few mils.  {\bf Do not drill} the holes
+      which connect to a component-side (``top'') copper trace.  This is the ``hot''
+      AC supply (there is one for every two terminal strips).  Those holes {\bf must}
+      keep their inner plating.
+\item Install the opto-isolators U0--U23.  Carefully solder in place, taking
+      care to properly heat-sink the pins as you solder them.
+\item Install the resistors R0, R$x$0 and R$x$1.
+\item Install the terminal blocks J1--J6 so that the terminals face outward
+      toward the outer edge of the PCB.
+\item Install the 26-pin ribbon cable header connector (J0).
+\item Install the LED D0.
+\item Install the triacs TR0--TR23.  
+      Be sure to apply enough heat sink grease to
+      make good thermal contact, without spilling outside the contact area or
+      onto the tab/bolt area.  Attach to heat sink, and secure both to the 
+      board with a \#6 bolt and nut
+      (this is needed for good electrical contact between the tab and the
+      circuit board).  Solder the pins of the triac onto the board, taking
+      care to properly heat sink them.  Ensure the bolt is fastened securely
+      and making solid electrical contact between the triac tab and the 
+      solder-side PC board pad.
+\item Install the fuse holders F0--F2.
+\item Place 8A fuses into the fuse holders F0--F2.
+\item Use insulated stand-offs and appropriate machine bolts, washers and
+      nuts to mount the relay PCB into its enclosure.
+\end{enumerate}
+
+\section{Controller Board Assembly}
+Please read this {\bf entire} section {\bf before} beginning to assemble
+the unit.
+
+Each controller board is capable of controlling two 24-channel relay
+boards, for a total of 48 channels.
+
+The controller board is functionally arranged as a pair of 24-channel
+controllers working in concert.  Each set of 24 channels is controlled
+by one of the two microcontrollers U2 and U3.  U2 is designated the
+``master'' controller---it receives and interprets all the commands
+from the serial network, acting directly on commands affecting channels
+0--23.  Any commands for the other 24 channels are passed on to the
+``slave'' controller (U3).
+
+Theoretically, the master controller may ask the slave to transmit
+data back onto the serial network (U3 controls the data flow direction
+of the RS-485 bus transceiver as well as driving the transmitter), but
+in the current version of the controller firmware, this never actually
+happens.  
+
+The controllers send their output signals to the 24-channel relay boards
+via 26-position ribbon cables.  These are negative-logic signals; a 0 (0V)
+signal indicates that the corresponding SSR should be on, while a 1 (+5V) 
+indicates that it should be off.  The relays are designed so that the SSRs
+``float'' to off if no current is on the output lines at all.  When a 
+controller is first powered on (and possibly at other times), the output lines
+of the microcontrollers will be at hi-Z (no current drive either direction).
+Also, one of the SSR drive signals on each microcontroller is driven by an
+open-drain I/O pin, so it will always sink the line to ground to activate the
+relay, or go to high-Z (instead of +5V) to deactivate it.
+
+The controller contains its own integrated power supply, so that it can
+monitor the 120V mains power via the zero-crossing detector composed of
+R1, R2, R14 and U1.
+
+\emph{Exercise caution when the board is powered on!}  Live 120\,V AC mains 
+current is active on several parts of the PC board when power is
+applied.  These include some of the traces on either side of the
+board, terminal blocks, transformer pins, optoisolator pins, fuses, 
+other components, etc.
+
+\subsection{Bill of Materials}
+Check your parts against the bill of materials to ensure that you
+have all the right parts.
+ \begin{longtable}[c]{|r|c|p{2.25in}|l|}\hline
+  \bf Qty & \bf ID     & \bf Value/Description & \bf Digi-Key\\\hline\hline
+  \endhead
+  1 & C0               & $1800\mu$F electrolytic capacitor & P5587-ND* \\\hline
+  1 & C1               & $0.33\mu$F capacitor & P4959-ND\\\hline
+  3 & C2,3,8           & $0.1\mu$F capacitor & BC1084CT-ND\\\hline
+  4 & C4--7            & 22pF capacitor & 399-1926-ND\\\hline
+  3 & C9--11           & $0.01\mu$F capacitor & BC1078CT-ND\\\hline
+  1 & D0               & Rectifier bridge, 2A, 200V & 2KBP02M/1GI-ND\\\hline
+  3 & D1,3,6           & LED, T1-3/4 (5mm), Green   & P375-ND* \\\hline
+  3 & D2,4,7           & LED, T1-3/4 (5mm), Amber   & P372-ND* \\\hline
+  2 & D5,8             & LED, T1-3/4 (5mm), Red     & P582-ND* \\\hline
+  1 & F0               & Fuse, 3AG, 120V 1/4A       & F2502-ND \\\hline
+  1 &                  & Fuse holder, 3AG type      & F1498-ND \\\hline
+  1 & J0               & 4-position terminal strip  & ED2221-ND\\\hline
+  2 & J1,2             & 26-position box header &  MHB26K-ND\\\hline
+  2 & J3,4             & RJ-45 jack, 8/8 pins & A31407-ND\\\hline
+  2 & J5,6             & 5-position header & WM8087-ND\\\hline
+  1 & P0               & 120\,V AC line cord \& plug & \\\hline
+  8 & R0,4,6--8,11--13 & $220\Omega$ resistor, 1/4W & P220BACT-ND*\\\hline
+  2 & R1,2             & 15K resistor, 1/2W & P15KBBCT-ND\\\hline
+  2 & R3,9             & 33K resistor, 1/4W & P33KBACT-ND\\\hline
+  2 & R5,10            & $330\Omega$ resistor, 1/4W & P330BACT-ND\\\hline
+  1 & R14              & 27K resistor, 1/4W & P27KBACT-ND\\\hline
+  1 & S0               & SPST 120V power switch\dag & \\\hline
+  1 & T0               & Transformer, 120V pri, 8V sec, 1.25A, PCB mount & MT3115-ND \\\hline
+  1 & U0               & 7805 +5V voltage regulator, 1.5A & LM7805CT-ND \\\hline
+  1 & U1               & H11AA1 opto-isolator, AC input, NPN output & H11AA1300-ND\\\hline
+  2 & U2,3             & PIC16F877A microcontroller & PIC16F877A-I/P-ND\\\hline
+  1 & U4               & SN75176 RS-485 line driver/receiver & 296-1737-5-ND\\\hline
+  2 & X0,1             & 20MHz crystal & CTX062-ND \\\hline
+  1 &                  & TO-220 heat sink, horizontal & 345-1023-ND\\\hline
+  1 &                  & 8-pin DIP socket & AE10011-ND\\\hline
+  2 &                  & 40-pin DIP socket & AE10018-ND\\\hline
+  2 &                  & \#4 machine screw (1.5") & \\\hline
+  2 &                  & \#4 nuts & \\\hline
+  2 &                  & \#4 1/4" insulated standoffs & \\\hline
+  2 &                  & \#6 machine screw (3/8") & \\\hline
+  2 &                  & \#6 lock washer & \\\hline
+  2 &                  & \#6 nut & \\\hline
+  4 &                  & sets of mounting hardware to secure the board
+                         into its enclosure: \#8 machine screw, \#8 nut,
+			 appropriately sized insulated standoffs, washers,
+			 etc. & \\\hline
+\end{longtable}
+
+\noindent * indicates parts which I obtained elsewhere but I believe this
+Digi-Key part to be equivalent.\\
+\dag\ indicates an optional part.
+
+As with the previous parts list, 
+the Digi-Key part numbers are given as an example for comparison 
+purposes only.  The parts will likely be available elsewhere, but
+if you substitute parts, be sure they are the same physical size
+as the specific Digi-Key parts, because the PC board is sized to
+accommodate the parts specified above.
+
+If you wish to provide a way to reset the unit without powering it off/on,
+plug a switch of some sort on pins 2 and 3 of J5 and J6.  When these two 
+pins are shorted on one of these jumper blocks, the corresponding CPU is
+halted and reset.  When the contact is broken, the CPU will start running
+from the start of its program again, just as when power is first applied.
+
+\subsection{Assembly Notes}
+Some of the components on this board (notably the transformer) are tall, and
+there are some areas (around the CPUs and ribbon cable connectors) which are
+somewhat tight in the component placement.  In consideration of this, I
+recommend the following sequence for assembly of this board:
+\begin{enumerate}
+ \item Locate and solder the IC sockets first.
+ \item In the run of PC boards with part numbers beginning with ``48CTL-3-1'',
+       the mounting holes for resistors R1 and R2 are too small to fit a 1/2 watt
+       resistor.  If your resistors don't quite fit, it will be necessary to slightly
+       drill out those four holes.  They are currently 20~mils (0.5~mm) and they
+       should be between 39--42~mils (approx.\ 1~mm).  Since these only connect to
+       traces on the solder side (``bottom'') of the PC board, it is not a problem 
+       to drill out the through-hole plating, but beware of destroying too much
+       of the copper pad around the hole.  
+ \item Install R1 and R2 into those holes and solder on the solder side (``bottom'') 
+       of the board.  Test to make sure you have solid connections and continuity from
+       each of the resistor leads to the parts to which they connect.
+ \item Next, solder the remaining resistors R0--R14.  Pay attention to the placement of
+       R3 and R9, so that they are out of the way of the sockets and the IC
+       chips.  Resistors R5 and R10 place a series resistance between the CPU
+       and crystal to protect against overdriving the oscillator.  
+       This may not be needed (in which case you can replace
+       those resistors with wire jumpers), but I've had success putting 
+       $330\Omega$ resistors there, so try that first.
+ \item Place the small capacitors C3--C11.  Pay attention to the placement of 
+       C3, C8, C10, and C11 so that they don't interfere with the ribbon
+       cables or CPU chip placement.
+ \item Solder the ribbon cable connectors J1 and J2, and the programmer
+       headers J5 and J6.
+ \item Place the opto-isolator U1 on the board and solder into place, taking
+       care to properly heat-sink the pins as you do so.
+       The square pin on the PCB denotes the location of pin~1 of the chip.
+ \item Install the LEDs D1--D8.  Note that the square pad on the PCB
+       indicates the anode (+) and the flat key marked on the silk screen
+	   (and presumably the flat edge of the LED itself) indicates the cathode
+	   ($-$) of the LED.  The colors of the LEDs, and their board placement, are:
+	   \begin{center}
+	    \begin{tabular}{cccc}\\
+		   amber & green & amber & red \\
+		         & green \\
+	             & green & amber & red 
+		\end{tabular}
+	   \end{center}
+ \item Install the crystals X0 and X1 and solder
+       into place.
+ \item This completes the logic circuitry of the controller.  Now proceed to
+       build the power supply on the left side of the board.
+ \item Place the fuse holder onto the PCB and secure with a \#6 bolt,
+       lockwasher and nut. Solder its terminals to the PCB.
+ \item Place the terminal block J0 into position
+       with the terminals facing out toward the edge 
+       of the PCB, and solder into place.
+ \item Place the rectifier bridge D0 onto the
+       board, noting the indicated position of 
+       the positive output lead.  Solder.
+ \item Place capacitor C0 on the board, noting the
+       position of the positive lead (``+'' marking
+       and square pin).  Solder.
+ \item Place the voltage regulator and its heat sink
+       onto the board.  Be sure to apply heat sink grease between them to
+	   ensure heat transfer.  
+%	   Install the regulator with pin~1 in the hole
+%	   designated with the square pad, and 
+	   Secure the heat sink and regulator
+	   with a \#6 bolt, lockwasher, and nut.  Solder the regulator pins, 
+	   taking care to
+	   heat sink them appropriately.
+ \item If you are using a heat sink which is wide and tall enough that it
+       may spin on the bolt and short on the regulator pins or other 
+	   components, note that there are a pair of tiny holes provided to 
+	   which you may
+	   solder a short length of wire to secure the heat sink into place.
+ \item Place and solder capacitors C1 and C2 near the voltage regulator.
+ \item Place the transformer T0, taking care to 
+       locate the primary leads on the side next
+	   to the fuse, and the secondary leads on the
+	   side next to the rectifier and regulator.
+	   The primary leads are marked on the transformer as pins \#1, 3, 4,
+	   and 6.  The secondary leads are \#7, 9, 10, and 12.  (On the
+	   transformers I bought from Digi-Key, this means that the writing on
+	   the transformer will be upside-down.  Your mileage may vary, so check.)
+ \item Secure the transformer T0 to the PCB using
+       two \#4 screws.  Run the screws down through
+	   the mounting holes on the transformer, and on through the holes in the
+	   PCB.  Place an \emph{insulated} standoff (or very thick washer) over 
+	   each screw and secure with a
+	   nut.  Be sure the metal mounting hardware is not threatening to short
+	   against the transformer leads.  %In fact, it may be best to use an
+	   %insulated standoff instead of a washer so the nut is well clear of the
+	   %transformer's electrical terminals.  
+	   Solder the transformer leads to the PCB.
+ \item Insert a 1.25A fuse (F0) into the fuse holder.
+ \item Use insulated stand-offs and appropriate machine bolts, washers and
+       nuts to mount the controller PCB into its enclosure.
+\end{enumerate}
+
+\section{Connections}
+This section describes how the various components of the assembled controller
+system connect together.  
+
+First of all, the controller board connects to each of the relay boards via
+26-conductor ribbon cables.  These supply logic power and control signals
+to the relay boards.  Make sure to route the ribbon cables out of the way of
+the other parts, particularly the high-voltage areas.
+
+Connecting main power to the controller board is done on terminal block J0.
+
+%\begin{center}
+% \begin{tabular}{cccc}
+%  \multicolumn{2}{l}{120\,V AC} &
+%  \multicolumn{2}{r}{Switch}\\
+%  \hline
+%  \multicolumn{1}{|c}{$\bigcirc$}&
+%  $\bigcirc$&
+%  $\bigcirc$&
+%  \multicolumn{1}{c|}{$\bigcirc$}\\
+%  \hline
+% \end{tabular}
+%\end{center}
+
+If you wish to use a power switch, connect 120\,V AC across the left two
+terminals (preferably with hot on the left, but that's not critical), and a
+sufficiently rated switch across the right two terminals, to short those two
+terminals when ``on''.
+
+%\begin{center}
+% \begin{tabular}{cccc}
+%  \multicolumn{2}{l}{120\,V AC} &
+%  \multicolumn{2}{r}{Switch}\\
+%  \hline
+%  \multicolumn{1}{|c}{$\bigcirc$}&
+%  $\bigcirc$&
+%  $\bigcirc$&
+%  \multicolumn{1}{c|}{$\bigcirc$}\\
+%  \hline
+%  HOT&NEU&\multicolumn{2}{c}{(switch)}
+% \end{tabular}
+%\end{center}
+\begin{center}
+\epsffile{ac-switch.eps}
+\end{center}
+
+If you \emph{do not} wish to use a power switch, just connect the 120\,V AC
+to the outer two terminals, leaving the center two terminals disconnected.
+
+%\begin{center}
+% \begin{tabular}{cccc}
+%  \multicolumn{2}{l}{120\,V AC} &
+%  \multicolumn{2}{r}{Switch}\\
+%  \hline
+%  \multicolumn{1}{|c}{$\bigcirc$}&
+%  $\bigcirc$&
+%  $\bigcirc$&
+%  \multicolumn{1}{c|}{$\bigcirc$}\\
+%  \hline
+%  HOT&&&NEU
+% \end{tabular}
+%\end{center}
+\begin{center}
+\epsffile{ac-straight.eps}
+\end{center}
+
+The power connections on the relay boards are arranged into blocks of eight
+circuits per block (for a total of six blocks for 48 channels).  Each block
+is an independent, isolated unit (this allows greater control over
+distributing power evenly rather than piling all 48 outputs on a single
+power source).
+
+The connections for each block appear on a pair of 10-position terminal
+blocks.  For ``block~0'' on each relay board, that is terminals J1 and J2 
+in the upper left of the board.  For ``block~1'' it is terminals J3 and J4,
+which are on the right top and right bottom.  For ``block~2'' those
+connections are on J5 and J6 in the lower left of the board.
+
+These diagrams show the connections for block~0.  Note that the other blocks
+are wired similarly, \emph{however, the locations of the connections vary
+slightly.  Refer to the board markings to guide you.}
+
+Each block has its own 120\,V AC input which supplies the load power for the
+eight channels in that block.  In each case, the 120V input is split with the
+hot wire connected on one terminal block, and the neutral wire on the other
+block.  Refer to the board markings to see where each goes.  The terminals
+adjacent to the power inputs are not connected to anything.
+
+%\begin{center}
+% \begin{tabular}{ccccccccccccccccccccc}
+%   &&&&&&&&&\tiny N&\tiny 120V&\tiny H\\
+%  \cline{1-10}\cline{12-21}
+%   \multicolumn{1}{|c}{$\circ$}&
+%   $\circ$&
+%   $\circ$&
+%   $\circ$&
+%   $\circ$&
+%   $\circ$&
+%   $\circ$&
+%   $\circ$&
+%   $\circ$&
+%   \multicolumn{1}{c|}{$\circ$}&
+%   &
+%   \multicolumn{1}{|c}{$\circ$}&
+%   $\circ$&
+%   $\circ$&
+%   $\circ$&
+%   $\circ$&
+%   $\circ$&
+%   $\circ$&
+%   $\circ$&
+%   $\circ$&
+%   \multicolumn{1}{c|}{$\circ$}\\
+%  \cline{1-10}\cline{12-21}
+% \end{tabular}
+%\end{center}
+\begin{center}
+\epsffile{relays.eps}
+\end{center}
+
+The outputs are arranged in twos, four per terminal block.  You just need to
+strip enough bare wire on the power cords leading to your loads to insert
+into the terminals corresponding to that channel.  Note how channel~1 plugs
+in to a pair of adjacent terminals, and channel~0 plugs into the pair of 
+terminals on either side of them.  
+
+%\begin{center}
+% \begin{tabular}{ccccccccccccccccccccc}
+%   \tiny 0H&\tiny 1H&
+%   \tiny 1N&\tiny 0N&
+%   \tiny 3N&\tiny 2N&
+%   \tiny 2H&\tiny 3H&&\tiny In N\\
+%  \cline{1-10}
+%   \multicolumn{1}{|c}{$\circ$}&
+%   $\circ$&
+%   $\circ$&
+%   $\circ$&
+%   $\circ$&
+%   $\circ$&
+%   $\circ$&
+%   $\circ$&
+%   $\circ$&
+%   \multicolumn{1}{c|}{$\circ$}\\
+%  \cline{1-10}
+% \end{tabular}
+%\end{center}
+
+Finally, a communications line needs to be run from the controlling computer
+to all the units it will control.
+
+You will need an RS-485 output from your computer.  The most common way this
+is accomplished is to get an RS-232 to RS-485 converter.  The converter plugs
+into your PC's serial port and also to a length of CAT3 or CAT5 unshielded
+twisted pair cable, wired as indicated above.  The other end of the CAT3
+cable ends in an RJ-45 connector and plugs into the first controller's
+``RS-485 input'' jack.  
+
+If you have more than one unit, plug a straight-through cable into the
+``RS-485 output'' jack of that controller, and into the ``RS-485 input'' jack
+on the next unit, and so on for up to 16~controllers.  The last controller in
+the chain should have a terminator plug installed into its ``RS-485 output''
+jack.
+
+You may connect more than one serial port, each with its own RS-485 converter
+and up to 16~units.
+
+\begin{center}
+\epsffile{network.eps}
+\end{center}
+
+\section{Usage}
+\subsection{Operation}
+Operating the units is, from a hardware standpoint, fairly
+straightforward.  You simply plug in the units as described
+here, turn them on, and run your host software to drive them.
+
+Since the actual experience of operating the controllers is
+dependent upon, and centered around, the software itself,
+please refer to your software documentation for more details.
+
+\subsection{Communications Protocol}
+The protocol used by the light controllers is a simple 
+binary sequence of command and data bytes.  It is 
+designed to be fast for transmitting data (by reducing the 
+number of bytes sent per command) and fast to interpret
+in the controller firmware.  It is also structured so 
+that several completely different devices can share a
+common serial bus, using different command sets (but
+this same protocol format), without confusing each other.
+
+In general, any given byte is either a ``command'' or 
+``data'' byte.  If the most significant bit (MSB, or
+bit~7) is set (1), then it is a command byte, with the
+least significant four bits denoting the device address
+and the other three bits holding the command to be
+executed:
+\begin{center}
+\begin{bytefield}{8}
+\bitheader[b]{0-7}\\
+\bitbox{1}{1} &
+\bitbox{3}{cmd} &
+\bitbox{4}{addr} \\
+\end{bytefield}
+\end{center}
+
+Data bytes always have their MSB clear (0) and can
+contain any 7-bit data value:
+\begin{center}
+ \begin{bytefield}{8}
+  \bitheader[b]{0-7}\\
+  \bitbox{1}{0} & \bitbox{7}{data} \\
+ \end{bytefield}
+\end{center}
+
+Given that basic structure, any device can simply ignore
+any unexpected data byte, as well as any command byte 
+not addressed to itself.  
+
+If more than eight commands are needed, one command
+pattern can be reserved to indicate that a follow-on 
+data byte contains an extended command number.  I suggest
+using command 7 ($111_2$) for this ``escape'' command:
+\begin{center}
+ \begin{bytefield}{8}
+  \bitheader[b]{0-7}\\
+  \bitbox{1}{1} & \bitbox{3}{7} & \bitbox{4}{addr} \\
+  \bitbox{1}{0} & \bitbox{7}{command} \\
+ \end{bytefield}
+\end{center}
+
+Using only this simple scheme allows for 135 commands.
+Other schemes can be employed to get any arbitrary
+command set desired.
+
+This version of the 48-channel controller supports the
+following command set:
+
+% 0      All off
+% 1 c    Channel c on/off
+% 2 c v  Channel c to dimmer level v
+% 3      Reserved
+% 4      Reserved
+% 5      Reserved
+% 6      Reserved
+% 7 x    Administrative command
+%        x=00pppppp  set phase offset=p and reboot
+%        x=010baaaa  set addr=a; b=a<1:0>
+%        x=01100000  shutdown
+%        x=01100001  disable admin command set
+%
+\subsubsection{0: All Channels Off}
+\begin{center}
+ \begin{bytefield}{8}
+  \bitheader[b]{0-7}\\
+  \bitbox{1}{1} & \bitbox{3}{0} & \bitbox{4}{addr}
+ \end{bytefield}
+\end{center}
+
+This command causes all 48 channels to immediately turn
+off and stay off until otherwise commanded.
+
+The command byte for this would be (hex) {\tt\$8$a$}
+i.e.\ the binary sequence {\tt 1000$aaaa$}.
+
+\subsubsection{1: Set Channel On/Off}
+\begin{center}
+ \begin{bytefield}{8}
+  \bitheader[b]{0-7}\\
+  \bitbox{1}{1} & \bitbox{3}{1} & \bitbox{4}{addr}\\
+  \bitbox{1}{0} & \bitbox{1}{s} & \bitbox{6}{channel}
+ \end{bytefield}
+\end{center}
+
+This sets the status of the specified channel (0--63) to
+be fully on (if $s=1$) or off ($s=0$).  Note that the protocol
+supports 64 channels per device, while this model of controller
+only has 48 channels.  This unit will ignore requests for 
+channels \#48--63.
+
+The command bytes for this would be (hex) {\tt\$9$axx$}
+i.e.\ the binary sequence {\tt 1001$aaaa$ 0$scccccc$}.
+
+\subsubsection{2: Set Channel Dimmer Level}
+\begin{center}
+ \begin{bytefield}{8}
+  \bitheader[b]{0-7}\\
+  \bitbox{1}{1} & \bitbox{3}{2} & \bitbox{4}{addr}\\
+  \bitbox{1}{0} & \bitbox{1}{m} & \bitbox{6}{channel}\\
+  \bitbox{1}{0} & \bitbox{7}{level}
+ \end{bytefield}
+\end{center}
+
+For units capable of dimming, this command sets the dimmer level
+for the specified channel (0--255).  256 levels of brightness are
+supported in this firmware version, so 
+a level of 0 is equivalent to turning
+the channel completely off, and a level of 255 is equivalent to 
+turning it completely on.  
+
+If a particular model of Lumos SSR unit implements a lower dimmer
+resolution (e.g., 128, 64, or 32 levels) then it will consider the
+unused bits to be the \emph{least significant} part of the value.
+This means the range is still 0--255, but the dimmer jumps in
+larger increments between each level.  A 32-level dimmer would
+consider levels 0--31 to be off, 32--63 to be the first dimmer level
+up from that, etc.
+
+The data bits in byte 3 are the most significant 7 bits of the value,
+while the very least significant bit is shown as $m$ in byte 2 of
+the sequence.  If this is simply set as $m=0$, the dimmer value
+may be given as a number from 0--127.
+
+%If more levels of dimmer resolution are
+%supported in the future, then more bits of this byte will be 
+%significant, making the value of {\it level\/} have a larger range
+%of numbers between fully off and fully on.  (As it stands now, those
+%upper bits are ignored, so if you sent a value of 32, the device
+%would read that as 0; 33 as 1; 34 as 2; and so on.)
+
+Note that the protocol 
+supports 64 channels per device, while this model of controller
+only has 48 channels.  This unit will ignore requests for 
+channels \#48--63.
+
+The command bytes for this would be (hex) {\tt\$A$axxyy$}
+i.e.\ the binary sequence {\tt 1010$aaaa$ 00$cccccc$ 000$vvvvv$}.
+
+\emph{Changed in version 3.0: Increased resolution from 64 to 256 dimmer
+levels, introduced the $m$ high-resolution bit in the second byte.  Also
+changed the behavior of how the controller responds if it implements
+lower dimmer resolution than the protocol addresses.}
+
+\subsubsection{3--6: Reserved Commands}
+\begin{center}
+ \begin{bytefield}{8}
+  \bitheader[b]{0-7}\\
+  \bitbox{1}{1} & \bitbox{3}{3--6} & \bitbox{4}{addr}\\
+ \end{bytefield}
+\end{center}
+
+These four command codes are reserved to allow for future enhancements to have
+single-byte commands available.
+
+\subsubsection{7: Administrative Commands}
+\begin{center}
+ \begin{bytefield}{8}
+  \bitheader[b]{0-7}\\
+  \bitbox{1}{1} & \bitbox{3}{7} & \bitbox{4}{addr}\\
+ \end{bytefield}
+\end{center}
+
+Since administrative commands are given when configuring devices, and not during an
+actual show, we avoided giving them the smaller single-byte command codes.  Instead,
+they are all sub-commands of command code \#7, which always has a follow-on data byte
+which provides the additional information needed for the administrative function being
+requested.
+
+Note that these commands reconfigure the controller in significant ways.  The normal
+processing of light control tasks (and other normal operations of the unit) may be
+suspended while it is waiting for the follow-on byte(s) or while the command is
+being executed.  It is possible that the unit will completely reboot after the
+command in some cases, as noted below.  In these ways, the administrative commands
+are quite unlike the normal light control commands.
+
+\subsubsection{Admin: Set Device Address}
+\begin{center}
+ \begin{bytefield}{8}
+  \bitheader[b]{0-7}\\
+  \bitbox{1}{1} & \bitbox{3}{7} & \bitbox{4}{addr}\\
+  \bitbox{1}{0} & \bitbox{1}{1} & \bitbox{1}{0} & \bitbox{1}{$z$} & \bitbox{4}{$y$}
+ \end{bytefield}
+\end{center}
+
+This command changes the device address for the addressed unit.
+Henceforth it will be known by the new address given in the data byte's
+least-significant 4 bits ($y$).  This new address will be written to the device's 
+EEPROM so the change is effectively permanent until this command is received
+again at some future time.
+
+The value $z$ consists of the least-significant bit of $y$.  Therefore, to
+set the device address to \#10 (hex {\tt\$0A}), you would send the command bytes
+(hex) {\tt\$F$a$4A}, i.e.\ the binary sequence {\tt 1111$aaaa$ 01001010}.
+
+Upon completion of this command, the unit will display the new address on the LEDs
+(just as it does when powering up) and will then resume normal operations with
+the new address.  Bytes sent to it during that process may be partially or completely
+lost.
+
+\subsubsection{Admin: Shutdown Device}
+\begin{center}
+ \begin{bytefield}{8}
+  \bitheader[b]{0-7}\\
+  \bitbox{1}{1} & \bitbox{3}{7} & \bitbox{4}{addr}\\
+  \bitbox{1}{0} & \bitbox{1}{1} & \bitbox{1}{1} & \bitbox{5}{0}
+ \end{bytefield}
+\end{center}
+
+Upon receipt of this command, the unit shuts itself down to the least
+power-consuming state possible, and halts, never responding to any further
+input until it is fully reset or powered on again.  This is intended for
+devices in embedded applications where there may be multiple units in a
+single device enclosure, some of which are not needed for every application.
+The extraneous devices can be shut down with this command.
+
+The command bytes for this would be (hex) {\tt\$F$a$60}, i.e.\ the binary
+sequence {\tt 1111$aaaa$ 01100000}.
+
+\subsubsection{Admin: Set Phase Offset}
+\begin{center}
+ \begin{bytefield}{8}
+  \bitheader[b]{0-7}\\
+  \bitbox{1}{1} & \bitbox{3}{7} & \bitbox{4}{addr}\\
+  \bitbox{1}{0} & \bitbox{1}{0} & \bitbox{6}{$p$}
+ \end{bytefield}
+\end{center}
+
+This command changes the internal phase delay parameter to the value $p$.
+This skews the AC line zero crossing point to compensate for any
+anomolies which interfere with the dimmer timing of the unit.  Normally you
+won't need to adjust this.
+
+The effects of this command are permanent (until another adjustment is
+requested).  The new phase offset is written to the controller's EEPROM.
+
+Upon completion, the device is reset as if powered up; the new phase offset 
+value is flashed on the status LEDs as part of the normal device initialization.
+The value can range from 0--63, 
+although values over about 40 would most likely not be useful.
+
+The command bytes for this would be (hex) {\tt\$F$a$02} to set the phase offset to 2,
+i.e.\ the binary sequence {\tt 1111$aaaa$ 00000010}.
+
+\subsubsection{Admin: Disable Administrative Commands}
+\begin{center}
+ \begin{bytefield}{8}
+  \bitheader[b]{0-7}\\
+  \bitbox{1}{1} & \bitbox{3}{7} & \bitbox{4}{addr}\\
+  \bitbox{1}{0} & \bitbox{1}{1} & \bitbox{1}{1} & \bitbox{5}{1}
+ \end{bytefield}
+\end{center}
+
+Upon receipt of this command, the controller will refuse to honor any
+subsequent administrative commands.  Any attempt to use one will cause
+the lower red and yellow LEDs to turn on for 2~seconds, and the command
+will be ignored.
+
+This state remains in effect
+until the unit is fully reset (by shorting the appropriate jumper pins or
+by power-cycling the unit).  This prevents accidentally doing something 
+bad such as re-addressing a unit while it's up and running.  (While there
+is nothing technically wrong with re-addressing a unit on the fly, there's
+plenty wrong with \emph{accidentally} doing so due to a communication 
+glitch.)
+
+When a controller is powered up (or reset), the yellow LEDs glow to indicate
+(warn) that administrative functions are active.  Upon completion of this
+command, those LEDs will extinguish.
+
+The command bytes for this would be (hex) {\tt\$F$a$61},
+i.e.\ the binary sequence {\tt 1111$aaaa$ 01100001}.
+
+
+\subsection{Addressing}
+It may be necessary to set the device address of each unit you will use
+in a particular application.  Each unit in a single RS-485 network is
+assigned an address value of 0--15.  No two units should ever have the
+same address on the same network.  (In this version, it's actually not 
+a problem, since the units never transmit data back to the host computer.
+However, if a future enhanced version of the firmware includes response
+data back to the host, having two identically-addressed units would cause
+bus contention and data collisions as they all try to respond at the same
+time.)
+
+Note that as of version 3.0 of the firmware, address 15 (binary 1111) is
+reserved as a ``broadcast'' address.  All units will respond to commands
+addressed to this unit number.  It is also allowed to set a device to address
+15, in which case it will only respond to the broadcast commands.
+
+To change a unit's address, plug it into a computer (with no other units 
+present on the RS-485 network) and power it up.  Watch the status lights 
+blink as it intializes.  Watch for the following sequence of lights:
+\begin{enumerate}
+ \item Green LED on
+ \item Red LED flashes 0--15 times to indicate unit \#0--15, respectively
+ \item Green LED off
+\end{enumerate}
+
+The flashing amber LED will tell you what address the unit is currently
+set to.  Now have the host computer send the address change command to
+that device address, and have that command set the unit to the desired
+new address.
+
+Once the address is changed, the unit will reset as if power-cycled,
+so you can watch the flashing LEDs to see that it is now set to
+the new address.
+
+%
+% SLW: A design change just obsoleted this advice.  The slave firmware
+% doesn't need to know the device address because the master will always
+% send it only those commands already addressed to this unit.
+%
+%{\bf N.B.:}
+%If the upper and lower status lights show a \emph{different} address from 
+%one another, \emph{this is a serious problem and must be corrected immediately.}
+%Here's the sequence you need to give:
+%\begin{enumerate}
+% \item Change the unit address to match the \emph{second} (``slave'' or lower)
+%       set of status LEDs.
+% \item Change the unit address to the actual desired new address.
+% \item Verify that \emph{both} sets of LEDs show the new address now.
+%\end{enumerate}
+
+\subsection{Driver Software}
+I have created a simple suite of platform-independent driver software 
+components to send commands and orchestrate shows for these boards from
+a host computer running Unix, MacOS X or Windows.  It is still under
+development but notes about it will be placed here when it's further
+along.
+
+\section{Reprogramming}
+If a firmware upgrade becomes available, you can transfer it into the CPUs
+on the controller board using a compatible PIC microcontroller programmer.
+The controller board is designed to accommodate in-circuit serial pro-
+gramming (ICSP) using high-voltage programming mode.  Header J5 provides
+access to the ``master'' CPU U2, and header J6 provides access to the ``slave''
+CPU U3.  Be sure to put the correct firmware image on each chip (there is
+a difference between the master program and the slave program, and a different
+program for 16F777 and 16F877A chips).
+
+The pinout of J5 and J6, as viewed from the top of the board, is:
+\begin{center}
+ \begin{tabular}{cccccc}
+  5&4&3&2&1\\
+  \cline{1-5}
+  \multicolumn{1}{|c}{$\bigcirc$}&
+  $\bigcirc$&
+  $\bigcirc$&
+  $\bigcirc$&
+  \multicolumn{1}{c|}{$\bigcirc$}&
+  \large$\triangleleft$\\
+  \cline{1-5}
+  PG$\phi$&PGD&V$_{\hbox{\small PP}}$&V$_{\hbox{\small SS}}$&V$_{\hbox{\small
+  DD}}$\\
+ \end{tabular}
+\end{center}
+
+\noindent These signals are:
+\begin{description}
+\item[PG$\phi$] (Pin~5) Program clock signal.  The programmer uses
+synchronous serial communication, with a pulse on this pin indicating
+that the {\bf PGD} signal is ready to be sampled for the next bit.
+\item[PGD] (Pin~4) Program data.  The programmer's commands to the CPU are
+sent serially on this pin, clocked by the {\bf PG$\phi$} signal.
+\item[V$_{\hbox{\small PP}}$] (Pin~3) Program voltage.  A high voltage on
+this pin (+13.5V) places the CPU into program mode.  Note that this does not
+actively \emph{power} the programming, it just signals it; so there is almost
+no current drain (a few $\mu$A, actually) on this pin.
+\item[V$_{\hbox{\small SS}}$] (Pin~2) Ground.
+\item[V$_{\hbox{\small DD}}$] (Pin~1) +5V supply.  A low-power programmer may
+actually be powered from pins 1 and 2, or it can ignore pin~1 and simply use
+pin~2 as a signal ground reference.
+\end{description}
+
+Note the triangle printed on the circuit board (and the square PCB pad) to denote pin~1.
+\end{document}
+
+
+\section{Appendix A: Partial Construction Options}
+There are a few options for alternate construction which allow you to
+build less than the full circuit.  These will be described here, in 
+case they are of use in some circumstances.
+
+\subsection{Using an External Power Supply}
+If you look at the controller board (part ``48CTL-$x$-$x$''), you will
+note that approximately half the board is the actual controller circuit,
+and the other half is merely the 5V supply which powers the controller
+and the logic portions of the relay boards.
+
+Since the controller board needs to monitor the AC line waveform anyway,
+this way you can just supply a single 120\,V AC source to the board, and
+that will take care of both functions without needing an external power
+supply.  However, if you don't wish to build that half of the board,
+or can't locate the transformer specified, or some other issue prevents
+you from building it, you can supply the logic power from another source.
+
+You have several options:
+\begin{enumerate}
+\item 
+	If you have an unregulated or regulated +9V supply (AC or DC), you 
+	can omit transformer T0 and wire in the power supply to the terminals
+	where the transformer's secondary coils would have been (either the 
+	pair on the left or the pair on the right, or the inside pair, or the
+	outside pair).
+\item
+	Or, if the +9V supply is DC, you can leave out D0 and connect +9V
+	to the (+) pin where D0 would have been, and ground to the pin 
+	on the other far end of D0's position (leaving the two middle
+	terminals unconnected).
+\item
+	Or, if you have a \emph{regulated} +5VDC supply, you can omit 
+	C0, C1, C2, D0, T0, and U0.  Connect the supply output to the
+	terminals where C2 would have gone, with the +5V lead in the 
+	bottom hole and the ground lead in the top hole.  (The ``bottom''
+	of the board is the edge with the RJ-45 jacks.)
+\end{enumerate}
+
+The power supply needs to be able to supply a sustained 800mA draw; a
+rating of 1,000mA or better is recommended.
+
+Please note that regardless of these options, you \emph{still} need to
+supply 120\,V AC on terminal block J0, and provide components F0, R1, R2,
+U1 and R14.
+
+\subsection{Building Fewer Than 48 Channels}
+You may build the controller to drive anywhere from 1 to 48 channels of 
+120\,V AC loads.  
+
+The best approach is to build complete controller and relay boards, but
+if for some reason you need to build the absolute minimum possible,
+you have a few options to limit the scope of your construction:
+
+If you want to use less than 25 channels, you only need one relay board and 
+one controller board.  In this case, you can omit parts C6, C7, C8, C11, D6, 
+D7, D8, J2, J6, R9, R10, R11, R12, R13, U3, X1, and connect U3 pin 7 to 
+ground on the controller board.  However, I really wouldn't recommend doing 
+this, because: (a) when you decide to go beyond 24 channels, you'll need to
+add those parts anyway, (b) those parts are fairly inexpensive compared to
+the overall cost of the project, and (c) leaving out those components makes
+it impossible for the unit to transmit data back to the host computer.  But
+if you just can't stand the idea of a CPU sitting idle all the time, or are
+very tight on your budget, that is an option. (Note: The current version of 
+the firmware does \emph{not} ever send data back, but it is implemented in the 
+controller's hardware for future use, so it would theoretically only 
+require a firmware upgrade to take advantage of when/if that becomes a 
+new feature later.)
+
+All the LEDs, and the resistors which supply them, are optional but 
+recommended.
+
+Looking at each relay board, it provides 24 individual output channels in
+blocks of 8 channels.  Each block of 8 channels is separately powered and
+fuse-protected, allowing more current to be available than my previous
+design (8A total at any 
+given time for any block of 8, up to 5A for any individual channel).  
+
+You must provide D0, J0, R0 on the relay board (well, D0 and R0 are optional
+as they merely provide a power light to verify that the board is plugged in
+and getting power from the controller).  
+Then for each 8-channel block you wish to use, add the
+fuse, pair of terminal blocks, and the number of SSRs you wish to provide.
+Each SSR is composed of parts R$x$0, R$x$1, TR$x$, and U$x$, where $x$ is the channel
+number (0--23).  Leaving the entire set of (4) components off the board for
+any given channel is ok if you don't want that channel implemented.
+
+Or, better yet, just build the whole darn thing.
+%
+% Design notes:
+%   Next rev, it might be better to add screw mounting holes
+%   for the fuse holders.  I think the current design is sufficient,
+%   but this would improve it.
+%
+%   Also, need to make the holes for 1/2W resistors bigger.
+%
+
+\section{Control Buttons}
+The DC relay boards include two on-board pushbuttons (when the board is configured for stand-alone mode with a microcontroller present) to control and configure the board manually.
+
+The older model 48-chanel controller board can be retro-fitted with pushbuttons if desired.  (See the diagram in figure XXX for details.)
+
+When ``reset'' button is pressed, the microcontroller chip is halted and reset.  When the button is released, the unit begins operation as if just powered on.  This can be used if the unit becomes unresponsive for some reason, or communication has been lost with the controlling PC and you need a fast way to stop all output and reset the unit.
+
+The ``option'' button is used to set various options manually on the unit and to go into various test modes.  To begin manual option setting, press and hold the ``option'' button until the red status light flashes rapidly.  All other operation of the unit will cease until the option settings have been completed.  All serial input will be ignored and all channel outputs will be turned off.
+
+While in option mode (red light flashing rapidly), push and release the option button to cycle between following modes.  When the desired mode is selected, press and hold the button until the red light flashes slowly.  This will activate that mode.  Pushing and holding the option button again will terminate that operation and exit option mode, resuming normal operation again.
+
+\begin{enumerate}
+	\item \strong{Channel Test Cycle [--{}--YR]}
+		This mode is indicated with the yellow light on steady, and green and activity lights off.  When activated,
+		When this mode is enabled, Each channel in turn from 0--47 is turned on for one second.  Pressing the option button
+		briefly will pause the cycle (so the currently active channel remains on, if any).  Pressing it again resumes the cycle.  After the
+		last channel is done, a one-second ``off'' cycle takes place before channel 0 turns on again.
+	\item \strong{Address Change [--G--R]}
+		This mode is indicated with the green light on steady, and the yellow and activity lights off.  When activated,
+		the unit displays its current address by temporariy blanking out all four LEDs and lighting the unit address
+		in binary on them:
+		\begin{tabular}{|cccc|r|}\hline
+			act & grn & yel & red & address \\\hline\hline
+			off & off & off & off & 0 \\
+			off & off & off & on & 1 \\
+			off & off & on & off & 2 \\
+			\multicolumn{4}{|c}{$\vdots$} & $\vdots$ \\
+			on & on & on & on & 15\\\hline
+		\end{tabular}
+		Each time the option button is pressed, the address increments by one, as reflected in the LED
+		readout.  Push and hold the button to exit this mode, keeping the address currently displayed.
+	\item \strong{Phase Offset Change [--GYR]}
+		\emph{Use caution when changing this value; improper setting may prevent the AC relays from
+		functioning properly when dimming loads.}
+		This mode is indicated with the green and yellow lights on steady, activity light off.  When activated,
+		the unit displays the most significant nybble of the phase offset (the default value is 0) by blanking the 
+		LEDs, flashing the activity light, then displaying the nybble on the four LEDs in binary.  Pressing the button
+		will advance the nybble by one.  After 5 seconds of no button presses, the red light will flash, then the
+		least significant nybble will be displayed and may be changed in the same manner.  After 5 seconds,
+		the yellow light will flash, and you will have a four-second window in which to push and hold the button
+		to save this change and exit.  Otherwise the change is canceled. (This is intended as a guard against
+		accidentally changing this setting.)
+	\item \strong{Enable Administrative Commands [AGYR]}
+		This mode is indicated with all lights lit.
+		Ordinarily, the administrative commands are disabled for the serial command interface.  
+		When this mode is activated, the green LED is lit if administrative commands are enabled,
+		or the yellow LED is lit if they are disabled.  Pressing the button toggles between the two.
+		This affects the ``Set device address'' and ``Set Phase Offset'' commands.  It is still possible
+		to issue device shutdown commands in any case.
+\end{enumerate}
