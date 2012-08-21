@@ -20,7 +20,7 @@
 ; Portions based on earlier code copyright (c) 2004, 2005, 2006, 2007
 ; Steven L. Willoughby, Aloha, Oregon, USA.  All Rights Reserved.
 ;
-; -*- -*- -* -*- -*- -*- -*- -*- -* -*- -*- -*- -*- -*- -* -*- -*- -*- -*- -*-
+; -*- -*- -* -*- -*- -*- -*- -*- -*- -*- -*- -*- -*- -*- -* -*- -*- -*- -*- -*-
 ;
 ; Main implementation module.
 ;
@@ -48,8 +48,8 @@
 ;    Option button should only be attached to the master microcontroller.
 ;    Both need their own reset buttons.
 ;
-; Serial control (RS-485) at at 19.2kbps by default.
-; Configurable from 300 to 115200.
+; Serial control (RS-232 or RS-485) at 19.2kbps by default.
+; Configurable from 300 to 250000.
 ;
 ;=============================================================================
 ; DIAGNOSTICS
@@ -68,8 +68,8 @@
 ; .  *  *  . BOOT  Halted during system initialization
 ; .  *  .  . BOOT  Initialized but main loop or timing system non-functional
 ; . (*) .  . RUN   Normal operations
-; * (*) X  X RUN   Received command for this unit
-; X  X  *  X RUN   Master/Slave communications
+; ! (*) X  X RUN   Received command for this unit
+; X  X  !  X RUN   Master/Slave communications
 ; X  X  X  * RUN   Command error
 ; X  X  X ** RUN   Communications error
 ; . () () () SLEEP Sleep Mode
@@ -77,7 +77,7 @@
 ; ?  ?  ? ** HALT  Fatal error (exact error displayed on other LEDs)
 ;
 ; .=off  *=steady (*)=slowly fading on/off X=don't care
-; ()=slow flash **=rapid flash
+; ()=slow flash **=rapid flash !=blink/fade once
 ;
 ;=============================================================================
 ; IMPLEMENTATION NOTES
@@ -117,9 +117,9 @@
 ;
 ;-----------------------------------------------------------------------------
 ; Command Protocol:
-;                     _______________________________________________________
+;                     ___7______6______5______4______3______2______1______0__
 ; Command Byte:      |      |                    |                           |
-;                    |  1   |    Command code    |   Target device address   |
+;                    |   1  |    Command code    |   Target device address   |
 ;                    |______|______|______|______|______|______|______|______|
 ;
 ; Any byte with its MSB set is the beginning of a command.  If the target 
@@ -658,9 +658,9 @@ _EEPROM	CODE_PACK	0xF00000
 ; PHASE_OFFSETL      |                                                       |
 ;                    |               Phase offset value (LSB)                |
 ;                    |______|______|______|______|______|______|______|______|
-; SSR_STATE          |      |      |SLICE |/////////////|                    |
-;                    |INCYC |PRECYC| _UPD |/////////////|       STATE        |
-;                    |______|______|______|/////////////|______|______|______|
+; SSR_STATE          |      |      |SLICE |                                  |
+;                    |INCYC |PRECYC| _UPD |           STATE                  |
+;                    |______|______|______|______|______|______|______|______|
 ; CUR_PREH           |                                                       |
 ;                    |         Pre-cycle count-down ticks left (MSB)         |
 ;                    |______|______|______|______|______|______|______|______|
@@ -732,7 +732,7 @@ _EEPROM	CODE_PACK	0xF00000
 INCYC		EQU	7	; 1-------  We are in a dimmer cycle now
 PRECYC		EQU	6	; -1------  We are in the pre-cycle countdown
 SLICE_UPD	EQU	5	; --1-----  Slice update needs to be done
-STATE_MSK	EQU	0x07	; -----XXX  State machine's state
+STATE_MSK	EQU	0x1F	; ---XXXXX  State machine's state
 ;
 ; SSR_FLAGS words for each output show state information about those
 ; channels.
@@ -1261,6 +1261,8 @@ ERR_COMMAND:
 	RETURN
 
 RECEIVE_COMMAND:
+CMD_BIT	EQU	7
+
 	CLRWDT
 	;
 	; We just received a byte.  The state machine dictates what
@@ -1273,6 +1275,23 @@ RECEIVE_COMMAND:
 	;		CMD 1: store command; -> 1
 	; 		CMD 2: store command; -> 2
 	;		XXX
+	;
+	CALL	SIO_GETCHAR_W
+	BANKSEL	SIO_DATA_START
+	BTFSS	SIO_INPUT, CMD_BIT, BANKED
+	BRA	DATA_BYTE		; it's a data byte
+	;
+	; ok, so it's a command. are we still waiting for another
+	; command to complete?  If so, abort it and start over.
+	; otherwise, get to work.
+	;
+	MOVF	SSR_STATE, WREG, ACCESS
+	ANDLW	STATE_MSK
+	BTFSS	STATUS, Z, ACCESS
+	BRA	CMD_ABORT
+	;XXX left off here
+	
+	RETURN
 
 UPDATE_SSR_OUTPUTS:
 	CLRWDT
@@ -1303,6 +1322,7 @@ I	 ++
 UPDATE_MINIMUM_LEVEL:
 	;
 	; turn off every output that isn't set to be fully on
+	; and handle ramping up/down
 	;
 I 	SET	0
 	WHILE I <= SSR_MAX

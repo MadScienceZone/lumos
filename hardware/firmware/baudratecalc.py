@@ -22,5 +22,5 @@ for b16, bh, div in (
 		(1, 1, 4)
 ):
 	b, e = baudrate(baud, div, Fosc)
-	print "{:5d} {:4d}   {:#04x}  {:#04x} {:10.6f} {:.4f}".format(b16, bh, (b>>8)&0xff, b&0xff, e, baud+(baud*e))
+	print "{:5d} {:4d}   {:#04x}  {:#04x} {:10.6%} {:.4f}".format(b16, bh, (b>>8)&0xff, b&0xff, e, baud+(baud*e))
 

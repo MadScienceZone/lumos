@@ -1,3 +1,96 @@
+ B 1000aaaa all channels off
+   1001aaaa 0scccccc           Set channel c off (s=0) or on (s=1)
+   1010aaaa 00cccccc 0vvvvvvv  Set channel c to level vvvvvvvv (0--127)
+   1010aaaa 0hcccccc 0vvvvvvv  Set channel c to level vvvvvvvvh (0--255)
+   1011aaaa 00cccccc 0nnnnnnn xn 01010101  Update channel c--(c+n+1) to level v (0-127)
+   1011aaaa 01cccccc 0nnnnnnn xn 01010110 0hhhhhhh x (n+1)/7 01010101  Update channel c--(c+n+1) to level hvvvvvv (0-255)
+   1100aaaa 0dcccccc 0sssssss 0ttttttt  Ramp (d: 0=dn, 1=up) in s+1 steps with (t+1)/120 sec/step
+   1101aaaa				Reserved 
+   1110aaaa				Reserved 
+AB 1111aaaa 00000000 01011010 01011010	Enter sleep mode
+AB 1111aaaa 00000001 01011010 01011010  Exit sleep mode
+ B 1111aaaa 00000010 01011000 01011001  Shutdown device completely
+ R 1111aaaa 00000011 00100100 01010100  Report device status
+   1111aaaa 00000100 0iiiiiii 0nnnnnnn ... 01000100 01110011  Define sequence i
+					   of length n; i=0 is boot sequence;
+					   i<64 permanently stored if possible
+   1111aaaa 00000101 0iiiiiii           Execute sequence i; i=0 to stop current
+   1111aaaa 00000110 0owbxxxx 0iiiiiii 0ppppppp 0ttttttt 00111100
+					  Define sensor trigger when sensor(s)
+					  activate (abcd 1=selected);
+					  i is played to initialize,
+					  p during the event,
+					  t at termination
+					  trigger once if o=1, else while
+					  sensor is high if w=1, else loop
+					  forever once activated; blocks
+					  other channel-setting commands if
+					  b=1
+   1111aaaa 00000111 0000ABCD           Mask sensor triggers (1=enable, 0=dis)
+   1111aaaa 00001000 01000011 01000001  Clear all stored sequences 
+   1111aaaa 00001001                    Reserved non-admin extended command
+      :                                   :
+   1111aaaa 00011110                    Reserved non-admin extended command
+   1111aaaa 00011111                    Reserved for internal use
+   1111aaaa 001xxxxx                    Reserved for internal use
+PC 1111aaaa 010000pp 0ppppppp 01010000 01001111 set phase offset (0-511)
+PC 1111aaaa 0110aaaa 01001001 01000001 01000100 Set device address (0-15)
+BC 1111aaaa 01110000                            Disable configuration mode
+PC 1111aaaa 01110001 0dABCDcc 0ccccccc 00111010 00111101 Set configuration
+                       ABCD (0=outputs, 1=inputs)
+                       d (DMX512 0=off, 1=on; channel 0=DMX c)
+ C 1111aaaa 01110001                            Reserved admin command
+      :                                   :
+ C 1111aaaa 01111111                            Reserved admin command
+
+
+
+A - automatic
+B - broadcast
+C - configuration mode
+P - permanent change
+R - reply expected
+
+Status reply packet:
+1111aaaa 00011111 <data> 00110011
+<data>::=
+  0dABCDcc 0ccccccc 0sfABCDe 0eeeeeee 0mmmmmmm 0mmmmmmm 0qxxxxpp 0ppppppp 
+   |\__/\_________/  ||\__/\________/  \______________/  |    \_________/
+   | |       |       || |       |            |           |         |
+DMX+ |       |       || |       |            |           |         |
+sens-+       |       || |       |            |           |         |
+DMX channel--+       || |       |            |           |         |
+sleep mode (s=1)-----+| |       |            |           |         |
+last seq overfilled---+ |       |            |           |         |
+sensor masks (1=enabled)+       |            |           |         |
+EEPROM bytes free for sequences-+            |           |         |
+RAM bytes free for sequences-----------------+           |         |
+in admin/config mode now---------------------------------+         |
+phase offset value-------------------------------------------------+
+
+
+SEQUENCE DATA
+
+transmitted				compiled
+00000000             			11111100 		all off
+00000001 x				0scccccc		set on/off
+00000010 x x 				10cccccc vvvvvvvv	set value
+00000011 ...				11111000 nnnnnnnn v+    set bulk
+00000100 x x x				11111001 x x x          ramp
+00000101 
+00000110
+00000111        			11110000		sleep
+00001000				11110001		wake
+00001001 i				11110010 i		exec i
+00001010 n				11110011 n s C		rept n -s
+00001011 i				11110100 i		call i
+00001100 i				11110101 i		chain i
+00001101 00obABCD s			11110110 f s		if f -s
+00001110 m				11110111 m		wait ms
+00001111 				11111111		exit
+00010000 x				11111010 x		set c=x
+00010001 x y s				11111011 x y s		loop +x to y -s
+
 %
 % vi:set ts=8 sw=8 ai sm wm=3:
 % Lumos 48-Channel SSR Controller 
