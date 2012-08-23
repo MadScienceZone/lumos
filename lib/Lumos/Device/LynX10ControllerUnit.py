@@ -209,8 +209,8 @@ from Lumos.Device.X10ControllerUnit import X10ControllerUnit
 #   adjust them.  This will use the flush function
 
 class LynX10ControllerUnit (X10ControllerUnit):
-    def __init__(self, id, power, network, resolution=16):
-        X10ControllerUnit.__init__(self, id, power, network, resolution)
+    def __init__(self, id, power_source, network, resolution=16):
+        X10ControllerUnit.__init__(self, id, power_source, network, resolution)
         self.type = 'LynX-10/TW523 Controller'
 
     def _x10_to_lynx_id(self, x10_id):
@@ -218,7 +218,7 @@ class LynX10ControllerUnit (X10ControllerUnit):
              + self._x10_unitcode_to_lynx(x10_id[1:])
 
     def _x10_housecode_to_lynx(self, x10_id):
-        return str("ABCDEFGHIJKLMNOP".index(x10_id.upper()))
+        return '%X' % ("ABCDEFGHIJKLMNOP".index(x10_id.upper()))
 
     def _x10_unitcode_to_lynx(self, x10_id):
         return '%X' % (int(x10_id)-1)
@@ -287,11 +287,11 @@ class LynX10ControllerUnit (X10ControllerUnit):
 
     def kill_all_channels(self, force=False):
         self.network.send("F4\r")
-        for ch in self.channels:
-            self.channels[ch].kill()
+        for ch in sorted(self.channels):
+            self.kill_channel(ch, force)
 
     def all_channels_off(self, force=False):
-        for ch in self.channels:
+        for ch in sorted(self.channels):
             self.set_channel_off(ch, force)
 
     def initialize_device(self):
@@ -299,7 +299,7 @@ class LynX10ControllerUnit (X10ControllerUnit):
         self.network.send("R\r")
         self.network.send("M00=02\r")
         self.kill_all_channels(True)
-        self.all_channels_off(True)
+        self.all_channels_off(False)
 #
 # $Log: not supported by cvs2svn $
 # Revision 1.4  2008/12/30 22:58:02  steve

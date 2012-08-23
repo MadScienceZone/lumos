@@ -67,10 +67,10 @@ class Olsen595ControllerUnit (ControllerUnit):
     if you're willing to try it and help us test/debug this code.
     """
 
-    def __init__(self, id, power, network, channels=64):
+    def __init__(self, id, power_source, network, channels=64):
         """
         Constructor for an Olsen 595/Grinch controller object:
-            Olsen595ControllerUnit(power, network, [channels])
+            Olsen595ControllerUnit(id, power_source, network, [channels])
 
         Specify the correct PowerSource object for this unit,
         the network this board (or chained set of boards) talks
@@ -79,7 +79,7 @@ class Olsen595ControllerUnit (ControllerUnit):
         will transmit that many bits on each update.
         """
 
-        ControllerUnit.__init__(self, id, power, network)
+        ControllerUnit.__init__(self, id, power_source, network)
         self.type = 'Olsen595 Controller'
         self.channels = [0] * channels
         self.needs_update = False

@@ -33,6 +33,11 @@ import sys, unittest
 sys.path.append('../lib')
 import Test
 unittest.TextTestRunner().run(Test.suite())
+for w in Test.accumulated_warnings():
+    print "SKIPPED {0} TEST{1}: {2}".format(
+        w.count, '' if w.count==1 else 'S',
+        w.msg
+    )
 #
 # $Log: not supported by cvs2svn $
 #

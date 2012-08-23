@@ -312,8 +312,14 @@ load available on that circuit to our show.
 .B "maximum load of all those other devices.  This value is the maximum current load Lumos should"
 .B "pull from that power source."
 .TP
+.BI disp_order= int
+The GUI display position of this source relative to its siblings (subordinate power
+sources only; optional field).
+.TP
 .BI gfci= bool
-Specify true here if the circuit in question has ground-fault protection.
+This field is obsolete.  It will be ignored if present, and will not be written by Lumos
+when configuration profiles are saved.
+.\" Specify true here if the circuit in question has ground-fault protection.
 .LP
 In practice, any given output channel may pass through more than one 
 power distribution device.  It may be plugged into a power strip,

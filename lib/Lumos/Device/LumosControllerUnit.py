@@ -31,17 +31,17 @@ class LumosControllerUnit (ControllerUnit):
     """
     ControllerUnit subclass for my custom 48-channel SSR boards.
     """
-    def __init__(self, id, power, network, address, resolution=32):
+    def __init__(self, id, power_source, network, address=0, resolution=32):
         """
         Constructor for a 48-Channel SSR board object:
-            LumosControllerUnit(id, power, address, [resolution])
+            LumosControllerUnit(id, power_source, [address,] [resolution])
 
         Specify the correct PowerSource object for this unit and
         the unit address (0-15).  The resolution defaults to 32,
         which is correct for the 3.1 revision of the boards.
         """
 
-        ControllerUnit.__init__(self, id, power, network, resolution)
+        ControllerUnit.__init__(self, id, power_source, network, resolution)
         self.address = int(address)
         self.type = 'Lumos 48-Channel SSR Controller'
         self.iter_channels = self._iter_non_null_channel_list
@@ -57,7 +57,7 @@ class LumosControllerUnit (ControllerUnit):
     #def iter_channels(self):
     #    return range(48)
 
-    def add_channel(self, id, name=None, load=None, dimmer=True, warm=None, resolution=None, power=None):
+    def add_channel(self, id, name=None, load=None, dimmer=True, warm=None, resolution=None, power_source=None):
         try:
             id = int(id)
             assert 0 <= id <= 47
@@ -69,7 +69,7 @@ class LumosControllerUnit (ControllerUnit):
         else:
             resolution=self.resolution
 
-        ControllerUnit.add_channel(self, id, name, load, dimmer, warm, resolution, power)
+        ControllerUnit.add_channel(self, id, name, load, dimmer, warm, resolution, power_source)
 
     #
     # hardware protocol, for a unit with address <a>
@@ -112,7 +112,7 @@ class LumosControllerUnit (ControllerUnit):
     def initialize_device(self):
         self.network.send(chr(0xf0 | self.address) + chr(0x61))   # go to normal run mode
         self.kill_all_channels(True)
-        self.all_channels_off(True)
+        self.all_channels_off(False)
 #
 # $Log: not supported by cvs2svn $
 # Revision 1.5  2008/12/30 22:58:02  steve

@@ -102,11 +102,12 @@ class Show (object):
                 if '.' not in source_ID[len(parent_ID)+1:]: #don't get ahead of ourselves
                     source_obj = PowerSource(source_ID,
                             **get_config_dict(show, source_tag, {
-                                'amps': 'float',
-                                'gfci': 'bool'
+                                'amps':       'float',
+                                'disp_order': 'ignore',
+                                'gfci':       'ignore',   # no longer used
                             }))
-                    self.all_power_sources[source_ID] = source_obj
                     parent_obj.add_subordinate_source(source_obj)
+                    self.add_power_source(source_obj)
                     self._search_for_sub_sources(show, source_ID, source_obj)
 
 
@@ -120,11 +121,14 @@ class Show (object):
             source_obj = PowerSource(source_ID, 
                 **get_config_dict(show, 'power '+source_ID, {
                     'amps': 'float',
-                    'gfci': 'bool'
+                    'gfci': 'ignore',   # no longer used
                 }))
-            self.all_power_sources[source_ID] = source_obj
-            self.top_power_sources.append(source_ID)
+            self.add_power_source(source_obj)
             self._search_for_sub_sources(show, source_ID, source_obj)
+            #
+            # sort subordinates
+            #
+            source_obj.subordinates.sort(key=lambda x: show.getint('power '+x.id, 'disp_order') if show.has_option('power '+x.id, 'disp_order') else 0)
         #
         # NETWORKS
         #
@@ -143,7 +147,7 @@ class Show (object):
             for unit_ID in show.get('net '+net_ID, 'units').split():
                 unit_type = show.get('unit '+unit_ID, 'type')
                 unit_args = get_config_dict(show, 'unit '+unit_ID, {
-                    'power': 'objlist',
+                    'power_source': 'objlist',
                     'type':  'ignore'
                 }, self.all_power_sources)
                 unit_args['id'] = unit_ID
@@ -161,11 +165,21 @@ class Show (object):
                                 'load':   'float',
                                 'dimmer': 'bool',
                                 'warm':   'int',
-                                'power':  'objlist',
+                                'power_source':  'objlist',
                             }, self.all_power_sources))
 
     def load_file(self, filename, open_device=True):
         self.load(open(filename), open_device)
+
+    def _dump_ps_tree(self, file, parent):
+        if parent.subordinates:
+            print >>file, "; -- subordinate{1} of {0}:".format(parent.id, '' if len(parent.subordinates)==1 else 's')
+            for order, sub in enumerate(parent.subordinates):
+                print >>file, "[power {0}]".format(sub.id)
+                print >>file, "disp_order={0}".format(order)
+                print >>file, "amps={0:f}".format(sub.amps)
+                print >>file
+                self._dump_ps_tree(file, sub)
 
     def save(self, file):
         "Save configuration profile data to file, including general comments."
@@ -322,7 +336,7 @@ class Show (object):
 ;   description=...  A longer description of the show.
 ;
 [show]'''
-        print >>file, "powersources=" + ' '.join(sorted(self.top_power_sources))
+        print >>file, "powersources=" + ' '.join(self.top_power_sources)
         print >>file, "networks="     + ' '.join(sorted(self.networks))
         print >>file, "title="        + multiline(self.title)
         print >>file, "description="  + multiline(self.description)
@@ -350,14 +364,22 @@ class Show (object):
 ;                    TO YOUR SHOW, after accounting for whatever else
 ;                    is (or will be) connected to that circuit.
 ;
-;   gfci=yes/no      Set to 'yes' if this circuit has ground fault 
-;                    protection.  The default is 'no'.
+;   disp_order=n     For subordinate power sources, this indicates the
+;                    relative display position of this source amongst
+;                    its siblings.  (optional)
+;
 ;'''
-        for powerID in sorted(self.all_power_sources):
-            print >>file, "[power %s]" % powerID
-            print >>file, "amps=%f"    % self.all_power_sources[powerID].amps
-            print >>file, "gfci=%s"    % ('yes' if self.all_power_sources[powerID].gfci else 'no')
+#        for powerID in sorted(self.all_power_sources):
+#            print >>file, "[power %s]" % powerID
+#            print >>file, "amps=%f"    % self.all_power_sources[powerID].amps
+#            #print >>file, "gfci=%s"    % ('yes' if self.all_power_sources[powerID].gfci else 'no')
+#            print >>file
+        for powerID in self.top_power_sources:
+            print >>file, "[power {0}]".format(powerID)
+            print >>file, "amps={0:f}".format(self.all_power_sources[powerID].amps)
             print >>file
+            self._dump_ps_tree(file, self.all_power_sources[powerID])
+
         print >>file, '''
 ;___________________________________________________________________________
 ;NETWORKS
@@ -486,7 +508,7 @@ class Show (object):
 ; will be receiving commands over the same wire, all units on a network
 ; need to have compatible protocols.
 ; 
-;   power=...       The name of the power source which feeds this unit.
+;   power_source=N  The name of the power source which feeds this unit.
 ;
 ;   type=...        Unit type.  This must correspond to a known device
 ;                   driver plug-in installed in Lumos.  As of the time
@@ -513,8 +535,8 @@ class Show (object):
         for unitID, o in sorted(global_controller_list.iteritems()):
             print >>file, "[unit %s]" % unitID
 #           print >>file, 'network=%s' % unit_network_id[unitID]
-            print >>file, 'power=%s' % o.power_source.id
-            dump_object_constructor(file, o, supported_controller_types, skip=('power', 'network', 'id'))
+            print >>file, 'power_source=%s' % o.power_source.id
+            dump_object_constructor(file, o, supported_controller_types, skip=('power_source', 'network', 'id'))
             print >>file
             global_channel_list[unitID] = o.channels
         print >>file, '''
@@ -552,7 +574,7 @@ class Show (object):
 ;                   the channel to be turned competely off.  A value of 0 
 ;                   will keep the channel on, and dimmed to 0% output minimum.
 ;
-;   power=ID        power source ID feeding this channel, if different from the
+;   power_source=ID power source ID feeding this channel, if different from the
 ;                   one feeding the controller unit as a whole.
 ;'''
         for unitID, unit_channel_list in sorted(global_channel_list.iteritems()):
@@ -561,9 +583,9 @@ class Show (object):
                 print >>file, "[chan %s.%s]" % (unitID, channelID)
                 if o.warm is not None:
                     print >>file, 'warm=%.2f' % o.pct_dimmer_value(o.warm)
-                if o.power_source is not None and o.power is not unitObj.power_source:
-                    print >>file, 'power=%s' % o.power_source.id
-                dump_object_constructor(file, o, None, skip=('id', 'warm', 'power'), method=unitObj.add_channel)
+                if o.power_source is not None and o.power_source is not unitObj.power_source:
+                    print >>file, 'power_source=%s' % o.power_source.id
+                dump_object_constructor(file, o, None, skip=('id', 'warm', 'power_source'), method=unitObj.add_channel)
                 print >>file
         print >>file, ''';
 ; End Configuration Profile.
@@ -573,6 +595,70 @@ class Show (object):
         output = open(filename, "w")
         self.save(output)
         output.close()
+
+    def add_power_source(self, ps_obj):
+        if ps_obj.id in self.all_power_sources:
+            raise KeyError('Duplicate power source ID {0} cannot be added to show.'.format(ps_obj.id))
+
+        self.all_power_sources[ps_obj.id] = ps_obj
+        if ps_obj.parent_source is None:
+            self.top_power_sources.append(ps_obj.id)
+
+    def remove_power_source(self, ps_id):
+        if ps_id in self.all_power_sources: 
+            obj = self.all_power_sources[ps_id]
+            if obj.parent_source is not None:
+                obj.parent_source.orphan(obj)
+            del self.all_power_sources[ps_id]
+        if ps_id in self.top_power_sources: 
+            self.top_power_sources.remove(ps_id)
+
+    def remove_network(self, net_id):
+        del self.networks[net_id]
+
+    def add_network(self, net_id, net_obj):
+        if net_id in self.networks:
+            raise KeyError('Duplicate network ID {0} cannot be added to show.'.format(net_id))
+
+        self.networks[net_id] = net_obj
+
+    def remove_controller(self, ctl_obj):
+        del self.controllers[ctl_obj.id]
+        for n in self.networks:
+            if ctl_obj.id in self.networks[n].units:
+                del self.networks[n].units[ctl_obj.id]
+                
+    def rename_controller(self, old_id, new_id):
+        if old_id in self.controllers:
+            self.controllers[new_id] = self.controllers[old_id]
+            del self.controllers[old_id]
+        else:
+            raise KeyError("Can't rename controller from {0} to {1}: no such ID".format(old_id, new_id))
+
+    def add_controller(self, net_id, ctl_obj):
+        self.networks[net_id].add_unit(ctl_obj.id, ctl_obj)
+        self.controllers[ctl_obj.id] = ctl_obj
+
+    def change_controller_network(self, ctl_obj, new_net_id):
+        if new_net_id not in self.networks:
+            raise KeyError("Can't move controller to {0}: no such network".format(new_net_id))
+
+        new_net = self.networks[new_net_id]
+        if ctl_obj.network is not new_net:
+            if ctl_obj.network is not None:
+                ctl_obj.network.remove_unit(ctl_obj.id)
+            new_net.add_unit(ctl_obj.id, ctl_obj)
+
+    def find_network(self, net_obj):
+        "Locate a network object and return its ID"
+        # Yeah, this is because network objects don't know their own ID.
+        # On second thought, that wasn't a bright idea.
+        for n in self.networks:
+            if self.networks[n] is net_obj:
+                return n
+        return None
+
+
 
 # XXX call initializeDevice on all controllers
 # XXX startup all the comm network drivers

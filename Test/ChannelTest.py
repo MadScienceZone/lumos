@@ -28,8 +28,11 @@ import unittest
 from Lumos.Channel import Channel, DimmerError
 
 class ChannelTest (unittest.TestCase):
+    def SetUp(self):
+        self.power = PowerSource('ps')
+
 	def testCons(self):
-		ch = Channel('id', name='ch', load=3, dimmer=True, warm=20)
+		ch = Channel('id', name='ch', load=3, dimmer=True, warm=20, power=self.power)
 		self.assertEqual(ch.name, 'ch')
 		self.assertEqual(ch.load, 3)
 		self.assert_(ch.dimmer)
@@ -39,14 +42,14 @@ class ChannelTest (unittest.TestCase):
 		self.assertEqual(ch.set_off(), (None, 19))
 		self.assertEqual(ch.level, 19)
 
-		ch = Channel('id', name='ch', load=3, dimmer=False)
+		ch = Channel('id', name='ch', load=3, dimmer=False, power=self.power)
 		self.assertEqual(ch.name, 'ch')
 		self.assertEqual(ch.load, 3)
 		self.assert_(not ch.dimmer)
 		self.assertEqual(ch.warm, None)
 		self.assertEqual(ch.level, None)
 
-		ch2 = Channel('id2', load=2.3)
+		ch2 = Channel('id2', load=2.3, power=self.power)
 		self.assertEqual(ch2.name, 'Channel id2')
 		self.assertEqual(ch2.load, 2.3)
 		self.assert_(ch2.dimmer)
@@ -56,10 +59,10 @@ class ChannelTest (unittest.TestCase):
 		self.assertRaises(ValueError, Channel, 'id3')
 
 	def testInvalidDimmer(self):
-		self.assertRaises(DimmerError, Channel, 'id', load=2, dimmer=False, warm=20)
+		self.assertRaises(DimmerError, Channel, 'id', load=2, dimmer=False, warm=20, power=self.power)
 
 	def testResolution(self):
-		ch = Channel('ch', load=1, dimmer=True, resolution=32)
+		ch = Channel('ch', load=1, dimmer=True, resolution=32, power=self.power)
 		self.assertEqual(ch.raw_dimmer_value(0), 0)
 		self.assertEqual(ch.raw_dimmer_value(100), 31)
 		self.assertEqual(ch.raw_dimmer_value(50), 15)
@@ -69,7 +72,7 @@ class ChannelTest (unittest.TestCase):
 		self.assertEqual(ch.pct_dimmer_value(15), 48)
 
 	def testLevel(self):
-		ch = Channel('ch', load=1, dimmer=True, warm=10, resolution=100)
+		ch = Channel('ch', load=1, dimmer=True, warm=10, resolution=100, power=self.power)
 		self.assertEqual(ch.level, None)
 		ch.set_off()
 		self.assertEqual(ch.level, 9)
@@ -79,7 +82,7 @@ class ChannelTest (unittest.TestCase):
 	
 
 	def testLevel2(self):
-		ch = Channel('ch', load=1, dimmer=True, warm=10, resolution=48)
+		ch = Channel('ch', load=1, dimmer=True, warm=10, resolution=48, power=self.power)
 		ch.kill()
 		self.assertEqual(ch.level, None)
 		ch.set_off()
@@ -90,7 +93,7 @@ class ChannelTest (unittest.TestCase):
 		self.assertEqual(ch.level, 36)
 
 	def testLevelChange(self):
-		ch = Channel('ch', load=1, dimmer=True, warm=10, resolution=48)
+		ch = Channel('ch', load=1, dimmer=True, warm=10, resolution=48, power=self.power)
 		ch.kill()
 		self.assertEqual(ch.set_level(0), (None,4))
 		self.assertEqual(ch.set_level(0), (4,4))

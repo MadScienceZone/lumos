@@ -61,10 +61,10 @@ class RenardControllerUnit (ControllerUnit):
     appreciate any feedback you'd like to offer about this driver,
     if you're willing to try it and help us test/debug this code.
     """
-    def __init__(self, id, power, network, address, resolution=256, channels=64):
+    def __init__(self, id, power_source, network, address=0, resolution=256, channels=64):
         """
         Constructor for a Renard SSR board object:
-            RenardControllerUnit(id, power, network, address, [resolution], [channels])
+            RenardControllerUnit(id, power_source, network, [address], [resolution], [channels])
 
         Specify the correct PowerSource object for this unit and
         the unit address (0-127).  (We will call the first unit address 0,
@@ -80,7 +80,7 @@ class RenardControllerUnit (ControllerUnit):
         use 256 dimmer levels, so that's the default for that parameter.
         """
 
-        ControllerUnit.__init__(self, id, power, network, resolution)
+        ControllerUnit.__init__(self, id, power_source, network, resolution)
         self.address = int(address)
         self.type = 'Renard SSR Controller (%d channels)' % channels
         self.channels = [None] * channels
@@ -96,7 +96,7 @@ class RenardControllerUnit (ControllerUnit):
     def __str__(self):
         return "%s, address=%d (%d channels)" % (self.type, self.address, len(self.channels))
 
-    def add_channel(self, id, name=None, load=None, dimmer=True, warm=None, resolution=None, power=None):
+    def add_channel(self, id, name=None, load=None, dimmer=True, warm=None, resolution=None, power_source=None):
         try:
             id = int(id)
             assert 0 <= id < len(self.channels)
@@ -109,7 +109,7 @@ class RenardControllerUnit (ControllerUnit):
         else:
             resolution=self.resolution
 
-        ControllerUnit.add_channel(self, id, name, load, dimmer, warm, resolution, power)
+        ControllerUnit.add_channel(self, id, name, load, dimmer, warm, resolution, power_source)
     
     def set_channel(self, id, level, force=False):
         self.channels[id].set_level(level)

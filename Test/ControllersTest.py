@@ -40,15 +40,15 @@ class ControllersTest (unittest.TestCase):
         ps = Lumos.PowerSource.PowerSource('test', 1)
         nw = TestNetwork.TestNetwork()
 
-        u = controller_unit_factory(type='lynx10', id='lx', power=ps, network=nw)
+        u = controller_unit_factory(type='lynx10', id='lx', power_source=ps, network=nw)
         self.assert_(isinstance(u, LynX10ControllerUnit))
         self.assert_(isinstance(u, ControllerUnit))
 
-        u = controller_unit_factory(type='cm17a', id='cm', power=ps, network=nw)
+        u = controller_unit_factory(type='cm17a', id='cm', power_source=ps, network=nw)
         self.assert_(isinstance(u, FirecrackerX10ControllerUnit))
         self.assert_(isinstance(u, ControllerUnit))
 
-        u = controller_unit_factory(type='lumos', id='ss', power=ps, address=0, network=nw)
+        u = controller_unit_factory(type='lumos', id='ss', power_source=ps, address=0, network=nw)
         self.assert_(isinstance(u, LumosControllerUnit))
         self.assert_(isinstance(u, ControllerUnit))
 

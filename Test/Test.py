@@ -25,6 +25,40 @@
 # USE THIS PRODUCT AT YOUR OWN RISK.
 # 
 from unittest import TestSuite, findTestCases
+import sys
+
+TEST_WARNINGS={}
+
+class SkipWarning (object):
+    def __init__(self, msg):
+        self.count=1
+        self.msg=msg
+
+    def incr(self):
+        self.count += 1
+
+def warn_once(tag, message):
+    global TEST_WARNINGS
+
+    if not already_warned_about(tag):
+        TEST_WARNINGS[tag] = SkipWarning(message)
+        sys.stderr.write("WARNING: "+message+"\n")
+        sys.stderr.flush()
+    else:
+        TEST_WARNINGS[tag].incr()
+
+def already_warned_about(tag):
+    global TEST_WARNINGS
+    return tag in TEST_WARNINGS
+
+def accumulated_warnings():
+    global TEST_WARNINGS
+    return sorted(TEST_WARNINGS.values())
+
+def reset_accumulated_warnings():
+    global TEST_WARNINGS
+    for i in TEST_WARNINGS:
+        TEST_WARNINGS[i].count = 0
 
 def suite():
     modules_to_test = (

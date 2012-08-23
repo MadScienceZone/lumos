@@ -33,21 +33,21 @@ class ControllerUnit (object):
     This class describes attributes and behaviors common to all controller 
     unit types.
     """
-    def __init__(self, id, power, network, resolution=100):
+    def __init__(self, id, power_source, network, resolution=100):
         """
         Constructor for basic controller units.
-        id:          the ID tag this unit instance is known by.
-        power:       a PowerSource instance describing the power 
-                     feed for this unit  This will be the default
-                     source for all channels unless a channel 
-                     explicitly overrides this.
-        network:     a Network instance describing the communications
-                     network and protocol connected to this unit.
-        resolution:  default dimmer resolution for channels of this 
-                     device. [def=100]
+        id:           the ID tag this unit instance is known by.
+        power_source: a PowerSource instance describing the power 
+                      feed for this unit  This will be the default
+                      source for all channels unless a channel 
+                      explicitly overrides this.
+        network:      a Network instance describing the communications
+                      network and protocol connected to this unit.
+        resolution:   default dimmer resolution for channels of this 
+                      device. [def=100]
         """
         self.id = id
-        self.power_source = power
+        self.power_source = power_source
         self.channels = {}
         self.resolution = resolution
         self.network = network
@@ -59,10 +59,10 @@ class ControllerUnit (object):
 
         raise NotImplementedError("Subclasses of ControllerUnit must define a channel_id_from_string() method.")
 
-    def add_channel(self, id, name=None, load=None, dimmer=True, warm=None, resolution=None, power=None):
+    def add_channel(self, id, name=None, load=None, dimmer=True, warm=None, resolution=None, power_source=None):
         """
         Add an active channel for this controller.
-           add_channel(id, [name], [load], [dimmer], [warm], [resolution], [power])
+           add_channel(id, [name], [load], [dimmer], [warm], [resolution], [power_source])
 
         This constructs a channel object of the appropriate type and 
         adds it to this controller unit.  This may be of the the base 
@@ -75,8 +75,8 @@ class ControllerUnit (object):
         """
 
         if resolution is None: resolution = self.resolution
-        if power is None: power = self.power_source
-        self.channels[id] = Channel(id, name, load, dimmer, warm, resolution, power)
+        if power_source is None: power_source = self.power_source
+        self.channels[id] = Channel(id, name, load, dimmer, warm, resolution, power_source)
 
     def set_channel(self, id, level, force=False):
         raise NotImplementedError("Subclasses of ControllerUnit must define their own set_channel method.")

@@ -49,21 +49,12 @@ for file in files:
         print " Description:", s.description
         print "-" * 78
         print " POWER SOURCES:"
-    non_gfci = 0
     maxload = {}
     unitnames = {}
     for sourceID in sorted(s.all_power_sources):
         source = s.all_power_sources[sourceID]
         maxload[sourceID] = 0
-        if options.verbose: print "  %-10s %5gA" % (source.id, source.amps),
-        if source.gfci: 
-            if options.verbose: print "[GFCI]"
-        else: 
-            non_gfci += 1
-            if options.verbose: print
-    if non_gfci > 0:
-        print "*** WARNING *** %d CIRCUIT%s NOT GFCI-PROTECTED!" % (non_gfci, ('S ARE' if non_gfci>1 else ' IS'))
-        print "*** WARNING *** POSSIBLE SAFETY ISSUE--VERIFY GROUND-FAULT HAZARD AT VENUE"
+        if options.verbose: print "  %-10s %5gA" % (source.id, source.amps)
 
     if options.verbose:
         print "-" * 78
@@ -91,7 +82,7 @@ for file in files:
             
         print "-" * 78
         print " DEVICE CHANNELS:"
-        print "  UNIT    CHAN POWER   LOAD D WARM DESCRIPTION"
+        print "  UNIT     CHAN POWER   LOAD D WARM DESCRIPTION"
 
     for netID in sorted(s.networks):
         net = s.networks[netID]
@@ -106,7 +97,7 @@ for file in files:
                 if options.verbose:
                     D = '-'
                     if channel.dimmer: D = 'D'
-                    print "  %-7s %4s %-6s %4.2gA %s %3d%% %s" %(
+                    print "  %-8s %4s %-6s %4.2gA %s %3d%% %s" %(
                         unitID, chanID, channel_source.id, channel_power, D,
                         channel.pct_dimmer_value(channel.warm), channel.name)
                 maxload[channel_source.id] += channel_power

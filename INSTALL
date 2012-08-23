@@ -17,6 +17,22 @@ that your system includes the following software which Lumos requires:
    along with the Lumos distribution if you can't find them at their official
    distribution sites.
 
+   Note the following about usage of these packages on different operating
+   systems:
+
+   WINDOWS
+	* You need to install the giveio driver to provide direct access to
+	  the hardware.  USB parallel port adapters won't work according to
+  	  the pyparallel documentation.
+   LINUX/BSD
+	* The lp(4) module needs to be unloaded ("rmmod lp") because it holds
+   	  exclusive access to the parallel port.
+	* The ppdev(4) module needs to be loaded ("modprobe ppdev").  This 
+ 	  should create /dev/parport.
+	* Add the user who will run Lumos to the group necessary to allow write
+	  access to the parallel port.
+   MAC OSX
+
 ________________________________________________________________________________
 (1) Unpack the Lumos distribution into a temporary working directory, and 
     change to that directory.  

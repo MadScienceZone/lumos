@@ -35,18 +35,15 @@ class PowerSource (object):
     of the current load we're pulling at any given time.
     """
     
-    def __init__(self, id, amps=0, gfci=False):
+    def __init__(self, id, amps=0):
         """
         Constructor for the PowerSource class:
-            PowerSource([amps], [gfci=False])
+            PowerSource([amps])
         
         amps: The current rating AVAILABLE TO US from this power source
         (i.e., if there is anything else on that circuit, subtract its
         load from the circuit capacity first, so this number reflects the
         total number of amps that we can pull at any given time.)
-
-        gfci: Whether or not the circuit has GFCI protection.  The default
-        is False (no GFCI protection).
         """
         self.id = id
         self.subordinates = []
@@ -57,18 +54,8 @@ class PowerSource (object):
         except:
             raise ValueError, "amps must be a numeric value"
 
-        if isinstance(gfci, bool):
-            self.gfci = gfci
-        else:
-            raise ValueError, "gfci value must be a boolean"
-
     def add_subordinate_source(self, child_obj):
         "Add a child PowerSource to this one."
-        if self.gfci != child_obj.gfci:
-            raise IncompatibleGFIC('Power source %s is listed as %sGFCI, but %s is %sGFCI.' % (
-                self.id, '' if self.gfci else 'non-',
-                child_obj.id, '' if child_obj.gfci else 'non-'
-            ))
 
         if child_obj.parent_source is not None:
             raise PowerSourceStackError("Power source %s already has %s as a parent; can't add %s" % (
@@ -77,6 +64,14 @@ class PowerSource (object):
 
         self.subordinates.append(child_obj)
         child_obj.parent_source = self
+
+    def orphan(self, child_obj):
+        "Remove a child source."
+        if self.subordinates and child_obj in self.subordinates:
+            self.subordinates.remove(child_obj)
+            if len(self.subordinates) == 0:
+                self.subordinates = None
+
 
 #
 # $Log: not supported by cvs2svn $

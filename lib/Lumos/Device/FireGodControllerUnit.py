@@ -57,10 +57,10 @@ class FireGodControllerUnit (ControllerUnit):
     appreciate any feedback you'd like to offer about this driver,
     if you're willing to try it and help us test/debug this code.
     """
-    def __init__(self, id, power, network, address, resolution=101, channels=32):
+    def __init__(self, id, power_source, network, address=1, resolution=101, channels=32):
         """
         Constructor for a FireGod dimmable 128-channel SSR board object:
-            FireGodControllerUnit(power, id, network, address, [resolution], [channels])
+            FireGodControllerUnit(id, power_source, network, [address], [resolution], [channels])
 
         Specify the correct PowerSource object for this unit and
         the module address (1-4).  The number of channels defaults to 32, but this
@@ -72,7 +72,7 @@ class FireGodControllerUnit (ControllerUnit):
         use 101 dimmer levels (0%-100%), so that's the default for that parameter.
         """
 
-        ControllerUnit.__init__(self, id, power, network, resolution)
+        ControllerUnit.__init__(self, id, power_source, network, resolution)
         self.address = int(address)
         self.type = 'FireGod SSR Controller (%d channels)' % channels
         self.channels = [None] * channels
@@ -91,7 +91,7 @@ class FireGodControllerUnit (ControllerUnit):
     #def iter_channels(self):
         #return range(len(self.channels))
 
-    def add_channel(self, id, name=None, load=None, dimmer=True, warm=None, resolution=None, power=None):
+    def add_channel(self, id, name=None, load=None, dimmer=True, warm=None, resolution=None, power_source=None):
         try:
             id = int(id)
             assert 0 <= id < len(self.channels)
@@ -104,7 +104,7 @@ class FireGodControllerUnit (ControllerUnit):
         else:
             resolution=self.resolution
 
-        ControllerUnit.add_channel(self, id, name, load, dimmer, warm, resolution, power)
+        ControllerUnit.add_channel(self, id, name, load, dimmer, warm, resolution, power_source)
     
     def set_channel(self, id, level, force=False):
         self.channels[id].set_level(level)

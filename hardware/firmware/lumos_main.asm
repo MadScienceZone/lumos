@@ -67,11 +67,14 @@
 ; .  .  *  . BOOT  Halted during EEPROM read / system init
 ; .  *  *  . BOOT  Halted during system initialization
 ; .  *  .  . BOOT  Initialized but main loop or timing system non-functional
+;** ** ** ** RUN   Factory defaults restored (then reboots)
 ; . (*) .  . RUN   Normal operations
 ; ! (*) X  X RUN   Received command for this unit
 ; X  X  !  X RUN   Master/Slave communications
 ; X  X  X  * RUN   Command error
-; X  X  X ** RUN   Communications error
+; X  X  * ** RUN   Communications error (framing error)
+; X  X ** ** RUN   Communications error (overrun error)
+; X  X (*)** RUN   Communications error (buffer full error)
 ; . () () () SLEEP Sleep Mode
 ; .  .  .  * HALT  System Halted normally
 ; ?  ?  ? ** HALT  Fatal error (exact error displayed on other LEDs)
@@ -553,17 +556,23 @@ CYCLE_TMR_PERIOD	 EQU	0x5D3D
 ; $500 |                 | _MAINDATA         BANK 5
 ;      |                 |
 ;      |_________________|___ ___ ___ ___ ___ ___ ___ ___
-; $600 |/////////////////|
-;      |/////////////////|
+; $600 | Stored sequences| _SEQ_DATA         BANK 6
+;      | (1792 bytes)    |
 ;              .
-;              .                 UNUSED MEMORY BANKS
-;              .                        (6-E)
-;      |/////////////////|
-;      |/////////////////|
-;      |/////////////////|___ ___ ___ ___ ___ ___ ___ ___
-; $F00 |/////////////////|                   BANK F
-;      |/////////////////|
-; $F5F |/////////////////|...............................
+;              .                 
+;              .                
+;      |                 |
+;      |                 |
+;      |_________________|___ ___ ___ ___ ___ ___ ___ ___
+; $D00 |                 |                   BANK D
+;      | CAN special     |
+;      | function        |___ ___ ___ ___ ___ ___ ___ ___
+; $E00 | registers       |                   BANK E
+;      | (not used for   |
+;      | Lumos)          |___ ___ ___ ___ ___ ___ ___ ___
+; $F00 |                 |                   BANK F
+;      |                 |
+; $F5F |.................|...............................
 ; $F60 | Special Function|                (ACCESS AREA)
 ;      | (device) regis- |
 ;      | ters            |
@@ -573,24 +582,50 @@ CYCLE_TMR_PERIOD	 EQU	0x5D3D
 ; EEPROM MEMORY
 ;
 ;
-;      _____+00______   _____+40______   _____+80______   _____+C0______ 
-; $00 |_0xFF_________| |______________| |______________| |______________|
-; $01 |_Baud_Rate____| |______________| |______________| |______________|
-; $02 |_Device_ID____| |______________| |______________| |______________|
-; $03 |_Phase_Offset_| |______________| |______________| |______________|
-; $04 |______V_______| |______________| |______________| |______________|
-; $05 |______________| |______________| |______________| |______________|
-;            .                .                .                .
-;            .                .                .                .
-;      ______._______   ______._______   ______._______   ______._______
-; $3F |______________| |______________| |______________| |______________|
+;       ______________            ______________ 
+; $000 |_0xFF_________|     $010 | Saved        |
+; $001 |_Baud_Rate____|     $011 | Sequence     |
+; $002 |_Device_ID____|     $012 | Storage      |
+; $003 | Phase     MSB|     $013 |       |      |
+; $004 |_Offset____LSB|     $014 |       |      |
+; $005 |______________|     $015 |       |      |
+; $006 |______________|       .          .
+; $007 |______________|       .          .
+; $008 |______________|       .          .
+; $009 |______________|     $3F9 |       |      |
+; $00A |______________|     $3FA |       |      |
+; $00B |______________|     $3FB | (1008 |      |
+; $00C |______________|     $3FC | bytes)|      |
+; $00D |______________|     $3FD |       |      |
+; $00E |______________|     $3FE |       |      |
+; $00F |_0x42_________|     $3FF |_______V______|
+;
 ;
 _EEPROM	CODE_PACK	0xF00000
 	DE	0xFF		; 000: 0xFF constant
 	DE	SIO_19200	; 001: baud rate default
 	DE	0x00		; 002: default device ID
 	DE	0x00, 0x02	; 003: default phase offset
-				; 005:
+	DE	0x00, 0x00, 0x00; 005: reserved
+	DE	0x00, 0x00, 0x00; 008: reserved
+	DE	0x00, 0x00, 0x00; 00B: reserved
+	DE	0x00            ; 00E: reserved
+	DE	0x42		; 00F: sentinel
+
+_EEPROM_DEFS_TBL CODE_PACK
+DEFAULT_TBL:
+	DB	0xFF			; $000: constant $FF
+	DB	SIO_19200		; $001: 19200 baud
+	DB	0x00			; $002: device ID=0
+	DB	0x00, 0x02		; $003: phase offset=2
+	DB	0x00, 0x00, 0x00, 0x00	; $005-$008
+	DB	0x00, 0x00, 0x00, 0x00	; $009-$00C
+	DB 	0x00, 0x00		; $00D-$00E
+	DB	0x42			; $00F: constant $42
+
+EEPROM_SETTINGS_LEN	EQU	.16
+EEPROM_USER_START	EQU	0x010	
+EEPROM_USER_END		EQU	0x3FF
 ;
 ; ========================================================================
 ; DEVICES USED
@@ -669,6 +704,18 @@ _EEPROM	CODE_PACK	0xF00000
 ;                    |______|______|______|______|______|______|______|______|
 ; CUR_SLICE          |                                                       |
 ;                    |      Slice number within active portion of cycle      |
+;                    |______|______|______|______|______|______|______|______|
+; I                  |                                                       |
+;                    |      General-purpose local counter variable           |
+;                    |______|______|______|______|______|______|______|______|
+; J                  |                                                       |
+;                    |      General-purpose local counter variable           |
+;                    |______|______|______|______|______|______|______|______|
+; K                  |                                                       |
+;                    |      General-purpose local counter variable           |
+;                    |______|______|______|______|______|______|______|______|
+; KK                 |                                                       |
+;                    |      General-purpose local counter variable           |
 ;                    |______|______|______|______|______|______|______|______|
 ;
 ;
@@ -951,35 +998,45 @@ START:
 	;
 	BSF	PLAT_RED, BIT_RED, ACCESS	; Panel: () () () R
 	;
-	; write 0xFF to 0x000
+	; XXX Test sentinel values $000==$FF and $00F==$42.
+	; XXX If they are not there, do a full factory reset of those
+	; XXX settings to restore something that we know will work.
 	;
-	CLRF	EEADRH, ACCESS		; EEPROM location 0x000: 0xFF
-	CLRF	EEADR, ACCESS		; interrupts are OFF here!
-	MOVLW	0xFF			; This covers a bug in the 16F877A which these
-	MOVWF	EEDATA, ACCESS		; boards used to use.
+	;
+	; XXX Read values
+	;
+	CLRWDT
+	CLRF	EEADRH, ACCESS		; EEPROM location $000
+	CLRF	EEADR, ACCESS		; (note interrupts are still off now)
 	BCF	EECON1, EEPGD, ACCESS	; select DATA EEPROM as target
 	BCF	EECON1, CFGS, ACCESS
-	BSF	EECON1, WREN, ACCESS	; enable writing
+	BCF	EECON1, WREN, ACCESS	; disable writing
+	BSF 	EECON1, RD, ACCESS	; initiate read operation
+	MOVLW	0xFF			; 
+	CPFSEQ	EEDATA, ACCESS		; byte == $FF?
+	BRA	FACTORY_RESET		; if not, overwrite everything!
+	MOVLW	0x0F			; try ending sentinel
+	MOVWF	EEADR, ACCESS		; at $00F
+	BSF	EECON1, RD, ACCESS
+	MOVLW	0x42
+	CPFSEQ	EEDATA, ACCESS		; byte == $42?
+	BRA	FACTORY_RESET		; else, overwrite.
+	;
+	; Values checked out, so assume EEPROM is intact.
+	; Read values into RAM variables and continue booting.
+	;
+	CLRWDT
 	BCF	PIR2, EEIF, ACCESS	; clear interrupt flag
-	CLRWDT
-	MOVLW	0x55
-	MOVWF	EECON2, ACCESS
-	MOVLW	0xAA
-	MOVWF	EECON2, ACCESS
-	BSF	EECON1, WR, ACCESS	; start write cycle
-	BSF	PLAT_YELLOW, BIT_YELLOW, ACCESS	; Panel: () () Y R
-	CLRWDT
-	BTFSS	PIR2, EEIF, ACCESS	; wait until write completes
-	BRA	$-2
-	CLRWDT
-	BCF	PIR2, EEIF, ACCESS	; clear interrupt flag
-	BCF	PLAT_RED, BIT_RED, ACCESS	; Panel: () () Y ()
+	BCF	PLAT_RED, BIT_RED, ACCESS	
+	BSF	PLAT_YELLOW, BIT_YELLOW, ACCESS	; Panel: () () Y ()
 	;
 	BCF	EECON1, WREN, ACCESS	; Read (not write) access to memory
 	BCF	EECON1, EEPGD, ACCESS	; Select access to DATA area
 	BCF	EECON1, CFGS, ACCESS
 	;
-	INCF	EEADR, F, ACCESS	; EEPROM location 0x001: baud rate
+	CLRF	EEADRH, ACCESS
+	MOVLW	1
+	MOVWF	EEADR, ACCESS		; EEPROM location 0x001: baud rate
 	BSF	EECON1, RD, ACCESS
 	MOVF	EEDATA, W, ACCESS
 	CALL	SIO_SET_BAUD_W
@@ -1008,14 +1065,14 @@ START:
 	;
 	CLRF	SSR_STATE, ACCESS
 	BANKSEL	SSR_DATA_BANK
-I 	SET	0
-	WHILE I<=SSR_MAX
-	 CLRF	SSR_00_VALUE+#v(I), BANKED	; all SSRs OFF
-	 CLRF	SSR_00_FLAGS+#v(I), BANKED	; all SSR flags cleared
-	 CLRF	SSR_00_STEP+#v(I), BANKED
-	 CLRF	SSR_00_SPEED+#v(I), BANKED
-	 CLRF	SSR_00_COUNTER+#v(I), BANKED
-I	 ++
+N 	SET	0
+	WHILE N<=SSR_MAX
+	 CLRF	SSR_00_VALUE+#v(N), BANKED	; all SSRs OFF
+	 CLRF	SSR_00_FLAGS+#v(N), BANKED	; all SSR flags cleared
+	 CLRF	SSR_00_STEP+#v(N), BANKED
+	 CLRF	SSR_00_SPEED+#v(N), BANKED
+	 CLRF	SSR_00_COUNTER+#v(N), BANKED
+N	 ++
 	ENDW
 	;
 	; Timer 0 for non-ZC boards
@@ -1058,6 +1115,83 @@ I	 ++
 	CLRF	SSR_00_VALUE+SSR_GREEN, BANKED	; Green light cycles ~ 4 Hz
 	SET_SSR_PATTERN SSR_GREEN, 0, 1, 1, FADE_UP|FADE_CYCLE
 	GOTO	MAIN
+
+FACTORY_RESET:
+	CLRWDT
+	;
+	; write default configuration to EEPROM
+	;
+	BCF	INTCON, GIEH, ACCESS	; Disable high-priority interrupts
+	BCF	INTCON, GIEL, ACCESS	; Disable low-priority interrupts
+	CLRF	EEADRH, ACCESS		; EEPROM location 0x000
+	CLRF	EEADR, ACCESS		; NOTE interrupts need to be OFF here!
+
+	MOVLW	UPPER(DEFAULT_TBL)	; load lookup table pointer
+	MOVWF	TBLPRTU, ACCESS
+	MOVLW	HIGH(DEFAULT_TBL)
+	MOVWF	TBLPTRH, ACCESS
+	MOVLW	LOW(DEFAULT_TBL)
+	MOVWF	TBLPTR, ACCESS
+
+	BCF	EECON1, EEPGD, ACCESS	; select DATA EEPROM as target
+	BCF	EECON1, CFGS, ACCESS
+	BSF	EECON1, WREN, ACCESS	; enable writing
+
+	MOVLW	EEPROM_SETTINGS_LEN
+	MOVWF	I, ACCESS
+
+FACTORY_RESET_LOOP:
+	TBLRD	*+			; byte -> TABLAT
+	MOVFF	TABLAT, EEDATA
+
+	BCF	PIR2, EEIF, ACCESS	; clear interrupt flag
+	MOVLW	0x55
+	MOVWF	EECON2, ACCESS
+	MOVLW	0xAA
+	MOVWF	EECON2, ACCESS
+	BSF	EECON1, WR, ACCESS	; start write cycle
+	BSF	PLAT_YELLOW, BIT_YELLOW, ACCESS	; Panel: () () Y R
+	BTFSS	PIR2, EEIF, ACCESS	; wait until write completes
+	BRA	$-2
+	CLRWDT
+	BCF	PIR2, EEIF, ACCESS	; clear interrupt flag
+	BCF	PLAT_YELLOW, BIT_YELLOW, ACCESS	; Panel: () () () R
+
+	DECFSZ	I, F, ACCESS
+	BRA	FACTORY_RESET_LOOP
+
+	MOVLW	.16
+	MOVWF	I, ACCESS
+
+FACTORY_RESET_FLASH:
+	BSF	PLAT_ACTIVE, BIT_ACTIVE, ACCESS	; Panel: A G Y R
+	BSF	PLAT_GREEN, BIT_GREEN, ACCESS
+	BSF	PLAT_YELLOW, BIT_YELLOW, ACCESS
+	BSF	PLAT_RED, BIT_RED, ACCESS
+	RCALL	DELAY_1_6_SEC
+	BCF	PLAT_ACTIVE, BIT_ACTIVE, ACCESS	; Panel: () () () ()
+	BCF	PLAT_GREEN, BIT_GREEN, ACCESS
+	BCF	PLAT_YELLOW, BIT_YELLOW, ACCESS
+	BCF	PLAT_RED, BIT_RED, ACCESS
+	RCALL	DELAY_1_6_SEC
+	DECFSZ	I, F, ACCESS
+	BRA	FACTORY_RESET_FLASH
+
+	RESET
+
+DELAY_1_6_SEC:	; Approx 1/6 sec delay loop
+	CLRWDT
+	MOVLW	.8
+	MOVWF	KK, ACCESS
+	SETF	J, ACCESS
+	SETF	K, ACCESS
+	DECFSZ	K, F, ACCESS
+	BRA	$-2
+	DECFSZ	J, F, ACCESS
+	BRA	$-8
+	DECFSZ	KK, F, ACCESS
+	BRA	DELAY_1_6_SEC
+	RETURN
 
 ;==============================================================================
 ; INTERRUPT HANDLERS
@@ -1168,6 +1302,10 @@ SSR_STATE	RES	1		; major state/timing flags
 CUR_PREH	RES	1
 CUR_PRE		RES	1
 CUR_SLICE	RES	1
+I               RES	1
+J               RES	1
+K               RES	1
+KK              RES	1
 
 ;==============================================================================
 ; DATA BANK 4
@@ -1185,6 +1323,12 @@ SSR_00_COUNTER	RES	SSR_MAX+1
 ;______________________________________________________________________________
 MAIN_DATA	EQU	0x500
 _MAINDATA	UDATA	MAIN_DATA
+
+;==============================================================================
+; DATA BANKS 6-: SEQUENCE STORAGE
+;______________________________________________________________________________
+SEQ_DATA	EQU	0x600
+_SEQ_DATA	UDATA	SEQ_DATA
 
 ;==============================================================================
 ; MAINLINE CODE
@@ -1236,28 +1380,53 @@ SET_SSR_PATTERN	MACRO IDX, LEVEL, STEP, SPEED, FLAGS
 	 MOVLW	FLAGS
 	 MOVWF	SSR_00_FLAGS+IDX, BANKED
 	ENDM
-	
+
+SET_SSR_RAPID_FLASH MACRO IDX
+	 SET_SSR_PATTERN IDX, 255, 255, 30, FADE_DOWN|FADE_CYCLE
+	ENDM
+
+SET_SSR_BLINK_FADE MACRO IDX
+	 SET_SSR_PATTERN IDX, 255,   2,  1, FADE_DOWN
+	ENDM
+
+SET_SSR_SLOW_FLASH MACRO IDX
+	; XXX need a sequence for this?
+	ENDM
+
+SET_SSR_SLOW_FADE MACRO IDX
+	 SET_SSR_PATTERN IDX, 0, 1, 1, FADE_UP|FADE_CYCLE
+	ENDM
+
+SET_SSR_STEADY MACRO IDX
+	 SET_SSR_VALUE IDX, 255
+	ENDM
+
+SET_SSR_OFF MACRO IDX
+	 SET_SSR_VALUE IDX, 0
+	ENDM
+
 ERR_SERIAL_FRAMING:
-	; error -- rapid flash red light
+	BANKSEL	SIO_STATUS
 	BCF	SIO_STATUS, SIO_FERR, BANKED
-	SET_SSR_PATTERN SSR_RED, 255, 255, 30, FADE_DOWN|FADE_CYCLE
+	SET_SSR_RAPID_FLASH SSR_RED
+	SET_SSR_STEADY SSR_YELLOW
 	RETURN
 	
 ERR_SERIAL_OVERRUN:
-	; error -- rapid flash red light
+	BANKSEL	SIO_STATUS
 	BCF	SIO_STATUS, SIO_ORUN, BANKED
-	SET_SSR_PATTERN SSR_RED, 255, 255, 30, FADE_DOWN|FADE_CYCLE
+	SET_SSR_RAPID_FLASH SSR_RED
+	SET_SSR_RAPID_FLASH SSR_YELLOW
 	RETURN
 
 ERR_SERIAL_FULL:
-	; error -- rapid flash red light
-	SET_SSR_PATTERN SSR_RED, 255, 255, 30, FADE_DOWN|FADE_CYCLE
+	SET_SSR_RAPID_FLASH SSR_RED
+	SET_SSR_SLOW_FADE SSR_YELLOW
 	; XXX clear input buffer and reset state machine
 	RETURN
 
 ERR_COMMAND:
-	; error == light red light
-	SET_SSR_LEVEL SSR_RED, 255
+	SET_SSR_STEADY SSR_RED
 	RETURN
 
 RECEIVE_COMMAND:
@@ -1285,12 +1454,13 @@ CMD_BIT	EQU	7
 	; command to complete?  If so, abort it and start over.
 	; otherwise, get to work.
 	;
-	MOVF	SSR_STATE, WREG, ACCESS
-	ANDLW	STATE_MSK
-	BTFSS	STATUS, Z, ACCESS
-	BRA	CMD_ABORT
+	;MOVF	SSR_STATE, WREG, ACCESS
+	;ANDLW	STATE_MSK
+	;BTFSS	STATUS, Z, ACCESS
+	;BRA	CMD_ABORT
 	;XXX left off here
-	
+	BRA	ERR_COMMAND
+DATA_BYTE:
 	RETURN
 
 UPDATE_SSR_OUTPUTS:
@@ -1305,16 +1475,16 @@ UPDATE_SSR_OUTPUTS:
 	; using a run-time loop or subroutines to calculate the bits
 	; and ports for each.  (Like we used to in the previous version.)
 	;
-I 	SET	0
-	WHILE I <= SSR_MAX
-	 CPFSEQ	SSR_00_VALUE+#v(I), BANKED	; is this SSR set to our slice value?
+X 	SET	0
+	WHILE X <= SSR_MAX
+	 CPFSEQ	SSR_00_VALUE+#v(X), BANKED	; is this SSR set to our slice value?
 	 BRA	$+4
- 	 IF I >= SSR_LIGHTS
-	  BSF	PLAT_#v(I), BIT_#v(I), ACCESS	; turn on light
+ 	 IF X >= SSR_LIGHTS
+	  BSF	PLAT_#v(X), BIT_#v(X), ACCESS	; turn on light
  	 ELSE
-	  BCF	PLAT_#v(I), BIT_#v(I), ACCESS	; turn on SSR
+	  BCF	PLAT_#v(X), BIT_#v(X), ACCESS	; turn on SSR
  	 ENDIF
-I	 ++
+X	 ++
 	ENDW
 	DECF	CUR_SLICE, F, ACCESS
 	RETURN
@@ -1324,46 +1494,46 @@ UPDATE_MINIMUM_LEVEL:
 	; turn off every output that isn't set to be fully on
 	; and handle ramping up/down
 	;
-I 	SET	0
-	WHILE I <= SSR_MAX
- 	 COMF	SSR_00_VALUE+#v(I), W, BANKED	; is this set to maximum?
+X 	SET	0
+	WHILE X <= SSR_MAX
+ 	 COMF	SSR_00_VALUE+#v(X), W, BANKED	; is this set to maximum?
 	 BZ	$+4
-  	 IF I >= SSR_LIGHTS
-	  BCF	PLAT_#v(I), BIT_#v(I), ACCESS	; turn off light
+  	 IF X >= SSR_LIGHTS
+	  BCF	PLAT_#v(X), BIT_#v(X), ACCESS	; turn off light
  	 ELSE
-	  BSF	PLAT_#v(I), BIT_#v(I), ACCESS	; turn off SSR
+	  BSF	PLAT_#v(X), BIT_#v(X), ACCESS	; turn off SSR
  	 ENDIF
 
-	 BTFSS	SSR_00_FLAGS+#v(I), FADE_UP, BANKED
-	 BRA	TRY_DOWN_#v(I)
-	 DECFSZ	SSR_00_COUNTER+#v(I), F, BANKED		; delay to next step
-	 BRA	END_FADE_#v(I)
-	 MOVFF	SSR_00_SPEED+#v(I), SSR_00_COUNTER+#v(I)
-	 MOVF	SSR_00_STEP+#v(I), W, BANKED
-	 ADDWF	SSR_00_VALUE+#v(I), F, BANKED
-	 BNC 	END_FADE_#v(I)
-	 SETF	SSR_00_VALUE+#v(I), BANKED		; reached max value
-	 BCF	SSR_00_FLAGS+#v(I), FADE_UP, BANKED	; stop fading
-	 BTFSC	SSR_00_FLAGS+#v(I), FADE_CYCLE, BANKED	; cycle back?
-	 BSF	SSR_00_FLAGS+#v(I), FADE_DOWN, BANKED	
-	 BRA	END_FADE_#v(I)
+	 BTFSS	SSR_00_FLAGS+#v(X), FADE_UP, BANKED
+	 BRA	TRY_DOWN_#v(X)
+	 DECFSZ	SSR_00_COUNTER+#v(X), F, BANKED		; delay to next step
+	 BRA	END_FADE_#v(X)
+	 MOVFF	SSR_00_SPEED+#v(X), SSR_00_COUNTER+#v(X)
+	 MOVF	SSR_00_STEP+#v(X), W, BANKED
+	 ADDWF	SSR_00_VALUE+#v(X), F, BANKED
+	 BNC 	END_FADE_#v(X)
+	 SETF	SSR_00_VALUE+#v(X), BANKED		; reached max value
+	 BCF	SSR_00_FLAGS+#v(X), FADE_UP, BANKED	; stop fading
+	 BTFSC	SSR_00_FLAGS+#v(X), FADE_CYCLE, BANKED	; cycle back?
+	 BSF	SSR_00_FLAGS+#v(X), FADE_DOWN, BANKED	
+	 BRA	END_FADE_#v(X)
 
-TRY_DOWN_#v(I):
-	 BTFSS	SSR_00_FLAGS+#v(I), FADE_DOWN, BANKED
-	 BRA	END_FADE_#v(I)
-	 DECFSZ	SSR_00_COUNTER+#v(I), F, BANKED		; delay
-	 BRA	END_FADE_#v(I)
-	 MOVFF	SSR_00_SPEED+#v(I), SSR_00_COUNTER+#v(I); reset delay
-	 MOVF	SSR_00_STEP+#v(I), W, BANKED
-	 SUBWF	SSR_00_VALUE+#v(I), F, BANKED
-	 BC 	END_FADE_#v(I)
-	 CLRF	SSR_00_VALUE+#v(I), BANKED		; reached min value
-	 BCF	SSR_00_FLAGS+#v(I), FADE_DOWN, BANKED	; stop fading
-	 BTFSC	SSR_00_FLAGS+#v(I), FADE_CYCLE, BANKED	; cycle back?
-	 BSF	SSR_00_FLAGS+#v(I), FADE_UP, BANKED
+TRY_DOWN_#v(X):
+	 BTFSS	SSR_00_FLAGS+#v(X), FADE_DOWN, BANKED
+	 BRA	END_FADE_#v(X)
+	 DECFSZ	SSR_00_COUNTER+#v(X), F, BANKED		; delay
+	 BRA	END_FADE_#v(X)
+	 MOVFF	SSR_00_SPEED+#v(X), SSR_00_COUNTER+#v(X); reset delay
+	 MOVF	SSR_00_STEP+#v(X), W, BANKED
+	 SUBWF	SSR_00_VALUE+#v(X), F, BANKED
+	 BC 	END_FADE_#v(X)
+	 CLRF	SSR_00_VALUE+#v(X), BANKED		; reached min value
+	 BCF	SSR_00_FLAGS+#v(X), FADE_DOWN, BANKED	; stop fading
+	 BTFSC	SSR_00_FLAGS+#v(X), FADE_CYCLE, BANKED	; cycle back?
+	 BSF	SSR_00_FLAGS+#v(X), FADE_UP, BANKED
 
-END_FADE_#v(I):
-I	 ++
+END_FADE_#v(X):
+X	 ++
 	ENDW
 	BCF	SSR_STATE, INCYC, ACCESS	; shut down slice processing until next ZC
 	RETURN

@@ -40,13 +40,10 @@ class ShowTest (unittest.TestCase):
 
         self.assertEqual(g.title, "Example Show")
         self.assertEqual(g.description, "This is an example of how to set up a Lumos show.conf file.\nYou should take this file and edit it to reflect\nyour actual show setup.")
-        self.assertEqual(sorted(g.power_sources.keys()), ['1', '2a', '2b'])
-        self.assertEqual(g.power_sources['1'].amps, 20)
-        self.assert_(g.power_sources['1'].gfci)
-        self.assertEqual(g.power_sources['2a'].amps, 15)
-        self.assert_(not g.power_sources['2a'].gfci)
-        self.assertEqual(g.power_sources['2b'].amps, 15.5)
-        self.assert_(not g.power_sources['2b'].gfci)
+        self.assertEqual(sorted(g.all_power_sources.keys()), ['1', '2a', '2b'])
+        self.assertEqual(g.all_power_sources['1'].amps, 20)
+        self.assertEqual(g.all_power_sources['2a'].amps, 15)
+        self.assertEqual(g.all_power_sources['2b'].amps, 15.5)
 
         self.assertEqual(sorted(g.networks.keys()), ['floods', 'misc', 'trees'])
         for key, desc, port, baud, bits, units in (
@@ -61,19 +58,19 @@ class ShowTest (unittest.TestCase):
             ),
             ('misc', "Everything that's not a floodlight or a tree.", 
                 1, 9600, 8, [
-                    ('a', '2a', '48-Channel SSR Controller', 9),
-                    ('b', '2a', '48-Channel SSR Controller', 10)
+                    ('a', '2a', 'Lumos 48-Channel SSR Controller', 9),
+                    ('b', '2a', 'Lumos 48-Channel SSR Controller', 10)
                 ]
             ),
             ('trees', 'Separate network of controllers for tree displays.', 
                 0, 19200, 8, [
-                    ('treea1', '1', '48-Channel SSR Controller', 0, (
+                    ('treea1', '1', 'Lumos 48-Channel SSR Controller', 0, (
                         (0, 'Tree 1 RED 1', .3, None, True),
                         (1, 'Tree 1 RED 2', .3, None, True),
                     )),
-                    ('treea2', '1', '48-Channel SSR Controller', 1),
-                    ('treeb1', '1', '48-Channel SSR Controller', 2),
-                    ('treeb2', '1', '48-Channel SSR Controller', 3)
+                    ('treea2', '1', 'Lumos 48-Channel SSR Controller', 1),
+                    ('treeb1', '1', 'Lumos 48-Channel SSR Controller', 2),
+                    ('treeb2', '1', 'Lumos 48-Channel SSR Controller', 3)
                 ]
             )
         ):
@@ -116,8 +113,8 @@ class ShowTest (unittest.TestCase):
             result_1_data = open('savetest.out.conf').read()
             result_2_data = open('savetest.out2.conf').read()
 
-            self.assertEqual(original_data, result_1_data)
-            self.assertEqual(original_data, result_2_data)
+            self.assertEqual(original_data, result_1_data, msg="savetest.cmp.conf vs. savetest.out.conf differ")
+            self.assertEqual(original_data, result_2_data, msg="savetest.cmp.conf vs. savetest.out2.conf differ")
         #finally:
             #for name in 'savetest.out.conf', 'savetest.out2.conf':
                 #if os.path.exists(name): os.remove(name)

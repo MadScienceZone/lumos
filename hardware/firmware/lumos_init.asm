@@ -214,7 +214,7 @@ LUMOS_INIT:
 	CLRF	CVRCON, ACCESS	; turn off comparator voltage reference
 				;
 	MOVLW 	b'00011111'	; PORT A: 
-		; XX------	; Serial I/O pins
+		; XX------	; crystal oscillator pins
 		; --0-----	; T/R pin to RECEIVE mode / ACT light OFF
 		; ---11111	; SSR pins HIGH (relays off)
 	MOVWF	PORTA, ACCESS	; 
@@ -224,28 +224,25 @@ LUMOS_INIT:
 		; --11111-	; SSR pins HIGH (relays off)
 		; -------0	; T/R to RECEIVE (standalone board; input on others)
 	MOVWF	PORTB, ACCESS
-	SETF	PORTC, ACCESS	; PORTC: SSR pins HIGH (relays off)
+	MOVWF	b'00111111'	; PORTC:
+		; XX------	; serial I/O pins
+		; --111111	; SSR pins HIGH (relays off)
+	MOVWF	PORTC, ACCESS
 	SETF	PORTD, ACCESS	; PORTD: SSR pins HIGH (relays off)
 	CLRF	PORTE, ACCESS	; PORTE: LEDs LOW (off)
 
- IF LUMOS_CHIP_TYPE==LUMOS_CHIP_MASTER
 				;    bit 7 6 5 4 3 2 1 0
 	MOVLW	b'11000000' 	; PORTA  X X O O O O O O  all outputs
 	MOVWF	TRISA, ACCESS
+ IF LUMOS_CHIP_TYPE==LUMOS_CHIP_MASTER
 	MOVLW	b'01000001'	; PORTB  O I O O O O O I  <6> option, <0> INT; rest outputs
 	MOVWF	TRISB, ACCESS
  ELSE
   IF LUMOS_CHIP_TYPE==LUMOS_CHIP_SLAVE
-				;    bit 7 6 5 4 3 2 1 0
-	MOVLW	b'11000000' 	; PORTA  X X O O O O O O  all outputs
-	MOVWF	TRISA, ACCESS
 	MOVLW	b'00000001'	; PORTB  O X O O O O O I  <0> INT; rest outputs
 	MOVWF	TRISB, ACCESS
   ELSE
    IF LUMOS_CHIP_TYPE==LUMOS_CHIP_STANDALONE
-				;    bit 7 6 5 4 3 2 1 0
-	MOVLW	b'11000000' 	; PORTA  X X O O O O O O  all outputs
-	MOVWF	TRISA, ACCESS
 	MOVLW	b'01000000'	; PORTB  O I O O O O O O  <6> option; rest outputs
 	MOVWF	TRISB, ACCESS
    ELSE

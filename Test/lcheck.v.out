@@ -6,11 +6,9 @@ You should take this file and edit it to reflect
 your actual show setup.
 ------------------------------------------------------------------------------
  POWER SOURCES:
-  1             20A [GFCI]
+  1             20A
   2a            15A
   2b          15.5A
-*** WARNING *** 2 CIRCUITS ARE NOT GFCI-PROTECTED!
-*** WARNING *** POSSIBLE SAFETY ISSUE--VERIFY GROUND-FAULT HAZARD AT VENUE
 ------------------------------------------------------------------------------
  COMMUNICATIONS PARAMETERS
   NETWRK PORT  SPEED BPSXR DESCRIPTION
@@ -21,23 +19,24 @@ your actual show setup.
  DEVICE CONTROLLERS:
   NETWRK UNIT     POWER DESCRIPTION
   floods floodX10    2b LynX-10/TW523 Controller
-  misc   a           2a 48-Channel SSR Controller, address=9
-  misc   b           2a 48-Channel SSR Controller, address=10
-  trees  treea1       1 48-Channel SSR Controller, address=0
-  trees  treea2       1 48-Channel SSR Controller, address=1
-  trees  treeb1       1 48-Channel SSR Controller, address=2
-  trees  treeb2       1 48-Channel SSR Controller, address=3
+  misc   a           2a Lumos 48-Channel SSR Controller, address=9
+  misc   b           2a Lumos 48-Channel SSR Controller, address=10
+  trees  treea1       1 Lumos 48-Channel SSR Controller, address=0
+  trees  treea2       1 Lumos 48-Channel SSR Controller, address=1
+  trees  treeb1       1 Lumos 48-Channel SSR Controller, address=2
+  trees  treeb2       1 Lumos 48-Channel SSR Controller, address=3
 ------------------------------------------------------------------------------
  DEVICE CHANNELS:
-  NETWRK UNIT     CHAN LOAD D WARM DESCRIPTION
-  floods floodX10   A1   1A D   6% West flood, blue
-  floods floodX10   A2   1A D   6% West flood, green
-  floods floodX10   C1  20A -   0% Snowman power
-  trees  treea1      0 0.3A D   0% Tree 1 RED 1
-  trees  treea1      1 0.3A D   0% Tree 1 RED 2
+  UNIT     CHAN POWER   LOAD D WARM DESCRIPTION
+  floodX10   A1 2b        1A D   6% West flood, blue
+  floodX10   A2 2b        1A D   6% West flood, green
+  floodX10   C1 2b       20A -   0% Snowman power
+  treea1      0 1       0.3A D   0% Tree 1 RED 1
+  treea1      1 1       0.3A D   0% Tree 1 RED 2
 ------------------------------------------------------------------------------
  POWER LOAD SUMMARY:
   1          Loaded to   3%
   2a         Loaded to   0%
   2b         Loaded to 141%
 *** WARNING *** 2b OVERLOADED BY 6.5 AMPS IF ALL CHANNELS ON!
+Total allocated load: 22.6 Amps

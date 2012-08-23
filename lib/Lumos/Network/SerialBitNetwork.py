@@ -24,71 +24,72 @@
 #
 # USE THIS PRODUCT AT YOUR OWN RISK.
 # 
-import serial
-from Lumos.Network import Network
+from Lumos.Network import Network, NullNetwork
+try:
+    import serial
+except ImportError:
+    class SerialBitNetwork (NullNetwork):
+        def __init__(self, description=None, port=0, open_device=True):
+            NullNetwork.__init__(self, description, nulltype='SerialBit')
+            self.port=port
 
-class SerialBitNetwork (Network):
-    """
-    This class describes each serial network of controllers.  
-	As opposed to the SerialNetwork class, this is for bit-
-	at-a-time interfaces such as the X-10 CM17A "Firecracker"
-	interface. 
-
-	With an open port, sending bytes is accomplished by toggling
-	the states of the serial port control lines XXX and XXX.
-    """
-    
-    def __init__(self, description=None, port=0, open_device=True):
+else:
+    class SerialBitNetwork (Network):
         """
-        Constructor for the SerialBitNetwork class.
+        This class describes each serial network of controllers.  
+        As opposed to the SerialNetwork class, this is for bit-
+        at-a-time interfaces such as the X-10 CM17A "Firecracker"
+        interface. 
 
-        description: A short description of what this network is 
-                     responsible for.
-
-        port:        The system designation for the serial device 
-                     connecting the host computer to the network.  
-                     Can be system-specific like "COM1" or 
-                     "/dev/ttyS1", or can be a simple integer--0 
-                     should be the "first" serial port on your 
-                     system, 1 the next, etc.  [0]
-
-        open_device: Boolean: whether to actually open the serial 
-                     device upon construction.  If you don't let it
-                     open here, you'll need to call the open()
-                     method later.  [True]
+        With an open port, sending bytes is accomplished by toggling
+        the states of the serial port control lines XXX and XXX.
         """
         
-        Network.__init__(self, description)
-        
-        self.port = port
+        def __init__(self, description=None, port=0, open_device=True):
+            """
+            Constructor for the SerialBitNetwork class.
 
-        # If the port can be a simple integer, make it so.
-        try:
-            self.port = int(self.port)
-        except:
-            pass
+            description: A short description of what this network is 
+                         responsible for.
 
-        self.dev = None
-        if open_device:
-            self.open()
+            port:        The system designation for the serial device 
+                         connecting the host computer to the network.  
+                         Can be system-specific like "COM1" or 
+                         "/dev/ttyS1", or can be a simple integer--0 
+                         should be the "first" serial port on your 
+                         system, 1 the next, etc.  [0]
 
-    def open(self):
-        self.dev = serial.Serial(port=self.port)
+            open_device: Boolean: whether to actually open the serial 
+                         device upon construction.  If you don't let it
+                         open here, you'll need to call the open()
+                         method later.  [True]
+            """
+            
+            Network.__init__(self, description)
+            
+            self.port = port
 
-    def send(self, cmd):
-		raise NotImplementedError("SEND")
+            # If the port can be a simple integer, make it so.
+            try:
+                self.port = int(self.port)
+            except:
+                pass
 
-    def close(self):
-        if self.dev is not None:
-            self.dev.close()
-        self.dev = None
+            self.dev = None
+            if open_device:
+                self.open()
 
-    def __str__(self):
-        if self.description is not None: return self.description
-        return "SerialBitNetwork (port %s)" % self.port
-#
-# $Log: not supported by cvs2svn $
-# Revision 1.2  2008/12/30 22:58:02  steve
-# General cleanup and updating before 0.3 alpha release.
-#
-#
+        def open(self):
+            self.dev = serial.Serial(port=self.port)
+
+        def send(self, cmd):
+            raise NotImplementedError("SEND")
+
+        def close(self):
+            if self.dev is not None:
+                self.dev.close()
+            self.dev = None
+
+        def __str__(self):
+            if self.description is not None: return self.description
+            return "SerialBitNetwork (port %s)" % self.port

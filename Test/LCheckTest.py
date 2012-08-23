@@ -31,7 +31,7 @@ import os
 runenv = os.environ
 runenv['PYTHONPATH'] = ':'.join(['../lib'] + os.environ.get('PYTHONPATH', '').split(':'))
 
-def runAfcheck(arglist, srcfile, compfile):
+def runAfcheck(arglist, srcfile, compfile, difffile):
     try:
         proc = subprocess.Popen(('../bin/lcheck', srcfile) + arglist, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=runenv)
     except:
@@ -43,27 +43,25 @@ def runAfcheck(arglist, srcfile, compfile):
         
     output = proc.communicate()[0]
     cmpout = open(compfile).read()
+    if output != cmpout:
+        with open(difffile, 'w') as d:
+            d.write(output)
+
     return (proc.returncode, output, cmpout)
 
 class AfcheckTest (unittest.TestCase):
     def testRunV(self):
-        (c, a, b) = runAfcheck(('-v',), 'lcheck.conf', 'lcheck.v.out')
+        (c, a, b) = runAfcheck(('-v',), 'lcheck.conf', 'lcheck.v.out', 'lcheck.v.actual')
         self.assertEqual(c, 0)
-        self.assertEqual(a, b)
+        self.assertEqual(a, b, msg="output incorrect; compare lcheck.v.out vs. lcheck.v.actual")
 
     def testRun(self):
-        (c, a, b) = runAfcheck((), 'lcheck.conf', 'lcheck.out')
+        (c, a, b) = runAfcheck((), 'lcheck.conf', 'lcheck.out', 'lcheck.actual')
         self.assertEqual(c, 0)
-        self.assertEqual(a, b)
+        self.assertEqual(a, b, msg="output incorrect; compare lcheck.out vs. lcheck.actual")
 
     def testDuplicates(self):
-        (c, a, b) = runAfcheck((), 'duptest.conf', 'lcheck.dup.out')
+        (c, a, b) = runAfcheck((), 'duptest.conf', 'lcheck.dup.out', 'lcheck.dup.actual')
         self.assertEqual(c, 1)
         #self.assertEqual(a, b)
         self.assert_("ValueError: Unit 'a' is not unique!" in a)
-# 
-# $Log: not supported by cvs2svn $
-# Revision 1.4  2008/12/31 00:13:32  steve
-# *** empty log message ***
-#
-#

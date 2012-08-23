@@ -9,6 +9,46 @@ CONTENTS
 
 ______________________________________________________________________________
 CURRENT RELEASE:
+
+  Lumos 0.6 [TBD]
+        Bug Fixes:
+
+	  * Fixed numerous small bugs and inconsistencies.  All unit tests
+            now pass.
+
+	  * Made it a non-fatal condition if the serial and/or parallel 
+            drivers are missing, until the program actually tries to use them
+            (so if you don't have any parallel port-driven devices, you don't
+            need to have pyparallel installed.  Likewise if you're just 
+            editing but not actually playing a sequence).
+
+          * Constructors for Network objects now correctly handles non-string
+            data types read from saved configuration profiles.
+
+	New Features:
+
+	  * Added GUI configuration profile editor.
+
+	  * Removed GFCI attribute from PowerSource objects.  Lumos really
+	    never does anything with this except try to encourage you to use
+	    safety features, but that's not really Lumos' job to handle in
+	    software.  Ensuring safe wiring conditions is the responsibility
+	    of the person doing the wiring, and is not directly relevant to
+	    the separate task of designing and playing back the sequences
+	    themselves.
+
+          * Changed "power" field to "power_source" in profile configuration
+	    files for channels and controllers.
+      
+  KNOWN ISSUES:
+
+  	* Most of the device drivers are still untested. 
+	* Only "serial" networks have been tested yet.
+ 	* Subordinate power sources always re-sort to alphabetical order on
+	  reloading a new configuration (only affects the aesthetics of the
+	  GUI display).
+______________________________________________________________________________
+PREVIOUS VERSIONS:
   Lumos 0.5 [10 APR 2011]
         Bug Fixes:
           * Compensated for possible timing lag between audio playback and
@@ -20,8 +60,6 @@ CURRENT RELEASE:
 	* Only "serial" networks have been tested yet.
 	* The unit tests need to be updated and completed, not all are passing.
 
-______________________________________________________________________________
-PREVIOUS VERSIONS:
   Lumos 0.5a1 [04 DEC 2011]
     **ALPHA TEST RELEASE**
 

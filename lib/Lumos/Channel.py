@@ -40,11 +40,11 @@ class Channel (object):
     of channels.
     """
 
-    def __init__(self, id, name=None, load=None, dimmer=True, warm=None, resolution=100, power=None):
+    def __init__(self, id, name=None, load=None, dimmer=True, warm=None, resolution=100, power_source=None):
         """
         Constructor for Channel objects:
 
-        Channel(id, [name], load, [dimmer], [warm], [resolution], power)
+        Channel(id, [name], load, [dimmer], [warm], [resolution], power_source)
 
         id:           unique (within a given controller) ID 
                       for this channel.
@@ -62,7 +62,7 @@ class Channel (object):
                       [default=None]
         resolution:   number of discrete dimmer steps supported.  
                       [default=100]
-        power:        PowerSource object supplying power to this channel
+        power_source: PowerSource object supplying power to this channel
         """
 
         if name is None:
@@ -71,15 +71,15 @@ class Channel (object):
             self.name = name
         if load is None:
             raise ValueError("Channel %s load parameter is required" % id)
-        if power is None:
-            raise ValueError("Channel %s power parameter is required" % id)
+        if power_source is None:
+            raise ValueError("Channel %s power_source parameter is required" % id)
 
 
         self.load = float(load)
         self.dimmer = bool(dimmer)
         self.resolution = int(resolution)
         self.level = None
-        self.power_source = power
+        self.power_source = power_source
         if warm is not None:
             self.warm = self.raw_dimmer_value(warm)
             if not 0 <= self.warm < self.resolution:

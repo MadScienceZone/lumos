@@ -26,18 +26,21 @@
 # 
 import unittest
 import os
-from Lumos.Network               import Network
+from Lumos.Network               import Network, NullNetwork
 from Lumos.Network.Networks      import network_factory
 from Lumos.Network.SerialNetwork import SerialNetwork
+from Test                        import warn_once
 
 class NetworkTest (unittest.TestCase):
-	def test_subclass_cons(self):
-		serial = network_factory(type='serial')
-		self.assert_(isinstance(serial, Network))
-		self.assert_(isinstance(serial, SerialNetwork))
-		#self.assertEqual(serial.id, 'test_network')
+    def test_subclass_cons(self):
+        serial = network_factory(type='serial', open_device=False)
+        if isinstance(serial, NullNetwork):
+            warn_once('NOSERIAL', 'Not checking serial networks: this system does not support them (install PySerial?)')
+        else:
+            self.assert_(isinstance(serial, Network))
+            self.assert_(isinstance(serial, SerialNetwork))
 
-		# XXX add more types here when more exist
+    # XXX add more types here when more exist
 
 # 
 # $Log: not supported by cvs2svn $

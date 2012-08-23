@@ -118,16 +118,16 @@ def packet(id, op):
     return chr(0xd5)+chr(0xaa)+chr((b>>8)&0xff)+chr(b&0xff)+chr(0xad)
 
 class FirecrackerX10ControllerUnit (X10ControllerUnit):
-    def __init__(self, id, power, network, resolution=21):
+    def __init__(self, id, power_source, network, resolution=21):
         '''
         Constructor for a CM17a X10 object:
-            FirecrackerX10ControllerUnit(power, [resolution])
+            FirecrackerX10ControllerUnit(power_source, [resolution])
 
         Specify the correct PowerSource object for this unit.
         The resolution defaults to 21, which matches the 5%
         delta mentioned in the CM17a protocol spec from X-10.
         '''
-        X10ControllerUnit.__init__(self, id, power, network, resolution)
+        X10ControllerUnit.__init__(self, id, power_source, network, resolution)
         self.type = 'X-10 CM17a "Firecracker" Controller'
 
     def _proto_set_channel(self, id, old_level, new_level, force=False):

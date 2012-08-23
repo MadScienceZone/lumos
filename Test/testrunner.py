@@ -35,14 +35,18 @@ import string
 tk = Tkinter
 
 class MyGUI (unittestgui.TkTestRunner):
+    def __init__(self, *a, **k):
+        unittestgui.TkTestRunner.__init__(self, *a, **k)
+        self.SKIP_WARNINGS = []
+
 	def notifyTestFailed(self, test, err):
 		self.failCountVar.set(1 + self.failCountVar.get())
-		self.errorListbox.insert(tk.END, "Failure: %s: %s" % (test, err[1].message[:100]))
+		self.errorListbox.insert(tk.END, "Failure: {0}: {1}".format(test, err[1].message[:100]))
 		self.errorInfo.append((test, err))
 
 	def notifyTestErrored(self, test, err):
 		self.errorCountVar.set(1 + self.errorCountVar.get())
-		self.errorListbox.insert(tk.END, "Error: %s: %s" % (test, err[1].message[:100]))
+		self.errorListbox.insert(tk.END, "Error: {0}: {1}".format(test, err[1].message[:100]))
 		self.errorInfo.append((test, err))
 	
 	def showSelectedError(self):
@@ -65,12 +69,26 @@ class MyGUI (unittestgui.TkTestRunner):
 		window.mainloop()
 		window.destroy()
 
+    def notifyRunning(self):
+        Test.reset_accumulated_warnings()
+        unittestgui.TkTestRunner.notifyRunning(self)
+
+    def notifyStopped(self):
+        if Test.accumulated_warnings() != self.SKIP_WARNINGS:
+           self.SKIP_WARNINGS = Test.accumulated_warnings()
+           # pop-up warning
+
+        t = sum(i.count for i in self.SKIP_WARNINGS)
+        if t:
+           self.errorListbox.insert(tk.END, "WARNING: {0} test{1} SKIPPED (not counted as failures); details follow:".format(t, '' if t == 1 else 's'))
+           for msg in self.SKIP_WARNINGS:
+               self.errorListbox.insert(tk.END, "SKIPPED {1} test{2}: {0}".format(msg.msg, msg.count, '' if msg.count==1 else 's'))
+
+        unittestgui.TkTestRunner.notifyStopped(self)
+
 #unittestgui.main(initialTestName='Test.suite')
 root = tk.Tk()
 root.title("testrunner (PyUnit)")
 runner = MyGUI(root, 'Test.suite')
 root.protocol('WM_DELETE_WINDOW', root.quit)
 root.mainloop()
-#
-# $Log: not supported by cvs2svn $
-#

@@ -60,7 +60,7 @@ class LynX10ControllerUnitTest (unittest.TestCase):
     def testFirstInit(self):
         self.x10.initialize_device()
         # reset + all off + level-set dimmers
-        self.assertEqual(self.n.buffer, "R\rM00=3D02\rF4\rN016\rD01C\r")
+        self.assertEqual(self.n.buffer, "R\rM00=3D02\rF4\rF000\rF001\rF016\rF0CF\rN016\rD01C\r")
 
     def textIdTranslation(self):
         self.assertEqual(self.x10._x10_to_lynx_id('A1'), '00')
