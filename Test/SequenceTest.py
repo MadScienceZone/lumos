@@ -167,7 +167,7 @@ class SqeuenceTest(unittest.TestCase):
     def test_compilation(self):
         tree_controller = FireGodControllerUnit(
             'fg', PowerSource('ps1'), TestNetwork(),
-            address=1, resolution=101, channels=32)
+            address=1, resolution=101, num_channels=32)
         tree_controller.add_channel(0, load=1)
         tree_controller.add_channel(1, load=1)
         tree_controller.add_channel(2, load=1)
@@ -936,7 +936,7 @@ class SqeuenceTest(unittest.TestCase):
         # numeric channel numbers
         tree_controller = FireGodControllerUnit(
             'fg', PowerSource('ps1'), TestNetwork(),
-            address=1, resolution=101, channels=32)
+            address=1, resolution=101, num_channels=32)
         tree_controller.add_channel(0, load=1)
         tree_controller.add_channel(1, load=1)
         tree_controller.add_channel(2, load=1)

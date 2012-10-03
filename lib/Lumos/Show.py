@@ -514,7 +514,7 @@ class Show (object):
 ;                   driver plug-in installed in Lumos.  As of the time
 ;                   this file was written, the available types include:
 ;                      lynx10     LynX-10 serial X-10 controller
-;                      48ssr      Author's custom SSR controller device
+;                      lumos      Lumos SSR controller device
 ;                      cm17a      X-10 "Firecracker" serial bit controller
 ;                      renard     Renard DIY controller, serial protocol
 ;                      olsen595   Olsen595/Grinch DIY controllers, parallel
@@ -525,7 +525,7 @@ class Show (object):
 ;
 ;   resolution=n    How many dimmer levels are supported.  If a channel may
 ;                   go from 0 to 63, its resolution is 64.
-;                   (firegod, cm17a, lynx10, renard, 48ssr)
+;                   (firegod, cm17a, lynx10, renard, lumos)
 ;
 ;   channels=n      For controllers with variable numbers of channels,
 ;                   specify how many are attached to this controller unit.

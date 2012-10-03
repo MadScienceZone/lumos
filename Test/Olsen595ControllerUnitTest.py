@@ -34,7 +34,7 @@ class Olsen595ControllerUnitTest (unittest.TestCase):
     def setUp(self):
         self.n = TestParallelNetwork()
         p = PowerSource('testpower', amps=1)
-        self.ssr = Olsen595ControllerUnit('o595', p, network=self.n, channels=8)
+        self.ssr = Olsen595ControllerUnit('o595', p, network=self.n, num_channels=8)
         self.ssr.add_channel(0, load=.3)
         self.ssr.add_channel(1, load=1)
         self.ssr.add_channel(2, load=.3)

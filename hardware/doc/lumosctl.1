@@ -1,0 +1,840 @@
+.TH LUMOSCTL 1 2.0 "Lumos SSR Controller" "Utility Commands"
+.SH NAME
+lumosctl \- Manual control for Lumos SSR controller hardware
+.SH SYNOPSIS
+.B lumosctl
+.RB [ \-dhkPRSvwXz ]
+.RB [ \-a
+.IR addr ]
+.RB [ \-A
+.IR addr ]
+.RB [ \-b
+.IR speed ]
+.RB [ \-B
+.IR speed ]
+.RB [ \-c
+.IR file ]
+.RB [ \-C
+.IR file ]
+.RB [ \-D
+.IR sens ]
+.RB [ \-E
+.IR sens ]
+.RB [ \-p
+.IR port ]
+.RB [ \-P
+.IR phase ]
+.RB [ \-s
+.IR file ]
+.RB [ \-t
+.IB s \fR[\fPorw\fR]\fP: init : seq : term\fR]\fP
+.IR channel-outputs ...
+.LP
+Where
+.I channel-outputs 
+may be any combination of:
+.RS
+.LP
+.IR channel [\fB@\fP level [\fB,\fP...]]
+.br
+.IR channel \fBd\fP[ \fB:\fPsteps [ \fB:\fPtime ]]
+.br
+.IR channel \fBu\fP[ \fB:\fPsteps [ \fB:\fPtime ]]
+.br
+.BI x id
+.br
+.BI p time
+.RE
+.SH DESCRIPTION
+.LP
+This command allows you to directly manipulate the state of a
+supported Lumos
+SSR controller unit, including administration functions
+such as changing the unit's address, phase offset, etc.
+.LP
+Other software such as 
+.BR lumos (1)
+or\(emproviding appropriate drivers are installed\(empopular
+third-party programs such as Vixen are more appropriate for
+performing (\*(lqplaying\*(rq) sequences of light patterns on
+these boards.  By contrast, 
+.B lumosctl
+is more suited to setting up and configuring the boards (although some
+basic real-time control of channel outputs is possible using
+.BR lumosctl ).
+.LP
+In the absence of any command-line options to the contrary, the
+normal 
+operation of
+.B lumosctl
+is to make a number of channel output level 
+changes as determined by the non-option arguments which are of the
+form:
+.RS
+.I channel
+.RE
+or
+.RS
+.IB channel @ level \fR[\fP,\fR...]\fP
+.RE
+or
+.RS
+.IB channel {u|d}\fR[\fP: steps \fR[\fP: time \fR]]\fP
+.RE
+.LP
+In the first case, a channel number by itself means to turn on that 
+channel to full brightness.  In the second case, by specifying a level value
+(a number from 0 to 255, inclusive), that channel's output is dimmed
+to the given level.  Level 255 is the same as turning on to full 
+brightness; level 0 is the same as turning it fully off.
+.LP
+In the third case, the dimmer level is ramped up smoothly from its current
+value to full brightness 
+.RB (\*(lq u \*(rq),
+or down smoothly until fully off
+.RB (\*(lq d \*(rq).
+Optionally you may specify the number of dimmer level increments
+to increase or decrease at each change (1\-128, default is 1); additionally,
+you may specify the amount of time to wait between each step, in units
+of 1/120 second (1\-128, default is 1).  As a convenience, this may be
+expressed as a real number of seconds followed by the letter 
+.RB \*(lq s \*(rq.
+Thus, the argument
+.B 13@127
+sets channel 13 to half brightness.  If this were followed by the argument
+.B 13u
+then channel 13 would be smoothly increased in brightness from there to full
+brightness (which is another 128 levels to take it from 127 to 255), 
+by incrementing it one level every 1/120th of a second, reaching a full
+brightness level 128/120 seconds later (1.0666 seconds).  If the 
+argument
+.B 13d:10:2
+were given, then channel 13 would drop to being fully off, going in steps
+of 10 levels at a time, 1/60th of a second between each step.
+Finally, an argument
+.B 10u:5:0.25s
+fades channel 10 up from its current value to full brightness by incrementing
+its value by 5 every quarter-second.
+.LP
+Bulk updating of channels is also supported.  If multiple values are listed
+for a channel, such as:
+.RS
+.B "10@0,0,255,255,127,40,30,20,10"
+.RE
+.LP
+Then the channel named (10 in this example) is assigned the first value
+(0), and the subsequent values are assigned to the immediately following
+channels (so channel 11 is set to 0, 12 is set to 255, and so forth).
+.LP
+Note that if a controller implements a lower resolution dimmer than
+256 levels (e.g., 128 or 64 levels), the same number scale is used
+(0\-255), with the dimmer output scaled accordingly.  For example,
+if the hardware implements only 128 dimmer levels, then levels 0 and 1
+are fully off, 2 and 3 are the next level up, and so on, with
+values 252 and 253 being the penultimate dimmer level,
+and 254 and 255 being fully on.
+.LP
+In addition to the channel-setting argument described above,
+an argument of the form
+.BI x i
+causes stored sequence 
+.I i
+to be executed.  Note that this is run in the \*(lqbackground\*(rq\(emany
+subsequent channel-setting arguments will be acted upon 
+.I while
+the sequence is running.  If a sequence was already running, it is stopped first.
+As a special case, 
+.B x0
+stops the currently-running sequence but does not start a new one.
+.LP
+A pause in the execution of the arguments may be effected by adding an
+argument of the form
+.BI p t
+which makes
+.B lumosctl
+pause for
+.I t
+seconds before continuing on to the next argument.  The
+.I t
+value need not be an integer.
+.LP
+A number of options are provided as described below.  These command
+the SSR controller to perform certain administrative functions or 
+configuration changes.
+.LP
+When giving multiple types of commands in one invocation of this
+program, they will be carried out in the following order:
+.LP
+.nf
+1. Address Change
+2. Kill all channels
+3. Other configuration changes
+4. Disable privileges
+5. Channel(s) off/on/dim/etc.
+6. Shutdown
+.fi
+.SH OPTIONS
+.LP
+Each of the following options may be specified by either a long
+option (like
+.RB \*(lq \-\-verbose \*(rq)
+or a shorter option letter (like
+.RB \*(lq \-v \*(rq).
+If an option takes a parameter, it may follow the option as
+.RB \*(lq \-a12 \*(rq,
+.RB \*(lq "\-a 12" \*(rq,
+.RB \*(lq "\-\-address 12" \*(rq,
+or
+.RB \*(lq "\-\-address=12" \*(rq.
+.LP
+Long option names may be abbreviated to any unambiguous initial substring.
+.TP 27
+.BI \-\-address= addr
+.RB ( \-a
+.IR addr )
+Specifies the address of the target controller unit.  The
+.I addr
+value is an integer from 0 to 15, inclusive.  It defaults to 0.
+.TP
+.B \-\-clear\-sequences
+.RB ( \-S )
+Delete all stored sequences from the device's memory.
+.TP
+.BI \-\-disable\-sensor= s
+.RB ( \-D
+.IR s )
+Disable inputs from the sensor(s) specified as the
+.I s
+parameter (which are given as a set of one or more letters,
+e.g., 
+.BR \-\-disable\-sensor=ab ).
+The Lumos board will act as though those sensors were 
+inactive regardless of their actual inputs.
+.TP
+.B \-\-drop\-privileged\-mode
+.RB ( \-d )
+If the Lumos device is in privileged command mode (for configuraiton of
+the device), this will cancel that mode.  Further privileged commands will
+not be recognized on that device.
+.TP
+.BI \-\-dump\-configuration= file
+.RB ( \-C
+.IR file )
+Dump the device configuration into the named
+.IR file .
+See below for a description of the configuration file format.
+.TP
+.BI \-\-enable\-sensor= s
+.RB ( \-E
+.IR s )
+Enable inputs from the sensor(s) specified as the 
+.I s
+parameter.  See 
+.BR \-\-disable\-sensor .
+.TP
+.B \-\-help
+.RB ( \-h )
+Prints a summary of these options and exits.
+.TP
+.B \-\-kill\-all
+.RB ( \-k )
+Turn off all output channels at once.
+.TP
+.BI \-\-load\-configuration= file
+.RB ( \-c
+.IR file )
+Load the device configuration from the named
+.I file
+and program that into the device.
+.TP 
+.BI \-\-load\-sequence= file
+.RB ( \-s
+.IR file )
+Load one or more sequences from the specified source
+.I file
+(see below for sequence source code syntax) and program them
+into the device.  If another sequence already exists with the
+same number, it replaces the old one; however, beware that the
+controller device does not optimize memory storage, so eventually
+stored sequences may become fragmented, resulting in running out of
+storage space for them.  To avoid this, it is best to clear all
+sequences using the
+.B \-\-clear\-sequences
+option, then load all the sequences you want on the device at once.
+.TP
+.BI \-\-port= port
+.RB ( \-p
+.IR port )
+Specify the serial port to use when communicating with the controller
+unit.  This may be a simple integer value (0 for the first serial port
+on the system, 1 for the next one, etc.) or the actual device name
+on your system (such as 
+.RB \*(lq COM1 \*(rq
+or
+.RB \*(lq /dev/ttys0 \*(rq).
+.TP
+.B \-\-probe
+.RB ( \-P )
+Search for, and report on, all Lumos controllers attached to the serial network.
+If the
+.B \-\-report
+option is also specified, this provides that level of output for every attached
+device; otherwise, it only lists device models and addresses.
+.TP
+.B \-\-report
+.RB ( \-R )
+Report on the current device status to standard output in human-readable form.
+.TP
+.BI \-\-sensor= s \fR[\fPorw\fR]\fP: init : seq : term
+.RB ( \-t
+.IB s \fR[\fPorw\fR]\fP: init : seq : term \fR)\fP
+Define an action to be taken when a sensor is triggered.  When the sensor
+is activated, the sequence
+.I init
+is run, followed by the sequence
+.I seq
+and then finally the sequence
+.I term
+when the sensor event is over.  The sensor assigned this action is given
+as the parameter
+.I s
+and is one of the letters 
+.BR A ,
+.BR B ,
+.BR C ,
+or
+.BR D .
+This may be followed by the following option letters as needed:
+.RS
+.TP 4
+.B o
+Trigger once: play sequence
+.I seq
+only one time.  The action will not be taken again until the sensor
+input transitions to inactive and then asserts itself as active again.
+This is the default action.
+.TP
+.B r
+Repeat mode: play sequence
+.I seq
+indefinitely until explicitly told to stop (by an overt stop command
+such as an
+.B x0
+argument, or another sequence being triggered manually or by sensor
+action).
+.TP
+.B w
+Trigger while active: play sequence
+.I seq
+repeatedly as long as the sensor remains active.  When the sensor input
+transitions to inactive again, terminate the action.
+.LP
+If 0 is specified for any of the sequence numbers, that means no
+sequence is called for that part of the trigger action.
+.RE
+.TP
+.BI \-\-set\-address= addr
+.RB ( \-A
+.IR addr )
+Change the device address to
+.IR addr .
+This must be an integer in the range [0, 15]; however, the address 15
+is also a limited \*(lqbroadcast\*(rq address, so ideally the address
+of a Lumos controller should be in the range [0, 14] unless you know
+for sure that the board can be loacated at address 15 without upsetting
+your purposes for it.
+.TP
+.BI \-\-set\-baud\-rate= speed
+.RB ( \-B
+.IR rate )
+Set a new baud rate for the device to start using from now on.
+.TP
+.BI \-\-set\-phase= offset
+.RB ( \-P
+.IR offset )
+Set the phase 
+.I offset 
+in the device to the specified value.  This must be an integer in the range [0, 511].
+.I "This is an advanced setting which affects the ability of the AC relay boards to"
+.I "function properly. Do not change this setting unless you know exactly what you are doing."
+.TP
+.B \-\-sleep
+.RB ( \-z )
+Tell the unit to go to sleep (this instructs the board to turn off a
+power supply which it is controlling, if any, but has no other effect).
+.TP
+.B \-\-shutdown
+.RB ( \-X )
+Command the unit to shut down completely.  It will be unresponsive until
+power cycled or the reset button is pressed to reboot the controller.
+.TP
+.BI \-\-speed= rate
+.RB ( \-b
+.IR rate )
+Set the serial port to the given
+baud
+.IR rate .
+[Default is 19200 baud.]
+.TP
+.B \-\-wake
+.RB ( \-w )
+Tell the unit to start the attached power supply from sleep mode.
+command is given at a future time.
+.TP
+.B \-\-verbose
+.RB ( \-v )
+Output messages to the standard output.  Additional 
+.B \-\-verbose
+options increases verbosity.  High levels of verbosity include a dump
+of every bit sent or received on the serial network.
+.SH "CONFIGURATION FILE FORMAT"
+.LP
+The files read and written by the 
+.B \-\-dump\-configuration
+and
+.B \-\-load\-configuration
+options uses a fairly standard configuration file format similar to the
+\*(lqini\*(rq files used by early versions of Microsoft Windows and other 
+systems.  Full details of this format see
+.BR "http://docs.python.org/library/configparser.html" ,
+but the highlights include:
+.TP 3
+1.
+One data value per line (long lines may be continued by indentation ala RFC 822 headers).
+.TP
+2.
+Each line consists of the name of a data value, either an equals sign or a colon,
+and the value itself.
+.TP
+3.
+A syntax 
+.B %(name)s
+can be used to substitute values into other values.  Literal percent signs in values
+are simply doubled 
+.RB (\*(lq %% \*(rq).
+.LP
+All confugration data are contained in a stanza called
+.RB \*(lq [lumos_device_settings] \*(rq.
+The values are:
+.TP
+.BI baud= n
+The configured serial I/O speed of the device.  Supported values include 300, 600, 1200, 2400,
+4800, 9600, 19200, 38400, 57600, 115200, and 250000.  Speeds slower than 9600 baud
+are not recommended. [Default is 19200.]
+.TP
+.BI dmxchannel= n
+If this field exists, the Lumos board is to run in DMX512 mode, with its channel #0 appearing
+at DMX512 slot 
+.RI # n ,
+where
+.I n
+is an integer in the range [1, 512].
+If this field is not present, the Lumos board will not be configured to recognize DMX512 packets
+at all.
+.TP
+.BR phase= offset
+The AC waveform phase offset for the unit.  This should only be changed if needed due to some
+anomaly with the zero-crossing detector which throws off the unit's timing.  This is an integer
+in the range [0, 511].  [Default is 2.]
+.TP
+.BR resolution= { high | low }
+If
+.RB \*(lq high \*(rq,
+channel output levels in the full range [0, 255] are recognized.  If 
+.RB \*(lq low \*(rq,
+then only 128 levels are used, although the data values referenced by the user remain in the range
+[0, 255].  However, only 7 bits of dimmer data are transmitted to the hardware unit, saving a small
+amount of transmission data.  In this mode, values 0 and 1 are the fully-off value, 2 and 3 are the 
+next step up from that, 254 and 255 are fully on, and so forth.
+.TP
+.BI sensors= list
+The value is a list of single letters in the range [A, D].  Each letter appearing in this
+list indicates that the corresponding sensor input should be enabled in the hardware.
+You must ensure that the hardware is really configured that way.
+.SS "Sensor Configuration"
+.LP
+For each sensor listed in the 
+.B sensors
+field, a corresponding stanza called 
+.RB \*(lq [lumos_device_sensor_\fIx\fP] \*(rq
+appears, where 
+.I x
+is the name of the sensor 
+.RB (\*(lq A \*(rq,
+.RB \*(lq B \*(rq,
+.RB \*(lq C \*(rq,
+or
+.RB \*(lq D \*(rq),
+with the following fields:
+.TP
+.BI enabled= bool
+If 
+.RB \*(lq yes \*(rq,
+the sensor input is set to be monitored.  If
+.RB \*(lq no \*(rq,
+it is ignored.  [Default is 
+.RB \*(lq yes \*(rq.]
+.TP
+.BR mode= { once | repeat | while }
+Define the operating mode of the sensor trigger: play once per trigger,
+repeat forever until another trigger (or explicit command to stop), or
+play as long as sensor remains active. [Default is 
+.BR once .]
+.TP
+.BI setup= id
+Sequence
+.I id
+number to be played initially when the sensor becomes active
+.TP
+.BI sequence= id
+Sequence
+.I id
+number to be played as the main (possibly repeated) aciton for the sensor.
+.TP
+.BI terminate= id
+Sequence
+.I id
+number to be played when the action stops. Note that the
+main sequence might not have played to completion.
+.SH "SEQUENCE SOURCE SYNTAX"
+.LP
+Each source file given to 
+.B \-\-load\-sequence
+contains one or more sequence definitions as described here.  The formal syntax
+definition for the sequence language is:
+.RS
+.nf
+.na
+<sequence> ::= SEQUENCE <id> ['(' <arg-list> ')'] <block>
+<statement-list> ::= <statement> <newline> | <statement-list> <statement> <newline>
+<statement> ::= [<symbol> ':'] [<command>]
+<command> ::= BLACKOUT
+	| CHANNEL <chan> <state>
+	| RAMP <direction> <chan> [BY <steps> [PER <time>]]
+	| CALL <id> ['(' <value-list> ')']
+	| EXECUTE <id> ['(' <value-list> ')']
+	| WAIT <time>
+	| FOR <symbol> '=' <value> TO <value> [BY <value>] <block>
+	| IF <condition> <block>
+	| UNLESS <condition> <block>
+	| REPEAT [<value> [AS <symbol>]] <block>
+	| BREAK <symbol>
+	| CONTINUE <symbol>
+	| <symbol> '=' <value>
+	| SLEEP
+	| WAKE
+	| SUSPEND [WITH UPDATE]
+	| RESUME [WITH FADE]
+	| EXIT
+<block> ::= ':' <newline> <statement-list> END
+<id> ::= 0 | 1 | ... | 127
+<chan> ::= <value> (allowed range 0...63)
+<dimmer-value> ::= 0 | 1 | ... | 255
+<percentage> ::= 0 | 1 | ... | 100
+<state> ::= ON | OFF | <dimmer-value> | <percentage> '%'
+<direction> ::= UP | DOWN
+<steps> ::= 1 | 2 | ... | 128
+<time> :: = <cycles> | <real> SEC[ONDS]
+<cycles> ::= 1 | 2 | ... | 128
+<real> ::= <digits> ['.' [<digits>]] | [<digits>] '.' <digits>
+<condition> ::= SUSPENDED
+	| SENSOR <sens-list>
+	| <value> <comparison> <value>
+<comparison> ::= '<' | '>' | '==' | '!=' | '<=', '>='
+<arg-list> ::= <symbol> | <arg-list> ',' <symbol>
+<value-list> ::= <value> | <value-list> ',' <value>
+<value> ::= <int> 
+	| <symbol>
+	| <value> '*' <value>
+	| <value> '+' <value>
+	| <value> '-' <value>
+	| <value> '/' <value>
+	| '(' <value> ')'
+<int> ::= ['-' | '+'] <digits>
+<symbol> ::= <letter> | <symbol> <digit> | <symbol> <letter>
+<digits> ::= <digit> | <digits> <digit>
+<digit> ::= '0' | '1' | ... | '9'
+<letter> ::= '_' | 'A' | 'B' | ... | 'Z'
+<sens-list> ::= <sens> | <sens-list> OR <sens>
+<sens> ::= 'A' | 'B' | 'C' | 'D'
+<newline> ::= '\en'
+.fi
+.ad
+.RE
+.LP
+While the language keywords are shown here in upper-case letters,
+in fact all symbols are interpreted irrespective of case throughout
+the sequence source file.
+.LP
+.SS Expressions
+Simple math expressions are supported, including addition, subtraction,
+multiplication, and division, but the values supported by the hardware
+runtime system are exclusively 8 bit unsigned integers.  Division is not
+supported at all in the hardware.  Math involving compile-time values
+is not so limited, but if the expression evaluation remaining to be done
+at runtime it too complex, the compiler will issue a fatal error.
+.SS "Flow Control Constructs"
+.LP
+Each of these constructs operates on a 
+.I block
+of code.  A block is a sequence of one or more lines of code (each terminated
+by a newline), ending with an 
+.B END
+statement.
+.LP
+.TP
+.BI "IF SENSOR " s1 " \fR[\fPOR " s2\fR...]\fP ": \fR...\fP END"
+Execute the statements in the block if any of the sensors are currently active.
+.TP
+.BI "IF SUSPENDED: " \fR...\fP " END
+Execute the block if the unit is currently in a suspended state.
+.TP
+.BI "IF " condition ": " \fR...\fP " END
+Execute the block if the condition holds. This is a simple comparison between
+two values, where the comparison may be equals, not equals, less than, greater than,
+less than or equal, or greater than or equal as represented by the operators
+.BR == ,
+.BR != ,
+.BR < ,
+.BR > ,
+.BR <= ,
+and
+.BR >= ,
+respectively.
+.TP
+.BR "UNLESS " ...
+All of the forms of the
+.B IF
+construct may be used with the word 
+.B UNLESS
+substituted for
+.BR IF .
+In this case, the sense of the conditional test is reversed.
+.TP
+.BI "REPEAT " "\fR[\fPn\fR] [\fP" AS " var\fR]\fP" ": \fR...\fP END"
+Repeat the commands in the block until forced to quit via 
+.B EXIT
+or
+.BR BREAK .
+If a repeat count
+.I n
+is given, then at most only repeat the commands that many times.
+The 
+.B AS
+clause allows the current loop counter (which begins at 0 and counts up to, 
+but never reaches,
+.IR n )
+to be visible within the block as the variable
+.IR var .
+.TP
+.BI "FOR " var = start " TO " end " \fR[\fPBY " step\fR]\fP ": \fR...\fP END"
+Repeat the commands in the block once for each value of 
+.I var
+from
+.I start
+to 
+.IR end ,
+inclusive.
+If
+.I step
+is given, 
+.I var
+is incremented by that amount between each iteration.  The default
+.I step
+is 1.
+The behavior of this loop may be modified by
+.B BREAK
+or
+.B CONTINUE
+statements just like the
+.B REPEAT
+loops are.
+.TP
+.BI BREAK " \fR[\fPvar\fR]\fP"
+Terminate the innermost loop immediately.  If an outer loop is to be terminated,
+then specify its index 
+.I var
+to identify which loop is the target of this command.
+.TP
+.BI CONTINUE " \fR[\fPvar\fR]\fP"
+Begin the next iteration of the innermost loop immediately.  
+If an outer loop is to be continued,
+then specify its index 
+.I var
+to identify which loop is the target of this command.
+.TP
+.BI "SEQUENCE " id " \fR[(" var ", \fR...\fP)\fR]\fP: \fR...\fP END"
+Define a stored sequence consisting of the statements to the 
+.BR END .
+The 
+.I id
+may be a number from 0 to 127, with a few caveats:
+.RS
+.TP
+0
+Sequence #0 may
+.I never
+be explicitly invoked by anything.  This sequence is invoked automatically
+during device boot to initialize the unit.
+.TP
+1\-63
+Sequences in this range are stored in EEPROM and will survive a power failure
+or device reboot.  Note that there probably won't be enough available memory
+to actually store 63 sequences.
+.TP
+64\-127
+Sequences in this range are stored in RAM and will 
+.I not
+survive a power failure
+or device reboot.  Note that there probably won't be enough available memory
+to actually store 64 sequences in RAM.
+.RE
+.LP
+If input parameters are expected, they are given symbolic names inside
+parentheses between the sequence
+.I id
+and the colon.  A maximum of four parameters are allowed.
+.SS Commands
+.LP
+Each command is described briefly here.  For more details, see the
+Lumos board user manual.
+.TP
+.B BLACKOUT
+Immediately turn off all channel outputs.
+.TP
+.BI CALL " id \fR[\fP" ( value ",\fR ...\fP)\fR]\fP"
+Suspend the execution of the current sequence and begin executing
+sequence
+.RI # id .
+When that sequence has completed, execution of the current sequence
+will resume where it left off.  Up to four parameters may be passed
+to the called sequence by placing them inside parentheses after the
+sequence 
+.IR id .
+The 
+.I id
+cannot be 0.
+.TP
+.BI CHANNEL " c " ON|OFF| value \fR[\fP%\fR]\fP
+Change the output level of channel
+.I c
+to fully on, fully off, or to a specific value.  If the value
+is followed by a percent sign 
+.RB (\*(lq % \*(rq),
+then the value is assumed to be a percentage in the range [0, 100].  Otherwise
+the value interpreted as an absolute output value in the range [0, 255].  Note that
+sequences are always considered to be \*(lqhigh resolution\*(rq so this number range
+is used ragardless of whether the board itself is in high or low resolution mode.
+.TP
+.BI EXECUTE " id \fR[\fP" ( value ",\fR ...\fP)\fR]\fP"
+Abandon the current sequence and begin executing the specified sequence
+instead.
+When that sequence has completed, execution of the current sequence
+will not resume.  Up to four parameters may be passed
+to the new sequence by placing them inside parentheses after the
+sequence 
+.IR id .
+Note that the 
+.I id
+cannot be 0.
+.TP
+.B EXIT
+Terminate execution of the current sequence.
+.TP
+.BI "RAMP UP|DOWN " c " \fR[\fPBY " steps " \fR[\fPPER " time " \fR[\fPSEC[ONDS]]]
+Start fading channel
+.I c
+up or down from its current output level to the maximum or minimum value.  This is done
+by adding or subtracting the value of
+.I steps
+(which is in the range [1, 128]) each time, pausing for
+.I time
+between each value change.  If the
+.I time
+value is followed by 
+.B SEC
+or
+.BR SECONDS ,
+it is assumed to be the number of seconds between level changes (a real number
+in the range [0.0083, 1.0667]). 
+Otherwise, it is assumed to be an integer in the range [1, 128] specifying the number
+of 1/120ths of a second for the pause.  
+.TP
+.BR "RESUME " [ "WITH FADE" ]
+Resume from
+.B SUSPEND
+mode.  If the
+.B "WITH FADE"
+option is given, then all channels are faded down to fully off, and then up to
+their last-known state is supposed to be.
+.TP
+.B SLEEP
+Enter sleep state.  The load power supply is commanded to shut down (if such
+a supply is connected that way to the controller).  Note that the unit may still
+wake on its own as needed, possibly even immediately.
+.TP
+.BR "SUSPEND " [ "WITH UPDATE" ]
+Suspend input of commands from outside.  From this point forward, only saved
+sequences will affect channel outputs.  If the
+.B "WITH UPDATE"
+option is given, then external commands are still accepted but have no effect
+on the outputs until after a
+.B RESUME
+is executed.  Note that a unit may still remain in suspended state after the
+sequence putting it in that state exits.  It only ends upon
+.BR RESUME .
+.TP
+.BR "WAIT \fIt\fP " [ SEC [ ONDS ]]
+Pause execution of the script for the designated time.  The time
+.I t
+is interpreted identically to that described above for the
+.B RAMP
+command.
+.TP
+.B WAKE
+Wake up the unit from
+.B SLEEP
+mode.  The power supply is commanded to start (if a suitable one is appropriately
+configured).
+.SH AUTHOR
+.LP
+Software Alchemy / support@alchemy.com
+.SH COMPATIBILITY
+.LP
+This version of 
+.B lumosctl
+is compatible with the following boards:
+.TP 2
+*
+Lumos 48-channel controller version 3.1 or 3.2
+.I "providing it has been upgraded or installed with ROM firmware version 2.0 or later"
+(boards with ID markings beginning with \*(lq48CTL-3-1\*(rq or \*(lqLUMOS-48CTL-3.2\*(rq).  (Whether this controller is
+driving AC or DC boards is irrelevant.)
+.TP 
+*
+Lumos 24-channel DC controller version 1.0 (boards with ID markings beginning with
+\*(lqLUMOS-24SSR-DC-1.0\*(rq).
+.SH HISTORY
+
+.LP
+This program first appeared under then name
+.B 48ssrctl
+and was used only for the Lumos 48-channel AC controller boards, employing the
+older firmware (ROM version
+.RI 1. x ).
+.LP
+This document describes version 2.0 of this utility, which is the first to carry
+this name and to include the expanded features for firmware version 2.0.
+.SH LIMITATIONS
+.LP
+This program does not send DMX512 commands to the device(s), only Lumos native
+commands.
+.SH BUGS
+.LP
+The sequence language is constrained by the limits of the hardware (such as 8-bit
+unsigned integer values and limited arithmetic expression evaluation), and can
+be compiled to fit in a very small memory space.  As such, the optimization
+toward certain use cases and against others may seem odd at first, but it serves that
+purpose.
+.LP
+Submit any found to support@alchemy.com

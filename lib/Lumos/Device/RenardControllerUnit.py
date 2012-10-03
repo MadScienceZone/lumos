@@ -61,10 +61,10 @@ class RenardControllerUnit (ControllerUnit):
     appreciate any feedback you'd like to offer about this driver,
     if you're willing to try it and help us test/debug this code.
     """
-    def __init__(self, id, power_source, network, address=0, resolution=256, channels=64):
+    def __init__(self, id, power_source, network, address=0, resolution=256, num_channels=64):
         """
         Constructor for a Renard SSR board object:
-            RenardControllerUnit(id, power_source, network, [address], [resolution], [channels])
+            RenardControllerUnit(id, power_source, network, [address], [resolution], [num_channels])
 
         Specify the correct PowerSource object for this unit and
         the unit address (0-127).  (We will call the first unit address 0,
@@ -82,8 +82,9 @@ class RenardControllerUnit (ControllerUnit):
 
         ControllerUnit.__init__(self, id, power_source, network, resolution)
         self.address = int(address)
-        self.type = 'Renard SSR Controller (%d channels)' % channels
-        self.channels = [None] * channels
+        self.type = 'Renard SSR Controller (%d channels)' % num_channels
+        self.channels = [None] * num_channels
+        self.num_channels = num_channels
         self.update_pending = False
         self.iter_channels = self._iter_non_null_channel_list
 

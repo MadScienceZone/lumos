@@ -38,7 +38,7 @@ from Lumos.Device.FireGodControllerUnit        import FireGodControllerUnit
 #
 supported_controller_types = {
     'lynx10':   LynX10ControllerUnit,
-    '48ssr':    LumosControllerUnit,
+    '48ssr':    LumosControllerUnit,    # DEPRECATED NAME
     'lumos':    LumosControllerUnit,
     'cm17a':    FirecrackerX10ControllerUnit,
     'renard':   RenardControllerUnit,

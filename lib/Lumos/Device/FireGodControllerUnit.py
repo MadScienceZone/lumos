@@ -57,10 +57,10 @@ class FireGodControllerUnit (ControllerUnit):
     appreciate any feedback you'd like to offer about this driver,
     if you're willing to try it and help us test/debug this code.
     """
-    def __init__(self, id, power_source, network, address=1, resolution=101, channels=32):
+    def __init__(self, id, power_source, network, address=1, resolution=101, num_channels=32):
         """
         Constructor for a FireGod dimmable 128-channel SSR board object:
-            FireGodControllerUnit(id, power_source, network, [address], [resolution], [channels])
+            FireGodControllerUnit(id, power_source, network, [address], [resolution], [num_channels])
 
         Specify the correct PowerSource object for this unit and
         the module address (1-4).  The number of channels defaults to 32, but this
@@ -74,8 +74,9 @@ class FireGodControllerUnit (ControllerUnit):
 
         ControllerUnit.__init__(self, id, power_source, network, resolution)
         self.address = int(address)
-        self.type = 'FireGod SSR Controller (%d channels)' % channels
-        self.channels = [None] * channels
+        self.type = 'FireGod SSR Controller (%d channels)' % num_channels
+        self.channels = [None] * num_channels
+        self.num_channels = num_channels
         self.update_pending = False
         self.iter_channels = self._iter_non_null_channel_list
 
