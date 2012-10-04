@@ -27,7 +27,8 @@
 # 
 #
 import sys, unittestgui
-sys.path.append('../lib')
+#sys.path.append('../lib')
+sys.path.insert(0, '../lib')
 import Test
 import Tkinter
 import traceback

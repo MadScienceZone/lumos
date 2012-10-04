@@ -26,7 +26,7 @@
 # 
 # vi:set ai sm nu ts=4 sw=4 expandtab:
 import unittest, quopri
-from Lumos.Device.LumosControllerUnit  import LumosControllerUnit
+from Lumos.Device.LumosControllerUnit  import LumosControllerUnit, LumosControllerConfiguration
 from Lumos.PowerSource                 import PowerSource
 from TestNetwork                       import TestNetwork
 
@@ -211,11 +211,20 @@ class LumosControllerUnitTest (unittest.TestCase):
             self.assertEqual(self.n.buffer, result)
             self.n.reset()
 
+    def testSensorTriggers(self):
+        for sens, a, b, c, i, m, res in (
+               ('A', 1, 2, 3, True, 'once',  '=FC=06@=01=02=03<'),
+               ('B', 55,0, 0, True, 'follow','=FC=06!7=00=00<'),
+               ('C', 127,3,19,False,'const', '=FC=06=12=7F=03=13<'),
+               ('D', 4, 9,99, False,'follow','=FC=063=04\tc<'),
+        ):
+            self.ssr.raw_sensor_trigger(sens, a, b, c, inverse=i, mode=m)
+            self.assertEqual(self.n.buffer, res)
+            self.n.reset()
+
 #        self.ssr.ramp_to(2, 255, 2000)
 #        # channel 2 is at 25; ramp to 255 over 2000 mS = 
 #        self.assertEqual(self.n.buffer, "
-
-        
 
     def testFirstInit(self):
         self.ssr.initialize_device()
@@ -232,6 +241,27 @@ class LumosControllerUnitTest (unittest.TestCase):
 
         self.ssr.flush(force=True)
         self.assertEqual(self.n.buffer, '=8C')
+
+    def test_config(self):
+        con = LumosControllerConfiguration()
+        for sens, D, R, res in (
+            (['A','B','C','D'], None, 256, '=FCqx=00z=3D'),
+            ([               ],    0, 256, '=FCq=00=00z=3D'),
+            ([    'B','C',   ],  500, 128, '=FCq7s:=3D'),   
+            (['A',           ],  157, 256, '=FCqE=1Cz=3D'),  
+            (['A',        'D'], None, 128, '=FCqH=00:=3D'),
+        ):
+            con.active_sensors = sens
+            con.dmx_start      = D
+            con.resolution     = R
+            self.ssr.raw_configure_device(con)
+            self.assertEqual(self.n.buffer, res)
+            self.n.reset()
+
+    def test_query(self):
+        self.ssr.raw_query_device_status()
+        self.assertEqual(self.n.buffer, "=FC=03$T")
+        self.fail("Need to get response from unit")
 
 # 
 # $Log: not supported by cvs2svn $

@@ -312,6 +312,33 @@ class LumosControllerUnit (ControllerUnit):
         self.network.send(chr(0xF0 | self.address) + chr(0x04) + chr(id & 0x7f) + chr(len(bits) & 0x7f) +
             ''.join([chr(i & 0x7f) for i in bits]) + 'Ds')
 
+    def raw_sensor_trigger(self, sens_id, i_seq, p_seq, t_seq, inverse=False, mode='follow'):
+        self.network.send(chr(0xF0 | self.address) + chr(0x06) + chr(
+            (0x40 if mode=='once' else (0x20 if mode == 'follow' else 0x00)) | 
+            (0x00 if inverse else 0x10) |
+            {'A': 0, 'B': 1, 'C': 2, 'D': 3}[sens_id]) + 
+            chr(i_seq & 0x7f) + chr(p_seq & 0x7f) + chr(t_seq & 0x7f) + '<')
+
+    def raw_configure_device(self, conf_obj):
+        self.network.send(chr(0xF0 | self.address) + chr(0x71) + chr(
+            reduce((lambda x,y: x|y), 
+                [{'A': 0x40, 'B': 0x20, 'C': 0x10, 'D': 0x08}[s] 
+                    for s in conf_obj.active_sensors], 0)
+            | (0x04 if conf_obj.dmx_start else 0x00)
+            | (0 if not conf_obj.dmx_start else ((conf_obj.dmx_start - 1) >> 7) & 0x03)
+            ) + chr(0 if not conf_obj.dmx_start else ((conf_obj.dmx_start - 1) & 0x7f)) +
+            chr(0x3a | (0x40 if conf_obj.resolution == 256 else 0x00)) + chr(0x3D))
+            
+    def raw_query_device_status(self):
+        self.network.send(chr(0xf0 | self.address) + "\3$T")
+
+class LumosControllerConfiguration (object):
+    def __init__(self):
+        self.active_sensors = []        # list of 'A'..'D'
+        self.dmx_start = None           # None or 1..512
+        self.resolution = 256           # 128 or 256
+
+
 
 #
 # $Log: not supported by cvs2svn $
