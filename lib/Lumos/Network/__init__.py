@@ -68,6 +68,12 @@ class Network (object):
         "Send a command string to the hardware device."
         raise NotImplementedError, "You MUST redefine this method in each Network class."
 
+    def input(self, remaining_f=None, bytes=None, mode_switch=True):
+        "Input data from the network."
+        # You MAY redefine this method in each Network class.  You MUST if you want
+        # it to perform input operations.
+        raise NotImplementedError("This network type does not support input.")
+
     def close(self):
         """Close the network device; no further operations are
         possible for it."""

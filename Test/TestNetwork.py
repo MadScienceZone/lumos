@@ -29,6 +29,8 @@ from Lumos.Network import Network
 from quopri        import encodestring
 import sys
 
+class APIUsageError (Exception): pass
+
 class TestNetwork (Network):
     """
     This is a network type for debugging purposes.  Instead of talking
@@ -38,6 +40,8 @@ class TestNetwork (Network):
         self.units = {}
         self.description = description
         self.buffer = ''
+        self.ibuffer = ''
+        self.mode = 'tx'
         self.closed = False
         self.args = kwargs
         for key in 'port', 'baudrate', 'bits':
@@ -60,8 +64,54 @@ class TestNetwork (Network):
         self.closed = True
 
     def reset(self):
-        "Reset output buffer for easier testing (of isolated events)"
-        self.buffer = ''
+        "Reset buffers for easier testing (of isolated events)"
+        self.buffer = self.ibuffer = ''
+
+    def input_waiting(self):
+        return len(self.ibuffer)
+
+    def receive_mode(self):
+        self.mode = 'rx'
+
+    def transmit_mode(self):
+        self.mode = 'tx'
+
+    def input_data(self, data):
+        "Set up test data to 'read' from 'input' device, wink wink nudge nudge"
+        self.ibuffer += data
+
+    def input(self, remaining_f=None, bytes=None, mode_switch=True):
+        if not mode_switch and self.mode == 'tx':
+            raise APIUsageError('Failure to set proper I/O mode on network before input')
+        if not self.input_waiting():
+            raise APIUsageError('Test logic error--input() call has no simulated input, will block forever.')
+
+        if remaining_f:
+            if not bytes:
+                bytes = remaining_f(None)
+        elif bytes:
+            if len(self.ibuffer) < bytes:
+                raise APIUsageError('Test logic error--input() call not given {0} byte{1} to read, will block forever.'.format(bytes, '' if bytes==1 else 's'))
+            output = self.ibuffer[:bytes]
+            self.ibuffer = self.ibuffer[bytes:]
+            bytes = 0
+        else:
+            raise APIUsageError("You must specify either bytes or remaining_f (or both) to input")
+
+        while bytes > 0:
+            if len(self.ibuffer) < bytes:
+                raise APIUsageError('Test logic error--input() call not given {0} byte{1} to read, will block forever.'.format(bytes, '' if bytes==1 else 's'))
+            output += self.ibuffer[:bytes]
+            self.ibuffer = self.ibuffer[bytes:]
+            bytes = remaining_f(output)
+
+        return output
+
+
+
+
+
+
 
 class TestParallelNetwork (TestNetwork):
     def send(self, bit):
