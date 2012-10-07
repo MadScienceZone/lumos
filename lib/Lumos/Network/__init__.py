@@ -74,6 +74,16 @@ class Network (object):
         # it to perform input operations.
         raise NotImplementedError("This network type does not support input.")
 
+    def transmit_mode(self)
+        raise NotImplementedError("This network type does not support input.")
+
+    def receive_mode(self)
+        raise NotImplementedError("This network type does not support input.")
+
+    def input_waiting(self)
+        raise NotImplementedError("This network type does not support input.")
+
+
     def close(self):
         """Close the network device; no further operations are
         possible for it."""
