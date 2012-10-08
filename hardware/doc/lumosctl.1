@@ -210,6 +210,11 @@ e.g.,
 .BR \-\-disable\-sensor=ab ).
 The Lumos board will act as though those sensors were 
 inactive regardless of their actual inputs.
+The special character
+.RB \*(lq * \*(rq
+appearing in 
+.I s
+means to disable all sensors.
 .TP
 .B \-\-drop\-privileged\-mode
 .RB ( \-d )
@@ -450,7 +455,7 @@ next step up from that, 254 and 255 are fully on, and so forth.
 .BI sensors= list
 The value is a list of single letters in the range [A, D].  Each letter appearing in this
 list indicates that the corresponding sensor input should be enabled in the hardware.
-You must ensure that the hardware is really configured that way.
+You must ensure that the hardware is really configured that way.  
 .SS "Sensor Configuration"
 .LP
 For each sensor listed in the 
