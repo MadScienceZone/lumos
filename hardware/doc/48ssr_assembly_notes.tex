@@ -59,26 +59,28 @@ R - reply expected
 Status reply packet:
 1111aaaa 00011111 <data> 00110011
 <data>::=
-  0ABCDdcc 0ccccccc 0ABCDqsf 0ABCDrpp 0ppppppp 0eeeeee 0eeeeeee 0mmmmmmm 0mmmmmmm 000000ii
-   \__/|\_________/  \__/|||  \__/|\_________/ \______________/  \______________/       \/
-   |   |     |         | |||    | |       |             |                 |              |
-sens   |     |         | |||    | |       |             |                 |              |
-DMX----+     |         | |||    | |       |             |                 |              |
-DMX channel--+         | |||    | |       |             |                 |              |
-sensor masks (1=en)----+ |||    | |       |             |                 |              |
-in admin/config mode now-+||    | |       |             |                 |              |
-sleep mode (s=1)----------+|    | |       |             |                 |              |
-last seq overfilled--------+    | |       |             |                 |              |
-Current sensor input states-----+ |       |             |                 |              |
-Resolution (1=high, 0=low)--------+       |             |                 |              |
-phase offset value------------------------+             |                 |              |
-EEPROM bytes free for sequences-------------------------+                 |              |
-RAM bytes free for sequences----------------------------------------------+              |
-Device Model ID (00=48SSR, 01=24SSR-DC)--------------------------------------------------+
-   0owbxxxx 0iiiiiii 0ppppppp 0ttttttt 	sensor config for A
-   0owbxxxx 0iiiiiii 0ppppppp 0ttttttt 	sensor config for B
-   0owbxxxx 0iiiiiii 0ppppppp 0ttttttt 	sensor config for C
-   0owbxxxx 0iiiiiii 0ppppppp 0ttttttt 	sensor config for D
+  0ABCDdcc 0ccccccc 0ABCDqsf 0ABCDrpp 0ppppppp 0eeeeee 0eeeeeee 0mmmmmmm 0mmmmmmm 0X0000ii 0xxxxxxx
+   \__/|\_________/  \__/|||  \__/|\_________/ \______________/  \______________/  |    \/ \______/
+   |   |     |         | |||    | |       |             |                 |        |     |     |
+sens   |     |         | |||    | |       |             |                 |        |     |     |
+DMX----+     |         | |||    | |       |             |                 |        |     |     |
+DMX channel--+         | |||    | |       |             |                 |        |     |     |
+sensor masks (1=en)----+ |||    | |       |             |                 |        |     |     |
+in admin/config mode now-+||    | |       |             |                 |        |     |     |
+sleep mode (s=1)----------+|    | |       |             |                 |        |     |     |
+last seq overfilled--------+    | |       |             |                 |        |     |     |
+Current sensor input states-----+ |       |             |                 |        |     |     |
+Resolution (1=high, 0=low)--------+       |             |                 |        |     |     |
+phase offset value------------------------+             |                 |        |     |     |
+EEPROM bytes free for sequences-------------------------+                 |        |     |     |
+RAM bytes free for sequences----------------------------------------------+        |     |     |
+A sequence is currently executing (1)----------------------------------------------+     |     |
+Device Model ID (00=48SSR, 01=24SSR-DC)--------------------------------------------------+     |
+Currently running sequence---------------------------------------------------------------------+
+   0owmxx00 0iiiiiii 0ppppppp 0ttttttt 	sensor config for A
+   0owmxx01 0iiiiiii 0ppppppp 0ttttttt 	sensor config for B
+   0owmxx10 0iiiiiii 0ppppppp 0ttttttt 	sensor config for C
+   0owmxx11 0iiiiiii 0ppppppp 0ttttttt 	sensor config for D
 
 
 SEQUENCE DATA

@@ -251,17 +251,32 @@ class LumosControllerUnitTest (unittest.TestCase):
             (['A',           ],  157, 256, '=FCqE=1Cz=3D'),  
             (['A',        'D'], None, 128, '=FCqH=00:=3D'),
         ):
-            con.active_sensors = sens
-            con.dmx_start      = D
-            con.resolution     = R
+            con.configured_sensors = sens
+            con.dmx_start          = D
+            con.resolution         = R
             self.ssr.raw_configure_device(con)
             self.assertEqual(self.n.buffer, res)
             self.n.reset()
 
     def test_query(self):
-        self.ssr.raw_query_device_status()
+        self.n.input_data('\xFC\x1F\x50\x00\x00\x44\x02\x00\x4f\x01\x27\x00\x00\x33')
+        reply = self.ssr.raw_query_device_status()
         self.assertEqual(self.n.buffer, "=FC=03$T")
-        self.fail("Need to get response from unit")
+        self.assertEqual(reply.config.configured_sensors, ['A','C'])
+        self.assertEqual(reply.config.dmx_start, None)
+        self.assertEqual(reply.config.resolution, 256)
+        self.assertEqual(reply.enabled_sensors, [])
+        self.assertEqual(reply.in_config_mode, False)
+        self.assertEqual(reply.in_sleep_mode, False)
+        self.assertEqual(reply.err_memory_full, False)
+        self.assertEqual(reply.sensors_on, ['A'])
+        self.assertEqual(reply.phase_offset, 2)
+        self.assertEqual(reply.eeprom_memory_free, 0x4f)
+        self.assertEqual(reply.ram_memory_free, 0xa7)
+        self.assertEqual(reply.current_sequence, None)
+        self.assertEqual(reply.hardware_type, 'lumos48ctl')
+
+
 
 # 
 # $Log: not supported by cvs2svn $

@@ -124,6 +124,7 @@ else:
             self.stop = self._int(stop)
             self.xonxoff = self._bool(xonxoff)
             self.rtscts = self._bool(rtscts)
+            self.duplex = duplex
             self.txmode = txmode
             self.txlevel = self._bool(txlevel)
             self.txdelay = self._int(txdelay)
@@ -204,7 +205,7 @@ else:
 
             self._change_mode(0 if self.txlevel else 1)
 
-        def transmit_mode(self)
+        def transmit_mode(self):
             """Low-level function to switch to transmit mode.  Abandons any unread
             input.  This also delays before and after the mode switch."""
 

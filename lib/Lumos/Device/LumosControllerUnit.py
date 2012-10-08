@@ -28,6 +28,8 @@
 # 
 from Lumos.ControllerUnit import ControllerUnit
 
+class DeviceProtocolError (Exception): pass
+
 class LumosControllerUnit (ControllerUnit):
     """
     ControllerUnit subclass for my custom 48-channel SSR boards.
@@ -323,22 +325,138 @@ class LumosControllerUnit (ControllerUnit):
         self.network.send(chr(0xF0 | self.address) + chr(0x71) + chr(
             reduce((lambda x,y: x|y), 
                 [{'A': 0x40, 'B': 0x20, 'C': 0x10, 'D': 0x08}[s] 
-                    for s in conf_obj.active_sensors], 0)
+                    for s in conf_obj.configured_sensors], 0)
             | (0x04 if conf_obj.dmx_start else 0x00)
             | (0 if not conf_obj.dmx_start else ((conf_obj.dmx_start - 1) >> 7) & 0x03)
             ) + chr(0 if not conf_obj.dmx_start else ((conf_obj.dmx_start - 1) & 0x7f)) +
             chr(0x3a | (0x40 if conf_obj.resolution == 256 else 0x00)) + chr(0x3D))
             
+    # 1111aaaa 00011111 <data> 00110011
+    # <data>::=
+    #   0ABCDdcc 0ccccccc 0ABCDqsf 0ABCDrpp 0ppppppp 0eeeeee 0eeeeeee 0mmmmmmm 0mmmmmmm 0X0000ii 0xxxxxxx
+    #    \__/|\_________/  \__/|||  \__/|\_________/ \______________/  \______________/  |    \/ \______/
+    #    |   |     |         | |||    | |       |             |                 |        |     |     |
+    # sens   |     |         | |||    | |       |             |                 |        |     |     |
+    # DMX----+     |         | |||    | |       |             |                 |        |     |     |
+    # DMX channel--+         | |||    | |       |             |                 |        |     |     |
+    # sensor masks (1=en)----+ |||    | |       |             |                 |        |     |     |
+    # in admin/config mode now-+||    | |       |             |                 |        |     |     |
+    # sleep mode (s=1)----------+|    | |       |             |                 |        |     |     |
+    # last seq overfilled--------+    | |       |             |                 |        |     |     |
+    # Current sensor input states-----+ |       |             |                 |        |     |     |
+    # Resolution (1=high, 0=low)--------+       |             |                 |        |     |     |
+    # phase offset value------------------------+             |                 |        |     |     |
+    # EEPROM bytes free for sequences-------------------------+                 |        |     |     |
+    # RAM bytes free for sequences----------------------------------------------+        |     |     |
+    # A sequence is currently executing (1)----------------------------------------------+     |     |
+    # Device Model ID (00=48SSR, 01=24SSR-DC)--------------------------------------------------+     |
+    # Currently running sequence---------------------------------------------------------------------+
+    #    0owmxx00 0iiiiiii 0ppppppp 0ttttttt 	sensor config for A
+    #    0owmxx01 0iiiiiii 0ppppppp 0ttttttt 	sensor config for B
+    #    0owmxx10 0iiiiiii 0ppppppp 0ttttttt 	sensor config for C
+    #    0owmxx11 0iiiiiii 0ppppppp 0ttttttt 	sensor config for D
+
     def raw_query_device_status(self):
         self.network.send(chr(0xf0 | self.address) + "\3$T")
 
+        def find_command_byte(d, start=0):
+            if d is None:
+                return -1
+
+            for i in range(start, len(d)):
+                if ord(d[i]) & 0x80:
+                    return i
+            return -1
+
+        def packet_scanner(d):
+            start=0
+            while True:
+                cb = find_command_byte(d, start)
+                start = cb+1
+                if cb < 0:
+                    return 14
+                if ord(d[cb]) == (0xf0 | self.address):
+                    if len(d) - cb <= 1:
+                        return 13
+                    if ord(d[cb+1]) == 0x1f:
+                        return max(0, 14 - (len(d) - cb))
+
+
+                        # 0  1  2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9
+                        # cc                                          1
+                        # x  x  x c                                   1
+                        # cc 1f 1 2 3                                 5-0    9
+                        # x  x  x c f 1 2 3 4                         9-3    8
+                        # x  x  c f 1 2 3 4 5 6 7 8 9 0 1 2           16-2   0
+                        # x  x  c f 1 2 3 4 5 6 7 8 9 0 1 2 x x x x   20-2  -4
+            
+        reply = self.network.input(packet_scanner)
+        if len(reply) != 14:
+            raise DeviceProtocolError("Query packet response malformed (len={0})".format(len(reply)))
+        if ord(reply[13]) != 0x33:
+            raise DeviceProtocolError("Query packet response malformed (end={0:02X})".format(ord(reply[13])))
+        if any([ord(x) & 0x80 for x in reply[1:]]):
+            raise DeviceProtocolError("Query packet response malformed (high bit in data area: {0})".format(
+                ' '.join(['{0:02X}'.format(ord(x)) for x in reply])))
+
+        reply = [ord(i) for i in reply]
+
+        status = LumosControllerStatus()
+        if reply[2] & 0x40: status.config.configured_sensors.append('A')
+        if reply[2] & 0x20: status.config.configured_sensors.append('B')
+        if reply[2] & 0x10: status.config.configured_sensors.append('C')
+        if reply[2] & 0x08: status.config.configured_sensors.append('D')
+        if reply[2] & 0x04:
+            status.config.dmx_start = ((reply[2] & 0x03) << 7) | (reply[3] & 0x7f)
+        else:
+            status.config.dmx_start = None
+        if reply[4] & 0x40: status.enabled_sensors.append('A')
+        if reply[4] & 0x20: status.enabled_sensors.append('B')
+        if reply[4] & 0x10: status.enabled_sensors.append('C')
+        if reply[4] & 0x08: status.enabled_sensors.append('D')
+        status.in_config_mode = bool(reply[4] & 0x04)
+        status.in_sleep_mode = bool(reply[4] & 0x02)
+        status.err_memory_full = bool(reply[4] & 0x01)
+        if reply[5] & 0x40: status.sensors_on.append('A')
+        if reply[5] & 0x20: status.sensors_on.append('B')
+        if reply[5] & 0x10: status.sensors_on.append('C')
+        if reply[5] & 0x08: status.sensors_on.append('D')
+        status.config.resolution = 256 if reply[5] & 0x04 else 128 
+        status.phase_offset = ((reply[5] & 0x03) << 7) | (reply[6] & 0x7f)
+        status.eeprom_memory_free = ((reply[7] & 0x7f) << 7) | (reply[8] & 0x7f)
+        status.ram_memory_free = ((reply[9] & 0x7f) << 7) | (reply[10] & 0x7f)
+        if reply[11] & 0x40:
+            status.current_sequence = reply[12] & 0x7f
+        else:
+            status.current_sequence = None
+        if reply[11] & 0x03 == 0:
+            status.hardware_type = 'lumos48ctl'
+        elif reply[11] & 0x03 == 1:
+            status.hardware_type = 'lumos24dc'
+        else:
+            status.hardware_type = 'unknown'
+
+        return status
+
 class LumosControllerConfiguration (object):
     def __init__(self):
-        self.active_sensors = []        # list of 'A'..'D'
+        self.configured_sensors = []    # list of 'A'..'D'
         self.dmx_start = None           # None or 1..512
         self.resolution = 256           # 128 or 256
 
-
+class LumosControllerStatus (object):
+    def __init__(self):
+        self.config = LumosControllerConfiguration()
+        self.enabled_sensors = []
+        self.in_config_mode = False
+        self.in_sleep_mode = False
+        self.err_memory_full = False
+        self.sensors_on = []
+        self.phase_offset = 2
+        self.eeprom_memory_free = 0
+        self.ram_memory_free = 0
+        self.current_sequence = None
+        self.hardware_type = None
 
 #
 # $Log: not supported by cvs2svn $

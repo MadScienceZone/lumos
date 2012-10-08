@@ -86,12 +86,14 @@ class TestNetwork (Network):
         if not self.input_waiting():
             raise APIUsageError('Test logic error--input() call has no simulated input, will block forever.')
 
+        output = ''
+
         if remaining_f:
             if not bytes:
                 bytes = remaining_f(None)
         elif bytes:
             if len(self.ibuffer) < bytes:
-                raise APIUsageError('Test logic error--input() call not given {0} byte{1} to read, will block forever.'.format(bytes, '' if bytes==1 else 's'))
+                raise APIUsageError('Test logic error--input() call not given {0} byte{1} to read (given {2}), will block forever.'.format(bytes, ('' if bytes==1 else 's'), len(self.ibuffer)))
             output = self.ibuffer[:bytes]
             self.ibuffer = self.ibuffer[bytes:]
             bytes = 0
@@ -100,7 +102,7 @@ class TestNetwork (Network):
 
         while bytes > 0:
             if len(self.ibuffer) < bytes:
-                raise APIUsageError('Test logic error--input() call not given {0} byte{1} to read, will block forever.'.format(bytes, '' if bytes==1 else 's'))
+                raise APIUsageError('Test logic error--input() call not given {0} byte{1} to read (given {2}), will block forever.'.format(bytes, ('' if bytes==1 else 's'), len(self.ibuffer)))
             output += self.ibuffer[:bytes]
             self.ibuffer = self.ibuffer[bytes:]
             bytes = remaining_f(output)
