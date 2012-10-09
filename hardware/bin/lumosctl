@@ -16,13 +16,13 @@ import sys
 #
 # Command line options
 #
-parser = optparse.OptionParser(usage='%prog [-dhkPRSvXz] [-A ADDR] [-a ADDR] [-B SPD] [-b SPD] [-C FILE] [-c FILE] [-D LIST] [-E LIST] [-P PH] [-p PORT] [-s FILE] [-t ...] [channel-levels...]', version='%prog, version 1.0')
+parser = optparse.OptionParser(usage='%prog [-dhkPRSvXz] [-A ADDR] [-a ADDR] [-B SPD] [-b SPD] [-C FILE] [-c FILE] [-D LIST] [-E LIST] [-L LVL] [-m mS] [-P PH] [-p PORT] [-s FILE] [-T MODE] [-t ...] [-x DPX] [channel-levels...]', version='%prog, version 1.0')
 parser.add_option('-a', '--address',        metavar='ADDR', type='int', help='Unit address (0-15) [%default]')
 parser.add_option('-S', '--clear-sequences', action='store_true', help='Delete all stored sequences from the device.')
 parser.add_option('-D', '--disable-sensor',  metavar='LIST', help='Disable sensor(s) ABCD in LIST')
 parser.add_option('-d', '--drop-privileged-mode', action='store_true', help='Run in unprivileged mode')
 parser.add_option('-C', '--dump-configuration-file', metavar='FILE', help='Get and save device configuration')
-parser.add_option('  ', '--duplex', action='store_const', choices=['full', 'half'], help='Serial duplex mode [%default]')
+parser.add_option('-x', '--duplex', metavar='DPX', action='store_const', choices=['full', 'half'], help='Serial duplex mode [%default]')
 parser.add_option('-E', '--enable-sensor', metavar='LIST', help='Enable sensor(s) ABCD in LIST')
 parser.add_option('-k', '--kill-all', action='store_true', help='Turn off all channel outputs')
 parser.add_option('-c', '--load-configuration-file', metavar='FILE', help='Configure device based on FILE')
@@ -37,9 +37,9 @@ parser.add_option('-P', '--set-phase', metavar='P', type='int', help='Change uni
 parser.add_option('-z', '--sleep', action='store_true', help='Put device into sleep mode.')
 parser.add_option('-X', '--shutdown', action='store_true', help='Shut down controller unit.')
 parser.add_option('-b', '--speed', metavar='SPD', type='int', help='Baud rate to use to talk to device. [%default]')
-parser.add_option('  ', '--txdelay', type='int', help='Transmitter control delay (mS) [%default]')
-parser.add_option('  ', '--txlevel', type='int', help='Transmitter control logic level (0-1) [%default]')
-parser.add_option('  ', '--txmode', action='store_const', choices=['dtr', 'rts'], help='Transmitter control line [%default]')
+parser.add_option('-m', '--txdelay', metavar='mS', type='int', help='Transmitter control delay (mS) [%default]')
+parser.add_option('-L', '--txlevel', metavar='LVL', type='int', help='Transmitter control logic level (0-1) [%default]')
+parser.add_option('-T', '--txmode', metavar='MODE', action='store_const', choices=['dtr', 'rts'], help='Transmitter control line [%default]')
 parser.add_option('-w', '--wake', action='store_true', help='Take device out of sleep mode.')
 parser.add_option('-v', '--verbose', action='count', help='Increase output level.')
 parser.set_defaults(address=0, duplex='full', port=0, speed=19200, txmode='dtr', txlevel=1, txdelay=2)
@@ -138,13 +138,134 @@ target = Lumos.Device.LumosControllerUnit.LumosControllerUnit(
 show.add_network('io', io)
 show.add_controller('io', target)
 
-
-
 if options.set_address == 15:
     sys.stderr.write("""
 **WARNING: Setting device to address 15 limits that device's flexibility
 **         because 15 is also the broadcast address.
 """)
+
+def getstatus(target):
+    "Get current device state and return it."
+
+    devstatus = target.raw_query_device_status(timeout=5)
+    if devstatus is None:
+        raise IOError("No response received from device at address {0}".format(target.address))
+    return devstatus
+
+#
+# Probe for devices
+#
+def trace(level, msg, stream=sys.stdout.error, eol=True):
+    global options
+    if options.verbose >= level:
+        stream.write(msg)
+    if eol:
+        stream.write('\n')
+    else:
+        stream.flush()
+
+def report_on(device):
+    print "Device Type:              {0} ({1} channels)".format(device.hardware_type, device.channels)
+    print "Config (privileged) mode: {0}".format('ON' if device.in_config_mode else 'OFF')
+    print "Sleep mode:               {0}".format('ON' if device.in_sleep_mode else 'OFF')
+    print "Currently Executing:      {0}".format(status.current_sequence or 'Nothing')
+    print "Dimmer Resolution:        {0:4d} steps".format(device.config.resolution)
+    print "EEPROM memory free:       {0:4d} bytes".format(device.eeprom_memory_free)
+    print "RAM memory free:          {0:4d} bytes".format(device.ram_memory_free)
+    print "Last memory write:        {0}".format('*ERROR* MEMORY FULL' if device.err_memory_full else 'Successful')
+    print "Phase offset:             {0:4d}".format(device.phase_offset)
+
+    if not device.dmx_start:
+        print "DMX Mode:                 OFF"
+    else:
+        print "DMX Mode:                 Channel #0-{0} is DMX #{1}-{2}, Control DMX #{3}".format(
+                device.channels - 1,
+                device.dmx_start,
+                device.dmx_start + device.channels - 1,
+                device.dmx_start + device.channels
+        )
+               --------------------------------------------------------------------------------
+
+    # SENSORS  ENABLED LOGIC ACTIVE MODE   PRE TRG PST
+    #    A     Yes     High  Yes    once   999 999 999
+    #    B     No      Low   No     repeat
+
+    if not device.configured_sensors:
+        print "No configured sensors."
+    else:
+        print "SENSORS  ENABLED LOGIC ACTIVE MODE   PRE TRG PST"
+        for sensor in device.configured_sensors:
+            print "   {0}     {1:3s}     {2:4s}  {3:3s}    {4:6s} {5:3d} {6:3d} {7:3d}".format(
+                sensor,
+                'Yes' if device.sensors[sensor].enabled else 'No',
+                'Low' if device.sensors[sensor].active_low else 'High',
+                'Yes' if device.sensors[sensor].on else 'No',
+                device.sensors[sensor].trigger_mode,
+                device.sensors[sensor].pre_trigger,
+                device.sensors[sensor].trigger,
+                device.sensors[sensor].post_trigger,
+            )
+        
+devices = []
+devstatus = None
+
+if options.probe:
+    for address in range(16):
+        trace(1, "Probing io.{0:02d}...".format(address), eol=False)
+        target.address = address
+        device = target.raw_query_device_status(timeout=1)
+        if device is None:
+            trace(1, "nothing detected")
+        else:
+            trace(1, device.hardware_type)
+            devices.append((address, device))
+            if address == options.address:
+                devstatus = device
+
+    print "Probe discovered {0} device{1}".format(len(devices), 
+            's.' if len(devices) == 0 else 
+                (':' if len(devices) == 1 else 's:'))
+
+    # reset target to just refer to our intended device
+    target.address = options.address
+
+else:
+    devstatus = getstatus(target)
+    devices = [(target.address, devstatus)]
+
+for address, device in devices:
+    print "Address {0:02d}: {1}".format(address, device.hardware_type)
+    if options.report:
+        report_on(device)
+
+#
+# Apply device changes
+#
+if options.set_address is not None:
+    
+
+
+options.clear_sequences
+options.disable_sensor
+options.enable_sensor
+options.drop_privileged_mode
+options.dump_configuration_file
+options.load_configuration_file
+options.kill_all
+options.load_sequence
+options.sensor
+options.set_baud_rate
+options.set_phase
+options.sleep
+options.shutdown
+options.wake
+
+operations
+    chan
+    chan@level,...
+    chan{ud}[:s[:t]]
+    xi
+    pt[s]
 
 ##
 ## command packet

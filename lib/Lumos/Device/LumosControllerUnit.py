@@ -432,10 +432,13 @@ class LumosControllerUnit (ControllerUnit):
             status.current_sequence = None
         if reply[11] & 0x03 == 0:
             status.hardware_type = 'lumos48ctl'
+            status.channels = 48
         elif reply[11] & 0x03 == 1:
             status.hardware_type = 'lumos24dc'
+            status.channels = 24
         else:
             status.hardware_type = 'unknown'
+            status.channels = 0
 
         for group, sensor_id in enumerate(['A', 'B', 'C', 'D']):
             flags = reply[group * 4 + 13]
