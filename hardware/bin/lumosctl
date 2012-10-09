@@ -1,0 +1,266 @@
+#!/usr/bin/python
+# vi:set ai sm nu ts=4 sw=4 expandtab:
+#
+# Directly control a Lumos ssr controller via the command line.
+# This is primarily intended for configuring and testing a controller
+# unit.  For running an actual show, use an application such as Lumos
+# (see http://lumos.sourceforge.net).
+#
+# Requires: Python 2.6 or later
+#           Lumos
+#
+import optparse
+import Lumos
+import time
+import sys
+#
+# Command line options
+#
+parser = optparse.OptionParser(usage='%prog [-dhkPRSvXz] [-A ADDR] [-a ADDR] [-B SPD] [-b SPD] [-C FILE] [-c FILE] [-D LIST] [-E LIST] [-P PH] [-p PORT] [-s FILE] [-t ...] [channel-levels...]', version='%prog, version 1.0')
+parser.add_option('-a', '--address',        metavar='ADDR', type='int', help='Unit address (0-15) [%default]')
+parser.add_option('-S', '--clear-sequences', action='store_true', help='Delete all stored sequences from the device.')
+parser.add_option('-D', '--disable-sensor',  metavar='LIST', help='Disable sensor(s) ABCD in LIST')
+parser.add_option('-d', '--drop-privileged-mode', action='store_true', help='Run in unprivileged mode')
+parser.add_option('-C', '--dump-configuration-file', metavar='FILE', help='Get and save device configuration')
+parser.add_option('  ', '--duplex', action='store_const', choices=['full', 'half'], help='Serial duplex mode [%default]')
+parser.add_option('-E', '--enable-sensor', metavar='LIST', help='Enable sensor(s) ABCD in LIST')
+parser.add_option('-k', '--kill-all', action='store_true', help='Turn off all channel outputs')
+parser.add_option('-c', '--load-configuration-file', metavar='FILE', help='Configure device based on FILE')
+parser.add_option('-s', '--load-sequence', metavar='FILE', help='Compile sequence(s) in FILE and download into device')
+parser.add_option('-p', '--port', metavar='PORT', help='Serial I/O port to use [%default]')
+parser.add_option('-P', '--probe', action='store_true', help='Discover Lumos devices on network')
+parser.add_option('-R', '--report', action='store_true', help='Report device status to standard output.')
+parser.add_option('-t', '--sensor', metavar='TRIG', action='append', help='Set trigger event for sensor.')
+parser.add_option('-A', '--set-address', metavar='ADDR', type='int', help='Change unit address (0-15)')
+parser.add_option('-B', '--set-baud-rate', metavar='SPD', type='int', help='Change unit baud rate.')
+parser.add_option('-P', '--set-phase', metavar='P', type='int', help='Change unit phase offset to P (0-511)')
+parser.add_option('-z', '--sleep', action='store_true', help='Put device into sleep mode.')
+parser.add_option('-X', '--shutdown', action='store_true', help='Shut down controller unit.')
+parser.add_option('-b', '--speed', metavar='SPD', type='int', help='Baud rate to use to talk to device. [%default]')
+parser.add_option('  ', '--txdelay', type='int', help='Transmitter control delay (mS) [%default]')
+parser.add_option('  ', '--txlevel', type='int', help='Transmitter control logic level (0-1) [%default]')
+parser.add_option('  ', '--txmode', action='store_const', choices=['dtr', 'rts'], help='Transmitter control line [%default]')
+parser.add_option('-w', '--wake', action='store_true', help='Take device out of sleep mode.')
+parser.add_option('-v', '--verbose', action='count', help='Increase output level.')
+parser.set_defaults(address=0, duplex='full', port=0, speed=19200, txmode='dtr', txlevel=1, txdelay=2)
+
+(options, operations) = parser.parse_args()
+
+#
+# validate options
+#
+if not 0 <= options.address <= 15:
+	parser.error('Valid unit addresses are in the range 0..15 only')
+
+if options.set_address is not None and not 0 <= options.set_address <= 15:
+	parser.error('Valid unit addresses are in the range 0..15 only')
+
+if options.set_phase is not None and not 0 <= options.set_phase <= 511:
+	parser.error('Valid phase offsets are in the range 0..511 only')
+
+if options.duplex not in ['full', 'half']:
+	parser.error('--duplex value must be "full" or "half".')
+
+if options.txmode not in ['dtr', 'rts']:
+    parser.error('--txmode value must be "dtr" or "rts".')
+
+if not 0 <= options.txlevel <= 1:
+    parser.error('--txlevel value must be 0 or 1.')
+
+if not 0 <= options.txdelay <= 127:
+    parser.error('--txdelay value must be 0-127.')
+for sensor_opt in options.disable_sensor, options.enable_sensor:
+    if sensor_opt is not None:
+        sensor_opt = sensor_opt.upper()
+        if any([c not in 'ABCD*' for c in sensor_opt]):
+            parser.error('Sensor names are A, B, C, or D; or * for "all sensors".')
+
+sensor_triggers = []
+for trigger in options.sensor:
+    fields = trigger.split(':')
+    if len(fields) != 4 or not 1 <= len(fields[0]) <= 2:
+        parser.error('-t/--sensor arg: Usage: {A|B|C|D}[o|r|w]:<pre>:<trigger>:<post>')
+    fields[0] = fields[0].upper()
+    if fields[0][0] not in 'ABCD':
+        parser.error('-t/--sensor arg: Sensor names are A, B, C, or D.')
+    
+    if len(fields[0]) == 1):
+        s_opt = 'O'
+    elif fields[0][1] not in 'ORW':
+        parser.error('-t/--sensor arg: Usage: {A|B|C|D}[o|r|w]:<pre>:<trigger>:<post>')
+    else:
+        s_opt = fields[0][1]
+
+    for f in range(1, 4):
+        try: 
+            fields[f] = int(fields[f])
+        except ValueError:
+            parser.error('-t/--sensor arg: <pre>, <trigger>, and <post> must be integers')
+
+        if not 0 <= fields[f] <= 128:
+            parser.error('-t/--sensor arg: <pre>, <trigger>, and <post> must be 0-127')
+
+    sensor_triggers.append((fields[0][0], s_opt, fields[1], fields[2], fields[3]))
+
+#
+# Build Lumos context
+#
+show = Lumos.Show.Show()
+show.title = 'lumosctl'
+show.description = 'Lumos Configuration Utility'
+
+ps = Lumos.PowerSource.PowerSource('power')
+
+io = Lumos.Network.SerialNetwork.SerialNetwork(
+    description='Serial port for Lumos devices',
+    port = options.port,
+    baudrate = options.speed,
+    bits = 8,
+    parity = 'none',
+    stop = 1,
+    xonxoff = False,
+    rtscts = False,
+    duplex = options.duplex,
+    txmode = options.txmode,
+    txlevel = options.txlevel,
+    txdelay = options.txdelay,
+)
+
+target = Lumos.Device.LumosControllerUnit.LumosControllerUnit(
+    id = 'target',
+    power_source = ps,
+    network = io,
+    address = options.address,
+    resolution = 256,
+    num_channels = 48,
+)
+
+show.add_network('io', io)
+show.add_controller('io', target)
+
+
+
+if options.set_address == 15:
+    sys.stderr.write("""
+**WARNING: Setting device to address 15 limits that device's flexibility
+**         because 15 is also the broadcast address.
+""")
+
+##
+## command packet
+##
+#def cmd(addr, cmd):
+#	return chr(0x80 | ((cmd & 0x07) << 4) | (addr & 0x0f))
+##
+## data packet
+##
+#def data(data):
+#	return chr(data & 0x7f)
+##
+## data packet: channel selection
+##
+#def chan(ch, onoff=False):
+#	return data((0x40 if onoff else 0x00) | (ch & 0x3f))
+##
+## data packet: channel level
+##
+#def lev(value):
+#	return data(value & 0x1f)
+#
+##
+## print packet to stdout
+##
+#def bin(byte):
+#	b = ''
+#	for bit in range(0,8):
+#		b = ('1' if ord(byte) & (1<<bit) else '0') + b
+#	return b
+#
+#def dump(byte):
+#	print "  -> %s  $%02X" % (bin(byte), ord(byte))
+#
+#def output(byte):
+#	global options, serial_port
+#
+#	if options.verbose:
+#		dump(byte)
+#	
+#	if not options.noop and serial_port is not None:
+#		serial_port.write(byte)
+#		serial_port.flush()
+##
+## Act on input parameters
+##
+#addr = options.address
+#
+#if not options.noop:
+#	# try to use integer number if that's what we were given
+#	try:
+#		port_id = int(options.port)
+#	except:
+#		port_id = options.port
+#
+#	serial_port = serial.Serial(port=port_id, baudrate=19200, bytesize=8,
+#		parity='N', stopbits=1, timeout=None, xonxoff=0, rtscts=0, 
+#		writeTimeout=None, dsrdtr=None)
+#	
+#if options.verbose:
+#	print 'Controlling unit', addr
+#
+#if options.change_address is not None:
+#	print 'Changing address from', addr, 'to', options.change_address
+#	output(cmd(addr, 7))
+#	output(data(0x40 | ((options.change_address & 1) << 4) | (options.change_address & 0x0f)))
+#	print 'Waiting 30 seconds for device to settle...'
+#	sys.stdout.flush()
+#	time.sleep(30)
+#	addr = options.change_address
+#
+#if options.kill_all:
+#	print 'Killing all channel outputs.'
+#	output(cmd(addr, 0))
+#
+#if options.phase is not None:
+#	print 'Changing phase offset to', options.phase
+#	output(cmd(addr, 7))
+#	output(data(options.phase & 0x3f))
+#
+#if options.disable_privs:
+#	print 'Switching to normal (non-privileged) run mode.'
+#	output(cmd(addr, 7))
+#	output(data(0x61))
+#
+#for channel_setting in operations:
+#	try:
+#		at = channel_setting.find('@')
+#		if at >= 0:
+#			channel = int(channel_setting[:at])
+#			level = int(channel_setting[at+1:])
+#		else:
+#			channel = int(channel_setting)
+#			level = 31
+#		assert 0 <= channel < 48
+#		assert 0 <= level   < 32
+#	except:
+#		print channel_setting + ': invalid channel setting: must be channel[@level]'
+#		continue
+#	print 'Setting channel', channel, 'to level', level
+#	if level == 0:
+#		output(cmd(addr, 1))
+#		output(chan(channel, False))
+#	elif level >= 31:
+#		output(cmd(addr, 1))
+#		output(chan(channel, True))
+#	else:
+#		output(cmd(addr, 2))
+#		output(chan(channel))
+#		output(lev(level))
+#
+#if options.shutdown:
+#	print 'Shutting down unit (must be power cycled to restart).'
+#	output(cmd(addr, 7))
+#	output(data(0x60))
+#
+#if serial_port is not None:
+#	serial_port.close()
+#	serial_port = None
