@@ -314,9 +314,10 @@ class LumosControllerUnit (ControllerUnit):
         self.network.send(chr(0xF0 | self.address) + chr(0x04) + chr(id & 0x7f) + chr(len(bits) & 0x7f) +
             ''.join([chr(i & 0x7f) for i in bits]) + 'Ds')
 
-    def raw_sensor_trigger(self, sens_id, i_seq, p_seq, t_seq, inverse=False, mode='follow'):
+    def raw_sensor_trigger(self, sens_id, i_seq, p_seq, t_seq, inverse=False, mode='while'):
+        # inverse is "active high"
         self.network.send(chr(0xF0 | self.address) + chr(0x06) + chr(
-            (0x40 if mode=='once' else (0x20 if mode == 'follow' else 0x00)) | 
+            (0x40 if mode=='once' else (0x20 if mode == 'while' else 0x00)) | 
             (0x00 if inverse else 0x10) |
             {'A': 0, 'B': 1, 'C': 2, 'D': 3}[sens_id]) + 
             chr(i_seq & 0x7f) + chr(p_seq & 0x7f) + chr(t_seq & 0x7f) + '<')
@@ -374,12 +375,12 @@ class LumosControllerUnit (ControllerUnit):
                 cb = find_command_byte(d, start)
                 start = cb+1
                 if cb < 0:
-                    return 14
+                    return 30
                 if ord(d[cb]) == (0xf0 | self.address):
                     if len(d) - cb <= 1:
-                        return 13
+                        return 29
                     if ord(d[cb+1]) == 0x1f:
-                        return max(0, 14 - (len(d) - cb))
+                        return max(0, 30 - (len(d) - cb))
 
 
                         # 0  1  2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9
@@ -391,10 +392,10 @@ class LumosControllerUnit (ControllerUnit):
                         # x  x  c f 1 2 3 4 5 6 7 8 9 0 1 2 x x x x   20-2  -4
             
         reply = self.network.input(packet_scanner)
-        if len(reply) != 14:
+        if len(reply) != 30:
             raise DeviceProtocolError("Query packet response malformed (len={0})".format(len(reply)))
-        if ord(reply[13]) != 0x33:
-            raise DeviceProtocolError("Query packet response malformed (end={0:02X})".format(ord(reply[13])))
+        if ord(reply[29]) != 0x33:
+            raise DeviceProtocolError("Query packet response malformed (end={0:02X})".format(ord(reply[29])))
         if any([ord(x) & 0x80 for x in reply[1:]]):
             raise DeviceProtocolError("Query packet response malformed (high bit in data area: {0})".format(
                 ' '.join(['{0:02X}'.format(ord(x)) for x in reply])))
@@ -402,25 +403,25 @@ class LumosControllerUnit (ControllerUnit):
         reply = [ord(i) for i in reply]
 
         status = LumosControllerStatus()
-        if reply[2] & 0x40: status.config.configured_sensors.append('A')
-        if reply[2] & 0x20: status.config.configured_sensors.append('B')
-        if reply[2] & 0x10: status.config.configured_sensors.append('C')
-        if reply[2] & 0x08: status.config.configured_sensors.append('D')
+        for sensor_id, bitmask in ('A', 0x40), ('B', 0x20), ('C', 0x10), ('D', 0x08):
+            if reply[2] & bitmask:
+                status.config.configured_sensors.append(sensor_id)
+                status.sensors[sensor_id].configured = True
+
+            if reply[4] & bitmask:
+                status.sensors[sensor_id].enabled = True
+
+            if reply[5] & bitmask:
+                status.sensors[sensor_id].on = True
+
         if reply[2] & 0x04:
             status.config.dmx_start = ((reply[2] & 0x03) << 7) | (reply[3] & 0x7f)
         else:
             status.config.dmx_start = None
-        if reply[4] & 0x40: status.enabled_sensors.append('A')
-        if reply[4] & 0x20: status.enabled_sensors.append('B')
-        if reply[4] & 0x10: status.enabled_sensors.append('C')
-        if reply[4] & 0x08: status.enabled_sensors.append('D')
+
         status.in_config_mode = bool(reply[4] & 0x04)
         status.in_sleep_mode = bool(reply[4] & 0x02)
         status.err_memory_full = bool(reply[4] & 0x01)
-        if reply[5] & 0x40: status.sensors_on.append('A')
-        if reply[5] & 0x20: status.sensors_on.append('B')
-        if reply[5] & 0x10: status.sensors_on.append('C')
-        if reply[5] & 0x08: status.sensors_on.append('D')
         status.config.resolution = 256 if reply[5] & 0x04 else 128 
         status.phase_offset = ((reply[5] & 0x03) << 7) | (reply[6] & 0x7f)
         status.eeprom_memory_free = ((reply[7] & 0x7f) << 7) | (reply[8] & 0x7f)
@@ -436,6 +437,18 @@ class LumosControllerUnit (ControllerUnit):
         else:
             status.hardware_type = 'unknown'
 
+        for group, sensor_id in enumerate(['A', 'B', 'C', 'D']):
+            flags = reply[group * 4 + 13]
+            if flags & 0x03 != group:
+                raise DeviceProtocolError("Query packet response malformed (sensor group {0} ID as {1} ({2:02X}))".format(
+                    group, flags & 0x03, flags))
+            status.sensors[sensor_id].trigger_mode = ('once' if flags & 0x40 else 
+                                                        ('while' if flags & 0x20 else 'repeat'))
+            status.sensors[sensor_id].active_low = bool(flags & 0x01)
+            status.sensors[sensor_id].pre_trigger = reply[group * 4 + 14]
+            status.sensors[sensor_id].trigger = reply[group * 4 + 15]
+            status.sensors[sensor_id].post_trigger = reply[group * 4 + 16]
+
         return status
 
 class LumosControllerConfiguration (object):
@@ -444,19 +457,35 @@ class LumosControllerConfiguration (object):
         self.dmx_start = None           # None or 1..512
         self.resolution = 256           # 128 or 256
 
+class LumosControllerSensor (object):
+    def __init__(self, id):
+        self.id = id
+        self.active_low = True
+        self.enabled = False
+        self.configured = False
+        self.on = False
+        self.pre_trigger = 0
+        self.trigger = 0
+        self.post_trigger = 0
+        self.trigger_mode = 'once'
+
 class LumosControllerStatus (object):
     def __init__(self):
         self.config = LumosControllerConfiguration()
-        self.enabled_sensors = []
         self.in_config_mode = False
         self.in_sleep_mode = False
         self.err_memory_full = False
-        self.sensors_on = []
         self.phase_offset = 2
         self.eeprom_memory_free = 0
         self.ram_memory_free = 0
         self.current_sequence = None
         self.hardware_type = None
+        self.sensors = {
+            'A': LumosControllerSensor('A'),
+            'B': LumosControllerSensor('B'),
+            'C': LumosControllerSensor('C'),
+            'D': LumosControllerSensor('D'),
+        }
 
 #
 # $Log: not supported by cvs2svn $
