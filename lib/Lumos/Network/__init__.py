@@ -68,19 +68,19 @@ class Network (object):
         "Send a command string to the hardware device."
         raise NotImplementedError, "You MUST redefine this method in each Network class."
 
-    def input(self, remaining_f=None, bytes=None, mode_switch=True):
+    def input(self, remaining_f=None, bytes=None, mode_switch=True, timeout=None):
         "Input data from the network."
         # You MAY redefine this method in each Network class.  You MUST if you want
         # it to perform input operations.
         raise NotImplementedError("This network type does not support input.")
 
-    def transmit_mode(self)
+    def transmit_mode(self):
         raise NotImplementedError("This network type does not support input.")
 
-    def receive_mode(self)
+    def receive_mode(self):
         raise NotImplementedError("This network type does not support input.")
 
-    def input_waiting(self)
+    def input_waiting(self):
         raise NotImplementedError("This network type does not support input.")
 
 

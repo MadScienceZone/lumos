@@ -472,6 +472,19 @@ class LumosControllerSensor (object):
         self.post_trigger = 0
         self.trigger_mode = 'once'
 
+    def copy(self):
+        new = LumosControllerSensor(self.id)
+        new.active_low = self.active_low
+        new.enabled = self.enabled
+        new.configured = self.configured
+        new.on = self.on
+        new.pre_trigger = self.pre_trigger
+        new.trigger = self.trigger
+        new.post_trigger = self.post_trigger
+        new.trigger_mode = self.trigger_mode
+        return new
+
+
 class LumosControllerStatus (object):
     def __init__(self):
         self.config = LumosControllerConfiguration()

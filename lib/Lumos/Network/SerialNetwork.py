@@ -30,6 +30,11 @@ class DeviceNotReadyError (Exception): pass
 class IOError (Exception): pass
 class APIUsageError (Exception): pass
 
+class DeviceTimeoutError (Exception):
+    def __init__(self, read_so_far, *args, **kw):
+        Exception.__init__(self, *args, **kw)
+        self.read_so_far = read_so_far
+
 try:
     import serial
 except ImportError:
@@ -232,7 +237,7 @@ else:
             if self.txdelay > 0:
                 time.sleep(self.txdelay / 1000.0)
 
-        def input(self, remaining_f=None, bytes=None, mode_switch=True):
+        def input(self, remaining_f=None, bytes=None, mode_switch=True, timeout=1):
             """Input data from the serial interface.
 
             If in half-duplex mode, first switch to receive mode (unless
@@ -254,6 +259,13 @@ else:
             remaining_f() to check again.  When remaining_f() returns zero,
             the input operation stops.
 
+            If a timeout value is given, we will allow that many seconds
+            (which may be a real number) before abandoning the input.  Note
+            that if some data arrive during that time, we may keep reading.
+            If the input timed out, a DeviceTimeoutError exception is thrown.
+            This exception object has a read_so_far attribute containing
+            the data read before the timeout occurred.
+
             N.B.:  In a half-duplex network, we assume that we can only get
             data we ask for, and nobody is speaking out of turn, so any extra
             data that may be in the serial buffer is discarded after our
@@ -263,11 +275,12 @@ else:
             subsequent call to input().
             
             This will block the main program's execution until the input 
-            is complete."""
+            is complete or the operation times out."""
 
             if self.dev is None:
                 raise DeviceNotReadyError("There is no active serial device to read from.")
 
+            self.dev.setTimeout(timeout)
             if mode_switch and self.txmode == 'half':
                 self.receive_mode()
 
@@ -278,12 +291,18 @@ else:
                     bytes = remaining_f(None)
             elif bytes:
                 buffer = self.dev.read(bytes)
+                if not buffer:
+                    raise DeviceTimeoutError(buffer, 'Timeout ({0} sec) waiting for device to respond.'.format(timeout))
                 bytes = 0
             else:
-                raise APIUsageError("You must specify either bytes or remaining_f (or both) to input")
+                raise APIUsageError("You must specify either bytes or remaining_f (or both) to input()")
 
             while bytes > 0:
-                buffer += self.dev.read(bytes)
+                r = self.dev.read(bytes)
+                if not r:
+                    raise DeviceTimeoutError(buffer, 'Timeout ({0} sec) waiting for device to respond after receiving only {1} byte{2}.'.format(
+                        timeout, len(buffer), '' if len(buffer) == 1 else 's'))
+                buffer += r
                 bytes = remaining_f(buffer)
 
             if mode_switch and self.txmode == 'half':

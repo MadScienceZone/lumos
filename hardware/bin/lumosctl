@@ -9,147 +9,161 @@
 # Requires: Python 2.6 or later
 #           Lumos
 #
-import optparse
+import optparse, time, sys, re
+import ConfigParser
 import Lumos
-import time
-import sys
-#
-# Command line options
-#
-parser = optparse.OptionParser(usage='%prog [-dhkPRSvXz] [-A ADDR] [-a ADDR] [-B SPD] [-b SPD] [-C FILE] [-c FILE] [-D LIST] [-E LIST] [-L LVL] [-m mS] [-P PH] [-p PORT] [-s FILE] [-T MODE] [-t ...] [-x DPX] [channel-levels...]', version='%prog, version 1.0')
-parser.add_option('-a', '--address',        metavar='ADDR', type='int', help='Unit address (0-15) [%default]')
-parser.add_option('-S', '--clear-sequences', action='store_true', help='Delete all stored sequences from the device.')
-parser.add_option('-D', '--disable-sensor',  metavar='LIST', help='Disable sensor(s) ABCD in LIST')
-parser.add_option('-d', '--drop-privileged-mode', action='store_true', help='Run in unprivileged mode')
-parser.add_option('-C', '--dump-configuration-file', metavar='FILE', help='Get and save device configuration')
-parser.add_option('-x', '--duplex', metavar='DPX', action='store_const', choices=['full', 'half'], help='Serial duplex mode [%default]')
-parser.add_option('-E', '--enable-sensor', metavar='LIST', help='Enable sensor(s) ABCD in LIST')
-parser.add_option('-k', '--kill-all', action='store_true', help='Turn off all channel outputs')
-parser.add_option('-c', '--load-configuration-file', metavar='FILE', help='Configure device based on FILE')
-parser.add_option('-s', '--load-sequence', metavar='FILE', help='Compile sequence(s) in FILE and download into device')
-parser.add_option('-p', '--port', metavar='PORT', help='Serial I/O port to use [%default]')
-parser.add_option('-P', '--probe', action='store_true', help='Discover Lumos devices on network')
-parser.add_option('-R', '--report', action='store_true', help='Report device status to standard output.')
-parser.add_option('-t', '--sensor', metavar='TRIG', action='append', help='Set trigger event for sensor.')
-parser.add_option('-A', '--set-address', metavar='ADDR', type='int', help='Change unit address (0-15)')
-parser.add_option('-B', '--set-baud-rate', metavar='SPD', type='int', help='Change unit baud rate.')
-parser.add_option('-P', '--set-phase', metavar='P', type='int', help='Change unit phase offset to P (0-511)')
-parser.add_option('-z', '--sleep', action='store_true', help='Put device into sleep mode.')
-parser.add_option('-X', '--shutdown', action='store_true', help='Shut down controller unit.')
-parser.add_option('-b', '--speed', metavar='SPD', type='int', help='Baud rate to use to talk to device. [%default]')
-parser.add_option('-m', '--txdelay', metavar='mS', type='int', help='Transmitter control delay (mS) [%default]')
-parser.add_option('-L', '--txlevel', metavar='LVL', type='int', help='Transmitter control logic level (0-1) [%default]')
-parser.add_option('-T', '--txmode', metavar='MODE', action='store_const', choices=['dtr', 'rts'], help='Transmitter control line [%default]')
-parser.add_option('-w', '--wake', action='store_true', help='Take device out of sleep mode.')
-parser.add_option('-v', '--verbose', action='count', help='Increase output level.')
-parser.set_defaults(address=0, duplex='full', port=0, speed=19200, txmode='dtr', txlevel=1, txdelay=2)
+from   Lumos.Network.SerialNetwork      import SerialNetwork, DeviceTimeoutError
+from   Lumos.Device.LumosControllerUnit import LumosControllerUnit
+from   Lumos.Show                       import Show
+from   Lumos.PowerSource                import PowerSource
 
-(options, operations) = parser.parse_args()
+FACTORY_SETTINGS = LumosControllerStatus()
 
-#
-# validate options
-#
-if not 0 <= options.address <= 15:
-	parser.error('Valid unit addresses are in the range 0..15 only')
+class NotImplemenetedError (Exception): pass
 
-if options.set_address is not None and not 0 <= options.set_address <= 15:
-	parser.error('Valid unit addresses are in the range 0..15 only')
+def parse_arguments():
+    global options
+    parser = optparse.OptionParser(usage='%prog [-dFhkPRSvXz] [-A ADDR] [-a ADDR] [-B SPD] [-b SPD] [-C FILE] [-c FILE] [-D LIST] [-E LIST] [-L LVL] [-m mS] [-P PH] [-p PORT] [-s FILE] [-T MODE] [-t ...] [-x DPX] [channel-levels...]', version='%prog, version 1.0')
+    parser.add_option('-a', '--address',        metavar='ADDR', type='int', help='Unit address (0-15) [%default]')
+    parser.add_option('-S', '--clear-sequences', action='store_true', help='Delete all stored sequences from the device.')
+    parser.add_option('-D', '--disable-sensor',  metavar='LIST', help='Disable sensor(s) ABCD in LIST')
+    parser.add_option('-d', '--drop-privileged-mode', action='store_true', help='Run in unprivileged mode')
+    parser.add_option('-C', '--dump-configuration-file', metavar='FILE', help='Get and save device configuration')
+    parser.add_option('-x', '--duplex', metavar='DPX', action='store_const', choices=['full', 'half'], help='Serial duplex mode [%default]')
+    parser.add_option('-E', '--enable-sensor', metavar='LIST', help='Enable sensor(s) ABCD in LIST')
+    parser.add_option('-F', '--factory-reset', action='store_true', help'Reset to factory default settings')
+    parser.add_option('-k', '--kill-all', action='store_true', help='Turn off all channel outputs')
+    parser.add_option('--load-compiled-sequence', action='append', metavar='FILE', help='Download compiled sequence into device')
+    parser.add_option('-c', '--load-configuration-file', metavar='FILE', help='Configure device based on FILE')
+    parser.add_option('-s', '--load-sequence', metavar='FILE', action='append', help='Compile sequence(s) in FILE and download into device')
+    parser.add_option('-p', '--port', metavar='PORT', help='Serial I/O port to use [%default]')
+    parser.add_option('-P', '--probe', action='store_true', help='Discover Lumos devices on network')
+    parser.add_option('-R', '--report', action='store_true', help='Report device status to standard output.')
+    parser.add_option('-t', '--sensor', metavar='TRIG', action='append', help='Set trigger event for sensor.')
+    parser.add_option('-A', '--set-address', metavar='ADDR', type='int', help='Change unit address (0-15)')
+    parser.add_option('-B', '--set-baud-rate', metavar='SPD', type='int', help='Change unit baud rate.')
+    parser.add_option('-P', '--set-phase', metavar='P', type='int', help='Change unit phase offset to P (0-511)')
+    parser.add_option('-z', '--sleep', action='store_true', help='Put device into sleep mode.')
+    parser.add_option('-X', '--shutdown', action='store_true', help='Shut down controller unit.')
+    parser.add_option('-b', '--speed', metavar='SPD', type='int', help='Baud rate to use to talk to device. [%default]')
+    parser.add_option('-m', '--txdelay', metavar='mS', type='int', help='Transmitter control delay (mS) [%default]')
+    parser.add_option('-L', '--txlevel', metavar='LVL', type='int', help='Transmitter control logic level (0-1) [%default]')
+    parser.add_option('-T', '--txmode', metavar='MODE', action='store_const', choices=['dtr', 'rts'], help='Transmitter control line [%default]')
+    parser.add_option('-w', '--wake', action='store_true', help='Take device out of sleep mode.')
+    parser.add_option('-v', '--verbose', action='count', help='Increase output level.')
+    parser.set_defaults(address=0, duplex='full', port=0, speed=19200, txmode='dtr', txlevel=1, txdelay=2)
 
-if options.set_phase is not None and not 0 <= options.set_phase <= 511:
-	parser.error('Valid phase offsets are in the range 0..511 only')
+    (options, operations) = parser.parse_args()
 
-if options.duplex not in ['full', 'half']:
-	parser.error('--duplex value must be "full" or "half".')
+    #
+    # validate options
+    #
+    if not 0 <= options.address <= 15:
+        parser.error('Valid unit addresses are in the range 0..15 only')
 
-if options.txmode not in ['dtr', 'rts']:
-    parser.error('--txmode value must be "dtr" or "rts".')
+    if options.set_address is not None and not 0 <= options.set_address <= 15:
+        parser.error('Valid unit addresses are in the range 0..15 only')
 
-if not 0 <= options.txlevel <= 1:
-    parser.error('--txlevel value must be 0 or 1.')
+    if options.set_phase is not None and not 0 <= options.set_phase <= 511:
+        parser.error('Valid phase offsets are in the range 0..511 only')
 
-if not 0 <= options.txdelay <= 127:
-    parser.error('--txdelay value must be 0-127.')
-for sensor_opt in options.disable_sensor, options.enable_sensor:
-    if sensor_opt is not None:
-        sensor_opt = sensor_opt.upper()
-        if any([c not in 'ABCD*' for c in sensor_opt]):
-            parser.error('Sensor names are A, B, C, or D; or * for "all sensors".')
+    if options.duplex not in ['full', 'half']:
+        parser.error('--duplex value must be "full" or "half".')
 
-sensor_triggers = []
-for trigger in options.sensor:
-    fields = trigger.split(':')
-    if len(fields) != 4 or not 1 <= len(fields[0]) <= 2:
-        parser.error('-t/--sensor arg: Usage: {A|B|C|D}[o|r|w]:<pre>:<trigger>:<post>')
-    fields[0] = fields[0].upper()
-    if fields[0][0] not in 'ABCD':
-        parser.error('-t/--sensor arg: Sensor names are A, B, C, or D.')
-    
-    if len(fields[0]) == 1):
-        s_opt = 'O'
-    elif fields[0][1] not in 'ORW':
-        parser.error('-t/--sensor arg: Usage: {A|B|C|D}[o|r|w]:<pre>:<trigger>:<post>')
-    else:
-        s_opt = fields[0][1]
+    if options.txmode not in ['dtr', 'rts']:
+        parser.error('--txmode value must be "dtr" or "rts".')
 
-    for f in range(1, 4):
-        try: 
-            fields[f] = int(fields[f])
-        except ValueError:
-            parser.error('-t/--sensor arg: <pre>, <trigger>, and <post> must be integers')
+    if not 0 <= options.txlevel <= 1:
+        parser.error('--txlevel value must be 0 or 1.')
 
-        if not 0 <= fields[f] <= 128:
-            parser.error('-t/--sensor arg: <pre>, <trigger>, and <post> must be 0-127')
+    if not 0 <= options.txdelay <= 127:
+        parser.error('--txdelay value must be 0-127.')
+    for sensor_opt in options.disable_sensor, options.enable_sensor:
+        if sensor_opt is not None:
+            sensor_opt = sensor_opt.upper()
+            if any([c not in 'ABCD*' for c in sensor_opt]):
+                parser.error('Sensor names are A, B, C, or D; or * for "all sensors".')
 
-    sensor_triggers.append((fields[0][0], s_opt, fields[1], fields[2], fields[3]))
+    sensor_triggers = []
+    for trigger in options.sensor:
+        fields = trigger.upper().split(':')
+        if len(fields) != 4 or not 1 <= len(fields[0]) <= 2:
+            parser.error('-t/--sensor arg: Usage: {A|B|C|D}[o|r|w][+]:<pre>:<trigger>:<post>')
+        fields[0] = fields[0].upper()
+        m = re.match(r'^([ABCD])([ORW+-]*)$', fields[0])
+        if not m:
+            parser.error('-t/--sensor arg: Usage: {A|B|C|D}[o|r|w][+]:<pre>:<trigger>:<post>')
 
-#
-# Build Lumos context
-#
-show = Lumos.Show.Show()
-show.title = 'lumosctl'
-show.description = 'Lumos Configuration Utility'
+        if '-' in m.group(2) and '+' in m.group(2):
+            parser.error('-t/--sensor arg: Sensor cannot be active high and active low at the same time!')
 
-ps = Lumos.PowerSource.PowerSource('power')
+        for f in range(1, 4):
+            try: 
+                fields[f] = int(fields[f])
+            except ValueError:
+                parser.error('-t/--sensor arg: <pre>, <trigger>, and <post> must be integers')
 
-io = Lumos.Network.SerialNetwork.SerialNetwork(
-    description='Serial port for Lumos devices',
-    port = options.port,
-    baudrate = options.speed,
-    bits = 8,
-    parity = 'none',
-    stop = 1,
-    xonxoff = False,
-    rtscts = False,
-    duplex = options.duplex,
-    txmode = options.txmode,
-    txlevel = options.txlevel,
-    txdelay = options.txdelay,
-)
+            if not 0 <= fields[f] <= 128:
+                parser.error('-t/--sensor arg: <pre>, <trigger>, and <post> must be 0-127')
 
-target = Lumos.Device.LumosControllerUnit.LumosControllerUnit(
-    id = 'target',
-    power_source = ps,
-    network = io,
-    address = options.address,
-    resolution = 256,
-    num_channels = 48,
-)
+        sensor_triggers.append((m.group(1), m.group(2), fields[1], fields[2], fields[3]))
 
-show.add_network('io', io)
-show.add_controller('io', target)
-
-if options.set_address == 15:
-    sys.stderr.write("""
+    if options.set_address == 15:
+        sys.stderr.write("""
 **WARNING: Setting device to address 15 limits that device's flexibility
 **         because 15 is also the broadcast address.
 """)
 
+        return options, operations, sensor_triggers, parser
+
+def setup_lumos(options):
+    #
+    # Build Lumos context
+    #
+    show = Show()
+    show.title = 'lumosctl'
+    show.description = 'Lumos Configuration Utility'
+
+    ps = PowerSource('power')
+
+    io = SerialNetwork(
+        description='Serial port for Lumos devices',
+        port = options.port,
+        baudrate = options.speed,
+        bits = 8,
+        parity = 'none',
+        stop = 1,
+        xonxoff = False,
+        rtscts = False,
+        duplex = options.duplex,
+        txmode = options.txmode,
+        txlevel = options.txlevel,
+        txdelay = options.txdelay,
+    )
+
+    target = LumosControllerUnit(
+        id = 'target',
+        power_source = ps,
+        network = io,
+        address = options.address,
+        resolution = 256,
+        num_channels = 48,
+    )
+
+    show.add_network('io', io)
+    show.add_controller('io', target)
+
+    return target, io
+
 def getstatus(target):
     "Get current device state and return it."
 
-    devstatus = target.raw_query_device_status(timeout=5)
-    if devstatus is None:
-        raise IOError("No response received from device at address {0}".format(target.address))
+    try:
+        devstatus = target.raw_query_device_status(timeout=5)
+    except DeviceTimeoutError as e:
+        raise IOError("No response received from device at address {0} (read {1} byte{2} before timeout)".format(
+            target.address, len(e.read_so_far), '' if not e.read_so_far else 's'))
+
     return devstatus
 
 #
@@ -206,59 +220,365 @@ def report_on(device):
                 device.sensors[sensor].post_trigger,
             )
         
-devices = []
-devstatus = None
+def probe(target):
+    devices = []
+    old_address = target.address
 
-if options.probe:
     for address in range(16):
         trace(1, "Probing io.{0:02d}...".format(address), eol=False)
         target.address = address
-        device = target.raw_query_device_status(timeout=1)
-        if device is None:
+        try:
+            device = target.raw_query_device_status(timeout=1)
+        except DeviceTimeoutError:
             trace(1, "nothing detected")
         else:
             trace(1, device.hardware_type)
             devices.append((address, device))
-            if address == options.address:
-                devstatus = device
+
+    target.address = old_address
 
     print "Probe discovered {0} device{1}".format(len(devices), 
             's.' if len(devices) == 0 else 
                 (':' if len(devices) == 1 else 's:'))
 
-    # reset target to just refer to our intended device
-    target.address = options.address
+    return devices
 
-else:
-    devstatus = getstatus(target)
-    devices = [(target.address, devstatus)]
+class DeviceConfigurationError (Exception): pass
 
-for address, device in devices:
-    print "Address {0:02d}: {1}".format(address, device.hardware_type)
-    if options.report:
-        report_on(device)
+def verifystatus(target, fields=None, baseline=None):
+    "Get the target's current status and compare with the baseline settings"
 
-#
-# Apply device changes
-#
-if options.set_address is not None:
+    global status_cache
+
+    if fields is None:
+        fields = {
+            'config': baseline.config, 
+            'in_config_mode': baseline.in_config_mode, 
+            'in_sleep_mode': baseline.in_sleep_mode,
+            'phase_offset': baseline.phase_offset, 
+            'current_sequence': baseline.current_sequence, 
+            'sensors': baseline.sensors,
+        }
+
+    status_cache = getstatus(target)
+    for field in fields:
+        if status_cache.__getattribute__(field) != fields[field]
+            raise DeviceConfigurationError("Device's configuration not as expected ({0}={1}, expected {2})".format(
+                field, status_cache.__getattribute__(field), fields[field]))
+
+
+def assert_priv(operation):
+    global status_cache
+    if not status_cache.in_config_mode:
+        print "**WARNING: The Lumos board is not in the privileged mode required by {0}.".format(operation)
+
+def change_speed(target, io, new_speed):
+    global options
+
+    trace(1, "Changing baud rate to {0}".format(new_speed))
+    target.raw_control('__baud__', new_speed)
+    time.sleep(1)
+    io.set_baud_rate(new_speed)
+    time.sleep(1)
+    getstatus(target)   # try talking to it at the new speed
+    options.speed = options.set_baud_rate)
+
+def dump_configuration(target, filename, stat):
+    global options
+
+    trace(1, "Writing configuration to {0}".format(filename))
+    writer = ConfigParser.SafeConfigParser()
+    config = getstatus(target)
+    writer.add_section('lumos_device_settings')
+    for field, opt in (
+        (config.dmx_start, 'dmxchannel'),
+        (config.resolution, 'resolution'),
+        (config.phase_offset, 'phase'),
+        (options.speed, 'baud'),
+        (''.join(config.config.configured_sensors), 'sensors'),
+    ):
+        if field is not None:
+            writer.add_option('lumos_device_settings', opt, field)
+    
+    for s in config.config.configured_sensors:
+        k = 'lumos_device_sensor_' + s
+        d = config.sensors[s]
+        writer.add_section(k)
+        writer.add_option(k, 'active_low', 'yes' if d.active_low else 'no')
+        writer.add_option(k, 'enabled',    'yes' if d.enabled    else 'no')
+        writer.add_option(k, 'setup',      d.pre_trigger)
+        writer.add_option(k, 'sequence',   d.trigger)
+        writer.add_option(k, 'terminate',  d.post_trigger)
+        writer.add_option(k, 'mode',       d.trigger_mode)
+
+    with open(filename, 'w') as outfile:
+        writer.write(outfile)
+        
+    
+def load_configuration(target, filename):
+    def getint(p, field, minimum=None, maximum=None, section='lumos_device_settings'):
+        i = p.getint(section, field)
+        if minimum is not None and i < minimum:
+            raise ValueError('Lumos configuration value "{0}" cannot be less than {1}.]'.format(
+                field, minimum))
+        if maximum is not None and i > maximum:
+            raise ValueError('Lumos configuration value "{0}" cannot be greater than {1}.]'.format(
+                field, maximum))
+
+        return i
+
+    trace(1, "Reading configuration file from {0}".format(filename))
+    config = LumosControllerStatus()
+    parser = ConfigParser.SafeConfigParser()
+    parser.read(filename)
+
+    if parser.has_option('lumos_device_settings', 'dmxchannel'):
+        config.dmx_start = getint(parser, 'dmxchannel', 1, 512)
+    else:
+        config.dmx_start = None
+
+    config.resolution = getint(parser, 'resolution')
+    if config.resolution not in (128, 256):
+        raise ValueError('Lumos configuration value "resolution" must be 128 or 256.')
+
+    config.phase_offset = getint(parser, 'phase', 0, 511)
+    baud_rate = getint(parser, 'baud', 300)
+    if baud_rate != options.speed:
+        trace(1, "** Changing baud rate of device from {0} to {1}".format(
+            options.speed, baud_rate))
+        change_speed(target, io, baud_rate)
+    
+    # XXX default values from config file??
+
+    for s in parser.get('lumos_device_settings', 'sensors').upper().strip():
+        if s not in "ABCD":
+            raise ValueError('Lumos configuration value "sensors" requires letters A, B, C, and/or D.')
+        if s not in config.config.configured_sensors:
+            config.config.configured_sensors.append(s)
+        k = 'lumos_device_sensor_' + s
+        if not parser.has_section(k):
+            trace(0, "WARNING: missing ["+k+"] section; assuming default values")
+            config.sensors[s].configured = True
+        else:
+            config.sensors[s].configured = True
+            config.sensors[s].active_low = parser.getboolean(k, 'active_low')
+            config.sensors[s].enabled = parser.getboolean(k, 'enabled')
+            config.sensors[s].pre_trigger = getint(parser, 'setup', 0, 127, k)
+            config.sensors[s].trigger = getint(parser, 'sequence', 0, 127, k)
+            config.sensors[s].post_trigger = getint(parser, 'terminate', 0, 127, k)
+            config.sensors[s].trigger_mode = parser.get(k, 'mode')
+            if config.sensors[s].trigger_mode not in ('once', 'while', 'repeat'):
+                raise ValueError('Lumos configuration value "["+k+"] mode must be "once", "while", or "repeat".')
+
+    target.raw_configure_device(config.config)
+    verifystatus(target, {'config': config.config)
+
+    if config.phase_offset != status_cache.phase_offset:
+        trace(1, "Changing phase offset from {0} to {1} (per {2})".format(status_cache.phase_offset,
+            config.phase_offset, filename))
+        # XXX set phase
+
+        # XXX raw_sensor_trigger(sens_id, i, p, t, inverse, mode)
+        # XXX 
     
 
+def main():
+    global status_cache, FACTORY_SETTINGS
+    options, operations, sensor_triggers, parser = parse_arguments()
+    target, io = setup_lumos(options)
 
-options.clear_sequences
-options.disable_sensor
-options.enable_sensor
-options.drop_privileged_mode
-options.dump_configuration_file
-options.load_configuration_file
-options.kill_all
-options.load_sequence
-options.sensor
-options.set_baud_rate
-options.set_phase
-options.sleep
-options.shutdown
-options.wake
+    if options.probe:
+        devices = probe(target)
+    else:
+        devices = [(options.address, getstatus(target))]
+
+    for address, devstat in devices:
+        print "Address {0:02d}: {1}".format(address, devstat.hardware_type)
+        if options.report:
+            report_on(devstat)
+    #
+    # Prime the device status cache
+    #
+    verifystatus(target, {})
+    #
+    # Apply device changes
+    #
+    if options.set_address is not None:
+        assert_priv('--set-address')
+        target.raw_set_address(options.set_address)
+
+    if options.set_baud_rate is not None:
+        assert_priv('--set-baud-rate')
+        change_speed(target, io, options.set_baud_rate)
+
+    if options.factory_reset:
+        assert_priv('--factory-reset')
+        trace(0, "** Returning device to factory settings **")
+        target.raw_control('__reset__')
+        trace(0, "** Waiting 10 seconds for device to reset **")
+        time.sleep(10)
+        io.set_baud_rate(19200)
+        target.address = 0
+        trace(1, "Baud rate reset to 19.2k due to factory setting reset")
+        trace(1, "Device should now be at address 0 due to factory setting reset")
+        trace(0, "** Verifying board settings...")
+        verifystatus(target, baseline=FACTORY_SETTINGS)
+
+    if options.set_phase:
+        assert_priv('--set-phase')
+        trace(1, "Setting phase offset to {0}".format(options.set_phase))
+        target.raw_set_phase(options.set_phase)
+        verifystatus(target, {'phase_offset': options.set_phase})
+    #
+    # Configuration Management
+    #
+    if options.load_configuration_file:
+        assert_priv('--load-configuration-file')
+        new_config = load_configuration(options.load_configuration_file)
+        trace(1, "Configuring the device")
+        trace(1, "Verifying configuration change")
+
+    if options.dump_configuration_file:
+        trace(1, "Loading device configuration")
+        trace(1, "Writing configuration file to {0}".format(options.dump_configuration_file))
+        dump_configuration(options.dump_configuration_file, status_cache)
+
+    #
+    # All operations requiring privileges are done now,
+    # so if they want out of this mode, accommodate that wish.
+    #
+    if options.drop_privileged_mode:
+        assert_priv('--drop-privileged-mode')
+        trace(1, "dropping privileged (configuration) mode")
+        target.raw_control('noconfig')
+        verifystatus(target, {'in_config_mode': False})
+    #
+    # Sensor control
+    #
+    def smask(target, opt, delete=False):
+        global status_cache, parser
+
+        s = set([i.id for i in status_cache.sensors.values() if i.enabled])
+        expected = dict([(id, status_cache.sensors[id].copy()) for id in 'ABCD'])
+
+        if '*' in opt:
+            opt = 'ABCD'
+
+        for o in opt.upper():
+            if o in 'ABCD':
+                if delete:
+                    s.discard(o)
+                else:
+                    s.add(o)
+                expected[o].enabled = not delete
+            else:
+                parser.error("Sensors are A, B, C, and D.")
+
+        target.raw_control('masksens', s)
+        verifystatus(target, {'sensors': expected})
+
+    for sens_id, sens_opt, sens_pre, sens_trig, sens_post in sensor_triggers:
+        old = status_cache.sensors
+        new = dict([(id, status_cache.sensors[id].copy()) for id in status_cache.sensors])
+
+        new[sens_id].active_low = ('+' not in sens_opt)
+        new[sens_id].pre_trigger = sens_pre
+        new[sens_id].trigger = sens_trig
+        new[sens_id].post_trigger = sens_post
+        new[sens_id].trigger_mode = (
+            'while'  if 'W' in sens_opt else
+            'repeat' if 'R' in sens_opt else
+            'once'
+        )
+        target.raw_sensor_trigger(sens_id, sens_pre, sens_trig, sens_post, 
+            inverse = not new[sens_id].active_low,
+            mode = new[sens_id].trigger_mode
+        )
+        verifystatus(trigger, {'sensors': new})
+
+    if options.disable_sensor: smask(target, options.disable_sensor, delete=True)
+    if options.enable_sensor:  smask(target, options.enable_sensor)
+
+    #
+    # Sequence Management
+    #
+    if options.clear_sequences:
+        target.raw_control('clearmem')
+        print "Sequences cleared.  Available memory now: EEPROM={0.eeprom.memory.free}, RAM={0.ram_memory_free}".format(getstatus(target))
+
+    if options.load_sequence:
+        raise NotImplementedError('the --load-sequence option is not yet implemented.  Use --load-compiled-sequence instead.')
+
+    for filename in options.load_compiled_sequence:
+        #
+        # file:
+        # #{$<hexid>|<decid>}
+        # $<hex byte> <space> <hex byte> ...
+        # ...
+        # @<dec_#_bytes>
+        #
+        sequence_bits = []
+        length = None
+        with open(filename, 'r') as infile:
+            for line in infile:
+                if line[0] == '#':
+                    if line[1] == '$':
+                        id = int(line[2:], 16)
+                    else:
+                        id = int(line[1:])
+                elif line[0] == '$':
+                    for byte in line[1:].split():
+                        sequence_bits.append(ord(int(byte, 16)))
+                elif line[0] == '@':
+                    length = int(line[1:])
+                    break
+                else:
+                    raise ValueError('Invalid line in compiled sequence file {0}: {1}'.format(filename, line))
+
+        if length is None:
+            raise ValueError('Missing @ record from compiled sequence file {0}'.format(filename))
+
+        if length != len(sequence_bits):
+            raise ValueError('compiled sequence file {0} claims {1} byte{2} but actually read {3}.'.format(
+                filename, length, '' if length==1 else 's', len(sequence_bits)))
+
+
+
+                        
+                    
+
+    #
+    # Misc
+    #
+    if options.kill_all:
+        trace(1, 'Killing all channel outputs')
+        target.kill_all_channels(force=True)
+
+    if options.sleep:
+        trace(1, "Putting unit to sleep")
+        target.raw_control('sleep')
+        verifystatus(target, {'in_sleep_mode' : True})
+
+    if options.wake:
+        trace(1, "Waking up unit")
+        target.raw_control('wake')
+        verifystatus(target, {'in_sleep_mode' : False})
+        
+
+
+
+
+
+
+
+
+    #
+    # kill the device if requested
+    #
+    if options.shutdown:
+        target.raw_control('shutdown')
+    
+
 
 operations
     chan
@@ -266,6 +586,17 @@ operations
     chan{ud}[:s[:t]]
     xi
     pt[s]
+
+
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    except Exception as e:
+        sys.stderr.write("{0}: fatal error: {1}\n".format(sys.argv[0], e))
+        sys.exit(1)
+
 
 ##
 ## command packet
