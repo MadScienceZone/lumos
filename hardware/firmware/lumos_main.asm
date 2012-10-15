@@ -352,7 +352,7 @@ CYCLE_TMR_PERIOD	 EQU	0x5D3D
 ; Since the free-running slice timer isn't exactly in sync with the ZC timing,
 ; we'll start our working slices some variable fraction of 1/38th of a half-cycle
 ; each time.  This will cause a "wobble" in brightness level of not more than 
-; 1/38th brightness level (something less than one brightness increment), which
+; 1/260th brightness level (something less than one brightness increment), which
 ; ought to be difficult or impossible to notice by looking at an incandescent
 ; light load.  This is one reason why PHASE_OFFSET should be set to allow 1-2
 ; idle slices before we start turning on SSRs.
@@ -373,9 +373,8 @@ CYCLE_TMR_PERIOD	 EQU	0x5D3D
 ;    1     x       x         3       x
 ;    1     x       x         2       x
 ;    1     x       x         1       x
-;    0     1     1-->0       0      31       SSR@31/on turned on
-;    0     1     1-->0       0      30       SSR@30    turned on
-;    0     1     1-->0       0      29       SSR@29    turned on
+;    0     1     1-->0       0      255      SSR@255/on turned on
+;    0     1     1-->0       0      254      SSR@254    turned on
 ; ...
 ;    0     1     1-->0       0       2       SSR@2     turned on
 ;    0     1     1-->0       0       1       SSR@1     turned on
@@ -441,9 +440,9 @@ CYCLE_TMR_PERIOD	 EQU	0x5D3D
 ; connector with this pinout:
 ;
 ;  ________
-; |12345678|	1- CC OUT		5- Data A (+)
-; |        |	2- CC IN                6- Return Data A (+)
-; |___  ___|	3- Return Data B (-)	7- Data GND 
+; |12345678|	1- Return Data          5- Data A (+)
+; |        |	2- Return Data          6- Cable Check OUT
+; |___  ___|	3- Cable Check IN   	7- Data GND 
 ;    |__|	4- Data B (-)		8- Return Data GND
 ;
 ; CC is a cable check indicator.  A signal is sent out on pin 1, expected to be connected
@@ -464,9 +463,9 @@ CYCLE_TMR_PERIOD	 EQU	0x5D3D
 ; Termination at the end of the loop should be provided with a plug
 ; wired as:
 ; 
-;     1 ------------ 2
+;     3 ------------ 6
 ; 
-;     3 ---/\/\/---- 6 <--(if full duplex)
+;     1 ---/\/\/---- 2 <--(if full duplex)
 ;         120 ohms
 ; 
 ;     4 ---/\/\/---- 5
@@ -790,6 +789,9 @@ STATE_MSK	EQU	0x1F	; ---XXXXX  State machine's state
 FADE_UP		EQU	7	; 1-------  This channel is fading up
 FADE_DOWN	EQU	6	; -1------  This channel is fading down
 FADE_CYCLE	EQU	5	; --1-----  This channel is fading up<-->down
+BIT_FADE_UP	EQU	0x80
+BIT_FADE_DOWN	EQU	0x40
+BIT_FADE_CYCLE	EQU	0x20
 
 		IF LUMOS_CHIP_TYPE==LUMOS_CHIP_MASTER || LUMOS_CHIP_TYPE==LUMOS_CHIP_STANDALONE
 HAS_ACTIVE	 EQU	1
@@ -994,11 +996,11 @@ SET_SSR_PATTERN	MACRO IDX, LEVEL, STEP, SPEED, FLAGS
 	ENDM
 
 SET_SSR_RAPID_FLASH MACRO IDX
-	 SET_SSR_PATTERN IDX, 255, 255, 30, FADE_DOWN|FADE_CYCLE
+	 SET_SSR_PATTERN IDX, 255, 255, 30, BIT_FADE_DOWN|BIT_FADE_CYCLE
 	ENDM
 
 SET_SSR_BLINK_FADE MACRO IDX
-	 SET_SSR_PATTERN IDX, 255,   2,  1, FADE_DOWN
+	 SET_SSR_PATTERN IDX, 255,   2,  1, BIT_FADE_DOWN
 	ENDM
 
 SET_SSR_SLOW_FLASH MACRO IDX
@@ -1006,7 +1008,7 @@ SET_SSR_SLOW_FLASH MACRO IDX
 	ENDM
 
 SET_SSR_SLOW_FADE MACRO IDX
-	 SET_SSR_PATTERN IDX, 0, 1, 1, FADE_UP|FADE_CYCLE
+	 SET_SSR_PATTERN IDX, 0, 1, 1, BIT_FADE_UP|BIT_FADE_CYCLE
 	ENDM
 
 SET_SSR_STEADY MACRO IDX
@@ -1044,10 +1046,44 @@ V_INT_L	CODE	0x0018
 ; INITIALIZATION CODE
 ;
 _BOOT	CODE	0x0100
+
+S_FLASH:
+	BSF	PLAT_RED, BIT_RED, ACCESS
+	RCALL	DELAY_1_6_SEC
+	BSF	PLAT_GREEN, BIT_GREEN, ACCESS
+	RCALL	DELAY_1_6_SEC
+	
+	BCF	PLAT_RED, BIT_RED, ACCESS
+	RCALL	DELAY_1_6_SEC
+	BCF	PLAT_GREEN, BIT_GREEN, ACCESS
+	RCALL	DELAY_1_6_SEC
+	RETURN
+
+D_FLASH:
+	BSF	PLAT_RED, BIT_RED, ACCESS
+	RCALL	DELAY_1_6_SEC
+	BSF	PLAT_GREEN, BIT_GREEN, ACCESS
+	RCALL	DELAY_1_6_SEC
+	BSF	PLAT_YELLOW, BIT_YELLOW, ACCESS
+	RCALL	DELAY_1_6_SEC
+	BSF	PLAT_ACTIVE, BIT_ACTIVE, ACCESS
+	RCALL	DELAY_1_6_SEC
+	
+	BCF	PLAT_RED, BIT_RED, ACCESS
+	RCALL	DELAY_1_6_SEC
+	BCF	PLAT_GREEN, BIT_GREEN, ACCESS
+	RCALL	DELAY_1_6_SEC
+	BCF	PLAT_YELLOW, BIT_YELLOW, ACCESS
+	RCALL	DELAY_1_6_SEC
+	BCF	PLAT_ACTIVE, BIT_ACTIVE, ACCESS
+	RCALL	DELAY_1_6_SEC
+	RETURN
+
 START:
 	CLRWDT
 	CLRF	STKPTR, ACCESS		; clear stack error bits, set SP=0
 	CALL	LUMOS_INIT
+	CALL	D_FLASH
 	CALL	SIO_INIT		; call after other TRIS bits set
 	;
 	; Get EEPROM settings
@@ -1169,7 +1205,7 @@ CH	 ++
 	BCF	PLAT_YELLOW, BIT_YELLOW, ACCESS	; Panel: () G () ()
 	BANKSEL	SSR_DATA_BANK
 	CLRF	SSR_00_VALUE+SSR_GREEN, BANKED	; Green light cycles ~ 1/4 Hz
-	SET_SSR_PATTERN SSR_GREEN, 0, 1, 1, FADE_UP|FADE_CYCLE
+	SET_SSR_PATTERN SSR_GREEN, 0, 1, 1, BIT_FADE_UP|BIT_FADE_CYCLE
 	GOTO	MAIN
 
 FACTORY_RESET:
@@ -1248,9 +1284,9 @@ DELAY_1_6_SEC:	; Approx 1/6 sec delay loop
 	DECFSZ	K, F, ACCESS
 	BRA	$-2
 	DECFSZ	J, F, ACCESS
-	BRA	$-8
+	BRA	$-.8
 	DECFSZ	KK, F, ACCESS
-	BRA	DELAY_1_6_SEC
+	BRA	$-.14
 	RETURN
 
 ;==============================================================================
@@ -1402,18 +1438,22 @@ MAIN:
 	BANKSEL	SIO_DATA_START
 	BTFSC	SIO_STATUS, SIO_FERR, BANKED
 	RCALL	ERR_SERIAL_FRAMING
+	NOP
 
 	BANKSEL	SIO_DATA_START
 	BTFSC	SIO_STATUS, SIO_ORUN, BANKED
 	RCALL	ERR_SERIAL_OVERRUN
+	NOP
 
 	BANKSEL	SIO_DATA_START
 	BTFSC	SIO_STATUS, RXDATA_FULL, BANKED
 	RCALL	ERR_SERIAL_FULL
+	NOP
 
 	BANKSEL	SIO_DATA_START
 	BTFSC	SIO_STATUS, RXDATA_QUEUE, BANKED
 	RCALL	RECEIVE_COMMAND
+	NOP
 
 	BRA	MAIN
 	
@@ -1484,7 +1524,8 @@ UPDATE_SSR_OUTPUTS:
 	BZ	UPDATE_MINIMUM_LEVEL
 	;
 	; For maximum speed in this tight loop, we save time by 
-	; rolling out all the tests and output settings instead of
+	; unrolling all the tests and output settings into a flat
+	; instruction sequence (via assembly-time macro) instead of
 	; using a run-time loop or subroutines to calculate the bits
 	; and ports for each.  (Like we used to in the previous version.)
 	;

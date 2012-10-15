@@ -1,4 +1,4 @@
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE  1
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE  1
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -88,7 +88,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00029 ;                    |______|______|______|______|______|______|______|______|
                       00030 ;
   00000000            00031 TXDATA_QUEUE    EQU     0       ; Tx data waiting in buffer now to be sent
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE  2
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE  2
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -178,7 +178,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00096 ; +$05 RX_BUF_START  |                                                       |
                       00097 ;                    | Pointer into RX_BUFFER at NEXT char to be transmitted |
                       00098 ;                    |______|______|______|______|______|______|______|______|
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE  3
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE  3
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -268,7 +268,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00180 ; Sending:
                       00181 ;       When TXIF is set, TXREG is ready to accept another byte
                       00182 ;       data byte written to TXREG and is sent out the port
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE  4
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE  4
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -358,7 +358,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00264 ; The following global symbols need to be exported by the caller:
                       00265 ;       SIO_RX_BUFFER_START*    Starting addr of 256-byte Rx buffer
                       00266 ;       SIO_TX_BUFFER_START*    Starting addr of 256-byte Tx buffer
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE  5
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE  5
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -448,7 +448,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00348                 ; ------X-      ; TX buffer status (R/0)
                       00349                 ; -------0      ; bit 9 if used
 00003C 6EAC           00350         MOVWF   TXSTA, ACCESS
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE  6
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE  6
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -538,7 +538,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0000AA 6300           00432         CPFSEQ  TX_BUF_END, BANKED
 0000AC D???           00433         BRA     WRITE_OK                        ; START != END, so we're good.
 0000AE D???           00434         BRA     SPIN_FOR_BUF_DRAIN              ; loop back until buffer not empty
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE  7
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE  7
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -628,7 +628,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000122                00516 SIO_PRINT_HEX_W:
 000122 0103           00517         BANKSEL SIO_DATA_START
 000124 6F00           00518         MOVWF   SIO_OUTPUT, BANKED
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE  8
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE  8
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -718,7 +718,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00600 ; Convert 10-digit BCD (in 5 bytes) to 10-character ASCII
                       00601 ; string
                       00602 ;
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE  9
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE  9
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -808,7 +808,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000202 5100           00684         MOVF    TX_BUF_START, W, BANKED         ; have we run out of data? (start == end)
 000204 6300           00685         CPFSEQ  TX_BUF_END, BANKED
 000206 D???           00686         BRA     TX_DONE                         ; no, leave everything alone for next time
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE 10
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE 10
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -898,7 +898,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 015048 0C00           00761         DT      0x00
 01504A 0C02 0C02 0C02 00762         DT      0x02, 0x02, 0x02, 0x02, 0x02    ; fallback to 19.2k
        0C02 0C02 
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE 11
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE 11
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -921,7 +921,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00774 ;==============================================================================
                       00775 ;==============================================================================
                       00776         END
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE 12
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE 12
 
 
 SYMBOL TABLE
@@ -1011,7 +1011,7 @@ B0D44                             00000004
 B0D45                             00000005
 B0D46                             00000006
 B0D47                             00000007
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE 13
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE 13
 
 
 SYMBOL TABLE
@@ -1101,7 +1101,7 @@ B1D5                              00000E3B
 B1D50                             00000000
 B1D51                             00000001
 B1D52                             00000002
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE 14
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE 14
 
 
 SYMBOL TABLE
@@ -1191,7 +1191,7 @@ B2D53                             00000003
 B2D54                             00000004
 B2D55                             00000005
 B2D56                             00000006
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE 15
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE 15
 
 
 SYMBOL TABLE
@@ -1281,7 +1281,7 @@ B3D43                             00000003
 B3D44                             00000004
 B3D45                             00000005
 B3D46                             00000006
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE 16
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE 16
 
 
 SYMBOL TABLE
@@ -1371,7 +1371,7 @@ B4D46                             00000006
 B4D47                             00000007
 B4D5                              00000E6B
 B4D50                             00000000
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE 17
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE 17
 
 
 SYMBOL TABLE
@@ -1461,7 +1461,7 @@ B5D5                              00000E7B
 B5D50                             00000000
 B5D51                             00000001
 B5D52                             00000002
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE 18
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE 18
 
 
 SYMBOL TABLE
@@ -1551,7 +1551,7 @@ CANSTAT_RO3                       00000F2E
 CANSTAT_RO4                       00000E7E
 CANSTAT_RO5                       00000E6E
 CANSTAT_RO6                       00000E5E
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE 19
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE 19
 
 
 SYMBOL TABLE
@@ -1641,7 +1641,7 @@ ECCP1IP                           00000000
 ECCP1M0                           00000000
 ECCP1M1                           00000001
 ECCP1M2                           00000002
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE 20
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE 20
 
 
 SYMBOL TABLE
@@ -1731,7 +1731,7 @@ F13BP_0                           00000004
 F13BP_1                           00000005
 F13BP_2                           00000006
 F13BP_3                           00000007
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE 21
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE 21
 
 
 SYMBOL TABLE
@@ -1821,7 +1821,7 @@ FIL8_0                            00000000
 FIL8_1                            00000001
 FIL9_0                            00000002
 FIL9_1                            00000003
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE 22
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE 22
 
 
 SYMBOL TABLE
@@ -1911,7 +1911,7 @@ INTCON2                           00000FF1
 INTCON3                           00000FF0
 INTEDG0                           00000006
 INTEDG1                           00000005
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE 23
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE 23
 
 
 SYMBOL TABLE
@@ -2001,7 +2001,7 @@ MSEL3                             00000DF3
 N                                 00000004
 NOT_A                             00000005
 NOT_ADDRESS                       00000005
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE 24
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE 24
 
 
 SYMBOL TABLE
@@ -2091,7 +2091,7 @@ PREINC1                           00000FE4
 PREINC2                           00000FDC
 PROD                              00000FF3
 PRODH                             00000FF4
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE 25
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE 25
 
 
 SYMBOL TABLE
@@ -2181,7 +2181,7 @@ RD16                              00000007
 RD2                               00000002
 RD3                               00000003
 RD4                               00000004
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE 26
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE 26
 
 
 SYMBOL TABLE
@@ -2271,7 +2271,7 @@ RXB0D53                           00000003
 RXB0D54                           00000004
 RXB0D55                           00000005
 RXB0D56                           00000006
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE 27
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE 27
 
 
 SYMBOL TABLE
@@ -2361,7 +2361,7 @@ RXB1D54                           00000004
 RXB1D55                           00000005
 RXB1D56                           00000006
 RXB1D57                           00000007
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE 28
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE 28
 
 
 SYMBOL TABLE
@@ -2451,7 +2451,7 @@ RXF2SIDL                          00000F09
 RXF3EIDH                          00000F0E
 RXF3EIDL                          00000F0F
 RXF3EN                            00000003
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE 29
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE 29
 
 
 SYMBOL TABLE
@@ -2541,7 +2541,7 @@ SEG1PH0                           00000003
 SEG1PH1                           00000004
 SEG1PH2                           00000005
 SEG2PH0                           00000000
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE 30
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE 30
 
 
 SYMBOL TABLE
@@ -2631,7 +2631,7 @@ SSPM1                             00000001
 SSPM2                             00000002
 SSPM3                             00000003
 SSPOV                             00000006
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE 31
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE 31
 
 
 SYMBOL TABLE
@@ -2721,7 +2721,7 @@ TMR2IP                            00000001
 TMR2ON                            00000002
 TMR3CS                            00000001
 TMR3H                             00000FB3
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE 32
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE 32
 
 
 SYMBOL TABLE
@@ -2811,7 +2811,7 @@ TXB0D20                           00000000
 TXB0D21                           00000001
 TXB0D22                           00000002
 TXB0D23                           00000003
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE 33
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE 33
 
 
 SYMBOL TABLE
@@ -2901,7 +2901,7 @@ TXB1D23                           00000003
 TXB1D24                           00000004
 TXB1D25                           00000005
 TXB1D26                           00000006
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE 34
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE 34
 
 
 SYMBOL TABLE
@@ -2991,7 +2991,7 @@ TXB2D26                           00000006
 TXB2D27                           00000007
 TXB2D3                            00000F29
 TXB2D30                           00000000
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE 35
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE 35
 
 
 SYMBOL TABLE
@@ -3081,7 +3081,7 @@ TX_CHAR                           00000307
 TX_DONE                           0000020A
 TX_OK                             000001EC
 UA                                00000001
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE 36
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE 36
 
 
 SYMBOL TABLE
@@ -3171,7 +3171,7 @@ _FCMEN_ON_1H                      000000FF
 _IDLOC0                           00200000
 _IDLOC1                           00200001
 _IDLOC2                           00200002
-MPASM  5.35beta                     SERIAL-IO.ASM   8-23-2012  15:28:44         PAGE 37
+MPASM  5.35beta                     SERIAL-IO.ASM   10-14-2012  19:34:24         PAGE 37
 
 
 SYMBOL TABLE
