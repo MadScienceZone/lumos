@@ -333,8 +333,8 @@
 ;       |         | RAMP_LVL |    |___|    |___|              |
 ;       |         |__________|                                |
 ;       |          __________      ___         __________     |
-;       |         | 4 |      |ch  |   |v      | 6 |      |    |
-;       |-------->|___|      |--->| 5 |------>|___|      |--->|
+;       |         | 4 |      |ch  |   |n      | 6 | Wait |    |
+;       |-------->|___|      |--->| 5 |------>|___|  for |--->|
 ;       |         | BULK_UPD |    |___|       | Sentinel |    |
 ;  _____V____     |__________|                |__________|    |
 ; |11 |      |                                      ^         |
@@ -814,6 +814,12 @@ EEPROM_USER_END		EQU	0x3FF
 ;                    |______|______|______|______|______|______|______|______|
 ; YY_DATA            |                                                       |
 ;                    |                      Command Data                     |
+;                    |______|______|______|______|______|______|______|______|
+; YY_LOOKAHEAD_MAX   |                                                       |
+;                    |               Maximum length for look-ahead           |
+;                    |______|______|______|______|______|______|______|______|
+; YY_LOOK_FOR        |                                                       |
+;                    |               Sentinel value to search for            |
 ;                    |______|______|______|______|______|______|______|______|
 ; CUR_PREH           |                                                       |
 ;                    |         Pre-cycle count-down ticks left (MSB)         |
@@ -1531,6 +1537,8 @@ SSR_STATE	RES	1		; major state/timing flags
 YY_STATE 	RES	1
 YY_COMMAND 	RES	1
 YY_DATA    	RES	1
+YY_LOOKAHEAD_MAX RES	1
+YY_LOOK_FOR	RES	1
 CUR_PREH	RES	1
 CUR_PRE		RES	1
 CUR_SLICE	RES	1
@@ -1694,6 +1702,17 @@ INTERP_START:
 	BNZ	S0_CMD1
 
 S0_CMD0:
+	;
+	; BLACKOUT:
+	;
+	;   ___7______6______5______4______3______2______1______0__
+	;  |      |                    |                           |
+	;  |   1  |          0         |   Target device address   | SIO_INPUT
+	;  |______|______|______|______|______|______|______|______|
+	;  |                                  |          0         |
+	;  |                                  |   (Command code)   | W
+	;  |______|______|______|______|______|______|______|______|
+	;
 	BANKSEL	SSR_DATA_BANK
 CH 	SET	0
 	WHILE CH<=SSR_MAX
@@ -1706,12 +1725,13 @@ CH	 ++
 	ENDW
 
 	IF ROLE_MASTER
-	 CLRW			; Pass this command on to the other 
+	 MOVLW	0x80		; Pass this command on to the other 
 	 CALL	SIO_WRITE_W	; processor too
 	ENDIF
 	RETURN
 
 S0_CMD1:
+	; ON_OFF:
 	MOVWF	YY_COMMAND, ACCESS
 	DECFSZ	WREG, W, ACCESS
 	BRA	S0_CMD2
@@ -1720,38 +1740,44 @@ S0_CMD1:
 	RETURN
 
 S0_CMD2:
-	DECFZ	WREG, W, ACCESS
+	; SET_LEVEL
+	DECFSZ	WREG, W, ACCESS
 	BRA	S0_CMD3
 	MOVLW	2
 	MOVWF	YY_STATE, ACCESS	; -> state 2 (wait for channel)
 	RETURN
 
 S0_CMD3:
-	DECFZ	WREG, W, ACCESS
+	; BULK_UPD
+	DECFSZ	WREG, W, ACCESS
 	BRA	S0_CMD4
 	MOVLW	4
 	MOVWF	YY_STATE, ACCESS	; -> state 4 (wait for channel)
 	RETURN
 
 S0_CMD4:
-	DECFZ	WREG, W, ACCESS
+	; RAMP_LVL
+	DECFSZ	WREG, W, ACCESS
 	BRA	S0_CMD5
 	MOVLW	8
 	MOVWF	YY_STATE, ACCESS	; -> state 8 (wait for channel)
 	RETURN
 
 S0_CMD5:
-	DECFZ	WREG, W, ACCESS
+	; Unimplemented Command
+	DECFSZ	WREG, W, ACCESS
 	BRA	S0_CMD6
 	BRA	ERR_COMMAND
 
 S0_CMD6:
-	DECFZ	WREG, W, ACCESS
+	; Unimplemented Command
+	DECFSZ	WREG, W, ACCESS
 	BRA	S0_CMD7
 	BRA	ERR_COMMAND
 
 S0_CMD7:
-	DECFZ	WREG, W, ACCESS
+	; Extended commands
+	DECFSZ	WREG, W, ACCESS
 	BRA	S0_CMD_ERR
 	MOVLW	11
 	MOVWF	YY_STATE, ACCESS	; -> state 11 (decode extended command)
@@ -1803,6 +1829,7 @@ S1_DATA:
 	BRA	ON_OFF_ON
 	CLRF	WREG, ACCESS
 	BRA	SSR_OUTPUT_VALUE			; set value off and return
+
 ON_OFF_ON:
 	SETF	WREG, ACCESS
 	BRA	SSR_OUTPUT_VALUE			; set value on and return
@@ -1821,9 +1848,153 @@ PASS_DOWN_ON_OFF:
 	ENDIF
 
 S2_DATA:
+	DECFSZ	WREG, W, ACCESS
+	BRA	S3_DATA
+	; SET_LVL channel byte
+	RCALL	XLATE_SSR_ID
+	BTFSC	TARGET_SSR, INVALID_SSR, ACCESS
+	BRA	ERR_COMMAND
+	BTFSC	YY_DATA, 6, ACCESS	; preserve bit 7 (LSB of value)
+	BSF	TARGET_SSR, 6, ACCESS
+	INCF	YY_STATE, F, ACCESS	; -> state 3 (wait for level byte)
+	RETURN
+
+S3_DATA:
+	; SET_LVL value byte
+	DECFSZ	WREG, W, ACCESS
+	BRA	S4_DATA
+	;
+	; SET_LVL:
+	;
+	;   ___7______6______5______4______3______2______1______0__
+	;  |      |                    |                           |
+	;  |   1  |          2         |   Target device address   | YY_COMMAND
+	;  |______|______|______|______|______|______|______|______|
+	;  |NOT_MY|Value |                                         |
+	;  | _SSR |LSB   |           Channel ID (0-47)             | TARGET_SSR
+	;  |______|______|______|______|______|______|______|______|
+	;  |      |                                                |
+	;  |   0  |            Value MSBs (0-127)                  | YY_DATA
+	;  |______|______|______|______|______|______|______|______|
+	;
+	BTFSC	TARGET_SSR, NOT_MY_SSR, ACCESS
+	BRA	PUSH_DOWN_SET_LVL
+	BCF	STATUS, C, ACCESS			; move LSB -> CARRY
+	BTFSC	TARGET_SSR, 6, ACCESS
+	BSF	STATUS, C, ACCESS
+	RLCF	YY_DATA, W, ACCESS			; Shift LSB into value byte
+	CLRF	YY_STATE, ACCESS			; reset state (end of command)
+	MOVF	YY_DATA, W, ACCESS
+	BRA	SSR_OUTPUT_VALUE			; set SSR to 8-bit YY_DATA value
+
+PUSH_DOWN_SET_LVL:
+	IF ROLE_MASTER
+	 MOVLW	0xA0
+	 CALL	SIO_WRITE_W
+	 BCF	TARGET_SSR, 7, ACCESS
+	 MOVF	TARGET_SSR, W, ACCESS
+	 CALL	SIO_WRITE_W
+	 MOVF	YY_DATA, W, ACCESS
+	 CALL	SIO_WRITE_W
+	 CLRF	YY_STATE, ACCESS
+	 RETURN
+	ELSE
+	 BRA	ERR_COMMAND
+	ENDIF
+
+S4_DATA:
+	DECFSZ	WREG, W, ACCESS
+	BRA	S5_DATA
+	; BULK_UPD, received channel byte
+	RCALL	XLATE_SSR_ID
+	BTFSC	TARGET_SSR, INVALID_SSR, ACCESS
+	BRA	ERR_COMMAND
+	BTFSC	YY_DATA, 6, ACCESS	; preserve bit 7 (resolution flag)
+	BSF	TARGET_SSR, 6, ACCESS
+	INCF	YY_STATE, F, ACCESS	; -> state 5 (wait for number of channels)
+	RETURN
+
+S5_DATA:
+	DECFSZ	WREG, W, ACCESS
+	BRA	S6_DATA
+	; BULK_UPD, received channel count byte
+
+	RCALL	XLATE_SSR_ID
+	BTFSC	TARGET_SSR, INVALID_SSR, ACCESS
+	BRA	ERR_COMMAND
+	; Look ahead to the 01010101 sentinel at the end
+	; if we go more than 57 bytes (the remaining packet length
+	; for 48 channels) then we've lost it.
+	MOVLW	.57
+	MOVWF	YY_LOOKAHEAD_MAX, ACCESS
+	MOVLW	0x01010101
+	MOVWF	YY_LOOK_FOR, ACCESS
+	MOVLW	6			; -> state 6 (wait for end of packet)
+	MOVWF	YY_STATE, ACCESS
+	RETURN
+
+S6_DATA:
+	DECFSZ	WREG, W, ACCESS
+	BRA	S7_DATA
+	;
+	; State 6: Wait for Sentinel
+	;
+	; In this state, the machine is looking ahead in the data stream
+	; for a sentinel pattern.  The pattern is selected by YY_LOOK_FOR
+	; and must be seen in the next YY_LOOKAHEAD_MAX bytes (which will be destructively
+	; altered here).  If the sentinel is not recognized before YY_LOOKAHEAD_MAX runs
+	; out, we abort on ERR_COMMAND.
+	;
+	; XXX If we're in this state, we need to ensure we're only PEEKing at
+	; XXX input bytes, not taking them out of the buffer.  How do we do this without
+	; XXX triggering a data read condition every single cycle until we get the last
+	; XXX byte?
 	; XXX
-	; left off here
+
+S7_DATA:
+	DECFSZ	WREG, W, ACCESS
+	BRA	S8_DATA
 	
+S8_DATA:
+	DECFSZ	WREG, W, ACCESS
+	BRA	S9_DATA
+	
+S9_DATA:
+	DECFSZ	WREG, W, ACCESS
+	BRA	S10_DATA
+	
+S10_DATA:
+	DECFSZ	WREG, W, ACCESS
+	BRA	S11_DATA
+	
+S11_DATA:
+	DECFSZ	WREG, W, ACCESS
+	BRA	S12_DATA
+	
+S12_DATA:
+	DECFSZ	WREG, W, ACCESS
+	BRA	S13_DATA
+	
+S13_DATA:
+	DECFSZ	WREG, W, ACCESS
+	BRA	S14_DATA
+	
+S14_DATA:
+	DECFSZ	WREG, W, ACCESS
+	BRA	S15_DATA
+	
+S15_DATA:
+	DECFSZ	WREG, W, ACCESS
+	BRA	S16_DATA
+	
+S16_DATA:
+	; Or this WOULD be state 16, except there isn't one!
+	; Any state >15 lands here.  Handle the exception and
+	; abort the command being processed.
+	;
+	; XXX flag internal error
+	CLRF	YY_STATE, ACCESS
+	RETURN
 
 SSR_OUTPUT_VALUE:
 	;

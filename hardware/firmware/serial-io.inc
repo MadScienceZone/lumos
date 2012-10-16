@@ -32,9 +32,9 @@
 	EXTERN	SIO_ECHO	; Print char in SIO_OUTPUT in printable form.**
 	EXTERN	SIO_ECHO_W	; Print char in WREG in printable form.* **
 	EXTERN	SIO_WRITE	; Print char in SIO_OUTPUT in raw form.
-	EXTERN	SIO_WRITE_W	; Print char in WREG in raw form.
+	EXTERN	SIO_WRITE_W	; Print char in WREG in raw form.*
 	EXTERN	SIO_PUTCHAR	; Blocking form of SIO_WRITE.**
-	EXTERN	SIO_PUTCHAR_W	; Blocking form of SIO_WRITE_W.**
+	EXTERN	SIO_PUTCHAR_W	; Blocking form of SIO_WRITE_W.* **
 	EXTERN	SIO_READ	; Read a character to SIO_INPUT.
 	EXTERN	SIO_READ_W	; Read a character to SIO_INPUT and WREG.
 	EXTERN	SIO_GETCHAR	; Blocking form of SIO_READ.**
@@ -46,7 +46,7 @@
 	EXTERN	B32__BCD2ASCII	; B32__BCD_ASC[5] -> B32__BCD_ASC[10]
 	EXTERN	SIO_SET_BAUD_W	; Set baud rate from code in W (See serial-io-bits.inc)
 ;
-; *Also overwrites SIO_OUTPUT.
+; *Also overwrites SIO_OUTPUT or SIO_INPUT.
 ; **Blocks execution until device/buffer ready.
 ;
 ; The SIO_READ functions are non-blocking, in case you need non-blocking I/O,
