@@ -1,3 +1,4 @@
+; XXX XXX XXX ** KILL BROADCAST ADDR IDEA ** it's not going to work XXX XXX XXX
 ; vim:set syntax=pic ts=8:
 ;
 		LIST n=90
@@ -107,7 +108,10 @@
 ;	   the same time base since those boards have no zero-crossing detection;
 ;	3. Each front panel LED has a counter for how long their current 
 ;          status is to be held, to allow a human to have enough time to 
-;          see the LED before it would be extinguished.
+;          see the LED before it would be extinguished. (This is less explicit
+;          now than the previous major firmware version.  The LEDs are now simply
+;	   treated just like extra SSR lines, so they use the same code to manage
+;          them.)
 ;
 ; MAIN_LOOP
 ;	Manages the display of the front panel LEDs
@@ -116,7 +120,8 @@
 ;
 ; INTERPRETER
 ;	When a byte is received on the serial line, it is processed by
-;	a small state machine.  The current state is held in SSR_STATE<2:0>.
+;	a small state machine.  The current state is held in YY_STATE (named
+;	in honor of the venerable yacc).
 ;
 ;-----------------------------------------------------------------------------
 ; Command Protocol:
@@ -130,66 +135,173 @@
 ; processes the command (which may require some following data bytes, all
 ; of which must have their MSB cleared).  Otherwise, the unit ignores the
 ; byte.
+;                     ___7______6______5______4______3______2______1______0__
+; Broadcast Command: |      |                    |                           |
+;                    |   1  |    Command code    |            15             |
+;                    |______|______|______|______|______|______|______|______|
 ;
-; XXX All units recognize address 1111 (0x0f) as a "broadcast" address (all units
+; All units recognize address 1111 (15) as a "broadcast" address (all units
 ; respond to CERTAIN commands addressed to this target).  It's possible to address
 ; a unit as #15, but you won't be able to send those certain commands to it exclusively.
 ;
+;                     ___7______6______5______4______3______2______1______0__
+; Extended Command:  |      |                    |                           |
+;                    |   1  |          7         |   Target device address   |
+;                    |______|______|______|______|______|______|______|______|
+;                    |      |                                                |
+;                    |   0  |                  Command code                  |
+;                    |______|______|______|______|______|______|______|______|
+;
+; The most common commands are given ID 0-6 so that they may be sent in as few
+; bytes as possible (as few as a single byte), but we have more than 8 commands
+; so we have an extended code.  If the command code is 7 (all bits set), then
+; the following byte contains the actual command code which may be any value
+; from 0-127
+;
+;                     ___7______6______5______4______3______2______1______0__
+; Data Byte:         |      |                                                |
+;                    |   0  |                      Data                      |
+;                    |______|______|______|______|______|______|______|______|
+;
 ; Any byte with its MSB cleared is a data byte, and is ignored unless we're
-; in the middle of interpreting a multi-byte command.
+; in the middle of interpreting a multi-byte command, in which case it's interpreted
+; appropriately as data supporting the command being executed.  This way, other
+; devices which share the same protocol format but not necessarily a compatible
+; command set may safely know which bytes can be ignored without knowing the
+; details of each other's command sets.
 ;
-; Commands recognized (those marked with # are allowed as broadcast commands):
-;    #  0: All channels off
-;	1: Set/clear single channel (requires channel ID byte)
-;          0scccccc
-;	2: Set channel to value (requires channel ID and value bytes)
-;          0hcccccc 0vvvvvvv
-;	3: Update Channel Range
-;          0hcccccc 0nnnnnnn (0vvvvvvv)*n {01010110 [0hhhhhhh*(n/7)]}<h=1> 01010101
-;	4: Fade Channel
-;          0dcccccc 0sssssss 0ttttttt	ramp (d: 0=dn, 1=up) in s+1 steps with (t+1)/120 sec per step
-;	5: Reserved
-;	6: Reserved
-;	7: Extended command (follow-on byte further decodes):
+; Commands recognized:
 ;
-;          000xxxxx NON-ADMINISTRATIVE EXTENDED COMMANDS
+;   COMMAND  CODE  BITS
+; # BLACKOUT 0     1000aaaa
+;   ON_OFF   1     1001aaaa 0scccccc		Turn channel <c> on (<s>=1) or off (<s>=0)
+; ^ SET_LVL  2     1010aaaa 0hcccccc 0vvvvvvv    Set dimmer level <v>:<h> on channel <c>
+; ^ BULK_UPD 3     1011aaaa 0mcccccc ...		Bulk-upload multiple channel levels
+;   RAMP_LVL 4     1100aaaa 0dcccccc ...         Ramp channel <c> smoothly up (<d>=1) or down
+;            5     1101aaaa                      Reserved for future use
+;            6     1110aaaa                      Reserved for future use
+;   EXTENDED 7     1111aaaa                      Extended command, decoded further in next byte
+;@# SLEEP    7+0   1111aaaa 00000000 01011010 01011010  Put unit to sleep
+;@# WAKE     7+1   1111aaaa 00000001 01011010 01011010  Take unit out of sleep mode
+; # SHUTDOWN 7+2   1111aaaa 00000010 01011000 01011001  Take unit completely offline
+; < QUERY    7+3   1111aaaa 00000011 00100100 01010100  Report device status
+; ! DEF_SEQ  7+4   1111aaaa 00000100 0iiiiiii ...       Define sequence <i>
+;   EXEC_SEQ 7+5   1111aaaa 00000101 0iiiiiii           Execute sequence <i> (0=stop)
+;   DEF_SENS 7+6   1111aaaa 00000110 ...                Define sensor trigger
+;   MSK_SENS 7+7   1111aaaa 00000111 0000ABCD           Mask inputs (1=enable, 0=disable)
+; ! CLR_SEQ  7+8   1111aaaa 00001000 01000011 01000001  Erase all stored sequences
+;            7+9   1111aaaa 00001001                    Reserved for future use
+;             :        :        :                           :     :     :    : 
+;            7+30  1111aaaa 00011110                    Reserved for future use                 
+;   OUT_RPLY 7+31  1111aaaa 00011111 ...                Reply to QUERY command_________________ 
+;   IC_TXDAT 7+32  1111aaaa 00100000 0nnnnnnn (...)*<n>+1 00011011 data -> serial port INTERNAL
+;   IC_LED   7+33  1111aaaa 00100001 00GGGYYY 00000RRR             LED Control         ////////
+;   IC_HALT  7+34  1111aaaa 00100010                               CPU Halt            ////////
+;            7+35  1111aaaa 00100011                    Reserved for new commands      ////////
+;             :        :        :                           :     :   :      :         ////////
+;            7+63  1111aaaa 00111111                    Reserved for new commands______////////
+;*! CF_PHASE 7+64  1111aaaa 010000pp 0ppppppp 01010000 01001111   Phase offset=<p>       CONFIG
+;*! CF_ADDR  7+96  1111aaaa 0110AAAA 01001001 01000001 01000100   Change address to <A>  //////
+;*  CF_NOPRV 7+112 1111aaaa 01110000                              Leave privileged mode  //////
+;*  CF_CONF  7+113 1111aaaa 01110001 ...                          Configure device       //////
+;*! CF_BAUD  7+114 1111aaaa 01110010 0bbbbbbb 00100110            Set baud rate to <b>   //////
+;*! CF_RESET 7+115 1111aaaa 01110011 00100100 01110010            Reset factory defaults //////
+;*           7+116 1111aaaa 01110100                     Reserved for future config cmd  //////
+;*                     :        :                            :     :     :      :    :   //////
+;*           7+127 1111aaaa 01111111                     Reserved for future config cmd__//////
 ;
-;    # *   00000000 01011010 01011010  Sleep (power off P/S)
-;    # **  00000001 01011010 01011010  Wake (power on P/S)
-;    #     00000010 01011000 01011001  Shutdown device (complete halt)
-;          00000011 00100100 01010100  Report device status on serial port
-;          00000100  )
-;              :     ) Reserved for extended command set
-;          00011111  )
+; Payloads for many-byte commands
 ;
-;          001xxxxx INTERNAL COMMANDS (MASTER->SLAVE)
-;          00100000 0nnnnnnn <data>*(n+1) 00011011  Send data bytes to serial port
-;          00100001 00gggyyy 00000rrr           Display LED status
-;                                                 000 off          001 steady on
-;                                                 010 slow fade    011 fast fade
-;                                                 100 slow flash   101 fast flash
-;                                                 11x no change
-;          00100010                             HALT
-;          00100011  )
-;              :     ) Reserved for more commands
-;          00111111  )
+; BULK_UPD:  0mcccccc 0nnnnnnn (0vvvvvvv)*<n> 01010110 (0hhhhhhh)*[(<n>+6)/7] 01010101
+;             |                               \_____________________________/
+;             |_______________________________________________| if <m>=1
 ;
-;   $      01xxxxxx ADMINISTRATIVE COMMANDS
+;	Updates <n> channels starting at <c>, giving <v> values for each as per SET_LVL.
+;	If <m>=1, then the LSBs are given, packed into 7-bit values with bit 6 corresponding
+;	to the first output channel, bit 5 is the next, and so on.
 ;
-;  !$      010000pp 0ppppppp 01010000 01001111  Set phase offset to p (0-511)
-;  !$      0110aaaa 01001001 01000001 01000100  Set device address to a (0-15)
-;   $#     01110000                             Disable administrative commands (default)
-;   $      01110001  )
-;   $          :     ) Reserved
-;   $      01111111  )
+; RAMP_LVL:  0dcccccc 0sssssss 0ttttttt   Channel <c> up/down in <s>+1 steps every <t>+1/120 sec
+;
+; DEF_SEQ:   0iiiiiii 0nnnnnnn (...)*<n> 01000100 01110011  Define sequence <i> of length <n>
+;                                                            0 is boot sequence, 1-63 is EEPROM
+;                                                            64-127 is RAM.
+;
+; DEF_SENS:  0owE00SS 0IIIIIII 0iiiiiii 0PPPPPPP 00111100
+;	Defines the trigger for sensor <S> (00=A, 01=B, 10=C, 11=D), where the event triggers
+;	when sensor input goes low (<E>=0) or high (<E>=1).  When triggered, sequence <I>
+;	initially, then continues playing sequence <i> (once if <O>=1, else while the sensor
+;	remains active if <W>=1, else forever until forced to stop), then sequence <P> is
+;	played at the end of the event.
+;
+; IC_LED:    00GGGYYY 00000RRR
+;	each 3 bits decode as:
+;		000 steady off	001 steady on
+;		010 slow fade	011 fast fade
+;		100 slow flash	101 fast flash
+;		11x no change
+;
+; CF_CONF:   0ABCDdcc 0ccccccc 0m111010 00111101
+;	Configure sensor lines ABCD as 1=sensor inputs or 0=LED outputs,
+;	DMX mode if <d>=1, with Lumos channel 0 at DMX channel <c>+1,
+; 	device resolution is high (256) if <m>=1, else low (128).
+;	
+; CF_BAUD:   Values recognized:
+;	00000000 ($00)	    300 baud
+;	00000001 ($01)      600
+;	00000010 ($02)    1,200
+;	00000011 ($03)    2,400
+;	00000100 ($04)    4,800
+;	00000101 ($05)    9,600
+;	00000110 ($06)   19,200
+;	00000111 ($07)   38,400
+;	00001000 ($08)   57,600
+;	00001001 ($09)  115,200
+;	00001010 ($0A)  250,000
 ;
 ;
-; *  automatically performed after a long period of inactivity
-; ** automatically performed when instructed to turn on a channel
-; !  change is permanent
-; $  administrative command (normally disabled)
-; #  broadcast command
-;                    
+; Response packet from QUERY command (30 bytes):
+;    1111aaaa 00011111 0ABCDdcc 0ccccccc 0ABCDqsf 0ABCDmpp 0ppppppp 
+;        \__/           \__/|\_________/  \__/|||  \__/|\_________/  
+;          |              | |   |           | |||   |  |      `--phase
+;          `--reporting   | |   `--DMX      | |||   |  `--resolution
+;              unit addr  | |      channel  | |||   `--active
+;                         | |               | ||`--mem full?
+;                         | `--DMX mode?    | |`--sleeping?
+;                         `--configured     | `--config mode?
+;                                           `--masks
+;
+;    0eeeeeee 0eeeeeee 0MMMMMMM 0MMMMMMM 0X0iiiii 0xxxxxxx 
+;     \______________/  \______________/  | \___/  \_____/
+;        `--EEPROM free    `--RAM free    |   |       `--executing seq.
+;                                         |   `--device model
+;                                         `--seq running?
+;
+;    0owE0000 0IIIIIII 0iiiiiii 0PPPPPPP	Sensor trigger info for A
+;    0owE0001 0IIIIIII 0iiiiiii 0PPPPPPP	Sensor trigger info for B
+;    0owE0010 0IIIIIII 0iiiiiii 0PPPPPPP	Sensor trigger info for C
+;    0owE0011 0IIIIIII 0iiiiiii 0PPPPPPP	Sensor trigger info for D
+;    00110011
+;
+;
+; Legend:
+;   @ Unit may automatically take this action
+;   # Broadcast-capable command (all units respond to address 15)
+;   * Privileged configuration-mode command
+;   ! Permanent effect (written to EEPROM)
+;   ^ Affected by unit resolution mode
+;   < Command generates response data (back to host)
+;   a Device address (0-15)
+;   b Baud rate code (0-127), but units may only define a small subset of those values
+;   c Output channel (0-63, but unit may only support a lesser number)
+;   d Direction: up (<d>=1) or down (<d>=0).
+;   h High-res level bit (LSB of 8-bit value when in high-res mode)
+;   m Mode (1=high-res, 0=low-res)
+;   n Number of items affected
+;   s Output state: 0=off, 1=on
+;   v Value of dimmer (0-127) (most significant 7 bits of dimmer value)
+; 
+;
+;
 ;                     _______________________________________________________
 ; Channel ID:        |      |      |                                         |
 ;                    |  0   | ON   |               Channel ID                |
@@ -203,30 +315,47 @@
 ;
 ; Normally sits at state 0 (Idle) where it pretty much spins free waiting
 ; for the start of a command to come along.
-;  ___________________
-; | 4 | ADMIN         |                
-; |___| Waiting for   |
-; |     Sub-command   |
-; |___________________|
-;         ^  |
-;         |  |
-;         |  |
-;         |  |
-;  _______|__V________                   _________________
-; | 0 | IDLE          |                 | 1 | SETCHAN     |
-; |___|               |---------------->|___| Waiting for |
-; |                   |<----------------|     Channel byte|
-; |___________________|<-------+        |_________________|
-;           |                  |
-;           |                  |
-;           |                  |
-;           |                  |
-;  _________V_________         |         _________________
-; | 2 | DIMCHAN1      |        +--------| 3 | DIMCHAN2    |
-; |___| Waiting for   |---------------->|___| Waiting for |
-; |     Channel byte  |                 |     Value byte  |
-; |___________________|                 |_________________|
-;
+;       ______________________________________________________,
+;       |                                                     |
+;  _____V____      __________                                 |
+; | 0 |      |    | 1 |      |                                |
+; |___|      |--->|___|      |                                |
+; |   IDLE   |<---| ON_OFF   |                                |
+; |__________|  ch|__________|                                |
+;       |          __________      ___                        |
+;       |         | 2 |      |ch  |   |v                      |
+;       |-------->|___|      |--->| 3 |---------------------->|
+;       |         | SET_LVL  |    |___|                       |
+;       |         |__________|                                |
+;       |          __________      ___      ___               |
+;       |         | 8 |      |ch  |   |s   |   |t             |
+;       |-------->|___|      |--->| 9 |--->|10 |------------->|
+;       |         | RAMP_LVL |    |___|    |___|              |
+;       |         |__________|                                |
+;       |          __________      ___         __________     |
+;       |         | 4 |      |ch  |   |v      | 6 |      |    |
+;       |-------->|___|      |--->| 5 |------>|___|      |--->|
+;       |         | BULK_UPD |    |___|       | Sentinel |    |
+;  _____V____     |__________|                |__________|    |
+; |11 |      |                                      ^         |
+; |___|      |______________________________________|         |
+; | Extended |                                                |
+; |__________|                                                |
+;       |          __________      ___                        |
+;       |         |12 |      |GY  |   |R                      |
+;       |-------->|___|      |--->|13 |---------------------->|
+;       |         | IC_LED   |    |___|                       |
+;       |         |__________|                                |
+;       |          __________                                 |
+;       |         |14 |      |i                               |
+;       |-------->|___|      |------------------------------->|
+;       |         | EXEC_SEQ |                                |
+;       |         |__________|                                |
+;       |          __________                                 |
+;       |         |15 |      |m                               |
+;       `-------->|___|      |--------------------------------'
+;                 | MSK_SENS |    
+;                 |__________|              
 ;
 ;-----------------------------------------------------------------------------
 ; System Timing Notes
@@ -279,27 +408,6 @@
 ;
 SLICE_TMR_PERIOD	EQU	0x9F
 ;
-;
-; These times will vary based on what commands are being parsed, the combination
-; of SSRs on, off, dim, or at what brightness level, but a general idea is:
-;
-;    ROUTINE   IDLE  BUSY (total instruction cycles)
-;     ISR              46
-;     LEDs       12    16
-;     SIO Poll    6    17
-;     Parser     10     7, 23, 64, up to 129+
-;     SSR Upd    22   373 up to 1,141+
-;
-;XXX So when nothing at all is happening, we only need around 40 instruction
-;XXX cycles (0.000008 sec) per slice (3.6% of the available slice time) to run
-;XXX an idle main loop iteration.
-;XXX
-;XXX The overhead of some of the loops and subroutines can be eliminated by
-;XXX flattening them into lots of repetitive cut-and-paste inline code.  We do
-;XXX have the available program memory to do that, and gain some significant 
-;XXX runtime performance.  For now, we will keep it less efficient but more
-;XXX maintainable until we need that performance.
-;
 ; For standalone DC boards, we don't have a zero-crossing input so we set up
 ; our own 120 Hz timing signal by running TMR0 with a 1:2 prescaler for 
 ; 41,666 clock ticks (i.e., running the timer from $5D3D-$FFFF).
@@ -317,13 +425,13 @@ CYCLE_TMR_PERIOD	 EQU	0x5D3D
 ; capability in here, though, to account for any need for adjustment which
 ; may turn up due to component tolerances, propagation delays, or similar
 ; things.  We correct for any phase offset by adding a software delay
-; from 0-255 (although really only 0-40 make much sense) slices between the ZC
-; interrupt and the start of the dimmer cycle of 32 slices.  (The other 6 
-; slices are idle (not active) slices.)
+; from 0-511 (although really only 0-260 make much sense) slices between the ZC
+; interrupt and the start of the dimmer cycle of 260 slices.  (The other 4 
+; slices are idle (not active) slices.) 
 ;
 ; The value for PHASE_OFFSET should be chosen to start the cycle one or two
 ; slices into the actual half-wave.  So if there is no phase difference at all
-; between sides of the transformer, PHASE_OFFSET shoud be started at 2.
+; between sides of the transformer, PHASE_OFFSET should be 2.
 ;
 ; Here's the timeline:
 ;
@@ -686,9 +794,9 @@ EEPROM_USER_END		EQU	0x3FF
 ; ISR_TMPL_WREG      |                                                       |
 ;                    | Temporary storage for W register in low-priority ISR  |
 ;                    |______|______|______|______|______|______|______|______|
-; MY_ADDRESS         |///////////////////////////|                           |
-;                    |///////////////////////////|       Unit address        |
-;                    |///////////////////////////|______|______|______|______|
+; MY_ADDRESS         |                           |                           |
+;                    |                           |       Unit address        |
+;                    |______|______|______|______|______|______|______|______|
 ; PHASE_OFFSETH      |                                                       |
 ;                    |               Phase offset value (MSB)                |
 ;                    |______|______|______|______|______|______|______|______|
@@ -696,7 +804,16 @@ EEPROM_USER_END		EQU	0x3FF
 ;                    |               Phase offset value (LSB)                |
 ;                    |______|______|______|______|______|______|______|______|
 ; SSR_STATE          |      |      |SLICE |                                  |
-;                    |INCYC |PRECYC| _UPD |           STATE                  |
+;                    |INCYC |PRECYC| _UPD |                                  |
+;                    |______|______|______|______|______|______|______|______|
+; YY_STATE           |                                                       |
+;                    |                      Parser State                     |
+;                    |______|______|______|______|______|______|______|______|
+; YY_COMMAND         |                                                       |
+;                    |                      Command Code                     |
+;                    |______|______|______|______|______|______|______|______|
+; YY_DATA            |                                                       |
+;                    |                      Command Data                     |
 ;                    |______|______|______|______|______|______|______|______|
 ; CUR_PREH           |                                                       |
 ;                    |         Pre-cycle count-down ticks left (MSB)         |
@@ -706,6 +823,9 @@ EEPROM_USER_END		EQU	0x3FF
 ;                    |______|______|______|______|______|______|______|______|
 ; CUR_SLICE          |                                                       |
 ;                    |      Slice number within active portion of cycle      |
+;                    |______|______|______|______|______|______|______|______|
+; TARGET_SSR         |NOT_MY|INVALI|                                         |
+;                    | _SSR |D_SSR |    SSR number for current command       |
 ;                    |______|______|______|______|______|______|______|______|
 ; I                  |                                                       |
 ;                    |      General-purpose local counter variable           |
@@ -724,6 +844,8 @@ EEPROM_USER_END		EQU	0x3FF
 ;------------------------------------------------------------------------------
 ; (SSR_DATA_BANK)
 ;------------------------------------------------------------------------------
+;
+; *** THE FOLLOWING BLOCKS *MUST* BE THE SAME SIZE AS EACH OTHER ***
 ;
 ;                     ___7______6______5______4______3______2______1______0__
 ; SSR_00_VALUE       |                                                       |
@@ -781,7 +903,6 @@ EEPROM_USER_END		EQU	0x3FF
 INCYC		EQU	7	; 1-------  We are in a dimmer cycle now
 PRECYC		EQU	6	; -1------  We are in the pre-cycle countdown
 SLICE_UPD	EQU	5	; --1-----  Slice update needs to be done
-STATE_MSK	EQU	0x1F	; ---XXXXX  State machine's state
 ;
 ; SSR_FLAGS words for each output show state information about those
 ; channels.
@@ -792,6 +913,17 @@ FADE_CYCLE	EQU	5	; --1-----  This channel is fading up<-->down
 BIT_FADE_UP	EQU	0x80
 BIT_FADE_DOWN	EQU	0x40
 BIT_FADE_CYCLE	EQU	0x20
+;
+; TARGET_SSR has these flags:
+;                     _______________________________________________________
+; TARGET_SSR         |NOT_MY|INVALI|                                         |
+;                    | _SSR |D_SSR |    SSR number for current command       |
+;                    |______|______|______|______|______|______|______|______|
+;
+NOT_MY_SSR	EQU	7
+INVALID_SSR	EQU	6
+TARGET_SSR_MSK	EQU	0x3F
+
 
 		IF LUMOS_CHIP_TYPE==LUMOS_CHIP_MASTER || LUMOS_CHIP_TYPE==LUMOS_CHIP_STANDALONE
 HAS_ACTIVE	 EQU	1
@@ -962,7 +1094,7 @@ BIT_#v(SSR_YELLOW) 	EQU	BIT_YELLOW
 BIT_#v(SSR_GREEN) 	EQU	BIT_GREEN
 ;
 ;
-		IF LUMOS_CHIP_TYPE != LUMOS_CHIP_SLAVE
+		IF HAS_ACTIVE
 SSR_ACTIVE	 EQU	27
 PLAT_#v(SSR_ACTIVE) EQU	PLAT_ACTIVE
 BIT_#v(SSR_ACTIVE) EQU	BIT_ACTIVE
@@ -1156,6 +1288,7 @@ START:
 	; Initialize data structures
 	;
 	CLRF	SSR_STATE, ACCESS
+	CLRF	YY_STATE, ACCESS
 	BANKSEL	SSR_DATA_BANK
 CH 	SET	0
 	WHILE CH<=SSR_MAX
@@ -1395,9 +1528,13 @@ MY_ADDRESS	RES	1
 PHASE_OFFSETH	RES	1
 PHASE_OFFSETL	RES	1
 SSR_STATE	RES	1		; major state/timing flags
+YY_STATE 	RES	1
+YY_COMMAND 	RES	1
+YY_DATA    	RES	1
 CUR_PREH	RES	1
 CUR_PRE		RES	1
 CUR_SLICE	RES	1
+TARGET_SSR	RES	1
 I               RES	1
 J               RES	1
 K               RES	1
@@ -1408,11 +1545,16 @@ KK              RES	1
 ;______________________________________________________________________________
 SSR_DATA_BANK	EQU	0x400
 _SSR_DATA	UDATA	SSR_DATA_BANK
-SSR_00_VALUE	RES	SSR_MAX+1	; each SSR value 0x00-FF
-SSR_00_FLAGS	RES	SSR_MAX+1
-SSR_00_STEP	RES	SSR_MAX+1
-SSR_00_SPEED	RES	SSR_MAX+1
-SSR_00_COUNTER	RES	SSR_MAX+1
+;
+; *** THE FOLLOWING BLOCKS *MUST* BE THE SAME SIZE AS EACH OTHER ***
+; and in fact, that size must be SSR_BLOCK_LEN.
+;
+SSR_BLOCK_LEN	EQU	SSR_MAX+1
+SSR_00_VALUE	RES	SSR_BLOCK_LEN	; each SSR value 0x00-FF
+SSR_00_FLAGS	RES	SSR_BLOCK_LEN
+SSR_00_STEP	RES	SSR_BLOCK_LEN
+SSR_00_SPEED	RES	SSR_BLOCK_LEN
+SSR_00_COUNTER	RES	SSR_BLOCK_LEN
 
 ;==============================================================================
 ; DATA BANK 5: MAIN CODE DATA STORAGE
@@ -1480,6 +1622,7 @@ ERR_SERIAL_FULL:
 
 ERR_COMMAND:
 	SET_SSR_STEADY SSR_RED
+	CLRF	YY_STATE, ACCESS	; reset state machine
 	RETURN
 
 RECEIVE_COMMAND:
@@ -1493,12 +1636,10 @@ CMD_BIT	EQU	7
 	; State:	Byte:
 	; [0] IDLE	DATA: ignore
 	;		CMD for someone else: ignore
-	;		CMD 0: exec
-	;		CMD 1: store command; -> 1
-	; 		CMD 2: store command; -> 2
-	;		XXX
+	;		store command, then decode it.
 	;
 	CALL	SIO_GETCHAR_W
+	CLRWDT
 	BANKSEL	SIO_DATA_START
 	BTFSS	SIO_INPUT, CMD_BIT, BANKED
 	BRA	DATA_BYTE		; it's a data byte
@@ -1507,13 +1648,238 @@ CMD_BIT	EQU	7
 	; command to complete?  If so, abort it and start over.
 	; otherwise, get to work.
 	;
-	;MOVF	SSR_STATE, WREG, ACCESS
-	;ANDLW	STATE_MSK
-	;BTFSS	STATUS, Z, ACCESS
-	;BRA	CMD_ABORT
-	;XXX left off here
+	MOVF	YY_STATE, W, ACCESS
+	BZ	INTERP_START	 
+	;
+	; ERROR: We hadn't finished with the last command yet, and here we
+	; have another one!  (Yes, even if it's someone else's command, that
+	; still means ours is apparently abandoned.)
+	;
+	RCALL	ERR_COMMAND		; let user know
+	
+INTERP_START:
+	;
+	; Start of a new command.
+	;
+	BANKSEL	SIO_DATA_START
+	CLRWDT
+	;
+	; Is it ours?
+	;
+	MOVF	SIO_INPUT, W, BANKED
+	ANDLW	0x0F
+	CPFSEQ	MY_ADDRESS, ACCESS
+	RETURN	; not my problem.
+	;
+	; ok, so it's OUR command.  We're at state 0,
+	; so let's decode it and go from here.
+	;
+	; === STATE 0 ===
+	; New command byte received
+	;
+	; CMD 0 (BLACKOUT): exec -> 0
+	; CMD 1 (ON_OFF): -> 1
+	; CMD 2 (SET_LVL): -> 2
+	; CMD 3 (BULK_UPD): -> 4
+	; CMD 4 (RAMP_LVL): -> 8
+	; CMD 5 ERROR -> 0
+	; CMD 6 ERROR -> 0
+	; CMD 7 (EXTENDED) -> 11
+	;
+	IF HAS_ACTIVE
+	 SET_SSR_BLINK_FADE SSR_ACTIVE	; activity indicator
+	ENDIF
+	SWAPF	SIO_INPUT, W, BANKED
+	ANDLW	0x07
+	BNZ	S0_CMD1
+
+S0_CMD0:
+	BANKSEL	SSR_DATA_BANK
+CH 	SET	0
+	WHILE CH<=SSR_MAX
+	 CLRF	SSR_00_VALUE+#v(CH), BANKED	; all SSRs OFF
+	 CLRF	SSR_00_FLAGS+#v(CH), BANKED	; all SSR flags cleared
+	 CLRF	SSR_00_STEP+#v(CH), BANKED
+	 CLRF	SSR_00_SPEED+#v(CH), BANKED
+	 CLRF	SSR_00_COUNTER+#v(CH), BANKED
+CH	 ++
+	ENDW
+
+	IF ROLE_MASTER
+	 CLRW			; Pass this command on to the other 
+	 CALL	SIO_WRITE_W	; processor too
+	ENDIF
+	RETURN
+
+S0_CMD1:
+	MOVWF	YY_COMMAND, ACCESS
+	DECFSZ	WREG, W, ACCESS
+	BRA	S0_CMD2
+	MOVLW	1
+	MOVWF	YY_STATE, ACCESS	; -> state 1 (wait for channel)
+	RETURN
+
+S0_CMD2:
+	DECFZ	WREG, W, ACCESS
+	BRA	S0_CMD3
+	MOVLW	2
+	MOVWF	YY_STATE, ACCESS	; -> state 2 (wait for channel)
+	RETURN
+
+S0_CMD3:
+	DECFZ	WREG, W, ACCESS
+	BRA	S0_CMD4
+	MOVLW	4
+	MOVWF	YY_STATE, ACCESS	; -> state 4 (wait for channel)
+	RETURN
+
+S0_CMD4:
+	DECFZ	WREG, W, ACCESS
+	BRA	S0_CMD5
+	MOVLW	8
+	MOVWF	YY_STATE, ACCESS	; -> state 8 (wait for channel)
+	RETURN
+
+S0_CMD5:
+	DECFZ	WREG, W, ACCESS
+	BRA	S0_CMD6
 	BRA	ERR_COMMAND
+
+S0_CMD6:
+	DECFZ	WREG, W, ACCESS
+	BRA	S0_CMD7
+	BRA	ERR_COMMAND
+
+S0_CMD7:
+	DECFZ	WREG, W, ACCESS
+	BRA	S0_CMD_ERR
+	MOVLW	11
+	MOVWF	YY_STATE, ACCESS	; -> state 11 (decode extended command)
+	RETURN
+
+S0_CMD_ERR:
+	; BUG: We really shouldn't have arrived here!
+	BRA	ERR_COMMAND
+	
 DATA_BYTE:
+	CLRWDT
+	;
+	; Data byte:  If we're at state 0, we aren't expecting
+	; this, so just ignore it. 
+	;
+	MOVF	YY_STATE, W, ACCESS
+	BNZ	S1_DATA
+	RETURN
+	;
+	; We're collecting data, so add this to the pile, depending
+	; on where the state machine is now.
+	;
+S1_DATA:
+	;
+	; STATE 1: collect channel number for ON_OFF command
+	;          and execute.
+	;
+	MOVFF	SIO_INPUT, YY_DATA
+	DECFSZ	WREG, W, ACCESS
+	BRA	S2_DATA
+	;
+	; ON_OFF:
+	;
+	;   ___7______6______5______4______3______2______1______0__
+	;  |      |                    |                           |
+	;  |   1  |          1         |   Target device address   | YY_COMMAND
+	;  |______|______|______|______|______|______|______|______|
+	;  |      |0=off |                                         |
+	;  |   0  |1=on  |           Channel ID (0-47)             | YY_DATA
+	;  |______|______|______|______|______|______|______|______|
+	;
+	RCALL	XLATE_SSR_ID
+	BTFSC	TARGET_SSR, INVALID_SSR, ACCESS
+	BRA	ERR_COMMAND				; SSR number out of range
+	BTFSC	TARGET_SSR, NOT_MY_SSR, ACCESS
+	BRA	PASS_DOWN_ON_OFF
+	BTFSC	YY_DATA, 6, ACCESS
+	CLRF	YY_STATE, ACCESS			; reset command state
+	BRA	ON_OFF_ON
+	CLRF	WREG, ACCESS
+	BRA	SSR_OUTPUT_VALUE			; set value off and return
+ON_OFF_ON:
+	SETF	WREG, ACCESS
+	BRA	SSR_OUTPUT_VALUE			; set value on and return
+	
+PASS_DOWN_ON_OFF:
+	IF ROLE_MASTER
+	 MOVLW	0x90
+	 CALL	SIO_WRITE_W
+	 MOVF	TARGET_SSR, W, ACCESS
+	 ANDLW	0x3F
+	 BTFSC	YY_DATA, 6, ACCESS
+	 BSF    WREG, 6, ACCESS
+	 CALL 	SIO_WRITE_W
+	ELSE
+	 BRA	ERR_COMMAND
+	ENDIF
+
+S2_DATA:
+	; XXX
+	; left off here
+	
+
+SSR_OUTPUT_VALUE:
+	;
+	; Change an SSR's output value.  This does the same thing
+	; as SET_SSR_VALUE, except the other one is a macro we can
+	; only use at runtime with constant SSR IDs (but more efficiently)
+	; while this works at runtime.
+	;
+	; Changes the output value of TARGET_SSR to the W register.
+	; Uses FSR0 register and KK.
+	;
+	CLRWDT
+	BCF	TARGET_SSR, 7, ACCESS
+	BCF	TARGET_SSR, 6, ACCESS
+	MOVWF	KK, ACCESS
+	LFSR	0, SSR_0_VALUE
+	MOVF	TARGET_SSR, W, ACCESS		; ssr value -> [ssr0 + target]
+	ADDWF	FSR0L, F, ACCESS
+	MOVFF	KK, INDF0
+	MOVLW	SSR_BLOCK_LEN
+	ADDWF	FSR0L, F, ACCESS
+	CLRF	INDF0				; clear flags
+	ADDWF	FSR0L, F, ACCESS
+	CLRF	INDF0				; clear step
+	ADDWF	FSR0L, F, ACCESS
+	CLRF	INDF0				; clear speed
+	ADDWF	FSR0L, F, ACCESS
+	CLRF	INDF0				; clear counter
+	RETURN
+	
+XLATE_SSR_ID:
+	;
+	; Move YY_DATA -> TARGET_SSR
+	; setting flag bits as appropriate
+	;   _______________________________________________________
+	;  |             |                                         |
+	;  |             |           Channel ID (0-47)             | YY_DATA
+	;  |______|______|______|______|______|______|______|______|    |
+	;  |NOT_MY|INVALI|                                         |    V
+	;  | _SSR |D_SSR |           Channel ID (0-23)             | TARGET_SSR
+	;  |______|______|______|______|______|______|______|______|
+	;
+	CLRWDT
+	MOVLW	0x3F
+	ANDWF	YY_DATA, W, ACCESS
+	MOVWF	TARGET_SSR, ACCESS
+	MOVLW	.23
+	CPFSGT	TARGET_SSR, ACCESS
+	RETURN
+	IF ROLE_MASTER
+	 MOVLW	.24
+	 SUBWF	TARGET_SSR, F, ACCESS
+	 CPFSLT	TARGET_SSR, ACCESS
+	ENDIF
+	BSF	TARGET_SSR, INVALID_SSR, ACCESS
+	BSF	TARGET_SSR, NOT_MY_SSR, ACCESS
 	RETURN
 
 UPDATE_SSR_OUTPUTS:

@@ -42,9 +42,9 @@ PC>1111aaaa 01110001 0ABCDdcc 0ccccccc 0r111010 00111101 Set configuration
                        ABCD (0=outputs, 1=inputs)
                        d (DMX512 0=off, 1=on; channel 0=DMX c+1)
                        r (resolution 0=low, 1=high)
->C 1111aaaa 01110001 00100100 01110010  Restore factory settings       
 >C 1111aaaa 01110010 0bbbbbbb 00100110  Set baud rate
- C 1111aaaa 01110011                    Reserved admin command
+>C 1111aaaa 01110011 00100100 01110010  Restore factory settings       	XXX CHANGED XXX
+ C 1111aaaa 01110100                    Reserved admin command
       :                                   :
  C 1111aaaa 01111111                    Reserved admin command
 
