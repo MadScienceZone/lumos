@@ -1,4 +1,5 @@
 ; XXX XXX XXX ** KILL BROADCAST ADDR IDEA ** it's not going to work XXX XXX XXX
+; XXX review logic flow for each chip type
 ; vim:set syntax=pic ts=8:
 ;
 		LIST n=90
@@ -194,12 +195,12 @@
 ;             :        :        :                           :     :     :    : 
 ;            7+30  1111aaaa 00011110                    Reserved for future use                 
 ;   OUT_RPLY 7+31  1111aaaa 00011111 ...                Reply to QUERY command_________________ 
-;   IC_TXDAT 7+32  1111aaaa 00100000 0nnnnnnn (...)*<n>+1 00011011 data -> serial port INTERNAL
-;   IC_LED   7+33  1111aaaa 00100001 00GGGYYY 00000RRR             LED Control         ////////
-;   IC_HALT  7+34  1111aaaa 00100010                               CPU Halt            ////////
-;            7+35  1111aaaa 00100011                    Reserved for new commands      ////////
+;   IC_TXDAT 7+32  11110000 00100000 0nnnnnnn (...)*<n>+1 00011011 data -> serial port INTERNAL
+;   IC_LED   7+33  11110000 00100001 00GGGYYY 00000RRR             LED Control         ////////
+;   IC_HALT  7+34  11110000 00100010                               CPU Halt            ////////
+;            7+35  11110000 00100011                    Reserved for new commands      ////////
 ;             :        :        :                           :     :   :      :         ////////
-;            7+63  1111aaaa 00111111                    Reserved for new commands______////////
+;            7+63  11110000 00111111                    Reserved for new commands______////////
 ;*! CF_PHASE 7+64  1111aaaa 010000pp 0ppppppp 01010000 01001111   Phase offset=<p>       CONFIG
 ;*! CF_ADDR  7+96  1111aaaa 0110AAAA 01001001 01000001 01000100   Change address to <A>  //////
 ;*  CF_NOPRV 7+112 1111aaaa 01110000                              Leave privileged mode  //////
@@ -663,8 +664,9 @@ _MAIN_EEPROM_TBL	EQU	0x14000
 ; $400 | SSR state data  | _SSR_DATA         BANK 4
 ;      |                 |
 ;      |_________________|___ ___ ___ ___ ___ ___ ___ ___
-; $500 |                 | _MAINDATA         BANK 5
-;      |                 |
+; $500 | Parser buffer   | _MAINDATA         BANK 5
+;      |.................|
+; $580 |                 |
 ;      |_________________|___ ___ ___ ___ ___ ___ ___ ___
 ; $600 | Stored sequences| _SEQ_DATA         BANK 6
 ;      | (1792 bytes)    |
@@ -820,6 +822,12 @@ EEPROM_USER_END		EQU	0x3FF
 ;                    |______|______|______|______|______|______|______|______|
 ; YY_LOOK_FOR        |                                                       |
 ;                    |               Sentinel value to search for            |
+;                    |______|______|______|______|______|______|______|______|
+; YY_BUF_IDX         |                                                       |
+;                    |     Offset in YY_BUFFER where we will write next      |
+;                    |______|______|______|______|______|______|______|______|
+; YY_NEXT_STATE      |                                                       |
+;                    |     State to transition to when YY_LOOK_FOR is found  |
 ;                    |______|______|______|______|______|______|______|______|
 ; CUR_PREH           |                                                       |
 ;                    |         Pre-cycle count-down ticks left (MSB)         |
@@ -1109,6 +1117,17 @@ SSR_MAX		 EQU	27
 SSR_MAX		 EQU	26
 		ENDIF
 
+WAIT_FOR_SENTINEL MACRO MAX_LEN, SENTINEL_VALUE, NEXT_STATE
+	 MOVLW	MAX_LEN
+	 MOVWF	YY_LOOKAHEAD_MAX, ACCESS
+	 MOVLW	SENTINEL_VALUE
+	 MOVWF	YY_LOOK_FOR, ACCESS
+	 MOVLW	6			; -> state 6 (wait for end of packet)
+	 MOVWF	YY_STATE, ACCESS
+	 CLRF	YY_BUF_IDX, ACCESS	; empty readahead buffer
+	 MOVLW	NEXT_STATE
+	 MOVWF	YY_NEXT_STATE, ACCESS
+	ENDM
 
 SET_SSR_VALUE MACRO IDX, LEVEL
 	BANKSEL	SSR_DATA_BANK
@@ -1539,6 +1558,8 @@ YY_COMMAND 	RES	1
 YY_DATA    	RES	1
 YY_LOOKAHEAD_MAX RES	1
 YY_LOOK_FOR	RES	1
+YY_BUF_IDX 	RES	1
+YY_NEXT_STATE	RES	1
 CUR_PREH	RES	1
 CUR_PRE		RES	1
 CUR_SLICE	RES	1
@@ -1569,6 +1590,8 @@ SSR_00_COUNTER	RES	SSR_BLOCK_LEN
 ;______________________________________________________________________________
 MAIN_DATA	EQU	0x500
 _MAINDATA	UDATA	MAIN_DATA
+YY_BUF_LEN	EQU	.128
+YY_BUFFER	RES	YY_BUF_LEN
 
 ;==============================================================================
 ; DATA BANKS 6-: SEQUENCE STORAGE
@@ -1674,10 +1697,12 @@ INTERP_START:
 	;
 	; Is it ours?
 	;
-	MOVF	SIO_INPUT, W, BANKED
-	ANDLW	0x0F
-	CPFSEQ	MY_ADDRESS, ACCESS
-	RETURN	; not my problem.
+	IF NOT ROLE_SLAVE		; the slave chip has no address and sees no other commands
+	 MOVF	SIO_INPUT, W, BANKED
+	 ANDLW	0x0F
+	 CPFSEQ	MY_ADDRESS, ACCESS
+	 RETURN	; not my problem.
+	ENDIF
 	;
 	; ok, so it's OUR command.  We're at state 0,
 	; so let's decode it and go from here.
@@ -1696,6 +1721,9 @@ INTERP_START:
 	;
 	IF HAS_ACTIVE
 	 SET_SSR_BLINK_FADE SSR_ACTIVE	; activity indicator
+	ENDIF
+	IF ROLE_SLAVE
+	 SET_SSR_BLINK_FADE SSR_YELLOW	; slave activity indicator
 	ENDIF
 	SWAPF	SIO_INPUT, W, BANKED
 	ANDLW	0x07
@@ -1727,6 +1755,7 @@ CH	 ++
 	IF ROLE_MASTER
 	 MOVLW	0x80		; Pass this command on to the other 
 	 CALL	SIO_WRITE_W	; processor too
+	 SET_SSR_BLINK_FADE SSR_YELLOW	; slave activity indicator
 	ENDIF
 	RETURN
 
@@ -1843,6 +1872,7 @@ PASS_DOWN_ON_OFF:
 	 BTFSC	YY_DATA, 6, ACCESS
 	 BSF    WREG, 6, ACCESS
 	 CALL 	SIO_WRITE_W
+	 SET_SSR_BLINK_FADE SSR_YELLOW	; slave activity indicator
 	ELSE
 	 BRA	ERR_COMMAND
 	ENDIF
@@ -1854,7 +1884,7 @@ S2_DATA:
 	RCALL	XLATE_SSR_ID
 	BTFSC	TARGET_SSR, INVALID_SSR, ACCESS
 	BRA	ERR_COMMAND
-	BTFSC	YY_DATA, 6, ACCESS	; preserve bit 7 (LSB of value)
+	BTFSC	YY_DATA, 6, ACCESS	; preserve bit 6 (LSB of value)
 	BSF	TARGET_SSR, 6, ACCESS
 	INCF	YY_STATE, F, ACCESS	; -> state 3 (wait for level byte)
 	RETURN
@@ -1878,7 +1908,7 @@ S3_DATA:
 	;  |______|______|______|______|______|______|______|______|
 	;
 	BTFSC	TARGET_SSR, NOT_MY_SSR, ACCESS
-	BRA	PUSH_DOWN_SET_LVL
+	BRA	PASS_DOWN_SET_LVL
 	BCF	STATUS, C, ACCESS			; move LSB -> CARRY
 	BTFSC	TARGET_SSR, 6, ACCESS
 	BSF	STATUS, C, ACCESS
@@ -1887,7 +1917,7 @@ S3_DATA:
 	MOVF	YY_DATA, W, ACCESS
 	BRA	SSR_OUTPUT_VALUE			; set SSR to 8-bit YY_DATA value
 
-PUSH_DOWN_SET_LVL:
+PASS_DOWN_SET_LVL:
 	IF ROLE_MASTER
 	 MOVLW	0xA0
 	 CALL	SIO_WRITE_W
@@ -1897,9 +1927,10 @@ PUSH_DOWN_SET_LVL:
 	 MOVF	YY_DATA, W, ACCESS
 	 CALL	SIO_WRITE_W
 	 CLRF	YY_STATE, ACCESS
+	 SET_SSR_BLINK_FADE SSR_YELLOW	; slave activity indicator
 	 RETURN
 	ELSE
-	 BRA	ERR_COMMAND
+	 BRA	ERR_COMMAND			; XXX bug?
 	ENDIF
 
 S4_DATA:
@@ -1922,15 +1953,18 @@ S5_DATA:
 	RCALL	XLATE_SSR_ID
 	BTFSC	TARGET_SSR, INVALID_SSR, ACCESS
 	BRA	ERR_COMMAND
-	; Look ahead to the 01010101 sentinel at the end
+	;
+	; preserve the resolution bit in TARGET_SSR
+	; (overloads the INVALID_SSR bit which we know is clear now)
+	;
+	BTFSC	YY_DATA, 6, ACCESS
+	BSF	TARGET_SSR, 6, ACCESS
+	;
+	; Look ahead for the 01010101 sentinel at the end
 	; if we go more than 57 bytes (the remaining packet length
 	; for 48 channels) then we've lost it.
-	MOVLW	.57
-	MOVWF	YY_LOOKAHEAD_MAX, ACCESS
-	MOVLW	0x01010101
-	MOVWF	YY_LOOK_FOR, ACCESS
-	MOVLW	6			; -> state 6 (wait for end of packet)
-	MOVWF	YY_STATE, ACCESS
+	;
+	WAIT_FOR_SENTINEL .57, 0b01010101, 0	; -> S6.0
 	RETURN
 
 S6_DATA:
@@ -1945,11 +1979,299 @@ S6_DATA:
 	; altered here).  If the sentinel is not recognized before YY_LOOKAHEAD_MAX runs
 	; out, we abort on ERR_COMMAND.
 	;
-	; XXX If we're in this state, we need to ensure we're only PEEKing at
-	; XXX input bytes, not taking them out of the buffer.  How do we do this without
-	; XXX triggering a data read condition every single cycle until we get the last
-	; XXX byte?
-	; XXX
+	; Once it's recognized, we move to YY_NEXT_STATE immediately.
+	;
+	; In order to do this, we buffer up the input received in YY_BUFFER.  This is
+	; a YY_BUF_LEN-byte memory space aligned on a data bank boundary where YY_BUF_LEN
+	; is not more than 256 (currently it's 128).  We will record the character at
+	; YY_BUFFER[YY_BUF_IDX++] and stop if YY_BUF_IDX > YY_LOOKAHEAD_MAX.
+	;
+	CLRWDT
+	MOVF	YY_DATA, W, ACCESS		; Is this the sentinel we're looking for?
+	CPFSEQ	YY_LOOK_FOR, ACCESS
+	BRA	S6_KEEP_LOOKING
+	;
+	; We have a packet, now switch on YY_NEXT_STATE to decode and execute
+	; the completed command.
+	;
+	MOVF	YY_NEXT_STATE, W, ACCESS
+	BNZ	S6_1_DATA
+	;
+	; S6.0: Complete BULK_UPD command (from state 5)
+	;
+	; BULK_UPD:
+	;
+	;   ___7______6______5______4______3______2______1______0__
+	;  |      |                    |                           |
+	;  |   1  |          3         |   Target device address   | YY_COMMAND
+	;  |______|______|______|______|______|______|______|______|
+	;  |NOT_MY|0=low |                                         |
+	;  | _SSR |1=high|           Channel ID (0-47)             | TARGET_SSR
+	;  |______|______|______|______|______|______|______|______|
+	;  |      |                                                |
+	;  |   0  |           Number of channels - 1 (0-47)        | YY_BUFFER+0
+	;  |______|______|______|______|______|______|______|______|
+	;  |      |                                                |
+	;  |   0  |           Value for SSR #c                     | YY_BUFFER+1
+	;  |______|______|______|______|______|______|______|______|
+	;  |      |                                                |
+	;  |   0  |           Value for SSR #c+1                   | YY_BUFFER+2
+	;  |______|______|______|______|______|______|______|______|
+	;				.
+	;				.
+	; IF LOW RES:			.
+	;   _______________________________________________________
+	;  |      |                                                |
+	;  |   0  |           Value for SSR #c+n-1                 | YY_BUFFER+n
+	;  |______|______|______|______|______|______|______|______|
+	;                                                       <-- YY_BUF_IDX == n+1
+	;
+	; ELSE:      
+	;   _______________________________________________________
+	;  |      |                                                |
+	;  |   0  |           Value for SSR #c+n-1                 | YY_BUFFER+n
+	;  |______|______|______|______|______|______|______|______|
+	;  |      |                                                |
+	;  |   0  |                   $56                          | YY_BUFFER+n+1
+	;  |______|______|______|______|______|______|______|______|
+	;  |      |LSB   |LSB   |LSB   |LSB   |LSB   |LSB   |LSB   |
+	;  |   0  |Ch#c  |Ch#c+1|Ch#c+2|Ch#c+3|Ch#c+4|Ch#c+5|Ch#c+6| YY_BUFFER+n+2
+	;  |______|______|______|______|______|______|______|______|
+	;  |      |LSB   |LSB   |LSB   |LSB   |LSB   |LSB   |LSB   |
+	;  |   0  |Ch#c+7|Ch#c+8|Ch#c+9|Chc+10|Chc+11|Chc+12|Chc+13| YY_BUFFER+n+3
+	;  |______|______|______|______|______|______|______|______|
+	;				.
+	;				.
+	;              		 	.
+	;   _______________________________________________________
+	;  |      |LSB   |LSB   |LSB   |LSB   |LSB   |LSB   |LSB   |
+	;  |   0  |      |      |      |      |      |      |      | YY_BUFFER+n+1+
+	;  |______|______|______|______|______|______|______|______|    int((n+6)/7)
+	;                                                        <-- YY_BUF_IDX = n+1+
+	;                                                               int((n+6)/7)
+	;
+	CLRF	YY_STATE, ACCESS		; go ahead and signal end of command parsing
+	;					; now so we can just RETURN when done.
+	; Calculate expected data lengths
+	;
+	LFSR	0, YY_BUFFER			
+	INCF	INDF0, F, ACCESS		; fix it so that YY_BUFFER[0] is N, not N-1
+	MOVF	TARGET_SSR, W, ACCESS		; start
+	ANDLW	0x3F
+	ADDWF	INDF0, W, ACCESS		; start + N
+	SUBLW	NUM_CHANNELS			; start + N > NUM_CHANNELS? 
+	BNC	ERR_COMMAND			; YES: bad command - reject it!
+	;
+	; Do we have all the bytes yet?  (Or did a data byte happen to equal our sentinel?)
+	;
+	MOVF 	INDF0, W, ACCESS		; W=N
+	CPFSGT	YY_BUF_IDX, ACCESS		; if IDX > N, we're done.
+	RETURN					; otherwise, go back and wait for more data
+	;
+	; Do we have the correct packet ending?
+	;
+	BTFSC	TARGET_SSR, 6, ACCESS		; 1=highres, 0=lowres
+	BRA	S6_0_CHK_HR
+	INCF	INDF0, W, ACCESS		; Low-res bounds check:
+	CPFSEQ	YY_BUF_IDX, ACCESS		; Should see IDX == N+1 if the packet is complete
+	BRA	ERR_COMMAND			; and correctly terminated
+	;
+	; start bulk update of channels
+	;
+	; Remember that since the protocol specifies that we get N-1 in the length field,
+	; we will always have at least 1 channel to change.  (Thre's no way to specify a
+	; BULK_UPD command to change 0 channels.)
+	;
+	; Does the target range of channels lie entirely within the slave chip's 
+	; range?  If so, just pass the whole command down to it, with starting SSR
+	; number translated down to its range...
+	;
+	BTFSS	TARGET_SSR, NOT_MY_SSR, ACCESS
+	BRA	S6_0_UPDATE_MSB
+	IF ROLE_MASTER
+	 CLRWDT
+	 MOVLW	0xB0				; command code
+	 CALL	SIO_WRITE_W
+	 MOVF	TARGET_SSR, W, ACCESS		; starting channel
+	 CALL	SIO_WRITE_W
+	 LFSR	0, YY_BUFFER			; now write YY_BUFFER[0..YY_BUF_IDX-1]
+S6_0_PD_ALL:
+	 MOVF	POSTINC0, W, ACCESS
+	 CALL	SIO_WRITE_W
+	 DECFSZ YY_BUF_IDX, F, ACCESS
+	 BRA	S6_0_PD_ALL
+	 MOVLW	0x55				; and finally the trailing sentinel byte $55.
+	 CALL	SIO_WRITE_W
+	 RETURN
+	ELSE
+	 BRA	ERR_COMMAND			; XXX bug really
+	ENDIF
+
+S6_0_UPDATE_MSB:
+	;
+	; Copy the bytes directly into SSR registers
+	;
+	CLRWDT
+	LFSR	0, YY_BUFFER			; FSR0 points to each source data byte to copy
+	LFSR	1, SSR_00_VALUE			; FSR1 points to each destination SSR control block
+	LFSR	2, SSR_00_FLAGS			; FSR2 points to the SSR flag blocks
+	MOVF	TARGET_SSR, W, ACCESS		; Move in to first SSR in target range
+	ANDLW	0x3F
+	ADDWF	FSR1L, F, ACCESS		
+	ADDWF	FSR2L, F, ACCESS
+	IF ROLE_MASTER
+	 SUBLW	.24
+	 MOVWF	KK, ACCESS			; KK=24-start (max # of channels on OUR chip)
+	ENDIF
+	MOVFF	POSTINC0, I			; K=I=N counter		(I = *FSR0++)
+	MOVFF	I, K				; (We'll use K for the LSB update later)
+
+S6_0_UPDATE_NEXT:
+	CLRF	POSTINC2, ACCESS		; clear SSR flags 
+	MOVFF	POSTINC0, INDF1 		; set SSR	(*fsr1++ = *fsr0++ << 1)
+	RLNCF	POSTINC1, F, ACCESS
+	IF ROLE_MASTER
+	 DCFSNZ	KK, F, ACCESS
+	 BRA	S6_0_PASS_DOWN_MSB		; ran out of KK, send rest to slave chip
+	ENDIF
+	DECFSZ	I, F, ACCESS
+	BRA	S6_0_UPDATE_NEXT
+	RETURN
+
+	IF ROLE_MASTER
+S6_0_PASS_DOWN_MSB:
+	 DCFSNZ	I, F, ACCESS			; we left before I-- happened
+	 RETURN					; already out of data to send; don't bother the slave
+	 MOVLW	0xB0				; Start command to slave with I remaining values
+	 CALL	SIO_WRITE_W			
+	 CLRW 					; target SSR always 0 in this case
+	 BTFSC	TARGET_SSR, 6, ACCESS		; but keep the resolution bit
+	 BSF	WREG, 6, ACCESS
+	 CALL	SIO_WRITE_W			
+	 DECF	I, W, ACCESS			; I channels left for slave to update, protocol wants I-1
+	 CALL 	SIO_WRITE_W
+S6_0_PD_NEXT_MSB:
+	 MOVF	POSTINC0, W, ACCESS
+	 CALL	SIO_WRITE_W			; ... write I bytes of values ...
+	 DECFSZ	I, F, ACCESS
+	 BRA	S6_0_PD_NEXT_MSB
+	 MOVLW	0x55				; sentinel $55 after bytes
+	 CALL	SIO_WRITE_W
+	 RETURN
+	ENDIF
+
+;
+; given N and starting channel C,
+; if C >= 24 then pass down BULK_UPD C-24 and done.
+; if N+C < 24 then A=N, do update
+; else set A = N-(N+C-24) = -C+24 = 24-C, do update
+; update: decr A,N  when A runs out, switch to pass down mode until N runs out
+;
+;
+; XXX note
+;   N: result negative (2s comp)
+;  OV: overflow into sign bit occurred
+;   Z: result zero
+;  DC: carry into bit 4   for SUB, DC = ~DBORROW
+;   C: carry into bit 8   for SUB, C = ~BORROW
+;
+; SUBLW k  or SUBWF k,d,a
+;  W <- k-W   d <- k-W
+;
+; k<W	 ~C
+; k<=W	 ~C ||  Z
+; k>W	  C && ~Z
+; k>=W	  C
+; k==W	  Z
+; k!=W   ~Z
+;
+;
+S6_0_CHK_HR:					; High-res bounds check:
+	CLRF	I, ACCESS			; I=Number of LSB bytes=int((N+6)/7)
+	CLRF	J, ACCESS			; J=capacity of I bytes
+S6_0_INCR:
+	INCF	I, F, ACCESS			; next byte; I++, J+=7
+	MOVLW	7
+	ADDWF	J, F, ACCESS
+	MOVF	INDF0, W, ACCESS		; W=N
+	SUBWF	J, W, ACCESS			; J < N? keep counting
+	BNC	S6_0_INCR
+	;
+	; I is now the number of LSB bytes, INDF0 is N (# channels), 
+	; our intermediate sentinel $56 should be at N+1, total data 
+	; length should be N+1+I
+	;
+	INCF	INDF0, W, ACCESS		; J = W = N+1
+	MOVWF	J, ACCESS
+	ADDWF	FSR0L, F, ACCESS		; move pointer to YY_BUFFER[N+1]
+	MOVLW	0x56
+	CPFSEQ	INDF0, ACCESS			; sentinel byte correct for high-res block?
+	BRA	ERR_COMMAND			; NO, abort command
+	MOVF	J, W, ACCESS			; W = N+1
+	ADDWF	I, W, ACCESS			; W = N+1+I
+	CPFSEQ	YY_BUF_IDX, ACCESS		; packet size must == N+1+I
+	BRA	ERR_COMMAND			; or else we abort here
+	RCALL	S6_0_UPDATE_MSB			; set all the MSBs first
+	;
+	; Update all the LSBs
+	; At this point: K=N, FSR0->sentinel.  Or should...
+	;
+	CLRWDT
+	IF ROLE_SLAVE
+	 MOVLW	0x55				; the slave will see $55 for BOTH sentinels
+	ELSE
+	 MOVLW	0x56
+	ENDIF
+	CPFSEQ	POSTINC0, ACCESS		; now FSR0->first block of bits
+	BRA	ERR_COMMAND			; XXX really a bug, I think
+	LFSR	1, SSR_00_VALUE	
+	MOVF	TARGET_SSR, W, ACCESS		; Move FSR1 to first SSR in target range
+	ANDLW	0x3F
+	ADDWF	FSR1L, F, ACCESS		
+	IF ROLE_MASTER
+	 SUBLW	.24				; KK = 24-start (max # of channels on OUR chip)
+	 MOVWF	KK, ACCESS
+	ENDIF
+
+S6_0_UPDATE_LSB:
+X	SET	6
+	WHILE	X >= 0
+	 BTFSC	INDF0, #v(X), ACCESS		; If the source bit is set,
+	 BSF	POSTINC1, 0, ACCESS		; set the LSB of the target SSR and move on to the next one.
+	 IF ROLE_MASTER
+	  DCFSNZ KK, F, ACCESS			; Stop if we've run out of chip channels first
+	  BRA	S6_0_PASS_DOWN_LSB
+	 ENDIF
+	 DCFSNZ	K, F, ACCESS			; Stop if we've set K bits already
+	 RETURN
+X	 --
+	ENDW
+	INCF	FSR0L, F, ACCESS		; advance to next byte full of LSB bits
+	BRA	S6_0_UPDATE_LSB
+
+S6_0_PASS_DOWN_LSB:
+	DCFSNZ	K, F, ACCESS			; we left before K--
+	RETURN					; never mind, we also ran out of bytes at the same time.
+	; we already sent a MSB packet, add to the end of that with our LSB bits.
+
+	; XXX					
+S6_1_DATA:
+	BRA	ERR_COMMAND			; XXX should be bug
+
+S6_RESTART:
+	; We stopped too early -- resume now
+	RETURN
+
+S6_KEEP_LOOKING:
+	MOVF	YY_BUF_IDX, W, ACCESS		; Have we reached our limit (idx >= max)?
+	CPFSGT	YY_LOOKAHEAD_MAX, ACCESS	; 
+	BRA	ERR_COMMAND			; Yes:  Abort here and ignore data to next cmd
+	LFSR	0, YY_BUFFER			; No: Save character in buffer and keep waiting
+	MOVF	YY_BUF_IDX, W, ACCESS
+	ADDWF	FSR0L, F, ACCESS
+	MOVFF	YY_DATA, INDF0
+	INCF	YY_BUF_IDX, W, ACCESS
+	RETURN
 
 S7_DATA:
 	DECFSZ	WREG, W, ACCESS
@@ -2036,6 +2358,10 @@ XLATE_SSR_ID:
 	;  |NOT_MY|INVALI|                                         |    V
 	;  | _SSR |D_SSR |           Channel ID (0-23)             | TARGET_SSR
 	;  |______|______|______|______|______|______|______|______|
+	;
+	; If INVALID_SSR=1, the ID cannot possibly be right for the device; disregard all other bits
+	; If NOT_MY_SSR=1, this channel exists on the slave chip; Channel ID has been adjusted to that CPU.
+	; Else, Channel ID is for this chip and is in range [0,23].
 	;
 	CLRWDT
 	MOVLW	0x3F
