@@ -1,5 +1,6 @@
 ; XXX XXX XXX ** KILL BROADCAST ADDR IDEA ** it's not going to work XXX XXX XXX
 ; XXX review logic flow for each chip type
+; XXX check all BRA $+x values after assembly
 ; vim:set syntax=pic ts=8:
 ;
 		LIST n=90
@@ -321,7 +322,7 @@
 ;  _____V____      __________                                 |
 ; | 0 |      |    | 1 |      |                                |
 ; |___|      |--->|___|      |                                |
-; |   IDLE   |<---| ON_OFF   |                                |
+; |   IDLE   |<---| ON_OFF   |                                | 
 ; |__________|  ch|__________|                                |
 ;       |          __________      ___                        |
 ;       |         | 2 |      |ch  |   |v                      |
@@ -329,31 +330,31 @@
 ;       |         | SET_LVL  |    |___|                       |
 ;       |         |__________|                                |
 ;       |          __________      ___      ___               |
-;       |         | 8 |      |ch  |   |s   |   |t             |
-;       |-------->|___|      |--->| 9 |--->|10 |------------->|
+;       |         | 5 |      |ch  |   |s   |   |t             |
+;       |-------->|___|      |--->| 7 |--->| 8 |------------->|
 ;       |         | RAMP_LVL |    |___|    |___|              |
 ;       |         |__________|                                |
-;       |          __________      ___         __________     |
-;       |         | 4 |      |ch  |   |n      | 6 | Wait |    |
-;       |-------->|___|      |--->| 5 |------>|___|  for |--->|
-;       |         | BULK_UPD |    |___|       | Sentinel |    |
+;       |          __________                  __________     |
+;       |         | 4 |      |ch              | 6 | Wait |    |
+;       |-------->|___|      |--------------->|___|  for |--->|
+;       |         | BULK_UPD |                | Sentinel |    |
 ;  _____V____     |__________|                |__________|    |
-; |11 |      |                                      ^         |
+; | 9 |      |                                      ^         |
 ; |___|      |______________________________________|         |
 ; | Extended |                                                |
 ; |__________|                                                |
 ;       |          __________      ___                        |
-;       |         |12 |      |GY  |   |R                      |
-;       |-------->|___|      |--->|13 |---------------------->|
+;       |         |   |      |GY  |   |R                      |
+;       |-------->|___|      |--->|   |---------------------->|
 ;       |         | IC_LED   |    |___|                       |
 ;       |         |__________|                                |
 ;       |          __________                                 |
-;       |         |14 |      |i                               |
+;       |         |   |      |i                               |
 ;       |-------->|___|      |------------------------------->|
 ;       |         | EXEC_SEQ |                                |
 ;       |         |__________|                                |
 ;       |          __________                                 |
-;       |         |15 |      |m                               |
+;       |         |   |      |m                               |
 ;       `-------->|___|      |--------------------------------'
 ;                 | MSK_SENS |    
 ;                 |__________|              
@@ -805,8 +806,8 @@ EEPROM_USER_END		EQU	0x3FF
 ; PHASE_OFFSETL      |                                                       |
 ;                    |               Phase offset value (LSB)                |
 ;                    |______|______|______|______|______|______|______|______|
-; SSR_STATE          |      |      |SLICE |                                  |
-;                    |INCYC |PRECYC| _UPD |                                  |
+; SSR_STATE          |      |      |SLICE |PRIV_ |                           |
+;                    |INCYC |PRECYC| _UPD | MODE |                           |
 ;                    |______|______|______|______|______|______|______|______|
 ; YY_STATE           |                                                       |
 ;                    |                      Parser State                     |
@@ -828,6 +829,9 @@ EEPROM_USER_END		EQU	0x3FF
 ;                    |______|______|______|______|______|______|______|______|
 ; YY_NEXT_STATE      |                                                       |
 ;                    |     State to transition to when YY_LOOK_FOR is found  |
+;                    |______|______|______|______|______|______|______|______|
+; YY_YY              |                                                       |
+;                    |     General-purpose storage for use inside commands   |
 ;                    |______|______|______|______|______|______|______|______|
 ; CUR_PREH           |                                                       |
 ;                    |         Pre-cycle count-down ticks left (MSB)         |
@@ -911,12 +915,13 @@ EEPROM_USER_END		EQU	0x3FF
 ;                                                .
 ;                                                .                           
 ;
-; SSR_STATE holds the execution state of the controller, including the
-; state machine's current position as well as our main timing chain flags.
+; SSR_STATE holds the execution state of the controller, including our
+; main timing chain flags.
 ;
 INCYC		EQU	7	; 1-------  We are in a dimmer cycle now
 PRECYC		EQU	6	; -1------  We are in the pre-cycle countdown
 SLICE_UPD	EQU	5	; --1-----  Slice update needs to be done
+PRIV_MODE	EQU	4	; ---1----  We are in privileged (config) mode
 ;
 ; SSR_FLAGS words for each output show state information about those
 ; channels.
@@ -1560,6 +1565,7 @@ YY_LOOKAHEAD_MAX RES	1
 YY_LOOK_FOR	RES	1
 YY_BUF_IDX 	RES	1
 YY_NEXT_STATE	RES	1
+YY_YY		RES	1
 CUR_PREH	RES	1
 CUR_PRE		RES	1
 CUR_SLICE	RES	1
@@ -1576,7 +1582,8 @@ SSR_DATA_BANK	EQU	0x400
 _SSR_DATA	UDATA	SSR_DATA_BANK
 ;
 ; *** THE FOLLOWING BLOCKS *MUST* BE THE SAME SIZE AS EACH OTHER ***
-; and in fact, that size must be SSR_BLOCK_LEN.
+; and in fact, that size must be SSR_BLOCK_LEN.  THEY MUST ALSO be
+; in this order, due to some optimizations that occur in the code.
 ;
 SSR_BLOCK_LEN	EQU	SSR_MAX+1
 SSR_00_VALUE	RES	SSR_BLOCK_LEN	; each SSR value 0x00-FF
@@ -1714,10 +1721,10 @@ INTERP_START:
 	; CMD 1 (ON_OFF): -> 1
 	; CMD 2 (SET_LVL): -> 2
 	; CMD 3 (BULK_UPD): -> 4
-	; CMD 4 (RAMP_LVL): -> 8
+	; CMD 4 (RAMP_LVL): -> 5
 	; CMD 5 ERROR -> 0
 	; CMD 6 ERROR -> 0
-	; CMD 7 (EXTENDED) -> 11
+	; CMD 7 (EXTENDED) -> 9
 	;
 	IF HAS_ACTIVE
 	 SET_SSR_BLINK_FADE SSR_ACTIVE	; activity indicator
@@ -1760,10 +1767,10 @@ CH	 ++
 	RETURN
 
 S0_CMD1:
-	; ON_OFF:
-	MOVWF	YY_COMMAND, ACCESS
+	MOVWF	YY_COMMAND, ACCESS	; save command byte in YY_COMMAND
 	DECFSZ	WREG, W, ACCESS
 	BRA	S0_CMD2
+	; ON_OFF:
 	MOVLW	1
 	MOVWF	YY_STATE, ACCESS	; -> state 1 (wait for channel)
 	RETURN
@@ -1788,8 +1795,8 @@ S0_CMD4:
 	; RAMP_LVL
 	DECFSZ	WREG, W, ACCESS
 	BRA	S0_CMD5
-	MOVLW	8
-	MOVWF	YY_STATE, ACCESS	; -> state 8 (wait for channel)
+	MOVLW	5
+	MOVWF	YY_STATE, ACCESS	; -> state 5 (wait for channel)
 	RETURN
 
 S0_CMD5:
@@ -1808,13 +1815,13 @@ S0_CMD7:
 	; Extended commands
 	DECFSZ	WREG, W, ACCESS
 	BRA	S0_CMD_ERR
-	MOVLW	11
-	MOVWF	YY_STATE, ACCESS	; -> state 11 (decode extended command)
+	MOVLW	9
+	MOVWF	YY_STATE, ACCESS	; -> state 9 (decode extended command)
 	RETURN
 
 S0_CMD_ERR:
 	; BUG: We really shouldn't have arrived here!
-	BRA	ERR_COMMAND
+	BRA	ERR_COMMAND		; XXX bug really
 	
 DATA_BYTE:
 	CLRWDT
@@ -1834,7 +1841,7 @@ S1_DATA:
 	; STATE 1: collect channel number for ON_OFF command
 	;          and execute.
 	;
-	MOVFF	SIO_INPUT, YY_DATA
+	MOVFF	SIO_INPUT, YY_DATA;		Save data byte in YY_DATA
 	DECFSZ	WREG, W, ACCESS
 	BRA	S2_DATA
 	;
@@ -1942,30 +1949,22 @@ S4_DATA:
 	BRA	ERR_COMMAND
 	BTFSC	YY_DATA, 6, ACCESS	; preserve bit 7 (resolution flag)
 	BSF	TARGET_SSR, 6, ACCESS
-	INCF	YY_STATE, F, ACCESS	; -> state 5 (wait for number of channels)
+	WAIT_FOR_SENTINEL .57, 0b01010101, 0	; -> S6.0 when sentinel found
 	RETURN
 
 S5_DATA:
 	DECFSZ	WREG, W, ACCESS
 	BRA	S6_DATA
-	; BULK_UPD, received channel count byte
-
+	; RAMP_LVL received channel number
 	RCALL	XLATE_SSR_ID
 	BTFSC	TARGET_SSR, INVALID_SSR, ACCESS
 	BRA	ERR_COMMAND
-	;
-	; preserve the resolution bit in TARGET_SSR
-	; (overloads the INVALID_SSR bit which we know is clear now)
-	;
-	BTFSC	YY_DATA, 6, ACCESS
+	BTFSC	YY_DATA, 6, ACCESS	; preserve bit 6 (direction flag)
 	BSF	TARGET_SSR, 6, ACCESS
-	;
-	; Look ahead for the 01010101 sentinel at the end
-	; if we go more than 57 bytes (the remaining packet length
-	; for 48 channels) then we've lost it.
-	;
-	WAIT_FOR_SENTINEL .57, 0b01010101, 0	; -> S6.0
+	MOVLW	7
+	MOVWF	YY_STATE, ACCESS	; -> state 7 (wait for step count)
 	RETURN
+	
 
 S6_DATA:
 	DECFSZ	WREG, W, ACCESS
@@ -2216,7 +2215,25 @@ S6_0_INCR:
 	; Update all the LSBs
 	; At this point: K=N, FSR0->sentinel.  Or should...
 	;
+	; Inside this block, we'll use YY_YY as temporary storage for the
+	; LSB collector for sending bulk updates to the slave chip.  Here
+	; it maps like this:
+	;
+	;                     ___7______6______5______4______3______2______1______0__
+	; YY_YY              |S6_NOT|LSB   |LSB   |LSB   |LSB   |LSB   |LSB   |LSB   |
+	;                    |_INIT |#0    |#1    |#2    |#3    |#4    |#5    |#6    |
+	;                    |______|______|______|______|______|______|______|______|
+	;
+	; Flags defined here:
+	;			  76543210
+S6_NOT_INIT	EQU	7	; 1-------  1 if not yet prepared to collect bits
+	;
+	;
 	CLRWDT
+	IF ROLE_MASTER
+	 CLRF	YY_YY, ACCESS			; initial state: not yet handling slave's data
+	 BSF	YY_YY, 7, ACCESS
+	ENDIF
 	IF ROLE_SLAVE
 	 MOVLW	0x55				; the slave will see $55 for BOTH sentinels
 	ELSE
@@ -2236,25 +2253,62 @@ S6_0_INCR:
 S6_0_UPDATE_LSB:
 X	SET	6
 	WHILE	X >= 0
+	 IF ROLE_MASTER
+	  BTFSC YY_YY, 7, ACCESS		; if we're packing up for the slave:
+	  BRA	S6_0_LSB_A#v(X)			;   (if not, skip down there a bit...)
+	  RRNCF I, F, ACCESS			; shift bit position
+	  BTFSS	I, 7, ACCESS			; if we wrap around to bit 7 again, we filled up the block.
+	  BRA	S6_0_LSB_B#v(X)
+	  MOVF	YY_YY, W, ACCESS		; ship out the completed byte
+	  CALL	SIO_WRITE_W
+	  CLRF 	YY_YY, ACCESS
+	  RRNCF	I, F, ACCESS
+S6_0_LSB_B#v(X):
+	  MOVF	I, W, ACCESS
+	  BTFSC	INDF0, #v(X), ACCESS		; set bit in I if source bit is set
+	  IORWF YY_YY, F, ACCESS
+	  BRA	S6_0_LSB_C#v(X)
+	 ENDIF
+S6_0_LSB_A#v(X):				; NOT packing up for the slave, just updating locally
 	 BTFSC	INDF0, #v(X), ACCESS		; If the source bit is set,
 	 BSF	POSTINC1, 0, ACCESS		; set the LSB of the target SSR and move on to the next one.
 	 IF ROLE_MASTER
-	  DCFSNZ KK, F, ACCESS			; Stop if we've run out of chip channels first
-	  BRA	S6_0_PASS_DOWN_LSB
+S6_0_LSB_C#v(X):
+	  BTFSS	YY_YY, 7, ACCESS		; If we've already handled this, stop counting KK.
+	  BRA S6_0_LSB_#v(X)
+	  DECFSZ KK, F, ACCESS			; If we've run out of channels for this chip,
+	  BRA	S6_0_LSB_#v(X)
+	  CLRF	YY_YY, ACCESS		 	; Start building up packed bytes to send to the slave.
+	  MOVLW	0x80
+	  MOVWF	I, ACCESS			; I = bitmask to set in packed byte
+S6_0_LSB_#v(X):
 	 ENDIF
 	 DCFSNZ	K, F, ACCESS			; Stop if we've set K bits already
-	 RETURN
+	 BRA	S6_0_DONE
 X	 --
 	ENDW
 	INCF	FSR0L, F, ACCESS		; advance to next byte full of LSB bits
 	BRA	S6_0_UPDATE_LSB
+	;
+	; if we're packing up a byte for the slave (YY_YY<7> clear),
+	; AND we were in the middle of one of them (I<7> clear),
+	; we need to ship out the last byte in the sequence
+	;
+S6_0_DONE:
+	IF ROLE_MASTER
+	 BTFSC	YY_YY, 7, ACCESS		; packing up for slave
+	 BRA	S6_0_NO_FLUSH
+	 BTFSC	I, 7, ACCESS			; pending output
+	 BRA	$+6
+	 MOVF	YY_YY, W, ACCESS
+	 CALL	SIO_WRITE_W
+	 MOVLW	0x55				; add sentinel to output
+	 CALL	SIO_WRITE_W
+S6_0_NO_FLUSH:
+	ENDIF
+	CLRF	YY_STATE, ACCESS
+	RETURN
 
-S6_0_PASS_DOWN_LSB:
-	DCFSNZ	K, F, ACCESS			; we left before K--
-	RETURN					; never mind, we also ran out of bytes at the same time.
-	; we already sent a MSB packet, add to the end of that with our LSB bits.
-
-	; XXX					
 S6_1_DATA:
 	BRA	ERR_COMMAND			; XXX should be bug
 
@@ -2276,14 +2330,170 @@ S6_KEEP_LOOKING:
 S7_DATA:
 	DECFSZ	WREG, W, ACCESS
 	BRA	S8_DATA
+	; RAMP_LVL recieved step count
+	INCF	YY_DATA, W, ACCESS		; step count - 1 sent in protocol
+	MOVWF	YY_YY, ACCESS			; actual step count saved in YY_YY (1-128)
+	INCF	YY_STATE, F, ACCESS		; -> state 8 (wait for time interval byte)
+	RETURN
 	
 S8_DATA:
 	DECFSZ	WREG, W, ACCESS
 	BRA	S9_DATA
+	INCF	YY_DATA, F, ACCESS
+	;
+	; RAMP_LVL:
+	;
+	;   ___7______6______5______4______3______2______1______0__
+	;  |      |                    |                           |
+	;  |   1  |          4         |   Target device address   | YY_COMMAND
+	;  |______|______|______|______|______|______|______|______|
+	;  |NOT_MY|0=down|                                         |
+	;  | _SSR |1=up  |           Channel ID (0-23)             | TARGET_SSR
+	;  |______|______|______|______|______|______|______|______|
+	;  |                                                       |
+	;  |              Steps between update (1-128)             | YY_YY
+	;  |______|______|______|______|______|______|______|______|
+	;  |      |                                                |
+	;  |             update every n/120 sec (1-128)            | YY_DATA
+	;  |______|______|______|______|______|______|______|______|
+	;
+	BTFSC	TARGET_SSR, NOT_MY_SSR, ACCESS
+	BRA	S8_PASS_DOWN_RAMP_LVL
+	LFSR	0, SSR_00_FLAGS
+	MOVF	TARGET_SSR, W, ACCESS
+	ANDLW	0x3F
+	ADDWF	FSR0L, F, ACCESS
+	CLRF	INDF0, ACCESS
+	BTFSC	TARGET_SSR, 6, ACCESS		; this is cheaper than branching :)
+	BSF	INDF0, FADE_UP, ACCESS
+	BTFSS	TARGET_SSR, 6, ACCESS
+	BSF	INDF0, FADE_DOWN, ACCESS
+	MOVLW	SSR_BLOCK_LEN
+	ADDWF	FSR0L, F, ACCESS		; jump to this SSR's step byte
+	MOVFF	YY_YY, INDF0
+	ADDWF	FSR0L, F, ACCESS		; jump to this SSR's speed byte
+	MOVFF	YY_DATA, INDF0
+	ADDWF	FSR0L, F, ACCESS		; jump to this SSR's counter byte
+	MOVFF	YY_DATA, INDF0
+	CLRF	YY_STATE, ACCESS
+	RETURN
+
+S8_PASS_DOWN_RAMP_LVL:
+	;
+	; Hand off RAMP_LVL command to slave chip.
+	;
+	IF ROLE_MASTER
+	 MOVLW 	0xC0				; command byte
+	 CALL	SIO_WRITE_W
+	 MOVF	TARGET_SSR, W, ACCESS
+	 BCF	TARGET_SSR, 7, ACCESS
+	 CALL	SIO_WRITE_W			; channel + direction
+	 DECF	YY_YY, W, ACCESS		; steps - 1
+	 CALL	SIO_WRITE_W
+	 DECF	YY_DATA, W, ACCESS		; speed - 1
+	 CALL	SIO_WRITE_W
+	 RETURN
+	ENDIF
+	BRA	ERR_COMMAND			; XXX bug really
 	
 S9_DATA:
 	DECFSZ	WREG, W, ACCESS
 	BRA	S10_DATA
+	;
+	; State 9:  Extended command code received; decode further
+	;
+	;   ___7______6______5______4______3______2______1______0__
+	;  |      |                    |                           |
+	;  |   1  |          7         |   Target device address   | YY_COMMAND
+	;  |______|______|______|______|______|______|______|______|
+	;  |                                                       |
+	;  |               Extended Command Code                   | YY_DATA   
+	;  |______|______|______|______|______|______|______|______|
+	;
+	; Extended commands decode like this:
+	;	01xxxxxx	privileged configuration commands
+	;	010----- 	CF_PHASE command (remaining bits are data)
+	;	0110----	CF_ADDR command (remaining bits are data)
+	;	01110--- 	other CF_* commands (remaining bits are command number)
+	;       001-----	IC_* internal (mater->slave) commands
+	;	000-----	Regular extended commands
+	;        
+	BTFSC	YY_DATA, 6, ACCESS
+	BRA	S9_PRIV_CMD
+
+S9_PRIV_CMD:
+	; received privileged configuration command  	; 01xxxxxx
+	;
+	; Anything from here down requires the privilege bit to be set.
+	;
+	BTFSS	SSR_STATE, PRIV_MODE, ACCESS
+	BRA	ERR_COMMAND			; XXX any other flags?
+	;
+	; decode which command this is
+	;
+	BTFSS	YY_DATA, 5, ACCESS
+	BRA	S9_CF_PHASE				; 010xxxxx
+	BTFSS	YY_DATA, 4, ACCESS
+	BRA	S9_CF_ADDR				; 0110xxxx
+	; other priv commands              		; 0111xxxx
+	MOVLW	0x0F
+	ANDWF	YY_DATA, W, ACCESS
+	BNZ	S9_PRIV_1
+
+S9_PRIV_0:
+	;
+	; CF_NOPRV:
+	;
+	;   ___7______6______5______4______3______2______1______0__
+	;  |      |                    |                           |
+	;  |   1  |          7         |   Target device address   | YY_COMMAND
+	;  |______|______|______|______|______|______|______|______|
+	;  |      |      |      |                                  |
+	;  |   0  |   1  |   1  |   1  |             0             | YY_DATA
+	;  |______|______|______|______|______|______|______|______|
+	;
+	;
+	BCF	SSR_STATE, PRIV_MODE, ACCESS
+	CLRF	YY_STATE, ACCESS
+	RETURN
+
+S9_PRIV_1:
+	DECFSZ	WREG, W, ACCESS
+	BRA	S9_PRIV_2
+	;
+	; CF_CONF command recognized.  Expect packet of 4 more bytes...
+	;
+	WAIT_FOR_SENTINEL 4, 0b00111101, 1	; -> S6.1 when sentinel found
+	RETURN
+
+S9_PRIV_2:
+	DECFSZ	WREG, W, ACCESS
+	BRA	S9_PRIV_3
+	;
+	; CF_BAUD command recognized.  Expect packet of 2 more bytes...
+	;
+	WAIT_FOR_SENTINEL 2, 0b00100110, 2	; -> S6.2 when sentinel found
+	RETURN
+
+S9_PRIV_3:
+	DECFSZ	WREG, W, ACCESS
+	BRA	S9_PRIV_4
+	;
+	; CF_RESET command recognized.  Expect packet of 2 more bytes...
+	;
+	WAIT_FOR_SENTINEL 2, 0b01110010, 3	; -> S6.3 when sentinel found
+	RETURN
+
+S9_PRIV_4:
+	BRA	ERR_COMMAND
+
+S9_CF_PHASE:
+	WAIT_FOR_SENTINEL 3, 0b01001111, 4	; -> S6.4 when sentinel found
+	RETURN
+
+S9_CF_ADDR:
+	WAIT_FOR_SENTINEL 3, 0b01000100, 5	; -> S6.5 when sentinel found
+	RETURN
 	
 S10_DATA:
 	DECFSZ	WREG, W, ACCESS
