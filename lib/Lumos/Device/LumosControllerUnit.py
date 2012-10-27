@@ -29,6 +29,7 @@
 from Lumos.ControllerUnit import ControllerUnit
 
 class DeviceProtocolError (Exception): pass
+class InternalDeviceError (Exception): pass
 
 class LumosControllerUnit (ControllerUnit):
     """
@@ -57,13 +58,6 @@ class LumosControllerUnit (ControllerUnit):
 
         if not 0 <= self.address <= 15:
             raise ValueError("Address {0} out of range for Lumos SSR Controller".format(self.address))
-
-        if self.resolution == 256:
-            self._high_resolution = True
-        elif self.resolution == 128:
-            self._high_resolution = False
-        else:
-            raise ValueError("Lumos controller resolution value {0} out of range (should be 128 or 256).".format(self.resolution))
 
     def __str__(self):
         return "{0}, address={1}".format(self.type, self.address)
@@ -156,74 +150,74 @@ class LumosControllerUnit (ControllerUnit):
                 else:
                     n = len(self._changed_channels)
 
-                if self._high_resolution:
-                    if n >= (12 if self.num_channels <= 24 else 20):
-                        # high-res bulk transfer B0|a 40|ch n v*n 56 h*(n/7) 55
-                        n_1 = self._max_change - self._min_change
-                        packet = [
-                            chr(0xb0 | self.address),
-                            chr(0x40 | (self._min_change & 0x3f)),
-                            chr((n_1) & 0x3f)
-                        ] + [
-                            chr((((self.channels[vi].level or 0) >> 1) & 0x7f) if vi in self.channels else 0) 
-                                for vi in range(self._min_change, self._max_change + 1)
-                        ] + [
-                            chr(0x56)
-                        ]
+                #if self._high_resolution:
+                if n >= (12 if self.num_channels <= 24 else 20):
+                    # high-res bulk transfer B0|a 40|ch n v*n 56 h*(n/7) 55
+                    n_1 = self._max_change - self._min_change
+                    packet = [
+                        chr(0xb0 | self.address),
+                        chr(0x40 | (self._min_change & 0x3f)),
+                        chr((n_1) & 0x3f)
+                    ] + [
+                        chr((((self.channels[vi].level or 0) >> 1) & 0x7f) if vi in self.channels else 0) 
+                            for vi in range(self._min_change, self._max_change + 1)
+                    ] + [
+                        chr(0x56)
+                    ]
 
-                        bit = 0x40
-                        byte = 0
-                        for vi in range(self._min_change, self._max_change + 1):
-                            if vi in self.channels and (self.channels[vi].level or 0) & 1:
-                                byte |= bit
-                            bit >>= 1
-                            if not bit:
-                                packet.append(chr(byte))
-                                bit = 0x40
-                                byte = 0
-                        if bit != 0x40:
+                    bit = 0x40
+                    byte = 0
+                    for vi in range(self._min_change, self._max_change + 1):
+                        if vi in self.channels and (self.channels[vi].level or 0) & 1:
+                            byte |= bit
+                        bit >>= 1
+                        if not bit:
                             packet.append(chr(byte))
-                        packet.append(chr(0x55))
-                        self.network.send(''.join(packet))
-                    else:
-                        # high-res individual channel updates A0|a ch v
-                        for i in self._changed_channels:
-                            if not self.channels[i].level:  # covers None and 0
-                                self.network.send(chr(0x90 | self.address) + chr(i & 0x3f))
-                            elif self.channels[i].level >= self.resolution-1:
-                                self.network.send(chr(0x90 | self.address) + chr(0x40 | (i & 0x3f)))
-                            else:
-                                self.network.send(
-                                    chr(0xa0 | self.address) + 
-                                    chr((i & 0x3f) | ((self.channels[i].level << 6) & 0x40)) +
-                                    chr((self.channels[i].level >> 1) & 0x7f)
-                                )
+                            bit = 0x40
+                            byte = 0
+                    if bit != 0x40:
+                        packet.append(chr(byte))
+                    packet.append(chr(0x55))
+                    self.network.send(''.join(packet))
                 else:
-                    if n >= (10 if self.num_channels <= 24 else 18):
+                    # high-res individual channel updates A0|a ch v
+                    for i in self._changed_channels:
+                        if not self.channels[i].level:  # covers None and 0
+                            self.network.send(chr(0x90 | self.address) + chr(i & 0x3f))
+                        elif self.channels[i].level >= self.resolution-1:
+                            self.network.send(chr(0x90 | self.address) + chr(0x40 | (i & 0x3f)))
+                        else:
+                            self.network.send(
+                                chr(0xa0 | self.address) + 
+                                chr((i & 0x3f) | ((self.channels[i].level << 6) & 0x40)) +
+                                chr((self.channels[i].level >> 1) & 0x7f)
+                            )
+                #else:
+                #    if n >= (10 if self.num_channels <= 24 else 18):
                         # low-res bulk transfer B0|a ch n v*n 55
-                        n_1 = self._max_change - self._min_change
-                        self.network.send(''.join([
-                            chr(0xb0 | self.address),
-                            chr(self._min_change & 0x3f),
-                            chr((n_1) & 0x3f)
-                        ] + [
-                            chr((((self.channels[vi].level or 0)) & 0x7f) if vi in self.channels else 0) for vi in range(self._min_change, self._max_change + 1)
-                        ] + [
-                            chr(0x55)
-                        ]))
-                    else:
-                        # low-res individual channel updates A0|a ch v
-                        for i in self._changed_channels:
-                            if not self.channels[i].level:
-                                self.network.send(chr(0x90 | self.address) + chr(i & 0x3f))
-                            elif self.channels[i].level >= self.resolution-1:
-                                self.network.send(chr(0x90 | self.address) + chr(0x40 | (i & 0x3f)))
-                            else:
-                                self.network.send(
-                                    chr(0xa0 | self.address) + 
-                                    chr(i & 0x3f) +
-                                    chr(self.channels[i].level & 0x7f)
-                                )
+                #        n_1 = self._max_change - self._min_change
+                #        self.network.send(''.join([
+                #            chr(0xb0 | self.address),
+                #            chr(self._min_change & 0x3f),
+                #            chr((n_1) & 0x3f)
+                #        ] + [
+                #            chr((((self.channels[vi].level or 0)) & 0x7f) if vi in self.channels else 0) for vi in range(self._min_change, self._max_change + 1)
+                #        ] + [
+                #            chr(0x55)
+                #        ]))
+                #    else:
+                #        # low-res individual channel updates A0|a ch v
+                #        for i in self._changed_channels:
+                #            if not self.channels[i].level:
+                #                self.network.send(chr(0x90 | self.address) + chr(i & 0x3f))
+                #            elif self.channels[i].level >= self.resolution-1:
+                #                self.network.send(chr(0x90 | self.address) + chr(0x40 | (i & 0x3f)))
+                #            else:
+                #                self.network.send(
+                #                    chr(0xa0 | self.address) + 
+                #                    chr(i & 0x3f) +
+                #                    chr(self.channels[i].level & 0x7f)
+                #                )
             self._reset_queue()
             
 
@@ -317,7 +311,7 @@ class LumosControllerUnit (ControllerUnit):
     def raw_sensor_trigger(self, sens_id, i_seq, p_seq, t_seq, inverse=False, mode='while'):
         # inverse is "active high"
         self.network.send(chr(0xF0 | self.address) + chr(0x06) + chr(
-            (0x40 if mode=='once' else (0x20 if mode == 'while' else 0x00)) | 
+            (0x40 if mode=='once' else (0x20 if mode in ('while', 'follow') else 0x00)) | 
             (0x00 if inverse else 0x10) |
             {'A': 0, 'B': 1, 'C': 2, 'D': 3}[sens_id]) + 
             chr(i_seq & 0x7f) + chr(p_seq & 0x7f) + chr(t_seq & 0x7f) + '<')
@@ -330,7 +324,7 @@ class LumosControllerUnit (ControllerUnit):
             | (0x04 if conf_obj.dmx_start else 0x00)
             | (0 if not conf_obj.dmx_start else ((conf_obj.dmx_start - 1) >> 7) & 0x03)
             ) + chr(0 if not conf_obj.dmx_start else ((conf_obj.dmx_start - 1) & 0x7f)) +
-            chr(0x3a | (0x40 if conf_obj.resolution == 256 else 0x00)) + chr(0x3D))
+            chr(0x3A) + chr(0x3D))
             
     # 1111aaaa 00011111 <data> 00110011
     # <data>::=
@@ -375,12 +369,12 @@ class LumosControllerUnit (ControllerUnit):
                 cb = find_command_byte(d, start)
                 start = cb+1
                 if cb < 0:
-                    return 30
+                    return 34
                 if ord(d[cb]) == (0xf0 | self.address):
                     if len(d) - cb <= 1:
-                        return 29
+                        return 33
                     if ord(d[cb+1]) == 0x1f:
-                        return max(0, 30 - (len(d) - cb))
+                        return max(0, 34 - (len(d) - cb))
 
 
                         # 0  1  2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9
@@ -392,10 +386,10 @@ class LumosControllerUnit (ControllerUnit):
                         # x  x  c f 1 2 3 4 5 6 7 8 9 0 1 2 x x x x   20-2  -4
             
         reply = self.network.input(packet_scanner)
-        if len(reply) != 30:
+        if len(reply) != 34:
             raise DeviceProtocolError("Query packet response malformed (len={0})".format(len(reply)))
-        if ord(reply[29]) != 0x33:
-            raise DeviceProtocolError("Query packet response malformed (end={0:02X})".format(ord(reply[29])))
+        if ord(reply[33]) != 0x33:
+            raise DeviceProtocolError("Query packet response malformed (end={0:02X})".format(ord(reply[33])))
         if any([ord(x) & 0x80 for x in reply[1:]]):
             raise DeviceProtocolError("Query packet response malformed (high bit in data area: {0})".format(
                 ' '.join(['{0:02X}'.format(ord(x)) for x in reply])))
@@ -422,7 +416,7 @@ class LumosControllerUnit (ControllerUnit):
         status.in_config_mode = bool(reply[4] & 0x04)
         status.in_sleep_mode = bool(reply[4] & 0x02)
         status.err_memory_full = bool(reply[4] & 0x01)
-        status.config.resolution = 256 if reply[5] & 0x04 else 128 
+        #status.config.resolution = 256 if reply[5] & 0x04 else 128 
         status.phase_offset = ((reply[5] & 0x03) << 7) | (reply[6] & 0x7f)
         status.eeprom_memory_free = ((reply[7] & 0x7f) << 7) | (reply[8] & 0x7f)
         status.ram_memory_free = ((reply[9] & 0x7f) << 7) | (reply[10] & 0x7f)
@@ -452,13 +446,25 @@ class LumosControllerUnit (ControllerUnit):
             status.sensors[sensor_id].trigger = reply[group * 4 + 15]
             status.sensors[sensor_id].post_trigger = reply[group * 4 + 16]
 
+        status.last_error = reply[29]
+        status.last_error2 = reply[30]
+        status.phase_offset2 = ((reply[31] & 0x03) << 7) | (reply[32] & 0x7f)
+
+        if status.channels <= 24:
+            if status.last_error2 != 0 or status.phase_offset2 != 0:
+                raise InternalDeviceError('Query reply packet incorrect for device of this type (LE2=0x{0:02X}, PO2={1})'.format(
+                    status.last_error2, status.phase_offset2))
+            status.last_error2 = None       # no status at all since the corresponding hardware doesn't exist
+            status.phase_offset2 = None
+        elif status.phase_offset != status.phase_offset2:
+            raise InternalDeviceError('Inconsistent phase offset between CPUs (#0={0}, #1={1})'.format(status.phase_offset, status.phase_offset2))
+
         return status
 
 class LumosControllerConfiguration (object):
     def __init__(self):
         self.configured_sensors = []    # list of 'A'..'D'
         self.dmx_start = None           # None or 1..512
-        self.resolution = 256           # 128 or 256
 
 class LumosControllerSensor (object):
     def __init__(self, id):
@@ -492,6 +498,9 @@ class LumosControllerStatus (object):
         self.in_sleep_mode = False
         self.err_memory_full = False
         self.phase_offset = 2
+        self.phase_offset2 = 2
+        self.last_error = 0
+        self.last_error2 = 0
         self.eeprom_memory_free = 0
         self.ram_memory_free = 0
         self.current_sequence = None

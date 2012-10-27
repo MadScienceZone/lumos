@@ -26,7 +26,7 @@
 # 
 # vi:set ai sm nu ts=4 sw=4 expandtab:
 import unittest, quopri
-from Lumos.Device.LumosControllerUnit  import LumosControllerUnit, LumosControllerConfiguration
+from Lumos.Device.LumosControllerUnit  import LumosControllerUnit, LumosControllerConfiguration, InternalDeviceError
 from Lumos.PowerSource                 import PowerSource
 from TestNetwork                       import TestNetwork
 
@@ -106,25 +106,28 @@ class LumosControllerUnitTest (unittest.TestCase):
 
         self.ssr.flush(force=True)
         self.assertEqual(self.n.buffer.replace('=\n',''), ('=BC@/=00=00=0C'+'=00'*45+'V=10=00=00=00=00=00=00U'))
+        # bc 01cccccc (n-1) (0vvvvvvv)*<n> 56 (0hhhhhhh)*[(n+6)/7] 55
+        # bc 00cccccc (n-1) (0vvvvvvv)*<n> 55
+        # bc 01000000 00101111 00 00 00001100 00x45 56 00010000 00 00 00 00 00 00 55
 
-    def testLowResBulkUpdate(self):
-        p = PowerSource('testpower', amps=1)
-        self.ssr = LumosControllerUnit('ssr1', p, address=12, network=self.n, resolution=128)
-        self.ssr.add_channel(0, load=.3)
-        self.ssr.add_channel(1, load=1)
-        self.ssr.add_channel(2, load=.3, warm=10)
-        self.ssr.add_channel(3, load=1, dimmer=False)
-
-        self.ssr.all_channels_off()
-        self.ssr.flush()
-        self.n.reset()
-
-        self.ssr.flush()
-        self.assertEqual(self.n.buffer, '')
-        self.n.reset()
-
-        self.ssr.flush(force=True)
-        self.assertEqual(self.n.buffer.replace('=\n', ''), ('=BC=00/=00=00=0C'+'=00'*45+'U'))
+#    def testLowResBulkUpdate(self):
+#        p = PowerSource('testpower', amps=1)
+#        self.ssr = LumosControllerUnit('ssr1', p, address=12, network=self.n, resolution=128)
+#        self.ssr.add_channel(0, load=.3)
+#        self.ssr.add_channel(1, load=1)
+#        self.ssr.add_channel(2, load=.3, warm=10)
+#        self.ssr.add_channel(3, load=1, dimmer=False)
+#
+#        self.ssr.all_channels_off()
+#        self.ssr.flush()
+#        self.n.reset()
+#
+#        self.ssr.flush()
+#        self.assertEqual(self.n.buffer, '')
+#        self.n.reset()
+#
+#        self.ssr.flush(force=True)
+#        self.assertEqual(self.n.buffer.replace('=\n', ''), ('=BC=00/=00=00=0C'+'=00'*45+'U'))
 
     def testRampUp(self):
         self.ssr.raw_ramp_up(2, 4, 13)      # 4 steps, 13 between
@@ -245,36 +248,71 @@ class LumosControllerUnitTest (unittest.TestCase):
     def test_config(self):
         con = LumosControllerConfiguration()
         for sens, D, R, res in (
-            (['A','B','C','D'], None, 256, '=FCqx=00z=3D'),
-            ([               ],    0, 256, '=FCq=00=00z=3D'),
+            (['A','B','C','D'], None, 256, '=FCqx=00:=3D'),
+            ([               ],    0, 256, '=FCq=00=00:=3D'),
             ([    'B','C',   ],  500, 128, '=FCq7s:=3D'),   
-            (['A',           ],  157, 256, '=FCqE=1Cz=3D'),  
+            (['A',           ],  157, 256, '=FCqE=1C:=3D'),  
             (['A',        'D'], None, 128, '=FCqH=00:=3D'),
         ):
             con.configured_sensors = sens
             con.dmx_start          = D
-            con.resolution         = R
             self.ssr.raw_configure_device(con)
             self.assertEqual(self.n.buffer, res)
             self.n.reset()
 
+    # FC 1F 50 00 00 40 02 00 4F 01 27 00 00 
+    # ----- ----- -- ----- ----- ----- -----
+    #   |     |   |    |     |     |     |   
+    #   |     |   |    |     |     |     no seq exec; dev=48ssr
+    #   |     |   |    |     |     free RAM=0127 = 295
+    #   |     |   |    |     free EEPROM= 004F = 79
+    #   |     |   |    active=a, phase=2
+    #   |     |   mask=nil, !priv, !sleep, !overflow
+    #   |     sensors a,c !dmx
+    #   reply from unit C
+    #
+    # 00 00 00 00 01 00 00 00 10 00 00 00 11 00 00 00 
+    # ----------- ----------- ----------- ----------- 
+    # sensor a    sensor b    sensor c    sensor d    
+    #
+    # 12 34 00 02 33
+    # ----- ----- --
+    # fault phase sentinel
+    #
     def test_query(self):
-        self.n.input_data('\xFC\x1F\x50\x00\x00\x44\x02\x00\x4f\x01\x27\x00\x00\x33')
+        self.n.input_data('\xFC\x1F\x50\x00\x00\x40\x02\x00\x4f\x01\x27\x00\x00'
+            + '\x00\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x12\x34\x00\x02\x33')
         reply = self.ssr.raw_query_device_status()
         self.assertEqual(self.n.buffer, "=FC=03$T")
         self.assertEqual(reply.config.configured_sensors, ['A','C'])
         self.assertEqual(reply.config.dmx_start, None)
-        self.assertEqual(reply.config.resolution, 256)
-        self.assertEqual(reply.enabled_sensors, [])
+        #self.assertEqual(reply.config.resolution, 256)
+        #self.assertEqual(reply.enabled_sensors, [])
+        self.assertEqual(reply.sensors['A'].enabled, False)
+        self.assertEqual(reply.sensors['B'].enabled, False)
+        self.assertEqual(reply.sensors['C'].enabled, False)
+        self.assertEqual(reply.sensors['D'].enabled, False)
+        self.assertEqual(reply.sensors['A'].on, True)
+        self.assertEqual(reply.sensors['B'].on, False)
+        self.assertEqual(reply.sensors['C'].on, False)
+        self.assertEqual(reply.sensors['D'].on, False)
         self.assertEqual(reply.in_config_mode, False)
         self.assertEqual(reply.in_sleep_mode, False)
         self.assertEqual(reply.err_memory_full, False)
-        self.assertEqual(reply.sensors_on, ['A'])
+        #self.assertEqual(reply.sensors_on, ['A'])
         self.assertEqual(reply.phase_offset, 2)
         self.assertEqual(reply.eeprom_memory_free, 0x4f)
         self.assertEqual(reply.ram_memory_free, 0xa7)
         self.assertEqual(reply.current_sequence, None)
         self.assertEqual(reply.hardware_type, 'lumos48ctl')
+        self.assertEqual(reply.last_error, 0x12)
+        self.assertEqual(reply.last_error2, 0x34)
+        self.assertEqual(reply.phase_offset2, 2)
+
+    def test_query_phase_mismatch(self):
+        self.n.input_data('\xFC\x1F\x50\x00\x00\x40\x02\x00\x4f\x01\x27\x00\x00'
+            + '\x00\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x12\x34\x00\x03\x33')
+        self.assertRaises(InternalDeviceError, self.ssr.raw_query_device_status)
 
 
 

@@ -39,7 +39,7 @@
 ;                    bit 7      6      5      4      3      2      1      0
 ;                     _______________________________________________________
 ; $F9D PIE1          |      |      |      |      |      |      |      |      |
-;                    |      |      | RXIE | TXIE |      |      |      |      |
+;                    |      |      | RCIE | TXIE |      |      |      |      |
 ;                    |______|______|______|______|______|______|______|______|
 ; $F9E PIR1          |      |      |      |      |      |      |      |      |
 ;                    |      |      | RXIF | TXIF |      |      |      |      |
@@ -254,6 +254,8 @@ _SIO_CODE CODE
 	GLOBAL	SIO_PRINT_HEX
 	GLOBAL	SIO_PRINT_HEX_W
 	GLOBAL	SIO_SET_BAUD_W
+	GLOBAL	SIO_FLUSH_INPUT
+	GLOBAL	SIO_FLUSH_OUTPUT
 	GLOBAL	B32__BIN2BCD
 	GLOBAL	B32__BCD2ASCII
 ;
@@ -366,6 +368,38 @@ CLR_NEXT_RX:
 ; PUBLIC ENTRY POINTS FOR I/O
 ;==============================================================================
 ;
+SIO_FLUSH_INPUT:
+	BANKSEL	SIO_DATA_START
+	CLRF	SIO_X, BANKED
+	BTFSS	PIE1, RCIE, ACCESS
+	BRA	SIO_FLUSH_IN_1
+	BCF	PIE1, RCIE, ACCESS	; turn off interrupts
+	BSF	SIO_X, 0, BANKED	; remember to enable interrupts again
+SIO_FLUSH_IN_1:
+	CLRF	RX_BUF_START, BANKED
+	CLRF	RX_BUF_END, BANKED
+	CLRF	SIO_STATUS, RXDATA_FULL, BANKED
+	CLRF	SIO_STATUS, RXDATA_QUEUE, BANKED
+	BTFSC	SIO_X, 0, BANKED
+	BSF	PIE1, RCIE, ACCESS	; turn interrupt back on if set initially
+	RETURN
+
+SIO_FLUSH_OUTPUT:
+	BANKSEL	SIO_DATA_START
+	CLRF	SIO_X, BANKED
+	BTFSS	PIE1, TXIE, ACCESS
+	BRA	SIO_FLUSH_OUT_1
+	BCF	PIE1, TXIE, ACCESS	; turn off interrupts
+	BSF	SIO_X, 0, BANKED	; remember to enable interrupts again
+SIO_FLUSH_OUT_1:
+	CLRF	TX_BUF_START, BANKED
+	CLRF	TX_BUF_END, BANKED
+	CLRF	SIO_STATUS, TXDATA_FULL, BANKED
+	CLRF	SIO_STATUS, TXDATA_QUEUE, BANKED
+	BTFSC	SIO_X, 0, BANKED
+	BSF	PIE1, TXIE, ACCESS	; turn interrupt back on if set initially
+	RETURN
+
 SIO_SET_BAUD_W:
 	BANKSEL	SIO_DATA_START
 	CLRWDT

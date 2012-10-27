@@ -45,6 +45,8 @@
 	EXTERN	B32__BIN2BCD	; B32__BIN[4] -> B32__BCD_ASC[5]; big-endian
 	EXTERN	B32__BCD2ASCII	; B32__BCD_ASC[5] -> B32__BCD_ASC[10]
 	EXTERN	SIO_SET_BAUD_W	; Set baud rate from code in W (See serial-io-bits.inc)
+	EXTERN	SIO_FLUSH_INPUT	; Clear input buffer; discards any unread received data
+	EXTERN	SIO_FLUSH_OUTPUT; Clear output buffer; discards any unsent data
 ;
 ; *Also overwrites SIO_OUTPUT or SIO_INPUT.
 ; **Blocks execution until device/buffer ready.

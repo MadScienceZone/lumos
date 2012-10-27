@@ -107,13 +107,6 @@ def parse_arguments():
                 parser.error('-t/--sensor arg: <pre>, <trigger>, and <post> must be 0-127')
 
         sensor_triggers.append((m.group(1), m.group(2), fields[1], fields[2], fields[3]))
-
-    if options.set_address == 15:
-        sys.stderr.write("""
-**WARNING: Setting device to address 15 limits that device's flexibility
-**         because 15 is also the broadcast address.
-""")
-
         return options, operations, sensor_triggers, parser
 
 def setup_lumos(options):
@@ -183,11 +176,14 @@ def report_on(device):
     print "Config (privileged) mode: {0}".format('ON' if device.in_config_mode else 'OFF')
     print "Sleep mode:               {0}".format('ON' if device.in_sleep_mode else 'OFF')
     print "Currently Executing:      {0}".format(status.current_sequence or 'Nothing')
-    print "Dimmer Resolution:        {0:4d} steps".format(device.config.resolution)
+    #print "Dimmer Resolution:        {0:4d} steps".format(device.config.resolution)
     print "EEPROM memory free:       {0:4d} bytes".format(device.eeprom_memory_free)
     print "RAM memory free:          {0:4d} bytes".format(device.ram_memory_free)
     print "Last memory write:        {0}".format('*ERROR* MEMORY FULL' if device.err_memory_full else 'Successful')
     print "Phase offset:             {0:4d}".format(device.phase_offset)
+    print "Last fault condition:     {0:2X}".format(device.last_error)
+    if device.last_error2 is not None:
+        print "Last fault (2nd CPU):     {0:2X}".format(device.last_error2)
 
     if not device.dmx_start:
         print "DMX Mode:                 OFF"
@@ -198,7 +194,7 @@ def report_on(device):
                 device.dmx_start + device.channels - 1,
                 device.dmx_start + device.channels
         )
-               --------------------------------------------------------------------------------
+        #      --------------------------------------------------------------------------------
 
     # SENSORS  ENABLED LOGIC ACTIVE MODE   PRE TRG PST
     #    A     Yes     High  Yes    once   999 999 999
@@ -292,7 +288,7 @@ def dump_configuration(target, filename, stat):
     writer.add_section('lumos_device_settings')
     for field, opt in (
         (config.dmx_start, 'dmxchannel'),
-        (config.resolution, 'resolution'),
+#        (config.resolution, 'resolution'),
         (config.phase_offset, 'phase'),
         (options.speed, 'baud'),
         (''.join(config.config.configured_sensors), 'sensors'),
@@ -371,12 +367,13 @@ def load_configuration(target, filename):
                 raise ValueError('Lumos configuration value "["+k+"] mode must be "once", "while", or "repeat".')
 
     target.raw_configure_device(config.config)
-    verifystatus(target, {'config': config.config)
+    verifystatus(target, {'config': config.config})
 
     if config.phase_offset != status_cache.phase_offset:
         trace(1, "Changing phase offset from {0} to {1} (per {2})".format(status_cache.phase_offset,
             config.phase_offset, filename))
-        # XXX set phase
+        target.raw_set_phase(config.phase_offset)
+        verifystatus(target, {'phase_offset': config.phase_offset})
 
         # XXX raw_sensor_trigger(sens_id, i, p, t, inverse, mode)
         # XXX 
