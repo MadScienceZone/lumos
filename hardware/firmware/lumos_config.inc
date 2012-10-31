@@ -36,9 +36,9 @@
 ;
 ; Un-comment one of these to select board type for this ROM image:
 ;
-;#define LUMOS_CHIP_TYPE		LUMOS_CHIP_MASTER
+#define LUMOS_CHIP_TYPE		LUMOS_CHIP_MASTER
 ;#define LUMOS_CHIP_TYPE		LUMOS_CHIP_SLAVE
-#define LUMOS_CHIP_TYPE		LUMOS_CHIP_STANDALONE
+;#define LUMOS_CHIP_TYPE		LUMOS_CHIP_STANDALONE
 ;
 ;
 ;
@@ -61,19 +61,22 @@
 
 
  IF LUMOS_CHIP_TYPE == LUMOS_CHIP_MASTER
-  ROLE_MASTER	EQU	1
-  ROLE_SLAVE	EQU	0
-  NUM_CHANNELS	EQU	.48
+  #define ROLE_MASTER       (1)
+  #define ROLE_SLAVE        (0)
+  #define ROLE_STANDALONE   (0)
+  #define NUM_CHANNELS      (.48)
  ELSE
   IF LUMOS_CHIP_TYPE == LUMOS_CHIP_SLAVE
-   ROLE_MASTER	EQU	0
-   ROLE_SLAVE	EQU	1
-   NUM_CHANNELS	EQU	.48
+   #define ROLE_MASTER      (0)
+   #define ROLE_SLAVE       (1)
+   #define ROLE_STANDALONE  (0)
+   #define NUM_CHANNELS     (.48)
   ELSE
    IF LUMOS_CHIP_TYPE == LUMOS_CHIP_STANDALONE
-    ROLE_MASTER	EQU	0
-    ROLE_SLAVE	EQU	0
-    NUM_CHANNELS EQU	.24
+    #define ROLE_MASTER     (0)
+    #define ROLE_SLAVE      (0)
+    #define ROLE_STANDALONE (1)
+    #define NUM_CHANNELS    (.24)
    ELSE
     ERROR "Invalid LUMOS_CHIP_TYPE"
    ENDIF

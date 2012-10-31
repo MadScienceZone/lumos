@@ -1,4 +1,10 @@
 ; vim:set syntax=pic ts=8:
+; XXX refactor this:
+;	SUBWF	YY_BUF_IDX, W, ACCESS		; input bytes in packet
+;	BC	$+4
+;	GOTO	S6_KEEP_LOOKING			; input < 2? not done yet
+;	BZ	$+4
+;	GOTO	ERR_COMMAND			; input > 2? too big: reject
 ; XXX XXX XXX ** KILL BROADCAST ADDR IDEA ** it's not going to work XXX XXX XXX
 ; XXX double-check all inequality tests
 ; XXX review logic flow for each chip type
@@ -383,16 +389,20 @@
 ;	00001010 ($0A)  250,000
 ;
 ;
-; Response packet from QUERY command (34 bytes):
-;    1111aaaa 00011111 0ABCDdcc 0ccccccc 0ABCDqsf 0ABCD0pp 0ppppppp 
-;        \__/           \__/|\_________/  \__/|||  \__/ \_________/  
-;          |              | |   |           | |||   |         `--phase
-;          `--reporting   | |   `--DMX      | |||   |  
-;              unit addr  | |      channel  | |||   `--active
-;                         | |               | ||`--mem full?
-;                         | `--DMX mode?    | |`--sleeping?
-;                         `--configured     | `--config mode?
-;                                           `--masks
+; Response packet from QUERY command (35 bytes):
+; note the rom version byte also serves to indicate the format of the response
+; bytes which follow.  If the query packet format changes, the ROM version byte
+; MUST also change.
+;
+;    1111aaaa 00011111 00110000 0ABCDdcc 0ccccccc 0ABCDqsf 0ABCD0pp 0ppppppp 
+;        \__/           \_/\__/ \__/|\_________/  \__/|||  \__/ \_________/  
+;          |             maj |    | |   |           | |||   |         `--phase
+;          `--reporting    minor  | |   `--DMX      | |||   |  
+;              unit addr  rom     | |      channel  | |||   `--active
+;                         vers.   | |               | ||`--mem full?
+;                                 | `--DMX mode?    | |`--sleeping?
+;                                 `--configured     | `--config mode?
+;                                                   `--masks
 ;
 ;    0eeeeeee 0eeeeeee 0MMMMMMM 0MMMMMMM 0X0iiiii 0xxxxxxx 
 ;     \______________/  \______________/  | \___/  \_____/
@@ -1130,6 +1140,7 @@ BIT_OPTION	 EQU	6
  		 IF LUMOS_CHIP_TYPE==LUMOS_CHIP_STANDALONE
 HAS_T_R		  EQU	1
 PLAT_T_R	  EQU	LATB
+PORT_T_R	  EQU	PORTB
 BIT_T_R		  EQU	0
 		 ELSE
 HAS_T_R		  EQU	0
@@ -1141,7 +1152,8 @@ HAS_T_R		  EQU	1
 HAS_ACTIVE	  EQU	0
 HAS_OPTION	  EQU	0
 PLAT_T_R	  EQU	LATA
-BIT_ACT		  EQU	5
+PORT_T_R	  EQU	PORTA
+BIT_T_R		  EQU	5
  		 ELSE
   		  ERROR "LUMOS_CHIP_TYPE invalid"
    		 ENDIF
@@ -1328,40 +1340,40 @@ ERR_BUG	MACRO	ERR_CODE, ERR_CLASS
 	 ELSE
 	  SET_SSR_OFF SSR_RED
 	 ENDIF
-	 IF MASTER_ROLE
+	 IF ROLE_MASTER
 	  ; Send extra flags to slave
 	  MOVLW	0xF0
 	  CALL	SIO_WRITE_W
 	  MOVLW	0x21
 	  CALL	SIO_WRITE_W
 	  IF ERR_CLASS == ERR_CLASS_OVERRUN
-     	   MOVLW 0b00101000
+     	   MOVLW B'00101000'
 	   CALL	SIO_WRITE_W
-	   MOVLW 0b00000000
+	   MOVLW B'00000000'
 	  ELSE
   	   IF ERR_CLASS == ERR_CLASS_IN_VALID
-	    MOVLW 0b00111000
+	    MOVLW B'00111000'
 	    CALL SIO_WRITE_W
-	    MOVLW 0b00000001
+	    MOVLW B'00000001'
 	   ELSE
 	    IF ERR_CLASS == ERR_CLASS_FATAL_RESET
-	     MOVLW 0b00101101
+	     MOVLW B'00101101'
 	     CALL SIO_WRITE_W
-	     MOVLW 0b00000101
+	     MOVLW B'00000101'
 	    ELSE
              IF ERR_CLASS == ERR_CLASS_DEVICE
-	      MOVLW 0b00111000
+	      MOVLW B'00111000'
 	      CALL SIO_WRITE_W
-	      MOVLW 0b00000101
+	      MOVLW B'00000101'
 	     ELSE
 	      IF ERR_CLASS == ERR_CLASS_INT_COMMAND
-	       MOVLW 0b00111000
+	       MOVLW B'00111000'
 	       CALL SIO_WRITE_W
-	       MOVLW 0b00000110
+	       MOVLW B'00000110'
 	      ELSE
-	       MOVLW 0b00000101
+	       MOVLW B'00000101'
 	       CALL  SIO_WRITE_W
-	       MOVLW 0b00000000
+	       MOVLW B'00000000'
 	      ENDIF
 	     ENDIF
 	    ENDIF
@@ -1406,6 +1418,10 @@ SET_SSR_BLINK_FADE MACRO IDX
 
 SET_SSR_SLOW_FLASH MACRO IDX
 	 SET_SSR_PATTERN IDX, 255, 255, 30, BIT_FADE_DOWN|BIT_FADE_CYCLE|BIT_MAX_OFF_TIME
+	ENDM
+
+SET_SSR_RAPID_FADE MACRO IDX
+	 SET_SSR_PATTERN IDX, 0, 4, 1, BIT_FADE_UP|BIT_FADE_CYCLE
 	ENDM
 
 SET_SSR_SLOW_FADE MACRO IDX
@@ -1467,8 +1483,10 @@ D_FLASH:
 	RCALL	DELAY_1_6_SEC
 	BSF	PLAT_YELLOW, BIT_YELLOW, ACCESS
 	RCALL	DELAY_1_6_SEC
-	BSF	PLAT_ACTIVE, BIT_ACTIVE, ACCESS
-	RCALL	DELAY_1_6_SEC
+	IF HAS_ACTIVE
+	 BSF	PLAT_ACTIVE, BIT_ACTIVE, ACCESS
+	 RCALL	DELAY_1_6_SEC
+	ENDIF
 	
 	BCF	PLAT_RED, BIT_RED, ACCESS
 	RCALL	DELAY_1_6_SEC
@@ -1476,8 +1494,10 @@ D_FLASH:
 	RCALL	DELAY_1_6_SEC
 	BCF	PLAT_YELLOW, BIT_YELLOW, ACCESS
 	RCALL	DELAY_1_6_SEC
-	BCF	PLAT_ACTIVE, BIT_ACTIVE, ACCESS
-	RCALL	DELAY_1_6_SEC
+	IF HAS_ACTIVE
+	 BCF	PLAT_ACTIVE, BIT_ACTIVE, ACCESS
+	 RCALL	DELAY_1_6_SEC
+	ENDIF
 	RETURN
 
 START:
@@ -1634,7 +1654,7 @@ SET_EEPROM_ADDRESS MACRO ADDR
 	 MOVWF	EEADR, ACCESS
 	ENDM
 
-WRITE_EEPROM_EEDATA MACRO
+WRITE_EEPROM_DATA MACRO
 	 BCF	PIR2, EEIF, ACCESS	; clear interrupt flag
 	 MOVLW	0x55
 	 MOVWF	EECON2, ACCESS
@@ -1667,7 +1687,7 @@ FACTORY_RESET_LOOP:
 	TBLRD	*+			; byte -> TABLAT
 	MOVFF	TABLAT, EEDATA
 	BSF	PLAT_YELLOW, BIT_YELLOW, ACCESS	; Panel: () () Y R
-	WRITE_EEPROM_EEDATA
+	WRITE_EEPROM_DATA
 	BCF	PLAT_YELLOW, BIT_YELLOW, ACCESS	; Panel: () () () R
 
 	DECFSZ	I, F, ACCESS
@@ -1912,7 +1932,7 @@ _MAIN	CODE	0x0800
 MAIN:
 	CLRWDT
 	BTFSC	SSR_STATE, SLICE_UPD, ACCESS
-	RCALL	UPDATE_SSR_OUTPUTS
+	CALL	UPDATE_SSR_OUTPUTS
 
 	BANKSEL	SIO_DATA_START
 	BTFSC	SIO_STATUS, SIO_FERR, BANKED
@@ -2046,11 +2066,12 @@ DRAIN_TRANSMITTER:
 	IF HAS_T_R
 	 BTFSC	SIO_STATUS, TXDATA_QUEUE, BANKED
 	 RETURN
-	 BCF	SSR_STATUS, DRAIN_TR, ACCESS
+	 BCF	SSR_STATE, DRAIN_TR, ACCESS
 	 BCF	PLAT_T_R, BIT_T_R, ACCESS
 	 RETURN
 	ELSE
 	 ERR_BUG 0x11, ERR_CLASS_DEVICE
+    ENDIF
 
 DO_TEST_MODE:
 	CLRWDT
@@ -2061,7 +2082,7 @@ DO_TEST_MODE:
 	RETURN
 TEST_NOT_PRESSED:
 	BTFSC	SSR_STATE2, TEST_BUTTON, ACCESS	; were we waiting for this?
-	TSTFSZ	OPTION_DEBOUNCE, W, ACCESS	; is button released?
+	TSTFSZ	OPTION_DEBOUNCE, ACCESS	; is button released?
 	BRA	TEST_MODE_1			; not waiting or button not released: skip to next part
 
 	BCF	SSR_STATE2, TEST_BUTTON, ACCESS	; button has been pressed and released, now toggle pause state
@@ -2072,11 +2093,11 @@ TEST_NOT_PRESSED:
 	 CALL	SIO_WRITE_W				; set bottom red LED to new pause mode
 	 MOVLW	0x21
 	 CALL	SIO_WRITE_W
-	 MOVLW	0b00111111
+	 MOVLW	B'00111111'
 	 CALL	SIO_WRITE_W
-	 MOVLW	0b00000001
+	 MOVLW	B'00000001'
 	 BTFSS	SSR_STATE2, TEST_PAUSE, ACCESS
-	 MOVLW	0b00000010
+	 MOVLW	B'00000010'
 	 CALL	SIO_WRITE_W
 	ENDIF
 	
@@ -2124,7 +2145,7 @@ TEST_MODE_1:
 	 CALL	SIO_WRITE_W
 	 MOVLW	0x21
 	 CALL 	SIO_WRITE_W
-	 CLRW
+	 CLRF	WREG, ACCESS
 	 BTFSC	TEST_SSR, 4, ACCESS
 	 BSF	WREG, 0, ACCESS
 	 BTFSC	TEST_SSR, 5, ACCESS
@@ -2161,11 +2182,11 @@ ERR_SERIAL_FULL:
 ERR_CMD_INCOMPLETE:
 	MOVLW	0x23
 	MOVWF	LAST_ERROR, ACCESS
-	BRA	ERR_ABORT
+	GOTO	ERR_ABORT
 ERR_NOT_IMP:
 	MOVLW	0x22
 	MOVWF	LAST_ERROR, ACCESS
-	BRA	ERR_ABORT
+	GOTO	ERR_ABORT
 ERR_COMMAND:
 	MOVLW	0x20
 	MOVWF	LAST_ERROR, ACCESS
@@ -2215,7 +2236,7 @@ INTERP_START:
 	;
 	; Is it ours?
 	;
-	IF NOT ROLE_SLAVE		; the slave chip has no address and sees no other commands
+	IF ! ROLE_SLAVE		; the slave chip has no address and sees no other commands
 	 MOVF	SIO_INPUT, W, BANKED
 	 ANDLW	0x0F
 	 CPFSEQ	MY_ADDRESS, ACCESS
@@ -2245,7 +2266,8 @@ INTERP_START:
 	ENDIF
 	SWAPF	SIO_INPUT, W, BANKED
 	ANDLW	0x07
-	BNZ	S0_CMD1
+	BZ	S0_CMD0
+	GOTO	S0_CMD1		; can't do BNZ S0_CMD1 because it's too far away from here
 
 S0_CMD0:
 	;
@@ -2314,13 +2336,13 @@ S0_CMD5:
 	; Unimplemented Command
 	DECFSZ	WREG, W, ACCESS
 	BRA	S0_CMD6
-	BRA	ERR_NOT_IMP		; XXX
+	GOTO	ERR_NOT_IMP		; XXX
 
 S0_CMD6:
 	; Unimplemented Command
 	DECFSZ	WREG, W, ACCESS
 	BRA	S0_CMD7
-	BRA	ERR_NOT_IMP		; XXX
+	GOTO	ERR_NOT_IMP		; XXX
 
 S0_CMD7:
 	; Extended commands
@@ -2367,20 +2389,20 @@ S1_DATA:
 	;  |______|______|______|______|______|______|______|______|
 	;
 ON_OFF_YY_DATA:
-	RCALL	XLATE_SSR_ID
+	CALL	XLATE_SSR_ID
 	BTFSC	TARGET_SSR, INVALID_SSR, ACCESS
-	BRA	ERR_COMMAND				; SSR number out of range
+	GOTO	ERR_COMMAND				; SSR number out of range
 	BTFSC	TARGET_SSR, NOT_MY_SSR, ACCESS
 	BRA	PASS_DOWN_ON_OFF
 	BTFSC	YY_DATA, 6, ACCESS
 	CLRF	YY_STATE, ACCESS			; reset command state
 	BRA	ON_OFF_ON
 	CLRF	WREG, ACCESS
-	BRA	SSR_OUTPUT_VALUE			; set value off and return
+	GOTO	SSR_OUTPUT_VALUE			; set value off and return
 
 ON_OFF_ON:
 	SETF	WREG, ACCESS
-	BRA	SSR_OUTPUT_VALUE			; set value on and return
+	GOTO	SSR_OUTPUT_VALUE			; set value on and return
 	
 PASS_DOWN_ON_OFF:
 	IF ROLE_MASTER
@@ -2393,16 +2415,16 @@ PASS_DOWN_ON_OFF:
 	 CALL 	SIO_WRITE_W
 	 SET_SSR_BLINK_FADE SSR_YELLOW	; slave activity indicator
 	ELSE
-	 BRA	ERR_COMMAND
+	 GOTO	ERR_COMMAND
 	ENDIF
 
 S2_DATA:
 	DECFSZ	WREG, W, ACCESS
 	BRA	S3_DATA
 	; SET_LVL channel byte
-	RCALL	XLATE_SSR_ID
+	CALL	XLATE_SSR_ID
 	BTFSC	TARGET_SSR, INVALID_SSR, ACCESS
-	BRA	ERR_COMMAND
+	GOTO	ERR_COMMAND
 	BTFSC	YY_DATA, 6, ACCESS	; preserve bit 6 (LSB of value)
 	BSF	TARGET_SSR, 6, ACCESS
 	INCF	YY_STATE, F, ACCESS	; -> state 3 (wait for level byte)
@@ -2434,7 +2456,7 @@ S3_DATA:
 	RLCF	YY_DATA, W, ACCESS			; Shift LSB into value byte
 	CLRF	YY_STATE, ACCESS			; reset state (end of command)
 	MOVF	YY_DATA, W, ACCESS
-	BRA	SSR_OUTPUT_VALUE			; set SSR to 8-bit YY_DATA value
+	GOTO	SSR_OUTPUT_VALUE			; set SSR to 8-bit YY_DATA value
 
 PASS_DOWN_SET_LVL:
 	IF ROLE_MASTER
@@ -2456,21 +2478,21 @@ S4_DATA:
 	DECFSZ	WREG, W, ACCESS
 	BRA	S5_DATA
 	; BULK_UPD, received channel byte
-	RCALL	XLATE_SSR_ID
+	CALL	XLATE_SSR_ID
 	BTFSC	TARGET_SSR, INVALID_SSR, ACCESS
-	BRA	ERR_COMMAND
+	GOTO	ERR_COMMAND
 	BTFSC	YY_DATA, 6, ACCESS	; preserve bit 7 (resolution flag)
 	BSF	TARGET_SSR, 6, ACCESS
-	WAIT_FOR_SENTINEL .57, 0b01010101, 0	; -> S6.0 when sentinel found
+	WAIT_FOR_SENTINEL .57, B'01010101', 0	; -> S6.0 when sentinel found
 	RETURN
 
 S5_DATA:
 	DECFSZ	WREG, W, ACCESS
 	BRA	S6_DATA
 	; RAMP_LVL received channel number
-	RCALL	XLATE_SSR_ID
+	CALL	XLATE_SSR_ID
 	BTFSC	TARGET_SSR, INVALID_SSR, ACCESS
-	BRA	ERR_COMMAND
+	GOTO	ERR_COMMAND
 	BTFSC	YY_DATA, 6, ACCESS	; preserve bit 6 (direction flag)
 	BSF	TARGET_SSR, 6, ACCESS
 	MOVLW	7
@@ -2480,7 +2502,7 @@ S5_DATA:
 
 S6_DATA:
 	DECFSZ	WREG, W, ACCESS
-	BRA	S7_DATA
+	GOTO	S7_DATA
 	;
 	; State 6: Wait for Sentinel
 	;
@@ -2500,13 +2522,14 @@ S6_DATA:
 	CLRWDT
 	MOVF	YY_DATA, W, ACCESS		; Is this the sentinel we're looking for?
 	CPFSEQ	YY_LOOK_FOR, ACCESS
-	BRA	S6_KEEP_LOOKING
+	GOTO	S6_KEEP_LOOKING
 	;
 	; We have a packet, now switch on YY_NEXT_STATE to decode and execute
 	; the completed command.
 	;
 	MOVF	YY_NEXT_STATE, W, ACCESS
-	BNZ	S6_1_DATA
+	BZ	S6_0_DATA
+	GOTO	S6_1_DATA	; too far away for relative branch
 	;
 	; S6.0: Complete BULK_UPD command (from state 5)
 	;
@@ -2561,6 +2584,7 @@ S6_DATA:
 	;                                                        <-- YY_BUF_IDX = n+1+
 	;                                                               int((n+6)/7)
 	;
+S6_0_DATA:
 	CLRF	YY_STATE, ACCESS		; go ahead and signal end of command parsing
 	;					; now so we can just RETURN when done.
 	; Calculate expected data lengths
@@ -2571,13 +2595,14 @@ S6_DATA:
 	ADDWF	INDF0, W, ACCESS		; start + N-1
 	INCF	WREG, W, ACCESS			; start + N
 	SUBLW	NUM_CHANNELS			; start + N > NUM_CHANNELS? 
-	BNC	ERR_COMMAND			; YES: bad command - reject it!
+	BC	$+4				; skip
+	GOTO	ERR_COMMAND			; YES: bad command - reject it!
 	;
 	; Do we have all the bytes yet?  (Or did a data byte happen to equal our sentinel?)
 	;
 	INCF 	INDF0, W, ACCESS		; W=N
 	CPFSGT	YY_BUF_IDX, ACCESS		; if IDX > N, we're done.
-	BRA	S6_KEEP_LOOKING			; otherwise, go back and wait for more data
+	GOTO	S6_KEEP_LOOKING			; otherwise, go back and wait for more data
 	INCF	INDF0, F, ACCESS		; fix it so that YY_BUFFER[0] is N, not N-1
 	;
 	; Do we have the correct packet ending?
@@ -2586,7 +2611,7 @@ S6_DATA:
 	BRA	S6_0_CHK_HR
 	INCF	INDF0, W, ACCESS		; Low-res bounds check:
 	CPFSEQ	YY_BUF_IDX, ACCESS		; Should see IDX == N+1 if the packet is complete
-	BRA	ERR_COMMAND			; and correctly terminated
+	GOTO	ERR_COMMAND			; and correctly terminated
 	;
 	; start bulk update of channels
 	;
@@ -2644,7 +2669,7 @@ S6_0_UPDATE_NEXT:
 	RLNCF	INDF1, F, ACCESS
 	BZ	$+4				; if SSR=0, leave at 0 (skip next)
 	BSF	INDF1, 0, ACCESS		; else, set low bit so 254=255 in low-res mode
-	INCR	FSR1, F, ACCESS
+	INCF	FSR1, F, ACCESS
 	IF ROLE_MASTER				; (high-res mode will correct this if presented)
 	 DCFSNZ	KK, F, ACCESS
 	 BRA	S6_0_PASS_DOWN_MSB		; ran out of KK, send rest to slave chip
@@ -2659,7 +2684,7 @@ S6_0_PASS_DOWN_MSB:
 	 RETURN					; already out of data to send; don't bother the slave
 	 MOVLW	0xB0				; Start command to slave with I remaining values
 	 CALL	SIO_WRITE_W			
-	 CLRW 					; target SSR always 0 in this case
+	 CLRF	WREG, ACCESS 					; target SSR always 0 in this case
 	 BTFSC	TARGET_SSR, 6, ACCESS		; but keep the resolution bit
 	 BSF	WREG, 6, ACCESS
 	 CALL	SIO_WRITE_W			
@@ -2720,17 +2745,18 @@ S6_0_INCR:
 	MOVWF	J, ACCESS
 	ADDWF	I, W, ACCESS			; W = N + 1 + I
 	SUBWF	YY_BUF_IDX, ACCESS		; packetlen < N + 1 + I ?
-	BNC	S6_0_NEED_MORE			; stopped early; fix up and keep reading
+	BC	$+4
+	GOTO	S6_0_NEED_MORE			; stopped early; fix up and keep reading
 
 	INCF	INDF0, W, ACCESS		; W = N+1
 	ADDWF	FSR0L, F, ACCESS		; move pointer to YY_BUFFER[N+1]
 	MOVLW	0x56
 	CPFSEQ	INDF0, ACCESS			; sentinel byte correct for high-res block?
-	BRA	ERR_COMMAND			; NO, abort command
+	GOTO	ERR_COMMAND			; NO, abort command
 	MOVF	J, W, ACCESS			; W = N+1
 	ADDWF	I, W, ACCESS			; W = N+1+I
 	CPFSEQ	YY_BUF_IDX, ACCESS		; packet size must == N+1+I
-	BRA	ERR_COMMAND			; or else we abort here
+	GOTO	ERR_COMMAND			; or else we abort here
 	RCALL	S6_0_UPDATE_MSB			; set all the MSBs first
 	;
 	; Update all the LSBs
@@ -2833,7 +2859,7 @@ S6_0_NO_FLUSH:
 
 S6_0_NEED_MORE:
 	DECF	INDF0, F, ACCESS		; move YY_BUFFER[0] back to N-1
-	BRA	S6_KEEP_LOOKING
+	GOTO	S6_KEEP_LOOKING
 
 ERR_S6_0_INVALID:				; input validator failed to reject soon enough
 	ERR_BUG	0x04, ERR_CLASS_IN_VALID
@@ -2868,13 +2894,16 @@ S6_1_DATA:
 	;
 	MOVLW	3
 	SUBWF	YY_BUF_IDX, W, ACCESS		; input bytes in packet
-	BNC	S6_KEEP_LOOKING			; input < 3? not done yet
-	BNZ	ERR_COMMAND			; input > 3? too big: reject
+	BC	$+4
+	GOTO	S6_KEEP_LOOKING			; input < 3? not done yet
+	BZ	$+4				; skip
+	GOTO	ERR_COMMAND			; input > 3? too big: reject
 	LFSR	0, YY_BUFFER+2
 	MOVF	POSTDEC0, W, ACCESS		; check 1st sentinel
 	ANDLW	0x3F
 	SUBLW	0x3A
-	BNZ	ERR_COMMAND
+	BZ	$+4
+	GOTO	ERR_COMMAND
 	; XXX configure sensors
 	; XXX configure resolution
 	; XXX configure DMX
@@ -2905,12 +2934,15 @@ S6_2_DATA:
 	;
 	MOVLW	1
 	SUBWF	YY_BUF_IDX, W, ACCESS		; input bytes in packet
-	BNC	S6_KEEP_LOOKING			; input < 1? not done yet
-	BNZ	ERR_COMMAND			; input > 1? too big: reject
+	BC	$+4
+	GOTO	S6_KEEP_LOOKING			; input < 1? not done yet
+	BZ	$+4
+	GOTO	ERR_COMMAND			; input > 1? too big: reject
 	LFSR	0, YY_BUFFER
 	MOVLW	0x0B
 	SUBWF	INDF0, W, ACCESS		; test baud rate in range [$00,$0A]
-	BC	ERR_COMMAND
+	BNC	$+4
+	GOTO	ERR_COMMAND
 	BEGIN_EEPROM_WRITE 1
 	MOVFF	INDF0, EEDATA			; save value permanently (address 001)
 	WRITE_EEPROM_DATA
@@ -2944,12 +2976,14 @@ S6_3_DATA:
 	;
 	MOVLW	1
 	SUBWF	YY_BUF_IDX, W, ACCESS		; input bytes in packet
-	BNC	S6_KEEP_LOOKING			; input < 1? not done yet
-	BNZ	ERR_COMMAND			; input > 1? too big: reject
+	BC	$+4
+	GOTO	S6_KEEP_LOOKING			; input < 1? not done yet
+	BZ	$+4
+	GOTO	ERR_COMMAND			; input > 1? too big: reject
 	LFSR	0, YY_BUFFER
 	MOVLW	0x24
 	CPFSEQ	INDF0, ACCESS
-	BRA	ERR_COMMAND
+	GOTO	ERR_COMMAND
 	GOTO	FACTORY_RESET			; we never return from here
 	ERR_BUG	0x70, ERR_CLASS_FATAL_RESET	
 	BRA	$
@@ -2981,12 +3015,14 @@ S6_4_DATA:
 	;
 	MOVLW	2
 	SUBWF	YY_BUF_IDX, W, ACCESS		; input bytes in packet
-	BNC	S6_KEEP_LOOKING			; input < 2? not done yet
-	BNZ	ERR_COMMAND			; input > 2? too big: reject
+	BC	$+4
+	GOTO	S6_KEEP_LOOKING			; input < 2? not done yet
+	BZ	$+4
+	GOTO	ERR_COMMAND			; input > 2? too big: reject
 	LFSR	0, YY_BUFFER+1
 	MOVLW	0x50
 	CPFSEQ	POSTDEC0, ACCESS
-	BRA	ERR_COMMAND
+	GOTO	ERR_COMMAND
 	;
 	; Set phase (and notify slave)
 	;
@@ -3041,15 +3077,17 @@ S6_5_DATA:
 	;
 	MOVLW	2
 	SUBWF	YY_BUF_IDX, W, ACCESS		; input bytes in packet
-	BNC	S6_KEEP_LOOKING			; input < 2? not done yet
-	BNZ	ERR_COMMAND			; input > 2? too big: reject
+	BC	$+4
+	GOTO	S6_KEEP_LOOKING			; input < 2? not done yet
+	BZ	$+4
+	GOTO	ERR_COMMAND			; input > 2? too big: reject
 	LFSR	0, YY_BUFFER+1
 	MOVLW	0x41
 	CPFSEQ	POSTDEC0, ACCESS
-	BRA	ERR_COMMAND
+	GOTO	ERR_COMMAND
 	MOVLW	0x49
 	CPFSEQ	POSTDEC0, ACCESS
-	BRA	ERR_COMMAND
+	GOTO	ERR_COMMAND
 	;
 	; set address
 	;
@@ -3087,12 +3125,14 @@ S6_6_DATA:
 	;
 	MOVLW	1
 	SUBWF	YY_BUF_IDX, W, ACCESS		; input bytes in packet
-	BNC	S6_KEEP_LOOKING			; input < 1? not done yet
-	BNZ	ERR_COMMAND			; input > 1? too big: reject
+	BC	$+4
+	GOTO	S6_KEEP_LOOKING			; input < 1? not done yet
+	BZ	$+4				; skip
+	GOTO	ERR_COMMAND			; input > 1? too big: reject
 	LFSR	0, YY_BUFFER
 	MOVLW	0x5A
 	CPFSEQ	INDF0, ACCESS
-	BRA	ERR_COMMAND
+	GOTO	ERR_COMMAND
 	CLRF 	YY_STATE, ACCESS
 DO_CMD_SLEEP:
 	;
@@ -3101,7 +3141,7 @@ DO_CMD_SLEEP:
 	IF ROLE_MASTER
 	 MOVLW	0xF0
 	 CALL	SIO_WRITE_W
-	 CLRW
+	 CLRF	WREG, ACCESS
 	 CALL 	SIO_WRITE_W
 	 MOVLW	0x5A
 	 CALL 	SIO_WRITE_W
@@ -3111,7 +3151,7 @@ DO_CMD_SLEEP:
 	;
 	; Tell power supply to sleep
 	;
-	BSF	PLAT_POWER_ON, BIT_POWER_ON, ACCESS
+	BSF	PLAT_PWR_ON, BIT_PWR_ON, ACCESS
 	SET_SSR_SLOW_FLASH SSR_GREEN
 	SET_SSR_SLOW_FLASH SSR_YELLOW
 	SET_SSR_SLOW_FLASH SSR_RED
@@ -3142,12 +3182,14 @@ S6_7_DATA:
 	;
 	MOVLW	1
 	SUBWF	YY_BUF_IDX, W, ACCESS		; input bytes in packet
-	BNC	S6_KEEP_LOOKING			; input < 1? not done yet
-	BNZ	ERR_COMMAND			; input > 1? too big: reject
+	BC	$+4
+	GOTO	S6_KEEP_LOOKING			; input < 1? not done yet
+	BZ	$+4
+	GOTO	ERR_COMMAND			; input > 1? too big: reject
 	LFSR	0, YY_BUFFER
 	MOVLW	0x5A
 	CPFSEQ	INDF0, ACCESS
-	BRA	ERR_COMMAND
+	GOTO	ERR_COMMAND
 	CLRF 	YY_STATE, ACCESS
 DO_CMD_WAKE:
 	;
@@ -3166,7 +3208,7 @@ DO_CMD_WAKE:
 	;
 	; Tell power supply to wake up
 	;
-	BCF	PLAT_POWER_ON, BIT_POWER_ON, ACCESS
+	BCF	PLAT_PWR_ON, BIT_PWR_ON, ACCESS
 	SET_SSR_SLOW_FADE SSR_GREEN
 	SET_SSR_OFF SSR_YELLOW
 	SET_SSR_OFF SSR_RED
@@ -3199,12 +3241,14 @@ S6_8_DATA:
 	;
 	MOVLW	1
 	SUBWF	YY_BUF_IDX, W, ACCESS		; input bytes in packet
-	BNC	S6_KEEP_LOOKING			; input < 1? not done yet
-	BNZ	ERR_COMMAND			; input > 1? too big: reject
+	BC	$+4
+	GOTO	S6_KEEP_LOOKING			; input < 1? not done yet
+	BZ	$+4
+	GOTO	ERR_COMMAND			; input > 1? too big: reject
 	LFSR	0, YY_BUFFER
 	MOVLW	0x58
 	CPFSEQ	INDF0, ACCESS
-	BRA	ERR_COMMAND
+	GOTO	ERR_COMMAND
 	;	
 	; shutdown
 	;
@@ -3234,12 +3278,14 @@ S6_9_DATA:
 	;
 	MOVLW	1
 	SUBWF	YY_BUF_IDX, W, ACCESS		; input bytes in packet
-	BNC	S6_KEEP_LOOKING			; input < 1? not done yet
-	BNZ	ERR_COMMAND			; input > 1? too big: reject
+	BC	$+4
+	GOTO	S6_KEEP_LOOKING			; input < 1? not done yet
+	BZ	$+4				; skip
+	GOTO	ERR_COMMAND			; input > 1? too big: reject
 	LFSR	0, YY_BUFFER
 	MOVLW	0x24
 	CPFSEQ	INDF0, ACCESS
-	BRA	ERR_COMMAND
+	GOTO	ERR_COMMAND
 	;
 	; return status of unit
 	;
@@ -3265,97 +3311,99 @@ S6_9_DATA:
 	CALL	SIO_WRITE_W			; 00 start byte 			<1111aaaa>
 	MOVLW	0x1F
 	CALL	SIO_WRITE_W			; 01 "reply to query" packet type 	<00011111>
+	MOVLW	0x30
+	CALL	SIO_WRITE_W			; 02 ROM/format version 3.0		<00110000>
 	MOVLW	0x00
-	CALL	SIO_WRITE_W			; 02 sensor, DMX status            	<0ABCDdcc> XXX NOT IMPLEMENTED
-	CLRW
-	CALL	SIO_WRITE_W			; 03 dmx start channel <6:0>		<0ccccccc> XXX NOT IMPLEMENTED
-	CLRW	
+	CALL	SIO_WRITE_W			; 03 sensor, DMX status            	<0ABCDdcc> XXX NOT IMPLEMENTED
+	CLRF	WREG, ACCESS
+	CALL	SIO_WRITE_W			; 04 dmx start channel <6:0>		<0ccccccc> XXX NOT IMPLEMENTED
+	CLRF	WREG, ACCESS	
 	BTFSC	SSR_STATE, PRIV_MODE, ACCESS
 	BSF	WREG, 2, ACCESS
 	BTFSC	SSR_STATE, SLEEP_MODE, ACCESS
 	BSF	WREG, 1, ACCESS
-	CALL	SIO_WRITE_W			; 04 masks, priv, sleep, mem full	<0ABCDqsf> XXX NOT ALL IMPLEMENTED
-	CLRW	
+	CALL	SIO_WRITE_W			; 05 masks, priv, sleep, mem full	<0ABCDqsf> XXX NOT ALL IMPLEMENTED
+	CLRF	WREG, ACCESS	
 	BTFSC	PHASE_OFFSETH, 0, ACCESS
 	BSF	WREG, 1, ACCESS
 	BTFSC	PHASE_OFFSETL, 7, ACCESS
 	BSF	WREG, 0, ACCESS
-	CALL	SIO_WRITE_W			; 05 active sensors, phase	<8:7>	<0ABCD0pp> XXX NOT ALL IMPLEMENTED
+	CALL	SIO_WRITE_W			; 06 active sensors, phase	<8:7>	<0ABCD0pp> XXX NOT ALL IMPLEMENTED
 	MOVF	PHASE_OFFSETL, W, ACCESS
 	BCF	WREG, 7, ACCESS
-	CALL	SIO_WRITE_W			; 06 phase <6:0>			<0ppppppp>
-	CLRW
-	CALL	SIO_WRITE_W			; 07 eeprom memory free <14:7>		<0eeeeeee> XXX NOT IMPLEMENTED
-	CLRW
-	CALL	SIO_WRITE_W			; 08 eeprom memory free <6:0>		<0eeeeeee> XXX NOT IMPLEMENTED
-	CLRW
-	CALL	SIO_WRITE_W			; 09 RAM memory free <14:7>		<0MMMMMMM> XXX NOT IMPLEMENTED
-	CLRW
-	CALL	SIO_WRITE_W			; 10 RAM memory free <6:0>		<0MMMMMMM> XXX NOT IMPLEMENTED
+	CALL	SIO_WRITE_W			; 07 phase <6:0>			<0ppppppp>
+	CLRF	WREG, ACCESS
+	CALL	SIO_WRITE_W			; 08 eeprom memory free <14:7>		<0eeeeeee> XXX NOT IMPLEMENTED
+	CLRF	WREG, ACCESS
+	CALL	SIO_WRITE_W			; 09 eeprom memory free <6:0>		<0eeeeeee> XXX NOT IMPLEMENTED
+	CLRF	WREG, ACCESS
+	CALL	SIO_WRITE_W			; 10 RAM memory free <14:7>		<0MMMMMMM> XXX NOT IMPLEMENTED
+	CLRF	WREG, ACCESS
+	CALL	SIO_WRITE_W			; 11 RAM memory free <6:0>		<0MMMMMMM> XXX NOT IMPLEMENTED
 	IF LUMOS_CHIP_TYPE == LUMOS_CHIP_MASTER
 	 MOVLW	0x00
 	ELSE
-	 IF LUMOS_CHIP_TYPE == LUMOS_STANDALONE
+	 IF LUMOS_CHIP_TYPE == LUMOS_CHIP_STANDALONE
 	  MOVLW 0x01
 	 ELSE
 	  ERR_BUG 0x10, ERR_CLASS_DEVICE
 	 ENDIF
 	ENDIF
-	CALL	SIO_WRITE_W			; 11 sequence flag, device ID		<0X0iiiii> XXX NOT ALL IMPLEMENTED
-	CLRW
-	CALL	SIO_WRITE_W			; 12 executing sequence			<0xxxxxxx> XXX NOT IMPLEMENTED
+	CALL	SIO_WRITE_W			; 12 sequence flag, device ID		<0X0iiiii> XXX NOT ALL IMPLEMENTED
+	CLRF	WREG, ACCESS
+	CALL	SIO_WRITE_W			; 13 executing sequence			<0xxxxxxx> XXX NOT IMPLEMENTED
 
 	MOVLW	0x00
-	CALL	SIO_WRITE_W			; 13 sensor A settings 			<0owE0000> XXX NOT IMPLEMENTED
+	CALL	SIO_WRITE_W			; 14 sensor A settings 			<0owE0000> XXX NOT IMPLEMENTED
 	MOVLW	0x00
-	CALL	SIO_WRITE_W			; 14 sensor A pre-sequence		<0IIIIIII> XXX NOT IMPLEMENTED
+	CALL	SIO_WRITE_W			; 15 sensor A pre-sequence		<0IIIIIII> XXX NOT IMPLEMENTED
 	MOVLW	0x00
-	CALL	SIO_WRITE_W			; 15 sensor A sequence			<0iiiiiii> XXX NOT IMPLEMENTED
+	CALL	SIO_WRITE_W			; 16 sensor A sequence			<0iiiiiii> XXX NOT IMPLEMENTED
 	MOVLW	0x00
-	CALL	SIO_WRITE_W			; 16 sensor A post-sequence		<0PPPPPPP> XXX NOT IMPLEMENTED
+	CALL	SIO_WRITE_W			; 17 sensor A post-sequence		<0PPPPPPP> XXX NOT IMPLEMENTED
 
 	MOVLW	0x01
-	CALL	SIO_WRITE_W			; 17 sensor B settings 			<0owE0001> XXX NOT IMPLEMENTED
+	CALL	SIO_WRITE_W			; 18 sensor B settings 			<0owE0001> XXX NOT IMPLEMENTED
 	MOVLW	0x00
-	CALL	SIO_WRITE_W			; 18 sensor B pre-sequence		<0IIIIIII> XXX NOT IMPLEMENTED
+	CALL	SIO_WRITE_W			; 19 sensor B pre-sequence		<0IIIIIII> XXX NOT IMPLEMENTED
 	MOVLW	0x00
-	CALL	SIO_WRITE_W			; 19 sensor B sequence			<0iiiiiii> XXX NOT IMPLEMENTED
+	CALL	SIO_WRITE_W			; 20 sensor B sequence			<0iiiiiii> XXX NOT IMPLEMENTED
 	MOVLW	0x00
-	CALL	SIO_WRITE_W			; 20 sensor B post-sequence		<0PPPPPPP> XXX NOT IMPLEMENTED
+	CALL	SIO_WRITE_W			; 21 sensor B post-sequence		<0PPPPPPP> XXX NOT IMPLEMENTED
 
 	MOVLW	0x02
-	CALL	SIO_WRITE_W			; 21 sensor C settings 			<0owE0010> XXX NOT IMPLEMENTED
+	CALL	SIO_WRITE_W			; 22 sensor C settings 			<0owE0010> XXX NOT IMPLEMENTED
 	MOVLW	0x00
-	CALL	SIO_WRITE_W			; 22 sensor C pre-sequence		<0IIIIIII> XXX NOT IMPLEMENTED
+	CALL	SIO_WRITE_W			; 23 sensor C pre-sequence		<0IIIIIII> XXX NOT IMPLEMENTED
 	MOVLW	0x00
-	CALL	SIO_WRITE_W			; 23 sensor C sequence			<0iiiiiii> XXX NOT IMPLEMENTED
+	CALL	SIO_WRITE_W			; 24 sensor C sequence			<0iiiiiii> XXX NOT IMPLEMENTED
 	MOVLW	0x00
-	CALL	SIO_WRITE_W			; 24 sensor C post-sequence		<0PPPPPPP> XXX NOT IMPLEMENTED
+	CALL	SIO_WRITE_W			; 25 sensor C post-sequence		<0PPPPPPP> XXX NOT IMPLEMENTED
 
 	MOVLW	0x03
-	CALL	SIO_WRITE_W			; 25 sensor D settings 			<0owE0011> XXX NOT IMPLEMENTED
+	CALL	SIO_WRITE_W			; 26 sensor D settings 			<0owE0011> XXX NOT IMPLEMENTED
 	MOVLW	0x00
-	CALL	SIO_WRITE_W			; 26 sensor D pre-sequence		<0IIIIIII> XXX NOT IMPLEMENTED
+	CALL	SIO_WRITE_W			; 27 sensor D pre-sequence		<0IIIIIII> XXX NOT IMPLEMENTED
 	MOVLW	0x00
-	CALL	SIO_WRITE_W			; 27 sensor D sequence			<0iiiiiii> XXX NOT IMPLEMENTED
+	CALL	SIO_WRITE_W			; 28 sensor D sequence			<0iiiiiii> XXX NOT IMPLEMENTED
 	MOVLW	0x00
-	CALL	SIO_WRITE_W			; 28 sensor D post-sequence		<0PPPPPPP> XXX NOT IMPLEMENTED
+	CALL	SIO_WRITE_W			; 29 sensor D post-sequence		<0PPPPPPP> XXX NOT IMPLEMENTED
 	
 	MOVF	LAST_ERROR, W, ACCESS
 	CLRF	LAST_ERROR, ACCESS
-	CALL	SIO_WRITE_W			; 29 fault code				<0fffffff>
+	CALL	SIO_WRITE_W			; 30 fault code				<0fffffff>
 	IF ROLE_MASTER
-	 MOVLW	0b00011011
-	 CALL	SIO_WRITE_W			; 30 end of packet to slave chip
+	 MOVLW	B'00011011'
+	 CALL	SIO_WRITE_W			; 31 end of packet to slave chip
 	ELSE
-	 CLRW
-	 CALL 	SIO_WRITE_W			; 30 (nil) slave fault code
-	 CLRW	
-	 CALL	SIO_WRITE_W			; 31 (nil) slave phase offset <8:7>
-	 CLRW	
-	 CALL	SIO_WRITE_W			; 32 (nil) slave phase offset <6:0>
+	 CLRF	WREG, ACCESS
+	 CALL 	SIO_WRITE_W			; 31 (nil) slave fault code
+	 CLRF	WREG, ACCESS	
+	 CALL	SIO_WRITE_W			; 32 (nil) slave phase offset <8:7>
+	 CLRF	WREG, ACCESS	
+	 CALL	SIO_WRITE_W			; 33 (nil) slave phase offset <6:0>
 	 MOVLW	0x33
-	 CALL	SIO_WRITE_W			; 33 sentinel at end of packet
+	 CALL	SIO_WRITE_W			; 34 sentinel at end of packet
 	 BSF	SSR_STATE, DRAIN_TR, ACCESS	; schedule transmitter shut-down
 	ENDIF
 	CLRF	YY_STATE, ACCESS
@@ -3393,10 +3441,12 @@ S6_10_DATA:
 	;
 	MOVLW	4
 	SUBWF	YY_BUF_IDX, W, ACCESS		; input bytes in packet
-	BNC	S6_KEEP_LOOKING			; input < 4? not done yet
-	BNZ	ERR_COMMAND			; input > 4? too big: reject
+	BC	$+4
+	GOTO	S6_KEEP_LOOKING			; input < 4? not done yet
+	BZ	$+4
+	GOTO	ERR_COMMAND			; input > 4? too big: reject
 	LFSR	0, YY_BUFFER
-	BRA	ERR_NOT_IMP		; XXX
+	GOTO	ERR_NOT_IMP		; XXX
 	
 S6_11_DATA:
 	DECFSZ	WREG, F, ACCESS
@@ -3422,13 +3472,15 @@ S6_11_DATA:
 	;
 	MOVLW	1
 	SUBWF	YY_BUF_IDX, W, ACCESS		; input bytes in packet
-	BNC	S6_KEEP_LOOKING			; input < 1? not done yet
-	BNZ	ERR_COMMAND			; input > 1? too big: reject
+	BC	$+4
+	GOTO	S6_KEEP_LOOKING			; input < 1? not done yet
+	BZ	$+4
+	GOTO	ERR_COMMAND			; input > 1? too big: reject
 	LFSR	0, YY_BUFFER
 	MOVLW	0x43
 	CPFSEQ	INDF0, ACCESS
-	BRA	ERR_COMMAND
-	BRA	ERR_NOT_IMP		; XXX
+	GOTO	ERR_COMMAND
+	GOTO	ERR_NOT_IMP		; XXX
 
 S6_12_DATA:
 	DECFSZ	WREG, F, ACCESS
@@ -3470,14 +3522,17 @@ S6_12_DATA:
 	; first, do we even have a full packet yet?
 	;
 	MOVF	YY_BUF_IDX, W, ACCESS
-	BZ	S6_KEEP_LOOKING			
+	BNZ	$+4
+	GOTO	S6_KEEP_LOOKING			
 	LFSR	0, YY_BUFFER
 	INCF	INDF0, W, ACCESS
 	INCF	WREG, W, ACCESS
 	INCF	WREG, W, ACCESS		; W = (N-1)+3 = size our packet must be
 	SUBWF	YY_BUF_IDX, W, ACCESS	; bytes read < W?
-	BNC	S6_KEEP_LOOKING		; yes, keep reading more
-	BNZ	ERR_COMMAND		; if read too much, reject command
+	BC	$+4
+	GOTO	S6_KEEP_LOOKING		; yes, keep reading more
+	BZ	$+4			; skip
+	GOTO	ERR_COMMAND		; if read too much, reject command
 	;
 	; next, test sentinel
 	;
@@ -3485,11 +3540,11 @@ S6_12_DATA:
 	ADDWF	FSR0L, F, ACCESS
 	MOVLW	0x44
 	CPFSEQ	INDF0			; sentinel==$44?
-	BRA	ERR_COMMAND
+	GOTO	ERR_COMMAND
 	;
 	; ok, define the sequence now
 	;
-	BRA	ERR_NOT_IMP		; XXX
+	GOTO	ERR_NOT_IMP		; XXX
 	
 S6_13_DATA:
 	ERR_BUG	0x05, ERR_CLASS_OVERRUN
@@ -3502,7 +3557,7 @@ S6_RESTART:
 S6_KEEP_LOOKING:
 	MOVF	YY_BUF_IDX, W, ACCESS		; Have we reached our limit (idx >= max)?
 	CPFSGT	YY_LOOKAHEAD_MAX, ACCESS	; 
-	BRA	ERR_COMMAND			; Yes:  Abort here and ignore data to next cmd
+	GOTO	ERR_COMMAND			; Yes:  Abort here and ignore data to next cmd
 	LFSR	0, YY_BUFFER			; No: Save character in buffer and keep waiting
 	MOVF	YY_BUF_IDX, W, ACCESS
 	ADDWF	FSR0L, F, ACCESS
@@ -3611,22 +3666,22 @@ S9_DATA:
 	MOVF	YY_DATA, W, ACCESS
 	BNZ	S9_X1_WAKE
 S9_X0_SLEEP:
-	WAIT_FOR_SENTINEL 2, 0b01011010, 6	; -> S6.6 when sentinel found
+	WAIT_FOR_SENTINEL 2, B'01011010', 6	; -> S6.6 when sentinel found
 	RETURN
 S9_X1_WAKE:
 	DECFSZ	WREG, W, ACCESS
 	BRA	S9_X2_SHUTDOWN
-	WAIT_FOR_SENTINEL 2, 0b01011010, 7	; -> S6.7 when sentinel found
+	WAIT_FOR_SENTINEL 2, B'01011010', 7	; -> S6.7 when sentinel found
 	RETURN
 S9_X2_SHUTDOWN:
 	DECFSZ	WREG, W, ACCESS
 	BRA	S9_X3_QUERY
-	WAIT_FOR_SENTINEL 2, 0b01011001, .8	; -> S6.8 when sentinel found
+	WAIT_FOR_SENTINEL 2, B'01011001', .8	; -> S6.8 when sentinel found
 	RETURN
 S9_X3_QUERY:
 	DECFSZ	WREG, W, ACCESS
 	BRA	S9_X4_DEF_SEQ
-	WAIT_FOR_SENTINEL 2, 0b01010100, .9	; -> S6.9 when sentinel found
+	WAIT_FOR_SENTINEL 2, B'01010100', .9	; -> S6.9 when sentinel found
 	RETURN
 S9_X4_DEF_SEQ:
 	DECFSZ	WREG, W, ACCESS
@@ -3643,7 +3698,7 @@ S9_X5_EXEC_SEQ:
 S9_X6_DEF_SENS:
 	DECFSZ	WREG, W, ACCESS
 	BRA	S9_X7_MSK_SENS
-	WAIT_FOR_SENTINEL 5, 0b00111100, .10	; -> S6.10 when sentinel found
+	WAIT_FOR_SENTINEL 5, B'00111100', .10	; -> S6.10 when sentinel found
 	RETURN
 S9_X7_MSK_SENS:
 	DECFSZ 	WREG, W, ACCESS
@@ -3653,8 +3708,8 @@ S9_X7_MSK_SENS:
 	RETURN
 S9_X8_CLR_SEQ:
 	DECFSZ	WREG, W, ACCESS
-	BRA	ERR_COMMAND
-	WAIT_FOR_SENTINEL 2, 0b01000001, .11	; -> S6.11 when sentinel found
+	GOTO	ERR_COMMAND
+	WAIT_FOR_SENTINEL 2, B'01000001', .11	; -> S6.11 when sentinel found
 	RETURN
 
 S9_INTERNAL_CMD:
@@ -3662,7 +3717,7 @@ S9_INTERNAL_CMD:
 	; received internal command from master
 	;
 	IF !ROLE_SLAVE
-	 BRA 	ERR_COMMAND
+	 GOTO 	ERR_COMMAND
 	ELSE	; BEGIN SLAVE-SIDE INTERNAL COMMAND INTERPRETATION CODE--------
 	MOVLW	0x1F			;				///////
 	ANDWF	YY_DATA, W, ACCESS	;				///////
@@ -3735,7 +3790,7 @@ S9_PRIV_CMD:
 	BTFSS	SSR_STATE, PRIV_MODE, ACCESS
 	MOVLW	0x21
 	MOVWF	LAST_ERROR, ACCESS
-	BRA	ERR_ABORT
+	GOTO	ERR_ABORT
 	;
 	; decode which command this is
 	;
@@ -3782,7 +3837,7 @@ S9_PRIV_1:
 	;
 	; CF_CONF command recognized.  Expect packet of 4 more bytes...
 	;
-	WAIT_FOR_SENTINEL 4, 0b00111101, 1	; -> S6.1 when sentinel found
+	WAIT_FOR_SENTINEL 4, B'00111101', 1	; -> S6.1 when sentinel found
 	RETURN
 
 S9_PRIV_2:
@@ -3791,7 +3846,7 @@ S9_PRIV_2:
 	;
 	; CF_BAUD command recognized.  Expect packet of 2 more bytes...
 	;
-	WAIT_FOR_SENTINEL 2, 0b00100110, 2	; -> S6.2 when sentinel found
+	WAIT_FOR_SENTINEL 2, B'00100110', 2	; -> S6.2 when sentinel found
 	RETURN
 
 S9_PRIV_3:
@@ -3800,20 +3855,20 @@ S9_PRIV_3:
 	;
 	; CF_RESET command recognized.  Expect packet of 2 more bytes...
 	;
-	WAIT_FOR_SENTINEL 2, 0b01110010, 3	; -> S6.3 when sentinel found
+	WAIT_FOR_SENTINEL 2, B'01110010', 3	; -> S6.3 when sentinel found
 	RETURN
 
 S9_PRIV_4:
-	BRA	ERR_COMMAND
+	GOTO	ERR_COMMAND
 
 S9_CF_PHASE:
 	MOVFF	YY_DATA, YY_YY
-	WAIT_FOR_SENTINEL 3, 0b01001111, 4	; -> S6.4 when sentinel found
+	WAIT_FOR_SENTINEL 3, B'01001111', 4	; -> S6.4 when sentinel found
 	RETURN
 
 S9_CF_ADDR:
 	MOVFF	YY_DATA, YY_YY
-	WAIT_FOR_SENTINEL 3, 0b01000100, 5	; -> S6.5 when sentinel found
+	WAIT_FOR_SENTINEL 3, B'01000100', 5	; -> S6.5 when sentinel found
 	RETURN
 	
 S10_DATA:
@@ -3899,7 +3954,7 @@ S11_DATA:
 	 MOVF	LAST_ERROR, W, ACCESS		; yes, send our private	///////
 	 CALL	SIO_WRITE_W			; at the end of the     ///////
 	 CLRF	LAST_ERROR, ACCESS		; stream 		///////
-	 CLRW					;			///////
+	 CLRF	WREG, ACCESS					;			///////
 	 BTFSC	PHASE_OFFSETH, 0, ACCESS	;			///////
 	 BSF	WREG, 1, ACCESS			;			///////
 	 BTFSC	PHASE_OFFSETL, 7, ACCESS	;			///////
@@ -3923,7 +3978,7 @@ S11_WRITE_NEXT_BYTE:				;			///////
 	 MOVF	YY_DATA, W, ACCESS		;			///////
 	 BTFSS	YY_COMMAND, 7, ACCESS		; set the MSB of the    ///////
 	 BRA	S11_WNB_1			; first byte we see 	///////
-	 BSF	YY_DATA, 7, ACCESS		;			///////
+	 BSF	WREG, 7, ACCESS			;			///////
 	 BCF	YY_COMMAND, 7, ACCESS		;			///////
 S11_WNB_1:					;			///////
 	 CALL	SIO_WRITE_W			;			///////
@@ -3985,22 +4040,22 @@ ALTER_LED_#v(COLOR)_1:
 	  BRA	ALTER_LED_#v(COLOR)_2
 	  SET_SSR_STEADY COLOR
 	  BRA	ALTER_LED_#v(COLOR)_EXIT
-ALTER_LED_#c(COLOR)_2:
+ALTER_LED_#v(COLOR)_2:
 	  DECFSZ WREG, W, ACCESS
 	  BRA	ALTER_LED_#v(COLOR)_3
 	  SET_SSR_SLOW_FADE COLOR
 	  BRA	ALTER_LED_#v(COLOR)_EXIT
-ALTER_LED_#c(COLOR)_3:
+ALTER_LED_#v(COLOR)_3:
 	  DECFSZ WREG, W, ACCESS
 	  BRA	ALTER_LED_#v(COLOR)_4
 	  SET_SSR_RAPID_FADE COLOR
 	  BRA	ALTER_LED_#v(COLOR)_EXIT
-ALTER_LED_#c(COLOR)_4:
+ALTER_LED_#v(COLOR)_4:
 	  DECFSZ WREG, W, ACCESS
 	  BRA	ALTER_LED_#v(COLOR)_5
 	  SET_SSR_SLOW_FLASH COLOR
 	  BRA	ALTER_LED_#v(COLOR)_EXIT
-ALTER_LED_#c(COLOR)_5:
+ALTER_LED_#v(COLOR)_5:
 	  DECFSZ WREG, W, ACCESS
 	  BRA	ALTER_LED_#v(COLOR)_EXIT
 	  SET_SSR_RAPID_FLASH COLOR
@@ -4034,7 +4089,7 @@ S14_DATA:
 	; to collect the rest of the packet
 	;
 	MOVFF	YY_DATA, YY_YY		; sequence number in YY_YY
-	WAIT_FOR_SENTINEL, .131, 0b01110011, .12	; S6.12 when sentinel found
+	WAIT_FOR_SENTINEL .131, B'01110011', .12	; S6.12 when sentinel found
 	RETURN
 	
 S15_DATA:
@@ -4054,7 +4109,7 @@ S15_DATA:
 	;  |   0  |         sequence number or 0 to stop           | YY_DATA
 	;  |______|______|______|______|______|______|______|______|
 	;
-	BRA	ERR_NOT_IMP		; XXX
+	GOTO	ERR_NOT_IMP		; XXX
 	
 S16_DATA:
 	DECFSZ	WREG, W, ACCESS
@@ -4074,7 +4129,7 @@ S16_DATA:
 	;  |______|______|______|______|______|______|______|______|
 	;
 	;
-	BRA	ERR_NOT_IMP		; XXX
+	GOTO	ERR_NOT_IMP		; XXX
 
 S17_DATA:
 	; Or this WOULD be state 17, except there isn't one!
@@ -4097,7 +4152,7 @@ SSR_OUTPUT_VALUE:
 	BCF	TARGET_SSR, 7, ACCESS
 	BCF	TARGET_SSR, 6, ACCESS
 	MOVWF	KK, ACCESS
-	LFSR	0, SSR_0_VALUE
+	LFSR	0, SSR_00_VALUE
 	MOVF	TARGET_SSR, W, ACCESS		; ssr value -> [ssr0 + target]
 	ADDWF	FSR0L, F, ACCESS
 	MOVFF	KK, INDF0
@@ -4231,7 +4286,7 @@ X	 ++
 	BRA	BE_AWAKE_NOW
 	DECFSZ	AUTO_OFF_CTRL, F, ACCESS	
 	RETURN
-	SETF	AUTO_OFF_CTRL, F, ACCESS
+	SETF	AUTO_OFF_CTRL, ACCESS
 	DECFSZ	AUTO_OFF_CTRH, F, ACCESS
 	RETURN
 	; 
