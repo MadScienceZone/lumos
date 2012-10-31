@@ -37,13 +37,12 @@ import sys, csv
 # Command-line option processing
 #========================================================================
 
-parser = OptionParser(usage="%prog [-hv] [-c config] [-P price] [-V volts] sequence-files...", version='0.5a1')
+parser = OptionParser(usage="%prog [-hv] [-c config] [-P price] sequence-files...", version='0.5a1')
 parser.add_option('-c', '--config',  metavar='FILE', help='Specify config file [%default]')
 parser.add_option('-P', '--price',   metavar='P',    type='float', help='Price per kWh for power')
 parser.add_option('-g', '--graph-data', metavar='FILE', help='Dump graphing data to CSV file')
-parser.add_option('-V', '--volts',   metavar='V',    type='int', help='Line voltage [%default]')
 parser.add_option('-v', '--verbose', action='count', help='Enable more descriptive output')
-parser.set_defaults(config='lumos.conf', volts=120)
+parser.set_defaults(config='lumos.conf')
 (options, files) = parser.parse_args()
 
 #========================================================================
@@ -76,16 +75,19 @@ def trace_time_stamp(msec):
 
 sequence = Sequence()
 events = {}
-peaks = {}
-loads = {}
-averages = {}
+peak_A = {}
+peak_W = {}
+load_A = {}
+load_W = {}
+average_A = {}
+average_W = {}
 exceeds = {}
 over80 = {}
 samples = 0
 
 if options.graph_data:
     graph = csv.writer(open(options.graph_data, 'wb'))
-    graph.writerow(['Seconds']+sorted(show.all_power_sources))
+    graph.writerow(['Seconds']+[s+' A' for s in sorted(show.all_power_sources)]+[s+' W' for s in sorted(show.all_power_sources)])
 
 def D(format, *args):
     global options
@@ -118,44 +120,68 @@ for file in files:
         #
         # execute whatever happens now
         #
+        D('Simulating events at {}', trace_time_stamp(current_time))
         for action, arglist in events[current_time]:
+            D('... action={0}({1})', action, arglist)
             action(*arglist)
         #
         # measure the power consumption
         #
-        if loads:
+        if load_W:
             #
             # record the previous time slice's data, since we now
             # know how long it lasted.
+            # loads is a dictionary of {ps_id : (watts, amps)}
             #
             elapsed_mS = current_time - previous_time
             D("Recording slice {0}-{1} ({2}mS)", trace_time_stamp(previous_time), trace_time_stamp(current_time), elapsed_mS)
 
             total_W_mS += (
-                    sum([loads[ps_id] for ps_id in show.top_power_sources]) * 
-                    options.volts * elapsed_mS
+                    sum([load_W[ps_id] for ps_id in show.top_power_sources]) * elapsed_mS
+            )
+            D("... total W mS + {0} ({1}) = {2}",
+                sum([load_W[ps_id] for ps_id in show.top_power_sources]) * elapsed_mS,
+                [(ps_id, load_W[ps_id]) for ps_id in show.top_power_sources],
+                total_W_ms
             )
 
             #
             # calculate peak and running averages for each power source's current
             # load at this point
             # 
+            D('Calculating peak and running averages by power source:')
             next = samples + elapsed_mS
             for ps in show.all_power_sources.values():
-                if peaks.setdefault(ps.id, 0) < loads.get(ps.id, 0):
-                    peaks[ps.id] = loads.get(ps.id, 0)
+                D('...power source {0}: load {1} watts, {2} amps at {3} volts',
+                    ps.id, load_W.get(ps.id, '--no--'), load_A(ps.id, '--no--'), ps.volts)
 
-                averages[ps.id] = float( 
-                        averages.get(ps.id, 0) * samples + 
-                        loads.get(ps.id, 0) * elapsed_mS
+                if peak_A.setdefault(ps.id, 0) < load_A.get(ps.id, 0):
+                    D('......new peak {0}->{1} amps', peak_A[ps.id], load_A.get(ps.id, 0))
+                    peak_A[ps.id] = load_A.get(ps.id, 0)
+
+                average_A[ps.id] = float( 
+                        average_A.get(ps.id, 0) * samples + 
+                        load_A.get(ps.id, 0) * elapsed_mS
                     ) / next
 
-                if loads.get(ps.id, 0) >= ps.amps:
+                if peak_W.setdefault(ps.id, 0) < load_W.get(ps.id, 0):
+                    D('......new peak {0}->{1} watts', peak_W[ps.id], load_W.get(ps.id, 0))
+                    peak_W[ps.id] = load_W.get(ps.id, 0)
+
+                average_W[ps.id] = float( 
+                        average_W.get(ps.id, 0) * samples + 
+                        load_W.get(ps.id, 0) * elapsed_mS
+                    ) / next
+                D('......new average {0} amps, {1} watts', average_A[ps.id], average_W[ps.id])
+
+                if load_A.get(ps.id, 0) >= ps.amps:
                     exceeds[ps.id] = exceeds.get(ps.id, 0) + elapsed_mS
+                    D('......AT OR EXCEEDS MAX LOAD!')
 
-                if loads.get(ps.id, 0) > ps.amps * .8:
+                if load_A.get(ps.id, 0) > ps.amps * .8:
                     over80[ps.id] = over80.get(ps.id, 0) + elapsed_mS
-
+                    D('......EXCEEDS 80% OF MAX LOAD!')
+                      
             samples = next
 
         #
@@ -163,16 +189,24 @@ for file in files:
         #
         loads = {}
         for controller in show.controllers.values():
+            D("gathering next round of data from {0}", controller.id)
             for amps, source in controller.current_drain().values():
-                while source:
-                    if source.id not in loads:
-                        loads[source.id] = 0
+                watts = float(amps) * source.volts
+                D("... {0} A from {1}; at {2} V = {3} W", amps, source.id, source.volts, watts)
 
-                    loads[source.id] += amps
+                while source:
+                    if source.id not in load_A:
+                        load_A[source.id] = 0
+                    if source.id not in load_W:
+                        load_W[source.id] = 0
+
+                    load_W[source.id] += watts
+                    load_A[source.id] += watts / source.volts
                     source = source.parent_source
+                    D('... {0} now at {1} W, {2} A ({3} V)', source.id, load_W[source.id], load_A[source.id], source.volts)
 
         if options.graph_data:
-            graph.writerow([(current_time+offset)/1000.0] + [loads.get(i,0) for i in sorted(show.all_power_sources)])
+            graph.writerow([(current_time+offset)/1000.0] + [load_A.get(i,0) for i in sorted(show.all_power_sources)] + [load_W.get(i, 0) for i in sorted(show.all_power_sources)])
         #
         # we now have a total of the load starting at this time
         # for all the power sources in the loads dict.  We'll have
@@ -183,10 +217,10 @@ for file in files:
         previous_time = current_time
     offset += previous_time
 
-if loads:
+if load_A:
     warned = False
-    for source_id in sorted(loads):
-        value = loads[source_id]
+    for source_id in sorted(load_A):
+        value = load_A[source_id]
         if value:
             if not warned:
                 print
@@ -211,10 +245,12 @@ if options.price:
     print "Total Energy Cost: ${0:.4f} (~${0:.2f}) @ ${1:.4f}/kWh".format(total_kW_h * options.price, options.price)
 
 print
-print "POWER SOURCE    PEAK (A)   AVERAGE (A)"
+print "POWER SOURCE    PEAK (A)   AVERAGE (A)  PEAK (W)  AVERAGE (W)"
+#      xxxxxx[15]xxxxx 99999.99   99999.99999  99999.99  99999.99999
 for ps_id in sorted(peaks):
-    print "{0:15s} {1:8.2f}   {2:11.5f}".format(
-            ps_id, peaks[ps_id], averages[ps_id]
+    print "{0:15s} {1:8.2f}   {2:11.5f}  {3:8.2f}  {4:11.5f}".format(
+            ps_id, peak_A[ps_id], average_A[ps_id],
+            peak_W[ps_id], average_W[ps_id]
     )
 
 for ps_id in sorted(over80):

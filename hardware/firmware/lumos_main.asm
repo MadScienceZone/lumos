@@ -6,7 +6,7 @@
 ; DONE add slave phase/error code to query
 ; DONE add master error code to query
 ; DONE update unit tests to match final protocol
-; XXX auto wake/sleep
+; DONE auto wake/sleep
 ; DONE need a global flag meaning "wait for output queue to drain then shut off T/R"
 ; DONE have another look at all the WAIT_FOR_SENTINEL calls... do they handle short packets?
 ; DONE for slow flash, have an ssr flag which means to max off-time regardless of on-time
@@ -803,7 +803,7 @@ _MAIN_EEPROM_TBL	EQU	0x14000
 ;      |_________________|___ ___ ___ ___ ___ ___ ___ ___
 ; $500 | Parser buffer   | _MAINDATA         BANK 5
 ;      |.................|
-; $580 |                 |
+; $5?? |                 |
 ;      |_________________|___ ___ ___ ___ ___ ___ ___ ___
 ; $600 | Stored sequences| _SEQ_DATA         BANK 6
 ;      | (1792 bytes)    |
@@ -945,8 +945,8 @@ EEPROM_USER_END		EQU	0x3FF
 ; SSR_STATE          |      |      |SLICE |PRIV_ |SLEEP |DRAIN |PRE_  |TEST_ |
 ;                    |INCYC |PRECYC| _UPD | MODE |_MODE |_TR   |PRIV  |MODE  |
 ;                    |______|______|______|______|______|______|______|______|
-; SSR_STATE2         |TEST_ |TEST_ |                                         |
-;                    |PAUSE |UPD   |                                         |
+; SSR_STATE2         |TEST_ |TEST_ |TEST_ |ALL_  |                           |
+;                    |PAUSE |UPD   |BUTTON|OFF   |                           |
 ;                    |______|______|______|______|______|______|______|______|
 ; YY_STATE           |                                                       |
 ;                    |                      Parser State                     |
@@ -998,6 +998,12 @@ EEPROM_USER_END		EQU	0x3FF
 ;                    |______|______|______|______|______|______|______|______|
 ; TEST_SSR           |             |                                         |
 ;                    |             |  current SSR being tested               |
+;                    |______|______|______|______|______|______|______|______|
+; AUTO_OFF_CTRH      |                                                       |
+;                    |         countdown register until auto-power-off (MSB) |
+;                    |______|______|______|______|______|______|______|______|
+; AUTO_OFF_CTRL      |                                                       |
+;                    |         countdown register until auto-power-off (LSB) |
 ;                    |______|______|______|______|______|______|______|______|
 ; I                  |                                                       |
 ;                    |      General-purpose local counter variable           |
@@ -1086,6 +1092,7 @@ TEST_MODE	EQU	0	; -------1  In self-test mode
 TEST_PAUSE	EQU	7	; 1-------  We're pausing the test mode
 TEST_UPD	EQU	6	; -1------  Time to update the test count-down timer
 TEST_BUTTON	EQU	5	; --1-----  Waiting for button release in test mode
+ALL_OFF		EQU	4	; ---1----  All SSRs are currently completely off
 
 ;
 ; SSR_FLAGS words for each output show state information about those
@@ -1551,6 +1558,8 @@ START:
 	CLRF	YY_STATE, ACCESS
 	CLRF	OPTION_DEBOUNCE, ACCESS
 	CLRF	OPTION_HOLD, ACCESS
+	SETF	AUTO_OFF_CTRH, ACCESS
+	SETF	AUTO_OFF_CTRL, ACCESS
 	BANKSEL	SSR_DATA_BANK
 CH 	SET	0
 	WHILE CH<=SSR_MAX
@@ -1858,6 +1867,8 @@ OPTION_DEBOUNCE	RES	1
 OPTION_HOLD	RES	1
 TEST_CYCLE	RES	1
 TEST_SSR  	RES	1
+AUTO_OFF_CTRH	RES	1
+AUTO_OFF_CTRL	RES	1
 I               RES	1
 J               RES	1
 K               RES	1
@@ -3082,6 +3093,8 @@ S6_6_DATA:
 	MOVLW	0x5A
 	CPFSEQ	INDF0, ACCESS
 	BRA	ERR_COMMAND
+	CLRF 	YY_STATE, ACCESS
+DO_CMD_SLEEP:
 	;
 	; Pass command to slave
 	;
@@ -3099,7 +3112,6 @@ S6_6_DATA:
 	; Tell power supply to sleep
 	;
 	BSF	PLAT_POWER_ON, BIT_POWER_ON, ACCESS
-	CLRF 	YY_STATE, ACCESS
 	SET_SSR_SLOW_FLASH SSR_GREEN
 	SET_SSR_SLOW_FLASH SSR_YELLOW
 	SET_SSR_SLOW_FLASH SSR_RED
@@ -3136,6 +3148,8 @@ S6_7_DATA:
 	MOVLW	0x5A
 	CPFSEQ	INDF0, ACCESS
 	BRA	ERR_COMMAND
+	CLRF 	YY_STATE, ACCESS
+DO_CMD_WAKE:
 	;
 	; Pass command to slave
 	;
@@ -3153,11 +3167,12 @@ S6_7_DATA:
 	; Tell power supply to wake up
 	;
 	BCF	PLAT_POWER_ON, BIT_POWER_ON, ACCESS
-	CLRF 	YY_STATE, ACCESS
 	SET_SSR_SLOW_FADE SSR_GREEN
 	SET_SSR_OFF SSR_YELLOW
 	SET_SSR_OFF SSR_RED
 	BCF	SSR_STATE, SLEEP_MODE, ACCESS
+	SETF	AUTO_OFF_CTRH, ACCESS
+	SETF	AUTO_OFF_CTRL, ACCESS
 	RETURN
 
 S6_8_DATA:
@@ -4161,6 +4176,7 @@ UPDATE_MINIMUM_LEVEL:
 	; turn off every output that isn't set to be fully on
 	; and handle ramping up/down
 	;
+	BSF	SSR_STATE2, ALL_OFF, ACCESS	
 X 	SET	0
 	WHILE X <= SSR_MAX
  	 COMF	SSR_00_VALUE+#v(X), W, BANKED	; is this set to maximum?
@@ -4170,6 +4186,8 @@ X 	SET	0
  	 ELSE
 	  BSF	PLAT_#v(X), BIT_#v(X), ACCESS	; turn off SSR
  	 ENDIF
+	 TSTFSZ	SSR_00_VALUE+#v(X), ACCESS	; is this SSR fully off?
+	 BCF	SSR_STATE2, ALL_OFF, ACCESS	; no, ergo they aren't ALL off now. clear the flag
 
 	 BTFSS	SSR_00_FLAGS+#v(X), FADE_UP, BANKED
 	 BRA	TRY_DOWN_#v(X)
@@ -4206,6 +4224,31 @@ END_FADE_#v(X):
 X	 ++
 	ENDW
 	BCF	SSR_STATE, INCYC, ACCESS	; shut down slice processing until next ZC
+	;
+	; see if we should be asleep
+	;
+	BTFSS	SSR_STATE2, ALL_OFF, ACCESS
+	BRA	BE_AWAKE_NOW
+	DECFSZ	AUTO_OFF_CTRL, F, ACCESS	
+	RETURN
+	SETF	AUTO_OFF_CTRL, F, ACCESS
+	DECFSZ	AUTO_OFF_CTRH, F, ACCESS
+	RETURN
+	; 
+	; We've been idle too long.  Go to sleep now.
+	;
+	BTFSS	SSR_STATE, SLEEP_MODE, ACCESS
+	CALL	DO_CMD_SLEEP
+	RETURN
+	
+BE_AWAKE_NOW:
+	;
+	; we should be awake.  Make sure we are and reset counters
+	;
+	BTFSC	SSR_STATE, SLEEP_MODE, ACCESS
+	CALL	DO_CMD_WAKE
+	SETF	AUTO_OFF_CTRH, ACCESS
+	SETF	AUTO_OFF_CTRL, ACCESS
 	RETURN
 
 

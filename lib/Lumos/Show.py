@@ -148,7 +148,9 @@ class Show (object):
                 unit_type = show.get('unit '+unit_ID, 'type')
                 unit_args = get_config_dict(show, 'unit '+unit_ID, {
                     'power_source': 'objlist',
-                    'type':  'ignore'
+                    'type':  'ignore',
+                    'resolution': 'int',
+                    'channels': 'int',
                 }, self.all_power_sources)
                 unit_args['id'] = unit_ID
                 self.networks[net_ID].add_unit(unit_ID, controller_unit_factory(

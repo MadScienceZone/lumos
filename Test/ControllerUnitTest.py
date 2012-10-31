@@ -45,7 +45,7 @@ class ControllerUnitTest (unittest.TestCase):
         self.assert_(isinstance(lynx, LynX10ControllerUnit))
         self.assertEqual(lynx.resolution, 16)
 
-        ssr = controller_unit_factory(type='48ssr', id='48', power_source=p, network=None, address=12, resolution=256)
+        ssr = controller_unit_factory(type='lumos', id='48', power_source=p, network=None, address=12, resolution=256)
         self.assert_(isinstance(ssr, ControllerUnit))
         self.assert_(isinstance(ssr, LumosControllerUnit))
         self.assertEqual(ssr.resolution, 256)
@@ -53,7 +53,7 @@ class ControllerUnitTest (unittest.TestCase):
 
     def test_add_channel_dict(self):
         p = PowerSource('testpower', amps=1)
-        ssr = controller_unit_factory(type='48ssr', id='48', power_source=p, network=None, address=12, resolution=128)
+        ssr = controller_unit_factory(type='lumos', id='48', power_source=p, network=None, address=12, resolution=128)
         ssr.add_channel(3,load=1)
         ssr.add_channel(14,load=1)
         self.assert_(isinstance(ssr.channels,dict))

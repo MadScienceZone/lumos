@@ -35,7 +35,7 @@ class PowerSource (object):
     of the current load we're pulling at any given time.
     """
     
-    def __init__(self, id, amps=0):
+    def __init__(self, id, amps=0, volts=120):
         """
         Constructor for the PowerSource class:
             PowerSource([amps])
@@ -53,6 +53,11 @@ class PowerSource (object):
             self.amps = float(amps)
         except:
             raise ValueError, "amps must be a numeric value"
+
+        try:
+            self.volts = float(volts)
+        except:
+            raise ValueError, "volts must be a numeric value"
 
     def add_subordinate_source(self, child_obj):
         "Add a child PowerSource to this one."

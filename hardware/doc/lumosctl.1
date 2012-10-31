@@ -27,7 +27,7 @@ lumosctl \- Manual control for Lumos SSR controller hardware
 .RB [ \-s
 .IR file ]
 .RB [ \-t
-.IB s \fR[\fPorw\fR]\fP: init : seq : term\fR]\fP
+.IB s \fR[\fPorw+\fR]\fP: init : seq : term\fR]\fP
 .IR channel-outputs ...
 .LP
 Where
@@ -79,7 +79,7 @@ or
 .RE
 or
 .RS
-.IB channel {u|d}\fR[\fP: steps \fR[\fP: time \fR]]\fP
+.IB channel \fR{\fPu\fR|\fPd\fR}[\fP: steps \fR[\fP: time \fR]]\fP
 .RE
 .LP
 In the first case, a channel number by itself means to turn on that 
@@ -149,7 +149,7 @@ stops the currently-running sequence but does not start a new one.
 .LP
 A pause in the execution of the arguments may be effected by adding an
 argument of the form
-.BI p t
+.BI p t \fR[\fPs\fR[\fPec\fR[\fPond\fR[\fPs\fR]]]]\fP
 which makes
 .B lumosctl
 pause for
@@ -290,9 +290,9 @@ device; otherwise, it only lists device models and addresses.
 .RB ( \-R )
 Report on the current device status to standard output in human-readable form.
 .TP
-.BI \-\-sensor= s \fR[\fPorw\fR]\fP: init : seq : term
+.BI \-\-sensor= s \fR[\fPorw+\fR]\fP: init : seq : term
 .RB ( \-t
-.IB s \fR[\fPorw\fR]\fP: init : seq : term \fR)\fP
+.IB s \fR[\fPorw+\fR]\fP: init : seq : term \fR)\fP
 Define an action to be taken when a sensor is triggered.  When the sensor
 is activated, the sequence
 .I init
@@ -333,6 +333,11 @@ Trigger while active: play sequence
 .I seq
 repeatedly as long as the sensor remains active.  When the sensor input
 transitions to inactive again, terminate the action.
+.TP
+.B +
+The sensor is to be considered \*(lqactive\*(rq when at a logic
+high output (active-high mode).  Normally, sensors are active-low
+(active when the input is at ground).
 .LP
 If 0 is specified for any of the sequence numbers, that means no
 sequence is called for that part of the trigger action.
@@ -343,11 +348,11 @@ sequence is called for that part of the trigger action.
 .IR addr )
 Change the device address to
 .IR addr .
-This must be an integer in the range [0, 15]; however, the address 15
-is also a limited \*(lqbroadcast\*(rq address, so ideally the address
-of a Lumos controller should be in the range [0, 14] unless you know
-for sure that the board can be loacated at address 15 without upsetting
-your purposes for it.
+This must be an integer in the range [0, 15].\"; however, the address 15
+.\"is also a limited \*(lqbroadcast\*(rq address, so ideally the address
+.\"of a Lumos controller should be in the range [0, 14] unless you know
+.\"for sure that the board can be loacated at address 15 without upsetting
+.\"your purposes for it.
 .TP
 .BI \-\-set\-baud\-rate= speed
 .RB ( \-B
@@ -512,8 +517,8 @@ definition for the sequence language is:
 .na
 <sequence> ::= SEQUENCE <id> ['(' <arg-list> ')'] <block>
 <statement-list> ::= <statement> <newline> | <statement-list> <statement> <newline>
-<statement> ::= [<symbol> ':'] [<command>]
-<command> ::= BLACKOUT
+.\"<statement> ::= [<symbol> ':'] [<command>]
+<statement> ::= BLACKOUT
 	| CHANNEL <chan> <state>
 	| RAMP <direction> <chan> [BY <steps> [PER <time>]]
 	| CALL <id> ['(' <value-list> ')']
@@ -617,13 +622,13 @@ substituted for
 In this case, the sense of the conditional test is reversed.
 .TP
 .BI "REPEAT " "\fR[\fPn\fR] [\fP" AS " var\fR]\fP" ": \fR...\fP END"
-Repeat the commands in the block until forced to quit via 
+Repeat the statements in the block until forced to quit via 
 .B EXIT
 or
 .BR BREAK .
 If a repeat count
 .I n
-is given, then at most only repeat the commands that many times.
+is given, then at most only repeat the statements that many times.
 The 
 .B AS
 clause allows the current loop counter (which begins at 0 and counts up to, 
@@ -633,7 +638,7 @@ to be visible within the block as the variable
 .IR var .
 .TP
 .BI "FOR " var = start " TO " end " \fR[\fPBY " step\fR]\fP ": \fR...\fP END"
-Repeat the commands in the block once for each value of 
+Repeat the statements in the block once for each value of 
 .I var
 from
 .I start
@@ -659,14 +664,14 @@ loops are.
 Terminate the innermost loop immediately.  If an outer loop is to be terminated,
 then specify its index 
 .I var
-to identify which loop is the target of this command.
+to identify which loop is the target of this statement.
 .TP
 .BI CONTINUE " \fR[\fPvar\fR]\fP"
 Begin the next iteration of the innermost loop immediately.  
 If an outer loop is to be continued,
 then specify its index 
 .I var
-to identify which loop is the target of this command.
+to identify which loop is the target of this statement.
 .TP
 .BI "SEQUENCE " id " \fR[(" var ", \fR...\fP)\fR]\fP: \fR...\fP END"
 Define a stored sequence consisting of the statements to the 
@@ -701,7 +706,7 @@ parentheses between the sequence
 and the colon.  A maximum of four parameters are allowed.
 .SS Commands
 .LP
-Each command is described briefly here.  For more details, see the
+Each statement is described briefly here.  For more details, see the
 Lumos board user manual.
 .TP
 .B BLACKOUT
