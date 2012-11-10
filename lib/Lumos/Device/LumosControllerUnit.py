@@ -326,32 +326,42 @@ class LumosControllerUnit (ControllerUnit):
             ) + chr(0 if not conf_obj.dmx_start else ((conf_obj.dmx_start - 1) & 0x7f)) +
             chr(0x3A) + chr(0x3D))
             
-    # 1111aaaa 00011111 <data> 00110011
-    # <data>::=
-    #   0ABCDdcc 0ccccccc 0ABCDqsf 0ABCDrpp 0ppppppp 0eeeeee 0eeeeeee 0mmmmmmm 0mmmmmmm 0X0000ii 0xxxxxxx
-    #    \__/|\_________/  \__/|||  \__/|\_________/ \______________/  \______________/  |    \/ \______/
-    #    |   |     |         | |||    | |       |             |                 |        |     |     |
-    # sens   |     |         | |||    | |       |             |                 |        |     |     |
-    # DMX----+     |         | |||    | |       |             |                 |        |     |     |
-    # DMX channel--+         | |||    | |       |             |                 |        |     |     |
-    # sensor masks (1=en)----+ |||    | |       |             |                 |        |     |     |
-    # in admin/config mode now-+||    | |       |             |                 |        |     |     |
-    # sleep mode (s=1)----------+|    | |       |             |                 |        |     |     |
-    # last seq overfilled--------+    | |       |             |                 |        |     |     |
-    # Current sensor input states-----+ |       |             |                 |        |     |     |
-    # Resolution (1=high, 0=low)--------+       |             |                 |        |     |     |
-    # phase offset value------------------------+             |                 |        |     |     |
-    # EEPROM bytes free for sequences-------------------------+                 |        |     |     |
-    # RAM bytes free for sequences----------------------------------------------+        |     |     |
-    # A sequence is currently executing (1)----------------------------------------------+     |     |
-    # Device Model ID (00=48SSR, 01=24SSR-DC)--------------------------------------------------+     |
-    # Currently running sequence---------------------------------------------------------------------+
-    #    0owmxx00 0iiiiiii 0ppppppp 0ttttttt 	sensor config for A
-    #    0owmxx01 0iiiiiii 0ppppppp 0ttttttt 	sensor config for B
-    #    0owmxx10 0iiiiiii 0ppppppp 0ttttttt 	sensor config for C
-    #    0owmxx11 0iiiiiii 0ppppppp 0ttttttt 	sensor config for D
 
-    def raw_query_device_status(self):
+# Response packet from QUERY command (35 bytes):
+# note the rom version byte also serves to indicate the format of the response
+# bytes which follow.  If the query packet format changes, the ROM version byte
+# MUST also change.
+#        0       1         2        3        4        5        6        7
+#    1111aaaa 00011111 0VVVvvvv 0ABCDdcc 0ccccccc 0ABCDqsf 0ABCDXpp 0ppppppp 
+#        \__/           \_/\__/  \__/|\_________/  \__/|||  \__/|\_________/  
+#          |             maj |     | |   |           | |||   |  |      `--phase
+#          `--reporting    minor   | |   `--DMX      | |||   |  `--config locked?
+#              unit addr  rom      | |      channel  | |||   `--active
+#                         vers.    | |               | ||`--mem full?
+#                                  | `--DMX mode?    | |`--sleeping?
+#                                  `--configured     | `--config mode?
+#                                                    `--masks
+#        8        9       10       11       12       13
+#    0eeeeeee 0eeeeeee 0MMMMMMM 0MMMMMMM 0X0iiiii 0xxxxxxx 
+#     \______________/  \______________/  | \___/  \_____/
+#        `--EEPROM free    `--RAM free    |   |       `--executing seq.
+#                                         |   `--device model
+#                                         `--seq running?
+#       14        15       16       17
+#    0owE0000 0IIIIIII 0iiiiiii 0PPPPPPP	Sensor trigger info for A
+#    0owE0001 0IIIIIII 0iiiiiii 0PPPPPPP	Sensor trigger info for B
+#    0owE0010 0IIIIIII 0iiiiiii 0PPPPPPP	Sensor trigger info for C
+#    0owE0011 0IIIIIII 0iiiiiii 0PPPPPPP	Sensor trigger info for D
+#       30       31       32       33       34
+#    0fffffff 0fffffff 000000pp 0ppppppp 00110011
+#    \______/ \______/       \_________/
+#        |        |               `--phase (channels 24-47)
+#        |        `--fault code (channels 24-47)
+#        `--fault code (channels 0-23)
+#
+
+
+    def raw_query_device_status(self, timeout=0):
         self.network.send(chr(0xf0 | self.address) + "\3$T")
 
         def find_command_byte(d, start=0):
@@ -369,65 +379,61 @@ class LumosControllerUnit (ControllerUnit):
                 cb = find_command_byte(d, start)
                 start = cb+1
                 if cb < 0:
-                    return 34
+                    return 35
                 if ord(d[cb]) == (0xf0 | self.address):
                     if len(d) - cb <= 1:
-                        return 33
+                        return 34
                     if ord(d[cb+1]) == 0x1f:
-                        return max(0, 34 - (len(d) - cb))
-
-
-                        # 0  1  2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9
-                        # cc                                          1
-                        # x  x  x c                                   1
-                        # cc 1f 1 2 3                                 5-0    9
-                        # x  x  x c f 1 2 3 4                         9-3    8
-                        # x  x  c f 1 2 3 4 5 6 7 8 9 0 1 2           16-2   0
-                        # x  x  c f 1 2 3 4 5 6 7 8 9 0 1 2 x x x x   20-2  -4
+                        return max(0, 35 - (len(d) - cb))
             
-        reply = self.network.input(packet_scanner)
-        if len(reply) != 34:
-            raise DeviceProtocolError("Query packet response malformed (len={0})".format(len(reply)))
-        if ord(reply[33]) != 0x33:
-            raise DeviceProtocolError("Query packet response malformed (end={0:02X})".format(ord(reply[33])))
-        if any([ord(x) & 0x80 for x in reply[1:]]):
-            raise DeviceProtocolError("Query packet response malformed (high bit in data area: {0})".format(
-                ' '.join(['{0:02X}'.format(ord(x)) for x in reply])))
-
+        reply = self.network.input(packet_scanner, timeout=timeout)
         reply = [ord(i) for i in reply]
+
+        if len(reply) != 35:
+            raise DeviceProtocolError("Query packet response malformed (len={0})".format(len(reply)))
+        if reply[34] != 0x33:
+            raise DeviceProtocolError("Query packet response malformed (end={0:02X})".format(reply[34]))
+        if reply[2] != 0x30:
+            raise DeviceProtocolError("Query packet version unsupported ({0}.{1})".format((reply[2] >> 4) & 0x07, (reply[2] & 0x0f)))
+
+        if any([x & 0x80 for x in reply[1:]]):
+            raise DeviceProtocolError("Query packet response malformed (high bit in data area: {0})".format(
+                ' '.join(['{0:02X}'.format(x) for x in reply])))
+
 
         status = LumosControllerStatus()
         for sensor_id, bitmask in ('A', 0x40), ('B', 0x20), ('C', 0x10), ('D', 0x08):
-            if reply[2] & bitmask:
+            if reply[3] & bitmask:
                 status.config.configured_sensors.append(sensor_id)
                 status.sensors[sensor_id].configured = True
 
-            if reply[4] & bitmask:
+            if reply[5] & bitmask:
                 status.sensors[sensor_id].enabled = True
 
-            if reply[5] & bitmask:
+            if reply[6] & bitmask:
                 status.sensors[sensor_id].on = True
 
-        if reply[2] & 0x04:
-            status.config.dmx_start = ((reply[2] & 0x03) << 7) | (reply[3] & 0x7f)
+        if reply[3] & 0x04:
+            status.config.dmx_start = ((reply[3] & 0x03) << 7) | (reply[4] & 0x7f)
         else:
             status.config.dmx_start = None
 
-        status.in_config_mode = bool(reply[4] & 0x04)
-        status.in_sleep_mode = bool(reply[4] & 0x02)
-        status.err_memory_full = bool(reply[4] & 0x01)
-        #status.config.resolution = 256 if reply[5] & 0x04 else 128 
-        status.phase_offset = ((reply[5] & 0x03) << 7) | (reply[6] & 0x7f)
-        status.eeprom_memory_free = ((reply[7] & 0x7f) << 7) | (reply[8] & 0x7f)
-        status.ram_memory_free = ((reply[9] & 0x7f) << 7) | (reply[10] & 0x7f)
-        if reply[11] & 0x40:
-            status.current_sequence = reply[12] & 0x7f
+        status.rom_version = ((reply[2] >> 4) & 0x07, reply[2] & 0x0f)
+        status.in_config_mode = bool(reply[5] & 0x04)
+        status.config_mode_locked = bool(reply[6] & 0x04)
+        status.in_sleep_mode = bool(reply[5] & 0x02)
+        status.err_memory_full = bool(reply[5] & 0x01)
+        status.phase_offset = ((reply[6] & 0x03) << 7) | (reply[7] & 0x7f)
+        status.eeprom_memory_free = ((reply[8] & 0x7f) << 7) | (reply[9] & 0x7f)
+        status.ram_memory_free = ((reply[10] & 0x7f) << 7) | (reply[11] & 0x7f)
+        if reply[12] & 0x40:
+            status.current_sequence = reply[13] & 0x7f
         else:
             status.current_sequence = None
-        if reply[11] & 0x03 == 0:
+        if reply[12] & 0x03 == 0:
             status.hardware_type = 'lumos48ctl'
             status.channels = 48
-        elif reply[11] & 0x03 == 1:
+        elif reply[12] & 0x03 == 1:
             status.hardware_type = 'lumos24dc'
             status.channels = 24
         else:
@@ -435,20 +441,20 @@ class LumosControllerUnit (ControllerUnit):
             status.channels = 0
 
         for group, sensor_id in enumerate(['A', 'B', 'C', 'D']):
-            flags = reply[group * 4 + 13]
+            flags = reply[group * 4 + 14]
             if flags & 0x03 != group:
                 raise DeviceProtocolError("Query packet response malformed (sensor group {0} ID as {1} ({2:02X}))".format(
                     group, flags & 0x03, flags))
             status.sensors[sensor_id].trigger_mode = ('once' if flags & 0x40 else 
                                                         ('while' if flags & 0x20 else 'repeat'))
             status.sensors[sensor_id].active_low = bool(flags & 0x01)
-            status.sensors[sensor_id].pre_trigger = reply[group * 4 + 14]
-            status.sensors[sensor_id].trigger = reply[group * 4 + 15]
-            status.sensors[sensor_id].post_trigger = reply[group * 4 + 16]
+            status.sensors[sensor_id].pre_trigger = reply[group * 4 + 15]
+            status.sensors[sensor_id].trigger = reply[group * 4 + 16]
+            status.sensors[sensor_id].post_trigger = reply[group * 4 + 17]
 
-        status.last_error = reply[29]
-        status.last_error2 = reply[30]
-        status.phase_offset2 = ((reply[31] & 0x03) << 7) | (reply[32] & 0x7f)
+        status.last_error = reply[30]
+        status.last_error2 = reply[31]
+        status.phase_offset2 = ((reply[32] & 0x03) << 7) | (reply[33] & 0x7f)
 
         if status.channels <= 24:
             if status.last_error2 != 0 or status.phase_offset2 != 0:
@@ -495,6 +501,7 @@ class LumosControllerStatus (object):
     def __init__(self):
         self.config = LumosControllerConfiguration()
         self.in_config_mode = False
+        self.config_mode_locked = False
         self.in_sleep_mode = False
         self.err_memory_full = False
         self.phase_offset = 2

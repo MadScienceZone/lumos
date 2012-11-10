@@ -20,6 +20,7 @@
 ; DONE option button
 ; DONE green LED different based on priv mode
 ; XXX use BTG to toggle bits
+; XXX add inhibit privileged mode command
 ;
 		LIST n=90
 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -133,7 +134,7 @@
 ;**  . ** ** HALT  Fatal error: reset/halt failure
 ;
 ; .=off  *=steady (*)=slowly fading on/off X=don't care
-; ()=slow flash **=rapid flash !=blink/fade once
+; ()=slow flash **=rapid flash !=blink/fade once (**)=rapid fade
 ; %=extra-slow flash
 ;
 ;
@@ -337,7 +338,8 @@
 ;*  CF_CONF  7+113 1111aaaa 01110001 ...                          Configure device       ||||||
 ;*! CF_BAUD  7+114 1111aaaa 01110010 0bbbbbbb 00100110            Set baud rate to <b>   ||||||
 ;*! CF_RESET 7+115 1111aaaa 01110011 00100100 01110010            Reset factory defaults ||||||
-;*           7+116 1111aaaa 01110100                     Reserved for future config cmd  ||||||
+;*  CF_XPRIV 7+116 1111aaaa 01110100                              Forbid priviliged mode ||||||
+;*           7+117 1111aaaa 01110101                     Reserved for future config cmd  ||||||
 ;*                     :        :                            :     :     :      :    :   ||||||
 ;*           7+127 1111aaaa 01111111                     Reserved for future config cmd__||||||
 ;
@@ -390,19 +392,19 @@
 ;
 ;
 ; Response packet from QUERY command (35 bytes):
-; note the rom version byte also serves to indicate the format of the response
+; note the ROM version byte also serves to indicate the format of the response
 ; bytes which follow.  If the query packet format changes, the ROM version byte
 ; MUST also change.
 ;
-;    1111aaaa 00011111 00110000 0ABCDdcc 0ccccccc 0ABCDqsf 0ABCD0pp 0ppppppp 
-;        \__/           \_/\__/ \__/|\_________/  \__/|||  \__/ \_________/  
-;          |             maj |    | |   |           | |||   |         `--phase
-;          `--reporting    minor  | |   `--DMX      | |||   |  
-;              unit addr  rom     | |      channel  | |||   `--active
-;                         vers.   | |               | ||`--mem full?
-;                                 | `--DMX mode?    | |`--sleeping?
-;                                 `--configured     | `--config mode?
-;                                                   `--masks
+;    1111aaaa 00011111 00110000 0ABCDdcc 0ccccccc 0ABCDqsf 0ABCDXpp 0ppppppp 
+;        \__/           \_/\__/  \__/|\_________/  \__/|||  \__/|\_________/  
+;          |             maj |     | |   |           | |||   |  |      `--phase
+;          `--reporting    minor   | |   `--DMX      | |||   |  `--config locked?
+;              unit addr  rom      | |      channel  | |||   `--active
+;                         vers.    | |               | ||`--mem full?
+;                                  | `--DMX mode?    | |`--sleeping?
+;                                  `--configured     | `--config mode?
+;                                                    `--masks
 ;
 ;    0eeeeeee 0eeeeeee 0MMMMMMM 0MMMMMMM 0X0iiiii 0xxxxxxx 
 ;     \______________/  \______________/  | \___/  \_____/
@@ -459,21 +461,21 @@
 ; |___|      |--->|___|      |                                |
 ; |   IDLE   |<---| ON_OFF   |                                | 
 ; |__________|  ch|__________|                                |
-;       |          __________      ___                        |
-;       |         | 2 |      |ch  |   |v                      |
-;       |-------->|___|      |--->| 3 |---------------------->|
-;       |         | SET_LVL  |    |___|                       |
-;       |         |__________|                                |
-;       |          __________      ___      ___               |
-;       |         | 5 |      |ch  |   |s   |   |t             |
-;       |-------->|___|      |--->| 7 |--->| 8 |------------->|
-;       |         | RAMP_LVL |    |___|    |___|              |
-;       |         |__________|                                |
-;       |          __________                  __________     |
-;       |         | 4 |      |ch              | 6 | Wait |    |
-;       |-------->|___|      |--------------->|___|  for |--->|
-;       |         | BULK_UPD |                | Sentinel |    |
-;  _____V____     |__________|                |__________|    |
+;    ^  |          __________      ___                        |
+;    |  |         | 2 |      |ch  |   |v                      |
+;    |  |-------->|___|      |--->| 3 |---------------------->|
+;    |  |         | SET_LVL  |    |___|                       |
+;    |  |         |__________|                                |
+;    |  |          __________      ___      ___               |
+;    |  |         | 5 |      |ch  |   |s   |   |t             |
+;    |  |-------->|___|      |--->| 7 |--->| 8 |------------->|
+;    |  |         | RAMP_LVL |    |___|    |___|              |
+;    |  |         |__________|                                |
+;    |  |          __________                  __________     |
+;    |  |         | 4 |      |ch              | 6 | Wait |    |
+;    |  |-------->|___|      |--------------->|___|  for |--->|
+;    |  |         | BULK_UPD |                | Sentinel |    |
+;  __|__V____     |__________|                |__________|    |
 ; | 9 |      |                                      ^         |
 ; |___|      |                                      |         |
 ; | Extended |------------------------------------->|         |
@@ -955,8 +957,8 @@ EEPROM_USER_END		EQU	0x3FF
 ; SSR_STATE          |      |      |SLICE |PRIV_ |SLEEP |DRAIN |PRE_  |TEST_ |
 ;                    |INCYC |PRECYC| _UPD | MODE |_MODE |_TR   |PRIV  |MODE  |
 ;                    |______|______|______|______|______|______|______|______|
-; SSR_STATE2         |TEST_ |TEST_ |TEST_ |ALL_  |                           |
-;                    |PAUSE |UPD   |BUTTON|OFF   |                           |
+; SSR_STATE2         |TEST_ |TEST_ |TEST_ |ALL_  |PRIV_ |                    |
+;                    |PAUSE |UPD   |BUTTON|OFF   |FORBID|                    |
 ;                    |______|______|______|______|______|______|______|______|
 ; YY_STATE           |                                                       |
 ;                    |                      Parser State                     |
@@ -1103,6 +1105,7 @@ TEST_PAUSE	EQU	7	; 1-------  We're pausing the test mode
 TEST_UPD	EQU	6	; -1------  Time to update the test count-down timer
 TEST_BUTTON	EQU	5	; --1-----  Waiting for button release in test mode
 ALL_OFF		EQU	4	; ---1----  All SSRs are currently completely off
+PRIV_FORBID	EQU	3	; ----1---  Forbidden to enter privileged mode again
 
 ;
 ; SSR_FLAGS words for each output show state information about those
@@ -1576,7 +1579,8 @@ START:
 	CLRF	SSR_STATE, ACCESS
 	CLRF	SSR_STATE2, ACCESS
 	CLRF	YY_STATE, ACCESS
-	CLRF	OPTION_DEBOUNCE, ACCESS
+	MOVLW	.128
+	MOVWF	OPTION_DEBOUNCE, ACCESS
 	CLRF	OPTION_HOLD, ACCESS
 	SETF	AUTO_OFF_CTRH, ACCESS
 	SETF	AUTO_OFF_CTRL, ACCESS
@@ -1800,13 +1804,20 @@ INT_ZC:
 	;
 	IF HAS_OPTION
 	 COMF	OPTION_DEBOUNCE, W, ACCESS	; button fully on?
-	 BNZ	INT_ZC_NO_OPTION			
-	 INFSNZ	OPTION_HOLD, F, ACCESS		; increment hold counter
-	 SETF	OPTION_HOLD, ACCESS		; but don't overflow it
-	 BRA	INT_ZC_END_OPTION
-INT_ZC_NO_OPTION:
+	 BZ	INT_ZC_OPTION_ON
+	 TSTFSZ	OPTION_DEBOUNCE, ACCESS		; button fully off?
+	 BRA	INT_ZC_OPTION_UNDEFINED
+INT_ZC_OPTION_OFF:
 	 TSTFSZ	OPTION_HOLD, ACCESS		; unless already at zero,
 	 DECF	OPTION_HOLD, F, ACCESS		; decrement counter
+	 BRA	INT_ZC_END_OPTION
+INT_ZC_OPTION_ON:
+	 INFSNZ	OPTION_HOLD, F, ACCESS		; increment counter
+	 SETF	OPTION_HOLD, ACCESS		; but don't let it overflow
+INT_ZC_OPTION_UNDEFINED:
+	 ; If the button is still floating between on and off, don't
+	 ; count it yet.  It needs to stay on or off for a while before
+	 ; we count it toward the hold time.
 INT_ZC_END_OPTION:
 	ENDIF
 INT_ZC_END:
@@ -1821,12 +1832,14 @@ INT_TMR2:
 	;
 	IF HAS_OPTION
 	 BTFSC	PORT_OPTION, BIT_OPTION, ACCESS	; is option button triggered? (active-low)
-	 BRA	INT_OPTION_OFF			; no, clear debounce counter instead
+	 BRA	INT_OPTION_OFF			
+INT_OPTION_ON:
 	 INFSNZ	OPTION_DEBOUNCE, F, ACCESS	; increment bounce counter
 	 SETF	OPTION_DEBOUNCE, ACCESS		; but not too far - don't overflow
 	 BRA	INT_OPTION_END
 INT_OPTION_OFF:
-	 CLRF	OPTION_DEBOUNCE, ACCESS		; clear counter--must see 255 consecutive slices to count
+	 TSTFSZ	OPTION_DEBOUNCE, ACCESS		; if not already at zero,
+	 DECF	OPTION_DEBOUNCE, F, ACCESS	; decrement counter
 INT_OPTION_END:
 	ENDIF
 	;
@@ -1994,7 +2007,6 @@ OPTION_HANDLER:
 	  MOVLW	0x00
 	  CALL	SIO_WRITE_W
 	 ENDIF
-	 CLRF	TEST_CYCLE, ACCESS
 	 RCALL	S0_CMD0					; blackout all SSR outputs
 	 BRA	END_OPTION_HANDLER
 
@@ -2010,7 +2022,9 @@ OPTION_PRE_PRIV:
 	 TSTFSZ	OPTION_HOLD, ACCESS			; --------------------------------------------------PRE_PRIV
 	 BRA	END_OPTION_HANDLER			; wait for button to be released ~2s
 	 BCF	SSR_STATE, PRE_PRIV, ACCESS		; move to privileged run mode
-	 BSF	SSR_STATE, PRIV_MODE, ACCESS
+	 BTFSC	SSR_STATE2, PRIV_FORBID, ACCESS		; unless we have privileges locked out now...
+	 BRA	END_OPTION_HANDLER
+	 BSF	SSR_STATE, PRIV_MODE, ACCESS		; turn on privileged mode
 	 IF HAS_ACTIVE
 	  SET_SSR_BLINK_FADE SSR_ACTIVE
 	 ENDIF
@@ -2064,14 +2078,18 @@ END_OPTION_HANDLER:
 DRAIN_TRANSMITTER:
 	BANKSEL	SIO_STATUS
 	IF HAS_T_R
-	 BTFSC	SIO_STATUS, TXDATA_QUEUE, BANKED
+	 BTFSC	SIO_STATUS, TXDATA_QUEUE, BANKED	; data still waiting in our output buffer?
 	 RETURN
-	 BCF	SSR_STATE, DRAIN_TR, ACCESS
-	 BCF	PLAT_T_R, BIT_T_R, ACCESS
+	 BTFSS	PIR1, TXIF, ACCESS			; data in transit into UART shift register?
+	 RETURN
+	 BTFSS	TXSTA, TRMT, ACCESS			; data being shifted out now?
+	 RETURN
+	 BCF	SSR_STATE, DRAIN_TR, ACCESS		; none of the above--shut down transmitter now
+	 BCF	PLAT_T_R, BIT_T_R, ACCESS		
 	 RETURN
 	ELSE
 	 ERR_BUG 0x11, ERR_CLASS_DEVICE
-    ENDIF
+    	ENDIF
 
 DO_TEST_MODE:
 	CLRWDT
@@ -2079,19 +2097,22 @@ DO_TEST_MODE:
 	COMF	OPTION_DEBOUNCE, W, ACCESS	; is option button pressed?
 	BNZ	TEST_NOT_PRESSED
 	BSF	SSR_STATE2, TEST_BUTTON, ACCESS	; yes, keep waiting for it to be released
-	RETURN
+	BRA	TEST_MODE_1
 TEST_NOT_PRESSED:
-	BTFSC	SSR_STATE2, TEST_BUTTON, ACCESS	; were we waiting for this?
-	TSTFSZ	OPTION_DEBOUNCE, ACCESS	; is button released?
-	BRA	TEST_MODE_1			; not waiting or button not released: skip to next part
-
-	BCF	SSR_STATE2, TEST_BUTTON, ACCESS	; button has been pressed and released, now toggle pause state
-	BTG	SSR_STATE2, TEST_PAUSE, ACCESS
+	TSTFSZ	OPTION_DEBOUNCE, ACCESS		; is option button fully off?
+	BRA	TEST_MODE_1
+	BTFSS	SSR_STATE2, TEST_BUTTON, ACCESS	; were we waiting for this button cycle event?
+	BRA	TEST_MODE_1			; 
+	;
+	; OPTION button was pressed and then released.  Toggle pause state.
+	;
+	BCF	SSR_STATE2, TEST_BUTTON, ACCESS	; 
+	BTG	SSR_STATE2, TEST_PAUSE, ACCESS  ;
 	SETF	TEST_CYCLE, ACCESS		; reset cycle timer
-	IF ROLE_MASTER
-	 MOVLW	0xF0					; send to slave chip: F0 21 00gggyyy 00000rrr
-	 CALL	SIO_WRITE_W				; set bottom red LED to new pause mode
-	 MOVLW	0x21
+	IF ROLE_MASTER				; MASTER  SLAVE           STANDALONE
+	 MOVLW	0xF0				; A G Y R G Y R           A G Y R
+	 CALL	SIO_WRITE_W			; b3b2b1b0b5b4(*)         b2b1b0(*)  run
+	 MOVLW	0x21				;              *                 *   pause
 	 CALL	SIO_WRITE_W
 	 MOVLW	B'00111111'
 	 CALL	SIO_WRITE_W
@@ -2099,10 +2120,18 @@ TEST_NOT_PRESSED:
 	 BTFSS	SSR_STATE2, TEST_PAUSE, ACCESS
 	 MOVLW	B'00000010'
 	 CALL	SIO_WRITE_W
+	ELSE
+	 BTFSS	SSR_STATE2, TEST_PAUSE, ACCESS
+	 BRA	TEST_NP_1
+	 SET_SSR_STEADY SSR_RED
+	 BRA	TEST_NP_2
+TEST_NP_1:
+	 SET_SSR_SLOW_FADE SSR_RED
+TEST_NP_2:
 	ENDIF
 	
 TEST_MODE_1:
-	BTFSS	SSR_STATE2, TEST_PAUSE, ACCESS	; paused?  XXX
+	BTFSS	SSR_STATE2, TEST_PAUSE, ACCESS	; paused? 
 	BTFSS	SSR_STATE2, TEST_UPD, ACCESS	; time to count down?
 	RETURN					; either we're paused or not time to update; stop.
 	
@@ -2112,8 +2141,8 @@ TEST_MODE_1:
 
 	RCALL	S0_CMD0				; kill all outputs
 	INCF	TEST_SSR, F, ACCESS		; jump to next SSR
-	MOVLW	NUM_CHANNELS - 1
-	CPFSGT	TEST_SSR, ACCESS		; channel > last channel?
+	MOVLW	NUM_CHANNELS
+	CPFSLT	TEST_SSR, ACCESS		; channel > last channel?
 	CLRF	TEST_SSR, ACCESS		; cycle to 0 if exceeded our limit
 
 	MOVLW	0x3F
@@ -2122,37 +2151,48 @@ TEST_MODE_1:
 	BSF	YY_DATA, 6, ACCESS		; turn on
 	RCALL	ON_OFF_YY_DATA			; execute
 
-	CLRF	SSR_00_VALUE + SSR_RED, ACCESS
-	CLRF	SSR_00_VALUE + SSR_YELLOW, ACCESS
-	CLRF	SSR_00_VALUE + SSR_GREEN, ACCESS
+	BANKSEL	SSR_DATA_BANK
+	CLRF	SSR_00_VALUE + SSR_RED, BANKED
+	CLRF	SSR_00_VALUE + SSR_YELLOW, BANKED
+	CLRF	SSR_00_VALUE + SSR_GREEN, BANKED
 	IF HAS_ACTIVE
-	 CLRF	SSR_00_VALUE + SSR_ACTIVE, ACCESS
+	 CLRF	SSR_00_VALUE + SSR_ACTIVE, BANKED
 	ENDIF
 
-	BTFSC	TEST_SSR, 0, ACCESS
-	SETF	SSR_00_VALUE + SSR_RED, ACCESS
-	BTFSC	TEST_SSR, 1, ACCESS
-	SETF	SSR_00_VALUE + SSR_YELLOW, ACCESS
-	BTFSC	TEST_SSR, 2, ACCESS
-	SETF	SSR_00_VALUE + SSR_GREEN, ACCESS
-	IF HAS_ACTIVE
+	IF ROLE_MASTER					; MASTER----- SLAVE---      STANDALONE-
+	 BTFSC	TEST_SSR, 2, ACCESS			; A  G  Y  R  G  Y  R       A  G  Y  R
+	 SETF	SSR_00_VALUE + SSR_RED, BANKED		; b5 b4 b3 b2 b1 b0 (*)     b2 b1 b0 (*)
 	 BTFSC	TEST_SSR, 3, ACCESS
-	 SETF	SSR_00_VALUE + SSR_ACTIVE, ACCESS
-	ENDIF
+	 SETF	SSR_00_VALUE + SSR_YELLOW, BANKED
+	 BTFSC	TEST_SSR, 4, ACCESS
+	 SETF	SSR_00_VALUE + SSR_GREEN, BANKED
+	 IF HAS_ACTIVE
+	  BTFSC TEST_SSR, 5, ACCESS
+	  SETF	SSR_00_VALUE + SSR_ACTIVE, BANKED
+	 ENDIF
 
-	IF ROLE_MASTER
 	 MOVLW	0xF0					; send to slave chip: F0 21 00gggyyy 00000rrr
 	 CALL	SIO_WRITE_W
 	 MOVLW	0x21
 	 CALL 	SIO_WRITE_W
 	 CLRF	WREG, ACCESS
-	 BTFSC	TEST_SSR, 4, ACCESS
-	 BSF	WREG, 0, ACCESS
-	 BTFSC	TEST_SSR, 5, ACCESS
+	 BTFSC	TEST_SSR, 1, ACCESS
 	 BSF	WREG, 3, ACCESS
+	 BTFSC	TEST_SSR, 0, ACCESS
+	 BSF	WREG, 0, ACCESS
 	 CALL	SIO_WRITE_W
 	 MOVLW	0x02
 	 CALL	SIO_WRITE_W
+	ELSE
+	 BTFSC	TEST_SSR, 0, ACCESS
+	 SETF	SSR_00_VALUE + SSR_YELLOW, BANKED
+	 BTFSC	TEST_SSR, 1, ACCESS
+	 SETF	SSR_00_VALUE + SSR_GREEN, BANKED
+	 IF HAS_ACTIVE
+	  BTFSC TEST_SSR, 2, ACCESS
+	  SETF	SSR_00_VALUE + SSR_ACTIVE, BANKED
+	 ENDIF
+	 SET_SSR_SLOW_FADE SSR_RED
 	ENDIF
 
 	RETURN
@@ -3324,11 +3364,13 @@ S6_9_DATA:
 	BSF	WREG, 1, ACCESS
 	CALL	SIO_WRITE_W			; 05 masks, priv, sleep, mem full	<0ABCDqsf> XXX NOT ALL IMPLEMENTED
 	CLRF	WREG, ACCESS	
+	BTFSC	SSR_STATE2, PRIV_FORBID, ACCESS
+	BSF	WREG, 2, ACCESS			
 	BTFSC	PHASE_OFFSETH, 0, ACCESS
 	BSF	WREG, 1, ACCESS
 	BTFSC	PHASE_OFFSETL, 7, ACCESS
 	BSF	WREG, 0, ACCESS
-	CALL	SIO_WRITE_W			; 06 active sensors, phase	<8:7>	<0ABCD0pp> XXX NOT ALL IMPLEMENTED
+	CALL	SIO_WRITE_W			; 06 active sensors, xpriv, phase<8:7>	<0ABCDXpp> XXX NOT ALL IMPLEMENTED
 	MOVF	PHASE_OFFSETL, W, ACCESS
 	BCF	WREG, 7, ACCESS
 	CALL	SIO_WRITE_W			; 07 phase <6:0>			<0ppppppp>
@@ -3859,6 +3901,24 @@ S9_PRIV_3:
 	RETURN
 
 S9_PRIV_4:
+	DECFSZ	WREG, W, ACCESS
+	BRA	S9_PRIV_5
+	;
+	; CF_XPRIV:
+	;
+	;   ___7______6______5______4______3______2______1______0__
+	;  |      |                    |                           |
+	;  |   1  |          7         |   Target device address   | YY_COMMAND
+	;  |______|______|______|______|______|______|______|______|
+	;  |      |      |      |                                  |
+	;  |   0  |   1  |   1  |   1  |             4             | YY_DATA
+	;  |______|______|______|______|______|______|______|______|
+	;
+	;
+	BSF	SSR_STATE2, PRIV_FORBID, ACCESS
+	GOTO	S9_PRIV_0
+
+S9_PRIV_5:
 	GOTO	ERR_COMMAND
 
 S9_CF_PHASE:
@@ -4241,7 +4301,7 @@ X 	SET	0
  	 ELSE
 	  BSF	PLAT_#v(X), BIT_#v(X), ACCESS	; turn off SSR
  	 ENDIF
-	 TSTFSZ	SSR_00_VALUE+#v(X), ACCESS	; is this SSR fully off?
+	 TSTFSZ	SSR_00_VALUE+#v(X), BANKED	; is this SSR fully off?
 	 BCF	SSR_STATE2, ALL_OFF, ACCESS	; no, ergo they aren't ALL off now. clear the flag
 
 	 BTFSS	SSR_00_FLAGS+#v(X), FADE_UP, BANKED
