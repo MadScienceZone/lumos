@@ -260,15 +260,15 @@ class LumosControllerUnitTest (unittest.TestCase):
             self.assertEqual(self.n.buffer, res)
             self.n.reset()
 
-    # FC 1F 50 00 00 40 02 00 4F 01 27 00 00 
-    # ----- ----- -- ----- ----- ----- -----
-    #   |     |   |    |     |     |     |   
-    #   |     |   |    |     |     |     no seq exec; dev=48ssr
-    #   |     |   |    |     |     free RAM=0127 = 295
-    #   |     |   |    |     free EEPROM= 004F = 79
-    #   |     |   |    active=a, phase=2
-    #   |     |   mask=nil, !priv, !sleep, !overflow
-    #   |     sensors a,c !dmx
+    # FC 1F 30 50 00 00 40 02 00 4F 01 27 00 00 
+    # ----- -- ----- -- ----- ----- ----- -----
+    #   |   |    |   |    |     |     |     |   
+    #   |   |    |   |    |     |     |     no seq exec; dev=48ssr
+    #   |   |    |   |    |     |     free RAM=0127 = 295
+    #   |   |    |   |    |     free EEPROM= 004F = 79
+    #   |   |    |   |    active=a, phase=2
+    #   |   |    |   mask=nil, !priv, !sleep, !overflow
+    #   |   vers sensors a,c !dmx
     #   reply from unit C
     #
     # 00 00 00 00 01 00 00 00 10 00 00 00 11 00 00 00 
@@ -280,7 +280,7 @@ class LumosControllerUnitTest (unittest.TestCase):
     # fault phase sentinel
     #
     def test_query(self):
-        self.n.input_data('\xFC\x1F\x50\x00\x00\x40\x02\x00\x4f\x01\x27\x00\x00'
+        self.n.input_data('\xFC\x1F\x30\x50\x00\x00\x40\x02\x00\x4f\x01\x27\x00\x00'
             + '\x00\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x12\x34\x00\x02\x33')
         reply = self.ssr.raw_query_device_status()
         self.assertEqual(self.n.buffer, "=FC=03$T")
@@ -288,6 +288,7 @@ class LumosControllerUnitTest (unittest.TestCase):
         self.assertEqual(reply.config.dmx_start, None)
         #self.assertEqual(reply.config.resolution, 256)
         #self.assertEqual(reply.enabled_sensors, [])
+        self.assertEqual(reply.rom_version, (3, 0))
         self.assertEqual(reply.sensors['A'].enabled, False)
         self.assertEqual(reply.sensors['B'].enabled, False)
         self.assertEqual(reply.sensors['C'].enabled, False)
@@ -310,7 +311,7 @@ class LumosControllerUnitTest (unittest.TestCase):
         self.assertEqual(reply.phase_offset2, 2)
 
     def test_query_phase_mismatch(self):
-        self.n.input_data('\xFC\x1F\x50\x00\x00\x40\x02\x00\x4f\x01\x27\x00\x00'
+        self.n.input_data('\xFC\x1F\x30\x50\x00\x00\x40\x02\x00\x4f\x01\x27\x00\x00'
             + '\x00\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x12\x34\x00\x03\x33')
         self.assertRaises(InternalDeviceError, self.ssr.raw_query_device_status)
 

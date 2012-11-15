@@ -80,7 +80,7 @@ class TestNetwork (Network):
         "Set up test data to 'read' from 'input' device, wink wink nudge nudge"
         self.ibuffer += data
 
-    def input(self, remaining_f=None, bytes=None, mode_switch=True):
+    def input(self, remaining_f=None, bytes=None, mode_switch=True, timeout=1):
         if not mode_switch and self.mode == 'tx':
             raise APIUsageError('Failure to set proper I/O mode on network before input')
         if not self.input_waiting():

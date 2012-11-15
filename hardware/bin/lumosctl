@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/local/bin/python
 # vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # Directly control a Lumos ssr controller via the command line.
@@ -148,6 +148,8 @@ def setup_lumos(options):
 
     show.add_network('io', io)
     show.add_controller('io', target)
+    for channel_id in range(48):
+        target.add_channel(channel_id, load=0)
 
     return target, io
 
@@ -169,10 +171,10 @@ def trace(level, msg, stream=sys.stderr, eol=True):
     global options
     if options.verbose >= level:
         stream.write(msg)
-    if eol:
-        stream.write('\n')
-    else:
-        stream.flush()
+        if eol:
+            stream.write('\n')
+        else:
+            stream.flush()
 
 
 def report_on(device):
@@ -391,10 +393,21 @@ def main():
     if options.verbose > 2:
         io.set_verbose(sys.stderr)
 
+    #target.raw_control('__reset__')
+    #target.kill_all_channels(force=True)
+    #target.set_channel(0, 127)
+    #target.flush()
+    #target.raw_control('noconfig')
+    #time.sleep(5)
+    #sys.exit(0)
     if options.probe:
         devices = probe(target)
     else:
         devices = [(options.address, getstatus(target))]
+
+    if not devices:
+        print "No target device found."
+        sys.exit(1)
 
     for address, devstat in devices:
         print "Address {0:02d}: {1}".format(address, devstat.hardware_type)

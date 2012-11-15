@@ -196,7 +196,7 @@ else:
                 # 9999: 99 99 99 99 99 99 99 99   99 99 99 99 99 99 99 99   |........ ........|
                 # 9999: 99 99 99 99 99 99 99 99   99 99 99 99 99 99 99 99   |........ ........|
 
-                for idx in range(0, len(data) + 15, 16):
+                for idx in range(0, len(data), 16):
                     outdev.write('{0:04X}:'.format(addr+idx))
                     for byte in range(16):
                         if idx+byte < len(data):

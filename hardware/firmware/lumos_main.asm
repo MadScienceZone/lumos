@@ -1,5 +1,6 @@
 ; vim:set syntax=pic ts=8:
-; XXX refactor this:
+; DONE, but mostly left intact (hard to get around need due to length of branches)
+;        refactor this:
 ;	SUBWF	YY_BUF_IDX, W, ACCESS		; input bytes in packet
 ;	BC	$+4
 ;	GOTO	S6_KEEP_LOOKING			; input < 2? not done yet
@@ -8,7 +9,7 @@
 ; XXX XXX XXX ** KILL BROADCAST ADDR IDEA ** it's not going to work XXX XXX XXX
 ; XXX double-check all inequality tests
 ; XXX review logic flow for each chip type
-; XXX check all BRA $+x values after assembly
+; DONE check all BRA $+x values after assembly -- changed to use labels
 ; DONE add slave phase/error code to query
 ; DONE add master error code to query
 ; DONE update unit tests to match final protocol
@@ -19,15 +20,15 @@
 ; DONE kill high/low res setting
 ; DONE option button
 ; DONE green LED different based on priv mode
+; XXX ERR_COMMAND light should have limited lifetime
 ; XXX use BTG to toggle bits
-; XXX add inhibit privileged mode command
+; DONE add inhibit privileged mode command
 ;
 		LIST n=90
 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ;@@                                                                         @@
 ;@@ @      @   @  @   @   @@@    @@@          LUMOS: LIGHT ORCHESTRATION    @@
-;@@ @      @   @  @@ @@  @   @  @   @         SYSTEM FIRMWARE VERSION 3.0   @@
-;@@ @      @   @  @ @ @  @   @  @                                           @@
+;@@ @      @   @  @@ @@  @   @  @   @         SYSTEM FIRMWARE VERSION 3.0   @@ ;@@ @      @   @  @ @ @  @   @  @                                           @@
 ;@@ @      @   @  @   @  @   @   @@@   @@@@@  FOR 24- AND 48-CHANNEL AC/DC  @@
 ;@@ @      @   @  @   @  @   @      @         LUMOS CONTROLLER UNITS        @@
 ;@@ @      @   @  @   @  @   @  @   @         BASED ON THE PIC18F4685 CHIP  @@
@@ -323,7 +324,8 @@
 ; ! CLR_SEQ  7+8   1111aaaa 00001000 01000011 01000001  Erase all stored sequences
 ;            7+9   1111aaaa 00001001                    Reserved for future use
 ;             :        :        :                           :     :     :    : 
-;            7+30  1111aaaa 00011110                    Reserved for future use                 
+;            7+29  1111aaaa 00011101                    Reserved for future use                 
+;   OUT_NAK  7+30  1111aaaa 00011110                    QUERY NAK                               
 ;   OUT_RPLY 7+31  1111aaaa 00011111 ...                Reply to QUERY command_________________ 
 ;   IC_TXDAT 7+32  11110000 00100000 0nnnnnnn (...)*<n>+1 00011011 data -> serial port INTERNAL
 ;   IC_LED   7+33  11110000 00100001 00GGGYYY 00000RRR             LED Control         ////////
@@ -1665,8 +1667,9 @@ WRITE_EEPROM_DATA MACRO
 	 MOVLW	0xAA
 	 MOVWF	EECON2, ACCESS
 	 BSF	EECON1, WR, ACCESS	; start write cycle
+WRITE_EEPROM_LOOP:
 	 BTFSS	PIR2, EEIF, ACCESS	; wait until write completes
-	 BRA	$-2
+	 BRA	WRITE_EEPROM_LOOP
 	 CLRWDT
 	 BCF	PIR2, EEIF, ACCESS	; clear interrupt flag
 	ENDM
@@ -1725,14 +1728,17 @@ DELAY_1_6_SEC:	; Approx 1/6 sec delay loop
 	CLRWDT
 	MOVLW	.8
 	MOVWF	KK, ACCESS
+D_1_6_KK:
 	SETF	J, ACCESS
+D_1_6_J:
 	SETF	K, ACCESS
+D_1_6_K:
 	DECFSZ	K, F, ACCESS
-	BRA	$-2
+	BRA	D_1_6_K
 	DECFSZ	J, F, ACCESS
-	BRA	$-.8
+	BRA	D_1_6_J
 	DECFSZ	KK, F, ACCESS
-	BRA	$-.14
+	BRA	D_1_6_KK
 	RETURN
 
 ;==============================================================================
@@ -2076,8 +2082,8 @@ END_OPTION_HANDLER:
 	BRA	MAIN
 	
 DRAIN_TRANSMITTER:
-	BANKSEL	SIO_STATUS
 	IF HAS_T_R
+	 BANKSEL SIO_DATA_START
 	 BTFSC	SIO_STATUS, TXDATA_QUEUE, BANKED	; data still waiting in our output buffer?
 	 RETURN
 	 BTFSS	PIR1, TXIF, ACCESS			; data in transit into UART shift register?
@@ -2198,14 +2204,14 @@ TEST_MODE_1:
 	RETURN
 
 ERR_SERIAL_FRAMING:
-	BANKSEL	SIO_STATUS
+	BANKSEL	SIO_DATA_START
 	BCF	SIO_STATUS, SIO_FERR, BANKED
 	SET_SSR_RAPID_FLASH SSR_RED
 	SET_SSR_STEADY SSR_YELLOW
 	RETURN
 	
 ERR_SERIAL_OVERRUN:
-	BANKSEL	SIO_STATUS
+	BANKSEL	SIO_DATA_START
 	BCF	SIO_STATUS, SIO_ORUN, BANKED
 	SET_SSR_RAPID_FLASH SSR_RED
 	SET_SSR_RAPID_FLASH SSR_YELLOW
@@ -2304,6 +2310,7 @@ INTERP_START:
 	IF ROLE_SLAVE
 	 SET_SSR_BLINK_FADE SSR_YELLOW	; slave activity indicator
 	ENDIF
+	BANKSEL	SIO_DATA_START
 	SWAPF	SIO_INPUT, W, BANKED
 	ANDLW	0x07
 	BZ	S0_CMD0
@@ -2318,12 +2325,12 @@ S0_CMD0:
 	;  |   1  |          0         |   Target device address   | SIO_INPUT
 	;  |______|______|______|______|______|______|______|______|
 	;  |                                  |          0         |
-	;  |                                  |   (Command code)   | W
+	;  |                 0                |   (Command code)   | W
 	;  |______|______|______|______|______|______|______|______|
 	;
 	BANKSEL	SSR_DATA_BANK
 CH 	SET	0
-	WHILE CH<=SSR_MAX
+	WHILE CH < SSR_LIGHTS
 	 CLRF	SSR_00_VALUE+#v(CH), BANKED	; all SSRs OFF
 	 CLRF	SSR_00_FLAGS+#v(CH), BANKED	; all SSR flags cleared
 	 CLRF	SSR_00_STEP+#v(CH), BANKED
@@ -2421,8 +2428,8 @@ S1_DATA:
 	; ON_OFF:
 	;
 	;   ___7______6______5______4______3______2______1______0__
-	;  |      |                    |                           |
-	;  |   1  |          1         |   Target device address   | YY_COMMAND
+	;  |                                  |                    |
+	;  |                0                 |          1         | YY_COMMAND
 	;  |______|______|______|______|______|______|______|______|
 	;  |      |0=off |                                         |
 	;  |   0  |1=on  |           Channel ID (0-47)             | YY_DATA
@@ -2478,8 +2485,8 @@ S3_DATA:
 	; SET_LVL:
 	;
 	;   ___7______6______5______4______3______2______1______0__
-	;  |      |                    |                           |
-	;  |   1  |          2         |   Target device address   | YY_COMMAND
+	;  |                                  |                    |
+	;  |                0                 |          2         | YY_COMMAND
 	;  |______|______|______|______|______|______|______|______|
 	;  |NOT_MY|Value |                                         |
 	;  | _SSR |LSB   |           Channel ID (0-47)             | TARGET_SSR
@@ -2576,8 +2583,8 @@ S6_DATA:
 	; BULK_UPD:
 	;
 	;   ___7______6______5______4______3______2______1______0__
-	;  |      |                    |                           |
-	;  |   1  |          3         |   Target device address   | YY_COMMAND
+	;  |                                  |                    |
+	;  |                0                 |          3         | YY_COMMAND
 	;  |______|______|______|______|______|______|______|______|
 	;  |NOT_MY|0=low |                                         |
 	;  | _SSR |1=high|           Channel ID (0-47)             | TARGET_SSR
@@ -2635,11 +2642,12 @@ S6_0_DATA:
 	ADDWF	INDF0, W, ACCESS		; start + N-1
 	INCF	WREG, W, ACCESS			; start + N
 	SUBLW	NUM_CHANNELS			; start + N > NUM_CHANNELS? 
-	BC	$+4				; skip
+	BC	S6_0_DATA_N_OK			; NO: proceed
 	GOTO	ERR_COMMAND			; YES: bad command - reject it!
 	;
 	; Do we have all the bytes yet?  (Or did a data byte happen to equal our sentinel?)
 	;
+S6_0_DATA_N_OK:
 	INCF 	INDF0, W, ACCESS		; W=N
 	CPFSGT	YY_BUF_IDX, ACCESS		; if IDX > N, we're done.
 	GOTO	S6_KEEP_LOOKING			; otherwise, go back and wait for more data
@@ -2707,8 +2715,9 @@ S6_0_UPDATE_NEXT:
 	CLRF	POSTINC2, ACCESS		; clear SSR flags 
 	MOVFF	POSTINC0, INDF1 		; set SSR	(*fsr1++ = *fsr0++ << 1)
 	RLNCF	INDF1, F, ACCESS
-	BZ	$+4				; if SSR=0, leave at 0 (skip next)
+	BZ	S6_0_UPD_NXT_ZERO		; if SSR=0, leave at 0 (skip next)
 	BSF	INDF1, 0, ACCESS		; else, set low bit so 254=255 in low-res mode
+S6_0_UPD_NXT_ZERO:
 	INCF	FSR1, F, ACCESS
 	IF ROLE_MASTER				; (high-res mode will correct this if presented)
 	 DCFSNZ	KK, F, ACCESS
@@ -2785,9 +2794,10 @@ S6_0_INCR:
 	MOVWF	J, ACCESS
 	ADDWF	I, W, ACCESS			; W = N + 1 + I
 	SUBWF	YY_BUF_IDX, ACCESS		; packetlen < N + 1 + I ?
-	BC	$+4
+	BC	S6_0_HAVE_ALL_DATA
 	GOTO	S6_0_NEED_MORE			; stopped early; fix up and keep reading
 
+S6_0_HAVE_ALL_DATA:
 	INCF	INDF0, W, ACCESS		; W = N+1
 	ADDWF	FSR0L, F, ACCESS		; move pointer to YY_BUFFER[N+1]
 	MOVLW	0x56
@@ -2911,8 +2921,8 @@ S6_1_DATA:
 	; S6.1: CF_CONF Command completed:
 	;
 	;   ___7______6______5______4______3______2______1______0__
-	;  |      |                    |                           |
-	;  |   1  |          7         |   Target device address   | YY_COMMAND
+	;  |                                  |                    |
+	;  |                0                 |          7         | YY_COMMAND
 	;  |______|______|______|______|______|______|______|______|
 	;  |      |      |      |      |                           |
 	;  |   0  |   1  |   1  |   1  |             1             | (not saved)
@@ -2934,16 +2944,22 @@ S6_1_DATA:
 	;
 	MOVLW	3
 	SUBWF	YY_BUF_IDX, W, ACCESS		; input bytes in packet
-	BC	$+4
+	BC	S6_1_VALID_1	
 	GOTO	S6_KEEP_LOOKING			; input < 3? not done yet
-	BZ	$+4				; skip
+
+S6_1_VALID_1:
+	BZ	S6_1_VALID_2			; 
 	GOTO	ERR_COMMAND			; input > 3? too big: reject
+
+S6_1_VALID_2:
 	LFSR	0, YY_BUFFER+2
 	MOVF	POSTDEC0, W, ACCESS		; check 1st sentinel
 	ANDLW	0x3F
 	SUBLW	0x3A
-	BZ	$+4
+	BZ	S6_1_CONFIGURE
 	GOTO	ERR_COMMAND
+
+S6_1_CONFIGURE:
 	; XXX configure sensors
 	; XXX configure resolution
 	; XXX configure DMX
@@ -2957,8 +2973,8 @@ S6_2_DATA:
 	; S6.2: CF_BAUD Command completed:
 	;
 	;   ___7______6______5______4______3______2______1______0__
-	;  |      |                    |                           |
-	;  |   1  |          7         |   Target device address   | YY_COMMAND
+	;  |                                  |                    |
+	;  |                0                 |          7         | YY_COMMAND
 	;  |______|______|______|______|______|______|______|______|
 	;  |      |      |      |      |                           |
 	;  |   0  |   1  |   1  |   1  |             2             | (not saved)
@@ -2974,15 +2990,21 @@ S6_2_DATA:
 	;
 	MOVLW	1
 	SUBWF	YY_BUF_IDX, W, ACCESS		; input bytes in packet
-	BC	$+4
+	BC	S6_2_VALID1
 	GOTO	S6_KEEP_LOOKING			; input < 1? not done yet
-	BZ	$+4
+
+S6_2_VALID1:
+	BZ	S6_2_VALID2
 	GOTO	ERR_COMMAND			; input > 1? too big: reject
+
+S6_2_VALID2:
 	LFSR	0, YY_BUFFER
 	MOVLW	0x0B
 	SUBWF	INDF0, W, ACCESS		; test baud rate in range [$00,$0A]
-	BNC	$+4
+	BNC	S6_2_SET_BAUD
 	GOTO	ERR_COMMAND
+
+S6_2_SET_BAUD:
 	BEGIN_EEPROM_WRITE 1
 	MOVFF	INDF0, EEDATA			; save value permanently (address 001)
 	WRITE_EEPROM_DATA
@@ -2999,8 +3021,8 @@ S6_3_DATA:
 	; S6.3: CF_RESET Command completed:
 	;
 	;   ___7______6______5______4______3______2______1______0__
-	;  |      |                    |                           |
-	;  |   1  |          7         |   Target device address   | YY_COMMAND
+	;  |                                  |                    |
+	;  |                0                 |          7         | YY_COMMAND
 	;  |______|______|______|______|______|______|______|______|
 	;  |      |      |      |      |                           |
 	;  |   0  |   1  |   1  |   1  |             3             | (not saved)
@@ -3016,17 +3038,23 @@ S6_3_DATA:
 	;
 	MOVLW	1
 	SUBWF	YY_BUF_IDX, W, ACCESS		; input bytes in packet
-	BC	$+4
+	BC	S6_3_VALID	
 	GOTO	S6_KEEP_LOOKING			; input < 1? not done yet
-	BZ	$+4
+
+S6_3_VALID:
+	BZ	S6_3_RESET
 	GOTO	ERR_COMMAND			; input > 1? too big: reject
+
+S6_3_RESET:
 	LFSR	0, YY_BUFFER
 	MOVLW	0x24
 	CPFSEQ	INDF0, ACCESS
 	GOTO	ERR_COMMAND
 	GOTO	FACTORY_RESET			; we never return from here
 	ERR_BUG	0x70, ERR_CLASS_FATAL_RESET	
-	BRA	$
+
+S6_3_HALT:
+	BRA	S6_3_HALT
 
 S6_4_DATA:
 	DECFSZ	WREG, F, ACCESS
@@ -3035,8 +3063,8 @@ S6_4_DATA:
 	; S6.4: CF_PHASE Command completed:
 	;
 	;   ___7______6______5______4______3______2______1______0__
-	;  |      |                    |                           |
-	;  |   1  |          7         |   Target device address   | YY_COMMAND
+	;  |                                  |                    |
+	;  |                0                 |          7         | YY_COMMAND
 	;  |______|______|______|______|______|______|______|______|
 	;  |      |      |      |      |             | phase       |
 	;  |   0  |   1  |   0  |   0  |   X      X  |  <8:7>      | YY_YY
@@ -3055,10 +3083,14 @@ S6_4_DATA:
 	;
 	MOVLW	2
 	SUBWF	YY_BUF_IDX, W, ACCESS		; input bytes in packet
-	BC	$+4
+	BC	S6_4_VALID
 	GOTO	S6_KEEP_LOOKING			; input < 2? not done yet
-	BZ	$+4
+
+S6_4_VALID:
+	BZ	S6_4_SET_PHASE
 	GOTO	ERR_COMMAND			; input > 2? too big: reject
+
+S6_4_SET_PHASE:
 	LFSR	0, YY_BUFFER+1
 	MOVLW	0x50
 	CPFSEQ	POSTDEC0, ACCESS
@@ -3097,8 +3129,8 @@ S6_5_DATA:
 	; S6.5: CF_ADDR Command completed:
 	;
 	;   ___7______6______5______4______3______2______1______0__
-	;  |      |                    |                           |
-	;  |   1  |          7         |   Target device address   | YY_COMMAND
+	;  |                                  |                    |
+	;  |                0                 |          7         | YY_COMMAND
 	;  |______|______|______|______|______|______|______|______|
 	;  |      |      |      |      |                           |
 	;  |   0  |   1  |   1  |   0  |    new device address     | YY_YY      
@@ -3117,10 +3149,14 @@ S6_5_DATA:
 	;
 	MOVLW	2
 	SUBWF	YY_BUF_IDX, W, ACCESS		; input bytes in packet
-	BC	$+4
+	BC	S6_5_VALID
 	GOTO	S6_KEEP_LOOKING			; input < 2? not done yet
-	BZ	$+4
+
+S6_5_VALID:
+	BZ	S6_5_ADDR
 	GOTO	ERR_COMMAND			; input > 2? too big: reject
+
+S6_5_ADDR:
 	LFSR	0, YY_BUFFER+1
 	MOVLW	0x41
 	CPFSEQ	POSTDEC0, ACCESS
@@ -3148,8 +3184,8 @@ S6_6_DATA:
 	; S6.6: SLEEP Command completed:
 	;
 	;   ___7______6______5______4______3______2______1______0__
-	;  |      |                    |                           |
-	;  |   1  |          7         |   Target device address   | YY_COMMAND
+	;  |                                  |                    |
+	;  |                0                 |          7         | YY_COMMAND
 	;  |______|______|______|______|______|______|______|______|
 	;  |      |      |      |      |                           |
 	;  |   0  |   0  |   0  |   0  |             0             | (not saved)
@@ -3165,10 +3201,14 @@ S6_6_DATA:
 	;
 	MOVLW	1
 	SUBWF	YY_BUF_IDX, W, ACCESS		; input bytes in packet
-	BC	$+4
+	BC	S6_6_VALID
 	GOTO	S6_KEEP_LOOKING			; input < 1? not done yet
-	BZ	$+4				; skip
+
+S6_6_VALID:
+	BZ	S6_6_SLEEP
 	GOTO	ERR_COMMAND			; input > 1? too big: reject
+
+S6_6_SLEEP:
 	LFSR	0, YY_BUFFER
 	MOVLW	0x5A
 	CPFSEQ	INDF0, ACCESS
@@ -3200,13 +3240,13 @@ DO_CMD_SLEEP:
 
 S6_7_DATA:
 	DECFSZ	WREG, F, ACCESS
-	BRA	S6_7_DATA
+	BRA	S6_8_DATA
 	;
 	; S6.7: WAKE Command completed:
 	;
 	;   ___7______6______5______4______3______2______1______0__
-	;  |      |                    |                           |
-	;  |   1  |          7         |   Target device address   | YY_COMMAND
+	;  |                                  |                    |
+	;  |                0                 |          7         | YY_COMMAND
 	;  |______|______|______|______|______|______|______|______|
 	;  |      |      |      |      |                           |
 	;  |   0  |   0  |   0  |   0  |             1             | (not saved)
@@ -3222,15 +3262,20 @@ S6_7_DATA:
 	;
 	MOVLW	1
 	SUBWF	YY_BUF_IDX, W, ACCESS		; input bytes in packet
-	BC	$+4
+	BC	S6_7_VALID
 	GOTO	S6_KEEP_LOOKING			; input < 1? not done yet
-	BZ	$+4
+
+S6_7_VALID:
+	BZ	S6_7_WAKE
 	GOTO	ERR_COMMAND			; input > 1? too big: reject
+
+S6_7_WAKE:
 	LFSR	0, YY_BUFFER
 	MOVLW	0x5A
 	CPFSEQ	INDF0, ACCESS
 	GOTO	ERR_COMMAND
 	CLRF 	YY_STATE, ACCESS
+
 DO_CMD_WAKE:
 	;
 	; Pass command to slave
@@ -3264,8 +3309,8 @@ S6_8_DATA:
 	; S6.8: SHUTDOWN Command completed:
 	;
 	;   ___7______6______5______4______3______2______1______0__
-	;  |      |                    |                           |
-	;  |   1  |          7         |   Target device address   | YY_COMMAND
+	;  |                                  |                    |
+	;  |                0                 |          7         | YY_COMMAND
 	;  |______|______|______|______|______|______|______|______|
 	;  |      |      |      |      |                           |
 	;  |   0  |   0  |   0  |   0  |             2             | (not saved)
@@ -3281,10 +3326,14 @@ S6_8_DATA:
 	;
 	MOVLW	1
 	SUBWF	YY_BUF_IDX, W, ACCESS		; input bytes in packet
-	BC	$+4
+	BC	S6_8_VALID
 	GOTO	S6_KEEP_LOOKING			; input < 1? not done yet
-	BZ	$+4
+
+S6_8_VALID:
+	BZ	S6_8_SHUTDOWN
 	GOTO	ERR_COMMAND			; input > 1? too big: reject
+
+S6_8_SHUTDOWN:
 	LFSR	0, YY_BUFFER
 	MOVLW	0x58
 	CPFSEQ	INDF0, ACCESS
@@ -3301,8 +3350,8 @@ S6_9_DATA:
 	; S6.9: QUERY Command completed:
 	;
 	;   ___7______6______5______4______3______2______1______0__
-	;  |      |                    |                           |
-	;  |   1  |          7         |   Target device address   | YY_COMMAND
+	;  |                                  |                    |
+	;  |                0                 |          7         | YY_COMMAND
 	;  |______|______|______|______|______|______|______|______|
 	;  |      |      |      |      |                           |
 	;  |   0  |   0  |   0  |   0  |             3             | (not saved)
@@ -3318,10 +3367,14 @@ S6_9_DATA:
 	;
 	MOVLW	1
 	SUBWF	YY_BUF_IDX, W, ACCESS		; input bytes in packet
-	BC	$+4
+	BC	S6_9_VALID
 	GOTO	S6_KEEP_LOOKING			; input < 1? not done yet
-	BZ	$+4				; skip
+
+S6_9_VALID:
+	BZ	S6_9_QUERY
 	GOTO	ERR_COMMAND			; input > 1? too big: reject
+
+S6_9_QUERY:
 	LFSR	0, YY_BUFFER
 	MOVLW	0x24
 	CPFSEQ	INDF0, ACCESS
@@ -3458,8 +3511,8 @@ S6_10_DATA:
 	; S6.10: DEF_SENS Command completed:
 	;
 	;   ___7______6______5______4______3______2______1______0__
-	;  |      |                    |                           |
-	;  |   1  |          7         |   Target device address   | YY_COMMAND
+	;  |                                  |                    |
+	;  |                0                 |          7         | YY_COMMAND
 	;  |______|______|______|______|______|______|______|______|
 	;  |      |      |      |      |                           |
 	;  |   0  |   0  |   0  |   0  |             6             | (not saved)
@@ -3483,10 +3536,14 @@ S6_10_DATA:
 	;
 	MOVLW	4
 	SUBWF	YY_BUF_IDX, W, ACCESS		; input bytes in packet
-	BC	$+4
+	BC	S6_10_VALID
 	GOTO	S6_KEEP_LOOKING			; input < 4? not done yet
-	BZ	$+4
+
+S6_10_VALID:
+	BZ	S6_10_DEF_SENS
 	GOTO	ERR_COMMAND			; input > 4? too big: reject
+
+S6_10_DEF_SENS:
 	LFSR	0, YY_BUFFER
 	GOTO	ERR_NOT_IMP		; XXX
 	
@@ -3497,8 +3554,8 @@ S6_11_DATA:
 	; S6.11: CLR_SEQ Command completed:
 	;
 	;   ___7______6______5______4______3______2______1______0__
-	;  |      |                    |                           |
-	;  |   1  |          7         |   Target device address   | YY_COMMAND
+	;  |                                  |                    |
+	;  |                0                 |          7         | YY_COMMAND
 	;  |______|______|______|______|______|______|______|______|
 	;  |      |      |      |      |                           |
 	;  |   0  |   0  |   0  |   0  |             8             | (not saved)
@@ -3514,10 +3571,14 @@ S6_11_DATA:
 	;
 	MOVLW	1
 	SUBWF	YY_BUF_IDX, W, ACCESS		; input bytes in packet
-	BC	$+4
+	BC	S6_11_VALID
 	GOTO	S6_KEEP_LOOKING			; input < 1? not done yet
-	BZ	$+4
+
+S6_11_VALID:
+	BZ	S6_11_CLR_SEQ
 	GOTO	ERR_COMMAND			; input > 1? too big: reject
+
+S6_11_CLR_SEQ:
 	LFSR	0, YY_BUFFER
 	MOVLW	0x43
 	CPFSEQ	INDF0, ACCESS
@@ -3531,8 +3592,8 @@ S6_12_DATA:
 	; S6.12: DEF_SEQ Command completed:
 	;
 	;   ___7______6______5______4______3______2______1______0__
-	;  |      |                    |                           |
-	;  |   1  |          7         |   Target device address   | YY_COMMAND
+	;  |                                  |                    |
+	;  |                0                 |          7         | YY_COMMAND
 	;  |______|______|______|______|______|______|______|______|
 	;  |      |      |      |      |                           |
 	;  |   0  |   0  |   0  |   0  |             0             | (not saved)
@@ -3564,17 +3625,23 @@ S6_12_DATA:
 	; first, do we even have a full packet yet?
 	;
 	MOVF	YY_BUF_IDX, W, ACCESS
-	BNZ	$+4
+	BNZ	S6_12_VALID
 	GOTO	S6_KEEP_LOOKING			
+
+S6_12_VALID:
 	LFSR	0, YY_BUFFER
 	INCF	INDF0, W, ACCESS
 	INCF	WREG, W, ACCESS
 	INCF	WREG, W, ACCESS		; W = (N-1)+3 = size our packet must be
 	SUBWF	YY_BUF_IDX, W, ACCESS	; bytes read < W?
-	BC	$+4
+	BC	S6_12_VALID2
 	GOTO	S6_KEEP_LOOKING		; yes, keep reading more
-	BZ	$+4			; skip
+
+S6_12_VALID2:
+	BZ	S6_12_DEF_SEQ
 	GOTO	ERR_COMMAND		; if read too much, reject command
+
+S6_12_DEF_SEQ:
 	;
 	; next, test sentinel
 	;
@@ -3624,8 +3691,8 @@ S8_DATA:
 	; RAMP_LVL:
 	;
 	;   ___7______6______5______4______3______2______1______0__
-	;  |      |                    |                           |
-	;  |   1  |          4         |   Target device address   | YY_COMMAND
+	;  |                                  |                    |
+	;  |                0                 |          4         | YY_COMMAND
 	;  |______|______|______|______|______|______|______|______|
 	;  |NOT_MY|0=down|                                         |
 	;  | _SSR |1=up  |           Channel ID (0-23)             | TARGET_SSR
@@ -3683,8 +3750,8 @@ S9_DATA:
 	; State 9:  Extended command code received; decode further
 	;
 	;   ___7______6______5______4______3______2______1______0__
-	;  |      |                    |                           |
-	;  |   1  |          7         |   Target device address   | YY_COMMAND
+	;  |                                  |                    |
+	;  |                0                 |          7         | YY_COMMAND
 	;  |______|______|______|______|______|______|______|______|
 	;  |                                                       |
 	;  |               Extended Command Code                   | YY_DATA   
@@ -3829,10 +3896,12 @@ S9_PRIV_CMD:
 	;
 	; Anything from here down requires the privilege bit to be set.
 	;
-	BTFSS	SSR_STATE, PRIV_MODE, ACCESS
+	BTFSC	SSR_STATE, PRIV_MODE, ACCESS
+	BRA	S9_DO_PRIV_CMD
 	MOVLW	0x21
 	MOVWF	LAST_ERROR, ACCESS
 	GOTO	ERR_ABORT
+S9_DO_PRIV_CMD:
 	;
 	; decode which command this is
 	;
@@ -3850,8 +3919,8 @@ S9_PRIV_0:
 	; CF_NOPRV:
 	;
 	;   ___7______6______5______4______3______2______1______0__
-	;  |      |                    |                           |
-	;  |   1  |          7         |   Target device address   | YY_COMMAND
+	;  |                                  |                    |
+	;  |                0                 |          7         | YY_COMMAND
 	;  |______|______|______|______|______|______|______|______|
 	;  |      |      |      |                                  |
 	;  |   0  |   1  |   1  |   1  |             0             | YY_DATA
@@ -3907,8 +3976,8 @@ S9_PRIV_4:
 	; CF_XPRIV:
 	;
 	;   ___7______6______5______4______3______2______1______0__
-	;  |      |                    |                           |
-	;  |   1  |          7         |   Target device address   | YY_COMMAND
+	;  |                                  |                    |
+	;  |                0                 |          7         | YY_COMMAND
 	;  |______|______|______|______|______|______|______|______|
 	;  |      |      |      |                                  |
 	;  |   0  |   1  |   1  |   1  |             4             | YY_DATA
@@ -3945,8 +4014,8 @@ S10_DATA:
 	;  |SET   |      |      |      |    IC_TXDAT:   0          |
 	;  |MSB?  |   0  |   1  |   0  |    IC_TXSTA:   3          | YY_COMMAND 
 	;  |______|______|______|______|______|______|______|______|
-	;  |      |                                                |  
-	;  |   0  |         Bytes to transmit  (N)                 | YY_YY
+	;  |                                                       |  
+	;  |                Bytes to transmit  (N)                 | YY_YY
 	;  |______|______|______|______|______|______|______|______|
 	;  |      |                                                |
 	;  |   0  |                 Data byte #0                   | (not yet received)
@@ -4069,8 +4138,8 @@ S13_DATA:
 	; S13: IC_LED command received
 	;
 	;   ___7______6______5______4______3______2______1______0__
-	;  |      |                    |                           |
-	;  |   1  |          7         |             0             | YY_COMMAND
+	;  |                                  |                    |
+	;  |                0                 |          7         | YY_COMMAND
 	;  |______|______|______|______|______|______|______|______|
 	;  |      |      |      |      |                           |
 	;  |   0  |   0  |   1  |   0  |             1             | (not saved)
@@ -4159,8 +4228,8 @@ S15_DATA:
 	; S15: EXEC_SEQ: execute sequence
 	;
 	;   ___7______6______5______4______3______2______1______0__
-	;  |      |                    |                           |
-	;  |   1  |          7         |   Target device address   | YY_COMMAND
+	;  |                                  |                    |
+	;  |                0                 |          7         | YY_COMMAND
 	;  |______|______|______|______|______|______|______|______|
 	;  |      |      |      |      |                           |
 	;  |   0  |   0  |   0  |   0  |             5             | (not saved)
@@ -4178,8 +4247,8 @@ S16_DATA:
 	; S16: MSK_SENS command received
 	;
 	;   ___7______6______5______4______3______2______1______0__
-	;  |      |                    |                           |
-	;  |   1  |          7         |   Target device address   | YY_COMMAND
+	;  |                                  |                    |
+	;  |                0                 |          7         | YY_COMMAND
 	;  |______|______|______|______|______|______|______|______|
 	;  |      |      |      |      |                           |
 	;  |   0  |   0  |   0  |   0  |             7             | (not saved)
@@ -4275,12 +4344,13 @@ UPDATE_SSR_OUTPUTS:
 X 	SET	0
 	WHILE X <= SSR_MAX
 	 CPFSEQ	SSR_00_VALUE+#v(X), BANKED	; is this SSR set to our slice value?
-	 BRA	$+4
+	 BRA	UPDATE_SSR_SKIP_#v(X)
  	 IF X >= SSR_LIGHTS
 	  BSF	PLAT_#v(X), BIT_#v(X), ACCESS	; turn on light
  	 ELSE
 	  BCF	PLAT_#v(X), BIT_#v(X), ACCESS	; turn on SSR
  	 ENDIF
+UPDATE_SSR_SKIP_#v(X):
 X	 ++
 	ENDW
 	DECF	CUR_SLICE, F, ACCESS
@@ -4291,16 +4361,18 @@ UPDATE_MINIMUM_LEVEL:
 	; turn off every output that isn't set to be fully on
 	; and handle ramping up/down
 	;
+	BANKSEL	SSR_DATA_BANK
 	BSF	SSR_STATE2, ALL_OFF, ACCESS	
 X 	SET	0
 	WHILE X <= SSR_MAX
  	 COMF	SSR_00_VALUE+#v(X), W, BANKED	; is this set to maximum?
-	 BZ	$+4
+	 BZ	UPDATE_MIN_SKIP_#v(X)
   	 IF X >= SSR_LIGHTS
 	  BCF	PLAT_#v(X), BIT_#v(X), ACCESS	; turn off light
  	 ELSE
 	  BSF	PLAT_#v(X), BIT_#v(X), ACCESS	; turn off SSR
  	 ENDIF
+UPDATE_MIN_SKIP_#v(X):
 	 TSTFSZ	SSR_00_VALUE+#v(X), BANKED	; is this SSR fully off?
 	 BCF	SSR_STATE2, ALL_OFF, ACCESS	; no, ergo they aren't ALL off now. clear the flag
 
