@@ -40,7 +40,7 @@ import csv
 #========================================================================
 
 parser = OptionParser(usage="%prog [-hIMvz] -c config [-i input] -m map [-o output]", 
-  version='0.4a1', description='''
+  version='@@RELEASE@@', description='''
 This command converts (at least basic/simple) Vixen sequence files
 to Lumos sequence files.  This allows you to import your old sequences
 if converting to Vixen, or to simply use Vixen to edit your sequences
@@ -308,9 +308,13 @@ if options.verbose:
     print "Channel mapping:"
     print " VIXEN CHANNEL ID/NAME          ->          LUMOS CONTROLLER CHANNEL"
     for i, mapping in enumerate(channel_map):
-        print " # %2d %-25s -> %25s %3s" %(
-           i, vixen_data.channels[i].name,
-           mapping[0].id, mapping[1])
+        if mapping is None:
+            print " # %2d %-25s           <Not Mapped>" %(
+               i, vixen_data.channels[i].name)
+        else:
+            print " # %2d %-25s -> %25s %3s" %(
+               i, vixen_data.channels[i].name,
+               mapping[0].id, mapping[1])
 
 #
 # Having done that, verify that we mapped everything.
@@ -348,7 +352,12 @@ if vixen_data.audio_filename is not None:
 if options.zero:
     lumos_data.add(0, Event(None, None, 0, 0))
 
+dropped_events = 0
 for vixen_event in vixen_data.events:
+    if channel_map[vixen_event[1]] is None:
+        dropped_events += 1
+        continue
+
     lumos_data.add(vixen_event[0], Event(*(channel_map[vixen_event[1]] + 
         (((vixen_event[2] - vixen_data.min_val) * 100.0) / (vixen_data.max_val - vixen_data.min_val) , 0))))
 #
@@ -357,6 +366,10 @@ for vixen_event in vixen_data.events:
 if options.verbose:
     print "Writing Lumos sequence to", lumos_sequence_file.name
 lumos_data.save(lumos_sequence_file)
+
+if dropped_events:
+    print >>sys.stderr, "WARNING: Dropped %d event%s due to unmapped source channels!" % (
+        dropped_events, "s" if dropped_events != 1 else "")
 
 #
 # $Log: not supported by cvs2svn $

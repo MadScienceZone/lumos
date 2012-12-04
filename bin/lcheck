@@ -35,7 +35,7 @@ import sys
 # Command-line option processing
 #========================================================================
 
-parser = OptionParser(usage="%prog [-hv] config-files...", version='0.3a1')
+parser = OptionParser(usage="%prog [-hv] config-files...", version='@@RELEASE@@')
 parser.add_option('-v', '--verbose', action='store_true', help='Enable more descriptive output')
 (options, files) = parser.parse_args()
 
@@ -49,26 +49,26 @@ for file in files:
         print " Description:", s.description
         print "-" * 78
         print " POWER SOURCES:"
-    maxload = {}
+    maxload_W = {}
     unitnames = {}
     for sourceID in sorted(s.all_power_sources):
         source = s.all_power_sources[sourceID]
-        maxload[sourceID] = 0
-        if options.verbose: print "  %-10s %5gA" % (source.id, source.amps)
+        maxload_W[sourceID] = 0
+        if options.verbose: print "  %-10s %5gA %5gV %6dW" % (source.id, source.amps, source.volts, source.amps*source.volts)
 
     if options.verbose:
         print "-" * 78
         print " COMMUNICATIONS PARAMETERS"
-        print "  NETWRK PORT  SPEED BPSXR DESCRIPTION"
+        print "  NETWRK SPEED  BPSXR PORT       DESCRIPTION"
         for netID in sorted(s.networks):
             net = s.networks[netID]
             X=R='-'
             if net.xonxoff: X='X'
             if net.rtscts:  R='R'
             
-            print "  %-6s %4s %6d %d%s%d%s%s %s" %(
-                netID, net.port, net.baudrate, net.bits, net.parity[0],
-                net.stop, X, R, net.description)
+            print "  %-6s %6d %d%s%d%s%s %-10s %s" %(
+                netID, net.baudrate, net.bits, net.parity[0],
+                net.stop, X, R, net.port, net.description)
 
     if options.verbose:
         print "-" * 78
@@ -100,40 +100,43 @@ for file in files:
                     print "  %-8s %4s %-6s %4.2gA %s %3d%% %s" %(
                         unitID, chanID, channel_source.id, channel_power, D,
                         channel.pct_dimmer_value(channel.warm), channel.name)
-                maxload[channel_source.id] += channel_power
+                maxload_W[channel_source.id] += channel_power * channel_source.volts
     
     if options.verbose:
         print "-" * 78
         print " POWER LOAD SUMMARY:"
 
-    def trace_load_of(pso, maxload):
+
+    def trace_load_of(pso, maxload_W):
         ps = pso.id
-        psmax = maxload[ps]
-        total = psmax + sum([trace_load_of(ss, maxload) for ss in pso.subordinates])
+        pso_watts = pso.amps * pso.volts
+        psmax_W = maxload_W[ps]
+        total_W = psmax_W + sum([trace_load_of(ss, maxload_W) for ss in pso.subordinates])
         
         if options.verbose:
-            print "  {0:10s} Loaded to {1:3d}%".format(ps, int(total*100 // pso.amps))
+            print "  {0:10s} Loaded to {1:3d}%".format(ps, int(total_W*100 // pso_watts))
 
-        if total > pso.amps:
-            over = -(pso.amps - total)
-            print "*** WARNING *** {0} OVERLOADED BY {1} AMP{2} IF ALL CHANNELS ON!".format(
-                ps, over, "S" if over != 1 else "")
-        elif total == pso.amps:
+        if total_W > pso_watts:
+            over = -(pso_watts - total_W)
+            print "*** WARNING *** {0} OVERLOADED BY {1} AMP{2} ({3} WATT{4}) IF ALL CHANNELS ON!".format(
+                ps, over/pso.volts, "S" if (over/pso.volts) != 1 else "",
+                over, "S" if over != 1 else "")
+        elif total_W == pso_watts:
             print "*** WARNING *** {0} AT 100% LOAD CAPACITY IF ALL CHANNELS ON!".format(ps)
-        elif total/float(pso.amps) > 0.80:
+        elif total_W/float(pso_watts) > 0.80:
             print "*** WARNING *** {0} NEAR CAPACITY ({1:d}%)".format(
-                    ps, int(total*100 // pso.amps))
+                    ps, int(total_W*100 // pso_watts))
 
-        return total
+        return total_W
 
 
 
-    total=0
+    total_W=0
     for ps in sorted(s.top_power_sources):
-        total += trace_load_of(s.all_power_sources[ps], maxload)
+        total_W += trace_load_of(s.all_power_sources[ps], maxload_W)
 
     if options.verbose:
-        print "Total allocated load: {0} Amps".format(total)
+        print "Total allocated load: {0} Watts".format(total_W)
 
 
 #    for ps in sorted(s.all_power_sources):

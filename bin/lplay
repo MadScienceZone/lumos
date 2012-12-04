@@ -43,7 +43,7 @@ import pygame
 
 parser = OptionParser(
         usage="%prog [-hTv] [-c config] [-s skew] sequence-files...", 
-        version='0.6a1',
+        version='@@RELEASE@@',
         description='''\
 Plays one or more sequence files, with audio if the files include an 
 audio track.  Each sequence-file is played in the order specified. In
@@ -62,10 +62,11 @@ at the start of a loop iteration.
 '''
 )
 parser.add_option('-c', '--config',  metavar='FILE', help='Specify config file [./lumos.conf]')
+parser.add_output('-D', '--debug',   metavar='FILE', help='Dump debugging information to FILE')
 parser.add_option('-s', '--skew',    metavar='mS', type='int', help='Delay sequence times vs. audio')
 parser.add_option('-T', '--test',    action='store_true', help="Describe playback, don't actually do it")
 parser.add_option('-v', '--verbose', action='store_true', help='Enable more descriptive output')
-parser.set_defaults(config='lumos.conf', skew=0)
+parser.set_defaults(config='lumos.conf', skew=0, verbose=0)
 (options, files) = parser.parse_args()
 
 #========================================================================
@@ -125,6 +126,16 @@ if options.verbose:
     print "Lumos Sequence Player, version", parser.version
     print "Show:", show.title
     print "     ", show.description
+
+debug_file = None
+if options.debug:
+    debug_file = open(options.debug, 'a')
+    debug_file.write("==========[Lumos lplay debug trace {0}]==========\n".format(
+        time.ctime()))
+    for network_ID in show.networks:
+        show.networks[network_ID].set_verbose(debug_file)
+        debug_file.write("Tracing I/O for network {0} ({1})\n".format(
+            network_ID, show.networks[network_ID].description))
 
 pygame.mixer.pre_init(22050, -16, 2, 4096)
 pygame.mixer.init()
@@ -292,13 +303,13 @@ while file_next < len(files):
             # queue up event trace calls, paying as much runtime penalty
             # as possibe NOW instead of during playback
             print trace_event_header()
-            for time_stamp, method, arglist in sequence.compile(keep_state=True, skew=options.skew):
-                schedule.enter(time_stamp / 1000.0, 0, trace_event, 
+            for time_stamp, method, arglist, priority in sequence.compile(keep_state=True, skew=options.skew):
+                schedule.enter(time_stamp / 1000.0, priority, trace_event, 
                     (trace_event_format(time_stamp, method, arglist),))
             start_point = time.time()
         else:
-            for time_stamp, method, arglist in sequence.compile(keep_state=True, skew=options.skew):
-                schedule.enter(time_stamp / 1000.0, 0, method, arglist)
+            for time_stamp, method, arglist, priority in sequence.compile(keep_state=True, skew=options.skew):
+                schedule.enter(time_stamp / 1000.0, priority, method, arglist)
 
         if sequence.audio is not None:
             pygame.mixer.music.play()
@@ -310,6 +321,10 @@ while file_next < len(files):
 
 if options.verbose:
     print "Scene complete."
+
+if debug_file:
+    debug_file.write("----------[End Debugging Output: {0}]----------\n".format(time.ctime()))
+    debug_file.close()
 #
 # $Log: not supported by cvs2svn $
 # Revision 1.2  2008/12/30 22:58:02  steve

@@ -37,7 +37,7 @@ import sys, csv
 # Command-line option processing
 #========================================================================
 
-parser = OptionParser(usage="%prog [-hv] [-c config] [-P price] sequence-files...", version='0.5a1')
+parser = OptionParser(usage="%prog [-hv] [-c config] [-P price] sequence-files...", version='@@RELEASE@@')
 parser.add_option('-c', '--config',  metavar='FILE', help='Specify config file [%default]')
 parser.add_option('-P', '--price',   metavar='P',    type='float', help='Price per kWh for power')
 parser.add_option('-g', '--graph-data', metavar='FILE', help='Dump graphing data to CSV file')

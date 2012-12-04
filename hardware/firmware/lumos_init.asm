@@ -102,23 +102,23 @@ LUMOS_INIT:
 ;
 ; Interrupt Control
 ;
-	MOVLW	b'00010000'	;
+	MOVLW	b'00000000'	;
 		; 0-------	; High-priority interrupts OFF
 		; -0------	; Low-priority interrupts OFF
 		; --0-----	; TMR0 int enable OFF
-		; ---1----	; INT0 int enable ON
+		; ---0----	; INT0 int enable OFF
 		; ----0---	; PORTB int on change OFF
 		; -----0--	; TMR0 int flag CLEAR
 		; ------0-	; INT0 int flag CLEAR
 		; -------0	; PORTB int on change flag CLEAR
 	MOVWF	INTCON, ACCESS
-	MOVLW	b'10110000'
+	MOVLW	b'10110100'
 		; 1-------	; PORTB pull-up OFF
 		; -0------	; INT0 on falling edge
 		; --1-----	; INT1 on rising edge
 		; ---1----	; INT2 on rising edge
 		; ----X-X-	; N/A
-		; -----0--	; TMR0 = low priority
+		; -----1--	; TMR0 = high priority
 		; -------0	; PORTB IoC = low priority
 	MOVWF	INTCON2, ACCESS
 	MOVLW	b'00000000'
@@ -160,14 +160,14 @@ LUMOS_INIT:
 		; ------0-	; CAN RX buf 1 int OFF
 		; -------0	; CAN RX buf 0 int OFF
 	MOVWF	PIE3, ACCESS
-	MOVLW	b'00000000'
+	MOVLW	b'00000010'
 		; 0-------	; Parallel slave port R/W int = low priority
 		; -0------	; A/D converter int = low priority
 		; --0-----	; UART RX int = low priority
 		; ---0----	; UART TX int = low priority
 		; ----0---	; Syncronous port = low priority
 		; -----0--	; CCP1 int = low priority
-		; ------0-	; TMR2 int = low priority
+		; ------1-	; TMR2 int = high priority
 		; -------0	; TMR1 int = low priority
 	MOVWF	IPR1, ACCESS
 	MOVLW	b'00000000'

@@ -183,7 +183,7 @@ else:
                 rtscts=self.rtscts)
 
             if self.verbose:
-                self.verbose.write("Opened serial port {0} for {8} ({1} baud, {2} bits, {3}, {4} stop, xonxoff {5}, rtscts {6}) -> {7}\n".format(
+                self.verbose.write(time.ctime()+"Opened serial port {0} for {8} ({1} baud, {2} bits, {3}, {4} stop, xonxoff {5}, rtscts {6}) -> {7}\n".format(
                     self.port, self.baudrate, self.bits, self._parity, self.stop, self.xonxoff, self.rtscts, self.dev, self.description))
 
         def hexdump(self, data, addr=0, outdev=None):
@@ -221,7 +221,7 @@ else:
                 return None
 
             if self.verbose:
-                self.verbose.write("Sending to {0} (port {1}):\n".format(self.description, self.port))
+                self.verbose.write(time.ctime()+"Sending to {0} (port {1}):\n".format(self.description, self.port))
                 self.hexdump(cmd)
 
             return self.dev.write(cmd)
@@ -232,13 +232,13 @@ else:
             self.dev = None
 
             if self.verbose:
-                self.verbose.write("Closed port {1} for {0}.\n".format(self.description, self.port))
+                self.verbose.write(time.ctime()+"Closed port {1} for {0}.\n".format(self.description, self.port))
 
         def input_waiting(self):
             "Report if input was received and is waiting to be read.  Returns number of bytes waiting."
 
             if self.verbose:
-                self.verbose.write("{0}: check input_waiting() -> {1}\n".format(self.description, 0 if self.dev is None else self.dev.inWaiting()))
+                self.verbose.write(time.ctime()+"{0}: check input_waiting() -> {1}\n".format(self.description, 0 if self.dev is None else self.dev.inWaiting()))
 
             if self.dev is None:
                 return 0
@@ -254,7 +254,7 @@ else:
 
             if self.verbose:
                 ow = self.dev.outWaiting()
-                self.verbose.write("{0}: switching to receive mode ({1} byte{2} waiting to drain from output queue)\n".format(
+                self.verbose.write(time.ctime()+"{0}: switching to receive mode ({1} byte{2} waiting to drain from output queue)\n".format(
                     self.description, ow, '' if ow==1 else 's'))
 
             for max_wait in xrange(1000):
@@ -275,7 +275,7 @@ else:
                 raise DeviceNotReadyError('There is no serial device active.')
 
             if self.verbose:
-                self.verbose.write("{0}: switching to transmit mode (discarding pending input)\n".format(self.description))
+                self.verbose.write(time.ctime()+"{0}: switching to transmit mode (discarding pending input)\n".format(self.description))
 
             self.dev.flushInput()
             self._change_mode(1 if self.txlevel else 0)
@@ -285,28 +285,28 @@ else:
                 raise DeviceNotReadyError('There is no serial device active.')
 
             if self.verbose:
-                self.verbose.write("{0}: changing TX mode to {1}\n".format(self.description, 'ON' if newlevel else 'OFF'))
+                self.verbose.write(time.ctime()+"{0}: changing TX mode to {1}\n".format(self.description, 'ON' if newlevel else 'OFF'))
 
             if self.txdelay > 0:
                 if self.verbose:
-                    self.verbose.write("{0}: delaying {1} milliseconds before switching...\n".format(self.description, self.txdelay))
+                    self.verbose.write(time.ctime()+"{0}: delaying {1} milliseconds before switching...\n".format(self.description, self.txdelay))
 
                 time.sleep(self.txdelay / 1000.0)
 
             if self.txmode == 'dtr':
                 self.dev.setDTR(newlevel)
                 if self.verbose:
-                    self.verbose.write("{0}: DTR->{1}\n".format(self.description, newlevel))
+                    self.verbose.write(time.ctime()+"{0}: DTR->{1}\n".format(self.description, newlevel))
             elif self.txmode == 'rts':
                 self.dev.setRTS(newlevel)
                 if self.verbose:
-                    self.verbose.write("{0}: RTS->{1}\n".format(self.description, newlevel))
+                    self.verbose.write(time.ctime()+"{0}: RTS->{1}\n".format(self.description, newlevel))
             else:
                 raise ValueError('{0} is not a valid serial control line'.format(self.txmode))
 
             if self.txdelay > 0:
                 if self.verbose:
-                    self.verbose.write("{0}: delaying {1} milliseconds after switching...\n".format(self.description, self.txdelay))
+                    self.verbose.write(time.ctime()+"{0}: delaying {1} milliseconds after switching...\n".format(self.description, self.txdelay))
 
                 time.sleep(self.txdelay / 1000.0)
 
@@ -354,7 +354,7 @@ else:
                 raise DeviceNotReadyError("There is no active serial device to read from.")
 
             if self.verbose:
-                self.verbose.write("{0}: getting input (bytes={1}, mode_switch={2}, timeout={3}):\n".format(self.description, bytes, `mode_switch`, timeout))
+                self.verbose.write(time.ctime()+"{0}: getting input (bytes={1}, mode_switch={2}, timeout={3}):\n".format(self.description, bytes, `mode_switch`, timeout))
 
             self.dev.setTimeout(timeout)
             if mode_switch and self.txmode == 'half':
@@ -366,27 +366,27 @@ else:
                 if not bytes:
                     bytes = remaining_f(None)
                     if self.verbose:
-                        self.verbose.write("Trying initial read of {0} (computed)\n".format(bytes))
+                        self.verbose.write(time.ctime()+"Trying initial read of {0} (computed)\n".format(bytes))
             elif bytes:
                 if self.verbose:
-                    self.verbose.write("Trying initial read of {0} (specified)\n".format(bytes))
+                    self.verbose.write(time.ctime()+"Trying initial read of {0} (specified)\n".format(bytes))
                 buffer = self.dev.read(bytes)
                 if not buffer:
                     raise DeviceTimeoutError(buffer, 'Timeout ({0} sec) waiting for device to respond.'.format(timeout))
                 bytes = 0
                 if self.verbose:
-                    self.verbose.write("Read {0} byte{1}.\n".format(len(buffer), '' if len(buffer)==1 else 's'))
+                    self.verbose.write(time.ctime()+"Read {0} byte{1}.\n".format(len(buffer), '' if len(buffer)==1 else 's'))
             else:
                 raise APIUsageError("You must specify either bytes or remaining_f (or both) to input()")
 
             while bytes > 0:
                 if self.verbose:
-                    self.verbose.write("Reading {0} byte{1}...\n".format(bytes, '' if bytes == 1 else 's'))
+                    self.verbose.write(time.ctime()+"Reading {0} byte{1}...\n".format(bytes, '' if bytes == 1 else 's'))
 
                 r = self.dev.read(bytes)
                 if not r:
                     if self.verbose:
-                        self.verbose.write("ERROR: short read of {0} (expected {1}):\n".format(len(buffer), bytes))
+                        self.verbose.write(time.ctime()+"ERROR: short read of {0} (expected {1}):\n".format(len(buffer), bytes))
                         self.hexdump(buffer)
 
                     raise DeviceTimeoutError(buffer, 'Timeout ({0} sec) waiting for device to respond after receiving only {1} byte{2}.'.format(
@@ -394,10 +394,10 @@ else:
                 buffer += r
                 bytes = remaining_f(buffer)
                 if self.verbose:
-                    self.verbose.write("Read {0}, looking for {1} more...\n".format(len(buffer), bytes))
+                    self.verbose.write(time.ctime()+"Read {0}, looking for {1} more...\n".format(len(buffer), bytes))
 
             if self.verbose:
-                self.verbose.write("Input data received:\n")
+                self.verbose.write(time.ctime()+"Input data received:\n")
                 self.hexdump(buffer)
 
             if mode_switch and self.txmode == 'half':

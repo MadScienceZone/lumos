@@ -1,4 +1,4 @@
-RELEASE=0.5
+RELEASE=0.6
 DIRLIST=docs man Test lib/Lumos
 
 all: builddocs test
@@ -19,5 +19,5 @@ distclean: clean
 	rm -rf dist_bin
 
 dist: distclean builddocs
-	(mkdir -p dist_bin && cd bin && for file in *; do sed 's/^#@@REL@@//' < $$file > ../dist_bin/$$file; done)
+	(mkdir -p dist_bin && cd bin && for file in *; do sed -e 's/@@RELEASE@@/$(RELEASE)/g' -e 's/^#@@REL@@//' < $$file > ../dist_bin/$$file; done)
 	./setup.py sdist --formats=gztar,zip

@@ -52,7 +52,7 @@ class LumosControllerUnit (ControllerUnit):
         self.address = int(address)
         self.num_channels = num_channels
         self.type = 'Lumos {0}-Channel SSR Controller'.format(self.num_channels)
-        self.iter_channels = self._iter_non_null_channel_list
+        #self.iter_channels = self._iter_non_null_channel_list
         self._changed_channels = set()
         self._reset_queue()
 

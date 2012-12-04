@@ -56,6 +56,14 @@ class Network (object):
         self.description = self._str(description or 'Unnamed Network')
         self.units = {}
 
+    def set_verbose(self, fileobj):
+
+
+        This class does not support this operation, so this method is
+        just a place-holder.  Other Network-derived classes may define
+        this method."""
+        pass
+
     def add_unit(self, id, unit):
         "Add a new controller unit to the network."
         self.units[id] = unit

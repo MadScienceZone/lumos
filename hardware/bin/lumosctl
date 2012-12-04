@@ -181,7 +181,7 @@ def report_on(device):
     print "Device Type:              {0} ({1} channels)".format(device.hardware_type, device.channels)
     print "Config (privileged) mode: {0}".format('ON' if device.in_config_mode else 'OFF')
     print "Sleep mode:               {0}".format('ON' if device.in_sleep_mode else 'OFF')
-    print "Currently Executing:      {0}".format(status.current_sequence or 'Nothing')
+    print "Currently Executing:      {0}".format(device.current_sequence or 'Nothing')
     #print "Dimmer Resolution:        {0:4d} steps".format(device.config.resolution)
     print "EEPROM memory free:       {0:4d} bytes".format(device.eeprom_memory_free)
     print "RAM memory free:          {0:4d} bytes".format(device.ram_memory_free)
@@ -191,14 +191,14 @@ def report_on(device):
     if device.last_error2 is not None:
         print "Last fault (2nd CPU):     {0:2X}".format(device.last_error2)
 
-    if not device.dmx_start:
+    if not device.config.dmx_start:
         print "DMX Mode:                 OFF"
     else:
         print "DMX Mode:                 Channel #0-{0} is DMX #{1}-{2}, Control DMX #{3}".format(
                 device.channels - 1,
-                device.dmx_start,
-                device.dmx_start + device.channels - 1,
-                device.dmx_start + device.channels
+                device.config.dmx_start,
+                device.config.dmx_start + device.channels - 1,
+                device.config.dmx_start + device.channels
         )
         #      --------------------------------------------------------------------------------
 
@@ -206,11 +206,11 @@ def report_on(device):
     #    A     Yes     High  Yes    once   999 999 999
     #    B     No      Low   No     repeat
 
-    if not device.configured_sensors:
+    if not device.config.configured_sensors:
         print "No configured sensors."
     else:
         print "SENSORS  ENABLED LOGIC ACTIVE MODE   PRE TRG PST"
-        for sensor in device.configured_sensors:
+        for sensor in device.config.configured_sensors:
             print "   {0}     {1:3s}     {2:4s}  {3:3s}    {4:6s} {5:3d} {6:3d} {7:3d}".format(
                 sensor,
                 'Yes' if device.sensors[sensor].enabled else 'No',
@@ -393,13 +393,6 @@ def main():
     if options.verbose > 2:
         io.set_verbose(sys.stderr)
 
-    #target.raw_control('__reset__')
-    #target.kill_all_channels(force=True)
-    #target.set_channel(0, 127)
-    #target.flush()
-    #target.raw_control('noconfig')
-    #time.sleep(5)
-    #sys.exit(0)
     if options.probe:
         devices = probe(target)
     else:
@@ -526,7 +519,8 @@ def main():
     if options.load_sequence:
         raise NotImplementedError('the --load-sequence option is not yet implemented.  Use --load-compiled-sequence instead.')
 
-    for filename in options.load_compiled_sequence:
+    if options.load_compiled_sequence is not None:
+      for filename in options.load_compiled_sequence:
         #
         # file:
         # #{$<hexid>|<decid>}
@@ -594,6 +588,7 @@ def main():
                     parser.error("{0}: channel number {1} does not exist for this controller model (valid range is [0,{2}])".format(
                         action, start_chan + idx, status_cache.channels - 1))
                 target.set_channel(start_chan + idx, level)
+                target.flush()
 
         else:
             m = re.match(r'^\d+$', action)
@@ -604,6 +599,7 @@ def main():
                     parser.error("{0}: channel number {1} does not exist for this controller model (valid range is [0,{2}])".format(
                         action, channel, status_cache.channels - 1))
                 target.set_channel(channel, 255)
+                target.flush()
             else:
                 m = re.match(r'^(\d+)([ud])(:(\d+)(:(\d*\.\d+|\d+\.?)(s(ec(onds?)?)?)?)?)?$', action)
                 # <channel>u[:<steps>[:<delay>]]
@@ -611,10 +607,10 @@ def main():
                     channel = int(m.group(1))
                     steps = int(m.group(4) or 1)
                     if m.group(7):
-                        delay = int(float(m.group(4) * 120))
+                        delay = int(float((m.group(6) or 1) * 120))
                         trace(1, "Using {0}/120 sec for {1} sec".format(delay, m.group(4)))
                     else:
-                        delay = int(m.group(4))
+                        delay = int(m.group(6) or 1)
 
                     if not 1 <= steps <= 128:
                         parser.error("{0}: step value of {1} not in required range [1,128]".format(action, steps))
@@ -641,7 +637,7 @@ def main():
                         m = re.match(r'^p(\d*\.\d+|\d+\.?)(s(ec(onds?)?)?)?$', action)
                         if m:
                             wait_for = float(m.group(1))
-                            trace(1, "pausing {1} sec...".format(wait_for))
+                            trace(1, "pausing {0} sec...".format(wait_for))
                             time.sleep(wait_for)
                             trace(2, "resuming after pause")
                         else:

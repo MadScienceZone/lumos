@@ -1,294 +1,294 @@
->B 1000aaaa all channels off
->  1001aaaa 0scccccc           Set channel c off (s=0) or on (s=1)
->  1010aaaa 00cccccc 0vvvvvvv  Set channel c to level vvvvvvvv (0--127)
->  1010aaaa 0hcccccc 0vvvvvvv  Set channel c to level vvvvvvvvh (0--255)
->  1011aaaa 00cccccc 0nnnnnnn xn 01010101  Update channel c--(c+n+1) to level v (0-127)
->  1011aaaa 01cccccc 0nnnnnnn xn 01010110 0hhhhhhh x (n+1)/7 01010101  Update channel c--(c+n+1) to level hvvvvvv (0-255)
->  1100aaaa 0dcccccc 0sssssss 0ttttttt  Ramp (d: 0=dn, 1=up) in s+1 steps with (t+1)/120 sec/step
->  1101aaaa				Reserved 
->  1110aaaa				Reserved 
-AB>1111aaaa 00000000 01011010 01011010	Enter sleep mode
-AB>1111aaaa 00000001 01011010 01011010  Exit sleep mode
->B 1111aaaa 00000010 01011000 01011001  Shutdown device completely
- R 1111aaaa 00000011 00100100 01010100  Report device status
->  1111aaaa 00000100 0iiiiiii 0nnnnnnn ... 01000100 01110011  Define sequence i
-					   of length n; i=0 is boot sequence;
-					   i<64 permanently stored if possible
->  1111aaaa 00000101 0iiiiiii           Execute sequence i; i=0 to stop current
->  1111aaaa 00000110 0owm00ss 0iiiiiii 0ppppppp 0ttttttt 00111100
-					  Define sensor trigger when sensor(s)
-                                          ss: 00=a, 01=b, 10=c, 11=d;
-                                          m: 0=active low 1=active high
-					  activate (abcd 1=selected);
-					  i is played to initialize,
-					  p during the event,
-					  t at termination
-					  trigger once if o=1, else while
-					  sensor is high if w=1, else loop
-					  forever once activated; blocks
-					  other channel-setting commands if
-					  b=1  ## NO: USE COMMAND IN SEQ INSTEAD
->  1111aaaa 00000111 0000ABCD           Mask sensor triggers (1=enable, 0=dis)
->  1111aaaa 00001000 01000011 01000001  Clear all stored sequences 
->  1111aaaa 00001001                    Reserved non-admin extended command
-      :                                   :
->  1111aaaa 00011110                    Reserved non-admin extended command
->  1111aaaa 00011111                    Reserved for internal use
->  1111aaaa 001xxxxx                    Reserved for internal use
-PC>1111aaaa 010000pp 0ppppppp 01010000 01001111 set phase offset (0-511)
-PC>1111aaaa 0110aaaa 01001001 01000001 01000100 Set device address (0-15)
-BC>1111aaaa 01110000                            Disable configuration mode
-PC>1111aaaa 01110001 0ABCDdcc 0ccccccc 0r111010 00111101 Set configuration
-                       ABCD (0=outputs, 1=inputs)
-                       d (DMX512 0=off, 1=on; channel 0=DMX c+1)
-                       r (resolution 0=low, 1=high)
->C 1111aaaa 01110010 0bbbbbbb 00100110  Set baud rate
->C 1111aaaa 01110011 00100100 01110010  Restore factory settings       	XXX CHANGED XXX
- C 1111aaaa 01110100                    Reserved admin command
-      :                                   :
- C 1111aaaa 01111111                    Reserved admin command
-
-
-
-A - automatic
-B - broadcast
-C - configuration mode
-P - permanent change
-R - reply expected
-
-Status reply packet:
-1111aaaa 00011111 <data> 00110011
-<data>::=
-  0ABCDdcc 0ccccccc 0ABCDqsf 0ABCDrpp 0ppppppp 0eeeeee 0eeeeeee 0mmmmmmm 0mmmmmmm 0X0000ii 0xxxxxxx
-   \__/|\_________/  \__/|||  \__/|\_________/ \______________/  \______________/  |    \/ \______/
-   |   |     |         | |||    | |       |             |                 |        |     |     |
-sens   |     |         | |||    | |       |             |                 |        |     |     |
-DMX----+     |         | |||    | |       |             |                 |        |     |     |
-DMX channel--+         | |||    | |       |             |                 |        |     |     |
-sensor masks (1=en)----+ |||    | |       |             |                 |        |     |     |
-in admin/config mode now-+||    | |       |             |                 |        |     |     |
-sleep mode (s=1)----------+|    | |       |             |                 |        |     |     |
-last seq overfilled--------+    | |       |             |                 |        |     |     |
-Current sensor input states-----+ |       |             |                 |        |     |     |
-Resolution (1=high, 0=low)--------+       |             |                 |        |     |     |
-phase offset value------------------------+             |                 |        |     |     |
-EEPROM bytes free for sequences-------------------------+                 |        |     |     |
-RAM bytes free for sequences----------------------------------------------+        |     |     |
-A sequence is currently executing (1)----------------------------------------------+     |     |
-Device Model ID (00=48SSR, 01=24SSR-DC)--------------------------------------------------+     |
-Currently running sequence---------------------------------------------------------------------+
-   0owmxx00 0iiiiiii 0ppppppp 0ttttttt 	sensor config for A
-   0owmxx01 0iiiiiii 0ppppppp 0ttttttt 	sensor config for B
-   0owmxx10 0iiiiiii 0ppppppp 0ttttttt 	sensor config for C
-   0owmxx11 0iiiiiii 0ppppppp 0ttttttt 	sensor config for D
-
-
-SEQUENCE DATA
-EXECUTION MODEL
-
-Call/return stack	xx levels of exec index bytes with pointer
-Parameter stack		??
-Loop frame stack	xx levels of counter variables
-Registers		4 registers available
-
-TRANSMITTED				SOURCE			COMPILED
-
-00000000				exit
-0ri00001 0scccccc			channel <c> on|off	
-0ri00010 0vcccccc 0vvvvvvv		channel <c> <v>[%]
-00000011				// bulk??
-0ri00100 0dcccccc 0sssssss 0ttttttt	ramp up|down <c> [by <s+1>] [per <t+1>]
-00000101				// reserved
-00000110				// reserved
-00000111				sleep
-00001000				wake
-00i01001 0iiiiiii            		execute <i>
-00i01010 0iiiiiii p0 p1 p2 p3		execute <i> (p0, ... pn)
-00i01011 0iiiiiii			call <i>
-00i01100 0iiiiiii p0 p1 p2 p3      	call <i> (p0, ..., pn)
-0ri01101 0ttttttt			wait <t+1>   // 1/120 sec
-0ri01110 0sssssss 			for <var>=<start> to <end> [by <step>]: 
-0ri01111 0sssssss 0eeeeeee 0aaaaaaaa	... end
-00010000 0n00ABCD 0aaaaaaa		if|unless sensor a|b|c|d [or a|b|c|d ...]: ... end
-0ri10000 0nOO0--- 0aaaaaaa              if|unless <var|param|const> {<|>|=} <var|param|cons>: ... end  OO=01< 10> 11=
-00010000 0n111--- 0aaaaaaa              if|unless suspended
-00010001				blackout
-0f010100				suspend [with update]  	// stop executing incoming commands; save current state of SSRs; continue updating saved state if f=1; ignored if already on
-0f010101				resume [with fade]	// executing incoming commands, restore saved state; fade through black if f=1; ignored if already resumed
-
-					NO SOURCE; OPCODES GENERATED BY COMPILER
-
-00010010 0aaaaaaa			branch <bytes>
-00010011 0000wxyz			clear register(s) w|x|y|z
-00010011 0oo000rr 0vvvvvvv		oo immediate v -> reg rr     oo: 00=load 01=add 10=sub 11=mul
-01110011 0ookkkrr 			oo loop ctr kkk -> reg rr
-00110011 0ookkkrr 			oo param kkk -> reg rr
-
-
-
-					PSEUDO-OPS
-
-        				repeat [<n>] [as <var>]: ... end   -->   for <var>=1 to <n>:   repeat:  == forever
-					sequence <i> [(p0, ..., pn)]: ... end
-					break <loop idx>
-					continue <loop idx>
-					label:
-                                        
-a = address of target instruction (absolute byte position within sequence):
-c = channel number
-i = 0=immediate args, 1=use register(s)
-r = 0=absolute channel, 1=add current loop ctr
-s = 0=off, 1=on
-
-
-// Sequence 1 - ramp up all channels to full brightness
-sequence 1:				
-	for x=0 to 24:			00: 0E 00
-		ramp up x by 2		02: 44 00 01 00
-		wait 60			06: 0D 3B
-	end 				08: 0F 00 17 02
-end					0C: 00
-
-
-To program this into controller #0, send:
-F0 04 01 0D 0E 00 44 00 01 00 0D 3B 0F 00 17 02 00 44 73
-
-To execute it on controller #0, send:
-F0 05 01
-
-
-sensor input A triggers sequence 2 when started, then 3 when ended
-sensor input B triggers sequence 4 when started, then 5 when ended.
-
-None of these (3, 5) fire when either sensor is still active, though.
-sequence 2:
-	unless suspended:			10 78 15
-		suspend with updates		54
-		for c=0 to 21 by 3:		0E 00
-			ramp up c+0 by 2	44 00 01 00
-			ramp up c+1 by 2	44 01 01 00
-			ramp up c+2 by 2	44 02 01 00
-			wait 60			0D 3B
-		end				0F 00 15 11
-	end					
-end						00
-
-sequence 3:
-	if suspended:				
-		for c=21 to 0 by 3:		
-			ramp down c+0 by 2
-			ramp down c+1 by 2
-			ramp down c+2 by 2
-		end
-		resume with fade
-	end
-end
-
-sequence 4:
-	if not suspended:
-		suspend with updates
-		for c=21 to 0 by 3:
-			ramp up c+0 by 2
-			ramp up c+1 by 2
-			ramp up c+2 by 2
-			wait 60
-		end
-	end
-end
-
-sequence 5:
-	if suspended:
-		for c=0 to 21 by 3:
-			ramp down c+0 by 2
-			ramp down c+1 by 2
-			ramp down c+2 by 2
-		end
-		resume with fade
-	end
-end
-	
-
-
-transmitted           source            compiled
-00000000              kill		11111100 		all off
-0r000001 x	      set c [on/off]	0scccccc		set on/off
-0r000010 x x 	      set c x%		10cccccc vvvvvvvv	set value
-0r000011 ...	      set ...		11111000 nnnnnnnn v+    set bulk
-0r000100 x x x	      fade x x x	11111001 x x x          ramp         r=0 absolute channel #; r=1 added to "for" loop index
-00000101 
-00000110
-00000111              sleep		11110000		sleep
-00001000	      wake		11110001		wake
-00001001 i	      run i		11110010 i		exec i
-00001010 n	      repeat n:		11110011 n s C		rept n -s
-00001011 i	      call i		11110100 i		call i
-00001100 x y s        end (for)         11110101 x y s          loop +x to y -s
-00001101 00obABCD s   if ...		11110110 f s		if f -s
-00001110 m	      wait m		11110111 m		wait m/120 sec
-00001111 	      stop		11111111		exit
-00010000 x	      for chan x:y[:s]	11111010 x		set c=x
-
-
-blackout
-set [+]c on|off|x% [, ...]
-fade [+]c up|down steps time
-sleep
-wake
-goto i
-call i
-repeat [n [times]]: ... end
-for start to end [by step]: ... end
-if [not] input A|B|C|D: ... end
-stop
-
-for 0 to 21 by 3:
-   fade +0 up 4 1 	// +0 means loop channel + offset  XXX make that a flag in the command
-   fade +1 up 4 1
-   fade +2 up 4 1
-   wait 0.25
-end
-
-compiles to:
-
-HEX
-10 00		FOR 0 to 23 by 3:
-44 40 03 00     FADE UP ch+0 4 1
-44 41 03 00     FADE UP ch+1 4 1
-44 42 03 00     FADE UP ch+2 4 1
-0E 1E		WAIT 30/120 sec
-0C 03 15 14     END FOR (Skip back -0x14 bytes to start of loop)
-
-Sent by: (if sequence #1 on unit #0)
-
-F0 04 01 14 10 00 44 40 03 00 44 41 03 00 44 42 03 00 0E 1E 0C 03 15 14 44 73
-defsq #1 len 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F 10 11 12 13 sent.
-            <-----------------------payload---------------------------> <--->
-
-for 21 to 0 by 3:
-   fade +0 up 4 1 	// +0 means loop channel + offset  XXX make that a flag in the command
-   fade +1 up 4 1
-   fade +2 up 4 1
-   wait 0.25
-end
-
-10 15
-44 00 03 00
-44 01 03 00
-44 02 03 00
-0E 1E
-0C 03 00 14
-
-
-
-
-
-%
-% vi:set ts=8 sw=8 ai sm wm=3:
-% Lumos 48-Channel SSR Controller 
-% Assembly Notes
-% Steve Willoughby
+%%>B 1000aaaa all channels off
+%%>  1001aaaa 0scccccc           Set channel c off (s=0) or on (s=1)
+%%>  1010aaaa 00cccccc 0vvvvvvv  Set channel c to level vvvvvvvv (0--127)
+%%>  1010aaaa 0hcccccc 0vvvvvvv  Set channel c to level vvvvvvvvh (0--255)
+%%>  1011aaaa 00cccccc 0nnnnnnn xn 01010101  Update channel c--(c+n+1) to level v (0-127)
+%%>  1011aaaa 01cccccc 0nnnnnnn xn 01010110 0hhhhhhh x (n+1)/7 01010101  Update channel c--(c+n+1) to level hvvvvvv (0-255)
+%%>  1100aaaa 0dcccccc 0sssssss 0ttttttt  Ramp (d: 0=dn, 1=up) in s+1 steps with (t+1)/120 sec/step
+%%>  1101aaaa				Reserved 
+%%>  1110aaaa				Reserved 
+%%AB>1111aaaa 00000000 01011010 01011010	Enter sleep mode
+%%AB>1111aaaa 00000001 01011010 01011010  Exit sleep mode
+%%>B 1111aaaa 00000010 01011000 01011001  Shutdown device completely
+% %R 1111aaaa 00000011 00100100 01010100  Report device status
+%%>  1111aaaa 00000100 0iiiiiii 0nnnnnnn ... 01000100 01110011  Define sequence i
+%					   %of length n; i=0 is boot sequence;
+%					   %i<64 permanently stored if possible
+%%>  1111aaaa 00000101 0iiiiiii           Execute sequence i; i=0 to stop current
+%%>  1111aaaa 00000110 0owm00ss 0iiiiiii 0ppppppp 0ttttttt 00111100
+%					  %Define sensor trigger when sensor(s)
+%                                          %ss: 00=a, 01=b, 10=c, 11=d;
+%                                          %m: 0=active low 1=active high
+%					  %activate (abcd 1=selected);
+%					  %i is played to initialize,
+%					  %p during the event,
+%					  %t at termination
+%					  %trigger once if o=1, else while
+%					  %sensor is high if w=1, else loop
+%					  %forever once activated; blocks
+%					  %other channel-setting commands if
+%					  %b=1  ## NO: USE COMMAND IN SEQ INSTEAD
+%%>  1111aaaa 00000111 0000ABCD           Mask sensor triggers (1=enable, 0=dis)
+%%>  1111aaaa 00001000 01000011 01000001  Clear all stored sequences 
+%%>  1111aaaa 00001001                    Reserved non-admin extended command
+%      %:                                   :
+%%>  1111aaaa 00011110                    Reserved non-admin extended command
+%>  1111aaaa 00011111                    Reserved for internal use
+%>  1111aaaa 001xxxxx                    Reserved for internal use
+%PC>1111aaaa 010000pp 0ppppppp 01010000 01001111 set phase offset (0-511)
+%PC>1111aaaa 0110aaaa 01001001 01000001 01000100 Set device address (0-15)
+%BC>1111aaaa 01110000                            Disable configuration mode
+%PC>1111aaaa 01110001 0ABCDdcc 0ccccccc 0r111010 00111101 Set configuration
+%                       ABCD (0=outputs, 1=inputs)
+%                       d (DMX512 0=off, 1=on; channel 0=DMX c+1)
+%                       r (resolution 0=low, 1=high)
+%>C 1111aaaa 01110010 0bbbbbbb 00100110  Set baud rate
+%>C 1111aaaa 01110011 00100100 01110010  Restore factory settings       	XXX CHANGED XXX
+% C 1111aaaa 01110100                    Reserved admin command
+%      :                                   :
+% C 1111aaaa 01111111                    Reserved admin command
 %
 %
+%
+%A - automatic
+%B - broadcast
+%C - configuration mode
+%P - permanent change
+%R - reply expected
+%
+%Status reply packet:
+%1111aaaa 00011111 <data> 00110011
+%<data>::=
+%  0ABCDdcc 0ccccccc 0ABCDqsf 0ABCDrpp 0ppppppp 0eeeeee 0eeeeeee 0mmmmmmm 0mmmmmmm 0X0000ii 0xxxxxxx
+%   \__/|\_________/  \__/|||  \__/|\_________/ \______________/  \______________/  |    \/ \______/
+%   |   |     |         | |||    | |       |             |                 |        |     |     |
+%sens   |     |         | |||    | |       |             |                 |        |     |     |
+%DMX----+     |         | |||    | |       |             |                 |        |     |     |
+%DMX channel--+         | |||    | |       |             |                 |        |     |     |
+%sensor masks (1=en)----+ |||    | |       |             |                 |        |     |     |
+%in admin/config mode now-+||    | |       |             |                 |        |     |     |
+%sleep mode (s=1)----------+|    | |       |             |                 |        |     |     |
+%last seq overfilled--------+    | |       |             |                 |        |     |     |
+%Current sensor input states-----+ |       |             |                 |        |     |     |
+%Resolution (1=high, 0=low)--------+       |             |                 |        |     |     |
+%phase offset value------------------------+             |                 |        |     |     |
+%EEPROM bytes free for sequences-------------------------+                 |        |     |     |
+%RAM bytes free for sequences----------------------------------------------+        |     |     |
+%A sequence is currently executing (1)----------------------------------------------+     |     |
+%Device Model ID (00=48SSR, 01=24SSR-DC)--------------------------------------------------+     |
+%Currently running sequence---------------------------------------------------------------------+
+%   0owmxx00 0iiiiiii 0ppppppp 0ttttttt 	sensor config for A
+%   0owmxx01 0iiiiiii 0ppppppp 0ttttttt 	sensor config for B
+%   0owmxx10 0iiiiiii 0ppppppp 0ttttttt 	sensor config for C
+%   0owmxx11 0iiiiiii 0ppppppp 0ttttttt 	sensor config for D
+%
+%
+%SEQUENCE DATA
+%EXECUTION MODEL
+%
+%Call/return stack	xx levels of exec index bytes with pointer
+%Parameter stack		??
+%Loop frame stack	xx levels of counter variables
+%Registers		4 registers available
+%
+%TRANSMITTED				SOURCE			COMPILED
+%
+%00000000				exit
+%0ri00001 0scccccc			channel <c> on|off	
+%0ri00010 0vcccccc 0vvvvvvv		channel <c> <v>[%]
+%00000011				// bulk??
+%0ri00100 0dcccccc 0sssssss 0ttttttt	ramp up|down <c> [by <s+1>] [per <t+1>]
+%00000101				// reserved
+%00000110				// reserved
+%00000111				sleep
+%00001000				wake
+%00i01001 0iiiiiii            		execute <i>
+%00i01010 0iiiiiii p0 p1 p2 p3		execute <i> (p0, ... pn)
+%00i01011 0iiiiiii			call <i>
+%00i01100 0iiiiiii p0 p1 p2 p3      	call <i> (p0, ..., pn)
+%0ri01101 0ttttttt			wait <t+1>   // 1/120 sec
+%0ri01110 0sssssss 			for <var>=<start> to <end> [by <step>]: 
+%0ri01111 0sssssss 0eeeeeee 0aaaaaaaa	... end
+%00010000 0n00ABCD 0aaaaaaa		if|unless sensor a|b|c|d [or a|b|c|d ...]: ... end
+%0ri10000 0nOO0--- 0aaaaaaa              if|unless <var|param|const> {<|>|=} <var|param|cons>: ... end  OO=01< 10> 11=
+%00010000 0n111--- 0aaaaaaa              if|unless suspended
+%00010001				blackout
+%0f010100				suspend [with update]  	// stop executing incoming commands; save current state of SSRs; continue updating saved state if f=1; ignored if already on
+%0f010101				resume [with fade]	// executing incoming commands, restore saved state; fade through black if f=1; ignored if already resumed
+%
+%					NO SOURCE; OPCODES GENERATED BY COMPILER
+%
+%00010010 0aaaaaaa			branch <bytes>
+%00010011 0000wxyz			clear register(s) w|x|y|z
+%00010011 0oo000rr 0vvvvvvv		oo immediate v -> reg rr     oo: 00=load 01=add 10=sub 11=mul
+%01110011 0ookkkrr 			oo loop ctr kkk -> reg rr
+%00110011 0ookkkrr 			oo param kkk -> reg rr
+%
+%
+%
+%					PSEUDO-OPS
+%
+%        				repeat [<n>] [as <var>]: ... end   -->   for <var>=1 to <n>:   repeat:  == forever
+%					sequence <i> [(p0, ..., pn)]: ... end
+%					break <loop idx>
+%					continue <loop idx>
+%					label:
+%                                        
+%a = address of target instruction (absolute byte position within sequence):
+%c = channel number
+%i = 0=immediate args, 1=use register(s)
+%r = 0=absolute channel, 1=add current loop ctr
+%s = 0=off, 1=on
+%
+%
+%// Sequence 1 - ramp up all channels to full brightness
+%sequence 1:				
+%	for x=0 to 24:			00: 0E 00
+%		ramp up x by 2		02: 44 00 01 00
+%		wait 60			06: 0D 3B
+%	end 				08: 0F 00 17 02
+%end					0C: 00
+%
+%
+%To program this into controller #0, send:
+%F0 04 01 0D 0E 00 44 00 01 00 0D 3B 0F 00 17 02 00 44 73
+%
+%To execute it on controller #0, send:
+%F0 05 01
+%
+%
+%sensor input A triggers sequence 2 when started, then 3 when ended
+%sensor input B triggers sequence 4 when started, then 5 when ended.
+%
+%None of these (3, 5) fire when either sensor is still active, though.
+%sequence 2:
+%	unless suspended:			10 78 15
+%		suspend with updates		54
+%		for c=0 to 21 by 3:		0E 00
+%			ramp up c+0 by 2	44 00 01 00
+%			ramp up c+1 by 2	44 01 01 00
+%			ramp up c+2 by 2	44 02 01 00
+%			wait 60			0D 3B
+%		end				0F 00 15 11
+%	end					
+%end						00
+%
+%sequence 3:
+%	if suspended:				
+%		for c=21 to 0 by 3:		
+%			ramp down c+0 by 2
+%			ramp down c+1 by 2
+%			ramp down c+2 by 2
+%		end
+%		resume with fade
+%	end
+%end
+%
+%sequence 4:
+%	if not suspended:
+%		suspend with updates
+%		for c=21 to 0 by 3:
+%			ramp up c+0 by 2
+%			ramp up c+1 by 2
+%			ramp up c+2 by 2
+%			wait 60
+%		end
+%	end
+%end
+%
+%sequence 5:
+%	if suspended:
+%		for c=0 to 21 by 3:
+%			ramp down c+0 by 2
+%			ramp down c+1 by 2
+%			ramp down c+2 by 2
+%		end
+%		resume with fade
+%	end
+%end
+%	
+%
+%
+%transmitted           source            compiled
+%00000000              kill		11111100 		all off
+%0r000001 x	      set c [on/off]	0scccccc		set on/off
+%0r000010 x x 	      set c x%		10cccccc vvvvvvvv	set value
+%0r000011 ...	      set ...		11111000 nnnnnnnn v+    set bulk
+%0r000100 x x x	      fade x x x	11111001 x x x          ramp         r=0 absolute channel #; r=1 added to "for" loop index
+%00000101 
+%00000110
+%00000111              sleep		11110000		sleep
+%00001000	      wake		11110001		wake
+%00001001 i	      run i		11110010 i		exec i
+%00001010 n	      repeat n:		11110011 n s C		rept n -s
+%00001011 i	      call i		11110100 i		call i
+%00001100 x y s        end (for)         11110101 x y s          loop +x to y -s
+%00001101 00obABCD s   if ...		11110110 f s		if f -s
+%00001110 m	      wait m		11110111 m		wait m/120 sec
+%00001111 	      stop		11111111		exit
+%00010000 x	      for chan x:y[:s]	11111010 x		set c=x
+%
+%
+%blackout
+%set [+]c on|off|x% [, ...]
+%fade [+]c up|down steps time
+%sleep
+%wake
+%goto i
+%call i
+%repeat [n [times]]: ... end
+%for start to end [by step]: ... end
+%if [not] input A|B|C|D: ... end
+%stop
+%
+%for 0 to 21 by 3:
+%   fade +0 up 4 1 	// +0 means loop channel + offset  XXX make that a flag in the command
+%   fade +1 up 4 1
+%   fade +2 up 4 1
+%   wait 0.25
+%end
+%
+%compiles to:
+%
+%HEX
+%10 00		FOR 0 to 23 by 3:
+%44 40 03 00     FADE UP ch+0 4 1
+%44 41 03 00     FADE UP ch+1 4 1
+%44 42 03 00     FADE UP ch+2 4 1
+%0E 1E		WAIT 30/120 sec
+%0C 03 15 14     END FOR (Skip back -0x14 bytes to start of loop)
+%
+%Sent by: (if sequence #1 on unit #0)
+%
+%F0 04 01 14 10 00 44 40 03 00 44 41 03 00 44 42 03 00 0E 1E 0C 03 15 14 44 73
+%defsq #1 len 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F 10 11 12 13 sent.
+%            <-----------------------payload---------------------------> <--->
+%
+%for 21 to 0 by 3:
+%   fade +0 up 4 1 	// +0 means loop channel + offset  XXX make that a flag in the command
+%   fade +1 up 4 1
+%   fade +2 up 4 1
+%   wait 0.25
+%end
+%
+%10 15
+%44 00 03 00
+%44 01 03 00
+%44 02 03 00
+%0E 1E
+%0C 03 00 14
+%
+%
+%
+%
+%
+%%
+%% vi:set ts=8 sw=8 ai sm wm=3:
+%% Lumos 48-Channel SSR Controller 
+%% Assembly Notes
+%% Steve Willoughby
+%%
+%%
 \documentclass[12pt]{article}
 \hyphenation{EEPROM}
 \newcommand\mc[1]{{\small #1}}

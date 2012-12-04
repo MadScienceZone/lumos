@@ -261,11 +261,15 @@ class Sequence (object):
         '''Compile the sequence into a ready-to-execute list of
         device updates.  This will return a list of discrete,
         device-specific updates in the form:
-            [(timestamp, method, arglist), ...]
+            [(timestamp, method, arglist, priority), ...]
         To play the sequence on the actual hardware, all you
         need to do at that point is to make each method call:
             method(*arglist)
         when <timestamp> milliseconds have elapsed.
+
+        If priority is given, give this event priority over the
+        others.  The lower the number, the more urgent the event.
+        The default is 5.
 
         This will resolve all the high-level concepts from the
         Event/Sequence model into low-level actions by the hardware
@@ -307,12 +311,14 @@ class Sequence (object):
         ev_list = []
 
         for timestamp in sorted(self._event_list):
+            flush_set = set()
             for event in self._event_list[timestamp]:
                 unit_list = [event.unit] if event.unit is not None else [i['obj'] for i in self._controllers]
                 for target_unit in unit_list:
+                    flush_set.add(target_unit)
                     channel_list = [event.channel] if event.channel is not None else sorted(target_unit.iter_channels())
                     if event.channel is None and event.level == 0 and event.delta == 0:
-                        ev_list.append((timestamp+skew, target_unit.all_channels_off, ()))
+                        ev_list.append((timestamp+skew, target_unit.all_channels_off, (), 1))
                     else:
                         for channel in channel_list:
                             if target_unit.channels[channel] is None:
@@ -325,30 +331,31 @@ class Sequence (object):
 
                             if event.delta == 0:
                                 if start_raw_value != end_raw_value or force:
-                                    ev_list.append((timestamp+skew, target_unit.set_channel, (channel, end_raw_value, force)))
+                                    ev_list.append((timestamp+skew, target_unit.set_channel, (channel, end_raw_value, force), 1))
                             else:
                                 fade_steps = abs(start_raw_value - end_raw_value)
                                 fade_incr = 1 if start_raw_value < end_raw_value else -1
 
                                 if fade_steps == 1:
                                     ev_list.append((timestamp + skew + event.delta, target_unit.set_channel,
-                                        (channel, end_raw_value, force)))
+                                        (channel, end_raw_value, force), 1))
 
                                 elif fade_steps > 1:
                                     for i in range(fade_steps):
                                         ev_list.append((timestamp + skew + ((event.delta * i) / (fade_steps - 1)),
                                             target_unit.set_channel,
-                                            (channel, start_raw_value + (fade_incr * (i + 1)), force)))
+                                            (channel, start_raw_value + (fade_incr * (i + 1)), force), 1))
 
                                 elif force:
-                                    ev_list.append((timestamp + skew, target_unit.set_channel, (channel, end_raw_value), force))
+                                    ev_list.append((timestamp + skew, target_unit.set_channel, (channel, end_raw_value, force), 1))
 
 
                     for channel in channel_list:
                         if target_unit.channels[channel] is None:
                             continue
                         self.current_state[(target_unit.id,channel)] = target_unit.channels[channel].raw_dimmer_value(event.level)
-
+            for controller in flush_set:
+                ev_list.append((timestamp + skew, controller.flush, (), 2))
         return ev_list
 
             # [(2000*i)/13 for i in range(14)]

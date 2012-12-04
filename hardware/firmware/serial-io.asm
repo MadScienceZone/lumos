@@ -465,7 +465,7 @@ SPIN_FOR_BUF_DRAIN:
 	MOVF	TX_BUF_START, W, BANKED		; Next check for START==END
 	CPFSEQ	TX_BUF_END, BANKED
 	BRA	WRITE_OK			; START != END, so we're good.
-	BRA	SPIN_FOR_BUF_DRAIN		; loop back until buffer not empty
+	BRA	SPIN_FOR_BUF_DRAIN		; loop back until buffer not full
 
 SIO_WRITE:
 	BANKSEL	SIO_DATA_START

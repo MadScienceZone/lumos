@@ -38,12 +38,15 @@ class PowerSource (object):
     def __init__(self, id, amps=0, volts=120):
         """
         Constructor for the PowerSource class:
-            PowerSource([amps])
+            PowerSource([amps], [volts])
         
         amps: The current rating AVAILABLE TO US from this power source
         (i.e., if there is anything else on that circuit, subtract its
         load from the circuit capacity first, so this number reflects the
         total number of amps that we can pull at any given time.)
+
+        volts: The number of volts supplied here.  The amount of power
+        will be adjusted based on this voltage.
         """
         self.id = id
         self.subordinates = []

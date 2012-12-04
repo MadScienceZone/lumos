@@ -24,7 +24,7 @@ import sys, re, sched, time
 # commands:
 #  [<unit>|*][.<channel>|*][=<value>[/msec] | ? | k]
 #  
-parser = OptionParser(usage="%prog [-hfTv] [-c config] [commands...]", version='0.4a2')
+parser = OptionParser(usage="%prog [-hfTv] [-c config] [commands...]", version='@@RELEASE@@')
 parser.add_option('-c', '--config',  metavar='FILE', help='Specify config file [./lumos.conf]')
 parser.add_option('-f', '--force',   action='store_true', help='Force output to device')
 parser.add_option('-T', '--test',    action='store_true', help="Describe actions, don't actually do them")
@@ -114,7 +114,7 @@ def do_command(command):
     #       the transition should take place.
     #     :k
     #       kill channel (may be different from "=0" for some kinds 
-    #       of devices.  Kills power even if a "warm" configuration
+    #       of devices).  Kills power even if a "warm" configuration
     #       specifies a minimum value, which is different from "=0".
     #     :p
     #       print the current state of the channel(s).

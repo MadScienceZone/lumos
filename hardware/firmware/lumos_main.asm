@@ -1,4 +1,12 @@
 ; vim:set syntax=pic ts=8:
+; timeer setup
+;
+; XXX do i need to set RCON bits a power-up?
+; boot 1024 words
+; tmr1 lp
+; wdt=1:1024 (~4s?)
+; no failsafe clk monitor or osc switchover
+;
 ; DONE, but mostly left intact (hard to get around need due to length of branches)
 ;        refactor this:
 ;	SUBWF	YY_BUF_IDX, W, ACCESS		; input bytes in packet
@@ -22,13 +30,16 @@
 ; DONE green LED different based on priv mode
 ; XXX ERR_COMMAND light should have limited lifetime
 ; XXX use BTG to toggle bits
+; XXX cease transmission if more data received
+; XXX halts after sending QUERY response packet
 ; DONE add inhibit privileged mode command
 ;
 		LIST n=90
 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ;@@                                                                         @@
 ;@@ @      @   @  @   @   @@@    @@@          LUMOS: LIGHT ORCHESTRATION    @@
-;@@ @      @   @  @@ @@  @   @  @   @         SYSTEM FIRMWARE VERSION 3.0   @@ ;@@ @      @   @  @ @ @  @   @  @                                           @@
+;@@ @      @   @  @@ @@  @   @  @   @         SYSTEM FIRMWARE VERSION 3.0   @@ 
+;@@ @      @   @  @ @ @  @   @  @                                           @@
 ;@@ @      @   @  @   @  @   @   @@@   @@@@@  FOR 24- AND 48-CHANNEL AC/DC  @@
 ;@@ @      @   @  @   @  @   @      @         LUMOS CONTROLLER UNITS        @@
 ;@@ @      @   @  @   @  @   @  @   @         BASED ON THE PIC18F4685 CHIP  @@
@@ -348,7 +359,7 @@
 ; Payloads for many-byte commands
 ;
 ; BULK_UPD:  0mcccccc 0nnnnnnn (0vvvvvvv)*<n+1> 01010110 (0hhhhhhh)*[(<n>+6)/7] 01010101
-;             |                               \_____________________________/
+;             |                                 \_____________________________/
 ;             |_______________________________________________| if <m>=1
 ;
 ;	Updates <n> channels starting at <c>, giving <v> values for each as per SET_LVL.
@@ -425,6 +436,22 @@
 ;        |        `--fault code (channels 24-47)
 ;        `--fault code (channels 0-23)
 ;
+; Also note that the controller is allowed to send OUT_NAK packets to the
+; host in response to QUERY commands.  This does not complete the exchange,
+; but serves to ask the host to continue waiting if the device won't be able
+; to reply to the QUERY for long enough that it risks a timeout.  The host
+; is under no obligation to respect the OUT_NAK packets.
+;
+;   1111aaaa 00011110 
+;
+; A controller MUST never send data except in response to an explicit
+; request from the host.  Controllers MUST immediately cease sending
+; data upon receiving any bytes on the network (this indicates that
+; the host is no longer waiting for a reply but has moved on to something
+; else or is querying another device now).  No further data may be sent
+; until again explicitly asked for.
+;
+; This version of the Lumos ROM does not send OUT_NAK packets.
 ;
 ; Legend:
 ;   @ Unit may automatically take this action
@@ -525,13 +552,13 @@
 ; or enough time for 41,666.666 instructions to be executed between each 
 ; interrupt.
 ;
-; Slices  Time/slice  Instructions/slice
-;   1     0.00833333  83,333.333
-;  32     0.00026042   2,604.167
-;  64     0.00013021   1,302.083
-; 128     0.00006510     651.042
-; 132     0.00006313     631.313	128 levels + 2 on each end
-; 260     0.00003205     320.513	256 levels + 2 on each end
+; Slices  Time/slice (s)  Instructions/slice
+;   1     0.00833333      83,333.333
+;  32     0.00026042       2,604.167
+;  64     0.00013021       1,302.083
+; 128     0.00006510         651.042
+; 132     0.00006313         631.313	128 levels + 2 on each end
+; 260     0.00003205         320.513	256 levels + 2 on each end
 ;
 ; (Revised; earlier versions of this firmware used 64 levels on the dimmers
 ; --which are probably too many--and this didn't allow enough time for the 
@@ -1483,25 +1510,25 @@ S_FLASH:
 
 D_FLASH:
 	BSF	PLAT_RED, BIT_RED, ACCESS
-	RCALL	DELAY_1_6_SEC
+	RCALL	DELAY_1_12_SEC
 	BSF	PLAT_GREEN, BIT_GREEN, ACCESS
-	RCALL	DELAY_1_6_SEC
+	RCALL	DELAY_1_12_SEC
 	BSF	PLAT_YELLOW, BIT_YELLOW, ACCESS
-	RCALL	DELAY_1_6_SEC
+	RCALL	DELAY_1_12_SEC
 	IF HAS_ACTIVE
 	 BSF	PLAT_ACTIVE, BIT_ACTIVE, ACCESS
-	 RCALL	DELAY_1_6_SEC
+	 RCALL	DELAY_1_12_SEC
 	ENDIF
 	
 	BCF	PLAT_RED, BIT_RED, ACCESS
-	RCALL	DELAY_1_6_SEC
+	RCALL	DELAY_1_12_SEC
 	BCF	PLAT_GREEN, BIT_GREEN, ACCESS
-	RCALL	DELAY_1_6_SEC
+	RCALL	DELAY_1_12_SEC
 	BCF	PLAT_YELLOW, BIT_YELLOW, ACCESS
-	RCALL	DELAY_1_6_SEC
+	RCALL	DELAY_1_12_SEC
 	IF HAS_ACTIVE
 	 BCF	PLAT_ACTIVE, BIT_ACTIVE, ACCESS
-	 RCALL	DELAY_1_6_SEC
+	 RCALL	DELAY_1_12_SEC
 	ENDIF
 	RETURN
 
@@ -1509,6 +1536,19 @@ START:
 	CLRWDT
 	CLRF	STKPTR, ACCESS		; clear stack error bits, set SP=0
 	CALL	LUMOS_INIT
+	IF 0
+	;
+	; Extra start-up delay to investigate boot bug
+	;
+	MOVLW	.10
+	MOVWF	I, ACCESS
+SSS_SSS:
+	CLRWDT
+	CALL	S_FLASH
+	DECFSZ	I, F, ACCESS
+	BRA	SSS_SSS
+        ENDIF
+	;
 	CALL	D_FLASH
 	CALL	SIO_INIT		; call after other TRIS bits set
 	;
@@ -1596,6 +1636,7 @@ CH 	SET	0
 	 CLRF	SSR_00_COUNTER+#v(CH), BANKED
 CH	 ++
 	ENDW
+	BSF	PLAT_RED, BIT_RED, ACCESS	; Panel: () G Y R
 	;
 	; Timer 0 for non-ZC boards
 	;
@@ -1612,6 +1653,7 @@ CH	 ++
   	  ERROR "LUMOS_SLICE_TIMER set incorrectly"
  	 ENDIF
 	ENDIF
+	BCF	PLAT_YELLOW, BIT_YELLOW, ACCESS	; Panel: () G () R
 	;
 	; Timer 2 for half-wave slice timing
 	;
@@ -1619,23 +1661,29 @@ CH	 ++
 	MOVWF	PR2, ACCESS
 	CLRF	TMR2, ACCESS		; reset timer
 	BSF	IPR1, TMR2IP, ACCESS	; set HIGH priority for timing
+	BCF	PIR1, TMR2IF, ACCESS	; clear any pending interrupt
 	BSF	PIE1, TMR2IE, ACCESS	; enable timer 2 interrupts
 	BSF	T2CON, TMR2ON, ACCESS	; start timer 2 running
 	;
 	BSF	PIE1, RCIE, ACCESS	; Enable RxD interrupts
 	;
-	; XXX setup SSR system state
+	; Clear all interrupt flags and enable interrupts
 	;
+	CLRF	PIR1, ACCESS
+	CLRF	PIR2, ACCESS
+	CLRF	PIR3, ACCESS
+	BCF	INTCON, TMR0IF, ACCESS
+	BCF	INTCON, INT0IF, ACCESS
 	BSF	INTCON, GIEH, ACCESS	; Enable high-priority interrupts
 	BSF	INTCON, GIEL, ACCESS	; Enable low-priority interrupts
-	; XXX more stuff here
 	;
 	; Launch mainline code
 	;
-	BCF	PLAT_YELLOW, BIT_YELLOW, ACCESS	; Panel: () G () ()
+	BCF	PLAT_RED, BIT_RED, ACCESS	; Panel: () G () ()
 	BANKSEL	SSR_DATA_BANK
 	CLRF	SSR_00_VALUE+SSR_GREEN, BANKED	; Green light cycles ~ 1/4 Hz
 	SET_SSR_PATTERN SSR_GREEN, 0, 1, 1, BIT_FADE_UP|BIT_FADE_CYCLE
+	BCF	PLAT_PWR_ON, BIT_PWR_ON, ACCESS	; turn on power supply
 	GOTO	MAIN
 
 BEGIN_EEPROM_WRITE MACRO START_ADDR
@@ -1660,6 +1708,7 @@ SET_EEPROM_ADDRESS MACRO ADDR
 	 MOVWF	EEADR, ACCESS
 	ENDM
 
+EE_LL_XX    SET 0
 WRITE_EEPROM_DATA MACRO
 	 BCF	PIR2, EEIF, ACCESS	; clear interrupt flag
 	 MOVLW	0x55
@@ -1667,11 +1716,12 @@ WRITE_EEPROM_DATA MACRO
 	 MOVLW	0xAA
 	 MOVWF	EECON2, ACCESS
 	 BSF	EECON1, WR, ACCESS	; start write cycle
-WRITE_EEPROM_LOOP:
+WRITE_EEPROM_LOOP#v(EE_LL_XX):
 	 BTFSS	PIR2, EEIF, ACCESS	; wait until write completes
-	 BRA	WRITE_EEPROM_LOOP
+	 BRA	WRITE_EEPROM_LOOP#v(EE_LL_XX)
 	 CLRWDT
 	 BCF	PIR2, EEIF, ACCESS	; clear interrupt flag
+EE_LL_XX    ++
 	ENDM
 	
 FACTORY_RESET:
@@ -1704,6 +1754,10 @@ FACTORY_RESET_LOOP:
 	MOVLW	.16
 	MOVWF	I, ACCESS
 
+	CLRWDT
+	BCF	INTCON, GIEH, ACCESS	; Disable high-priority interrupts
+	BCF	INTCON, GIEL, ACCESS	; Disable low-priority interrupts
+
 FACTORY_RESET_FLASH:
 	IF HAS_ACTIVE
 	 BSF	PLAT_ACTIVE, BIT_ACTIVE, ACCESS	; Panel: A G Y R
@@ -1711,7 +1765,7 @@ FACTORY_RESET_FLASH:
 	BSF	PLAT_GREEN, BIT_GREEN, ACCESS
 	BSF	PLAT_YELLOW, BIT_YELLOW, ACCESS
 	BSF	PLAT_RED, BIT_RED, ACCESS
-	RCALL	DELAY_1_6_SEC
+	RCALL	DELAY_1_12_SEC
 	IF HAS_ACTIVE
 	 BCF	PLAT_ACTIVE, BIT_ACTIVE, ACCESS	; Panel: () () () ()
 	ENDIF
@@ -1723,6 +1777,12 @@ FACTORY_RESET_FLASH:
 	BRA	FACTORY_RESET_FLASH
 
 	RESET
+
+DELAY_1_12_SEC:	; Approx 1/12 sec delay loop
+	CLRWDT
+	MOVLW	.4
+	MOVWF	KK, ACCESS
+	BRA	D_1_6_KK
 
 DELAY_1_6_SEC:	; Approx 1/6 sec delay loop
 	CLRWDT
@@ -2144,6 +2204,8 @@ TEST_MODE_1:
 	BCF	SSR_STATE2, TEST_UPD, ACCESS	; clear flag about being time to update
 	DECFSZ	TEST_CYCLE, F, ACCESS		; count down until time to change channels
 	RETURN
+	MOVLW	.120
+	MOVWF	TEST_CYCLE, ACCESS		; reset counter time for next channel
 
 	RCALL	S0_CMD0				; kill all outputs
 	INCF	TEST_SSR, F, ACCESS		; jump to next SSR
@@ -2228,16 +2290,19 @@ ERR_SERIAL_FULL:
 ERR_CMD_INCOMPLETE:
 	MOVLW	0x23
 	MOVWF	LAST_ERROR, ACCESS
+    SET_SSR_SLOW_FLASH SSR_RED
 	GOTO	ERR_ABORT
 ERR_NOT_IMP:
 	MOVLW	0x22
 	MOVWF	LAST_ERROR, ACCESS
+    SET_SSR_RAPID_FLASH SSR_RED
 	GOTO	ERR_ABORT
 ERR_COMMAND:
 	MOVLW	0x20
 	MOVWF	LAST_ERROR, ACCESS
+    SET_SSR_PATTERN SSR_RED, .255, .1, .32, BIT_FADE_DOWN
 ERR_ABORT:
-	SET_SSR_STEADY SSR_RED
+	;SET_SSR_STEADY SSR_RED
 	CLRF	YY_STATE, ACCESS	; reset state machine
 	RETURN
 
@@ -2554,12 +2619,14 @@ S6_DATA:
 	; State 6: Wait for Sentinel
 	;
 	; In this state, the machine is looking ahead in the data stream
-	; for a sentinel pattern.  The pattern is selected by YY_LOOK_FOR
-	; and must be seen in the next YY_LOOKAHEAD_MAX bytes (which will be destructively
-	; altered here).  If the sentinel is not recognized before YY_LOOKAHEAD_MAX runs
+	; for a sentinel pattern.  The pattern is terminated by the byte
+	; YY_LOOK_FOR and must be seen in the next YY_LOOKAHEAD_MAX bytes.
+	; If the sentinel is not recognized before YY_LOOKAHEAD_MAX runs
 	; out, we abort on ERR_COMMAND.
 	;
-	; Once it's recognized, we move to YY_NEXT_STATE immediately.
+	; Once it's recognized, we move to YY_NEXT_STATE immediately.  This is
+	; not a state here in the state machine, but a sub-case of state 6
+	; to interpret the final packet.
 	;
 	; In order to do this, we buffer up the input received in YY_BUFFER.  This is
 	; a YY_BUF_LEN-byte memory space aligned on a data bank boundary where YY_BUF_LEN
@@ -2628,7 +2695,7 @@ S6_DATA:
 	;  |      |LSB   |LSB   |LSB   |LSB   |LSB   |LSB   |LSB   |
 	;  |   0  |      |      |      |      |      |      |      | YY_BUFFER+n+1+
 	;  |______|______|______|______|______|______|______|______|    int((n+6)/7)
-	;                                                        <-- YY_BUF_IDX = n+1+
+	;                                                        <-- YY_BUF_IDX = n+2+
 	;                                                               int((n+6)/7)
 	;
 S6_0_DATA:
@@ -2651,20 +2718,22 @@ S6_0_DATA_N_OK:
 	INCF 	INDF0, W, ACCESS		; W=N
 	CPFSGT	YY_BUF_IDX, ACCESS		; if IDX > N, we're done.
 	GOTO	S6_KEEP_LOOKING			; otherwise, go back and wait for more data
-	INCF	INDF0, F, ACCESS		; fix it so that YY_BUFFER[0] is N, not N-1
+	; XXX Don't do this.
+	;INCF	INDF0, F, ACCESS		; fix it so that YY_BUFFER[0] is N, not N-1
 	;
 	; Do we have the correct packet ending?
 	;
 	BTFSC	TARGET_SSR, 6, ACCESS		; 1=highres, 0=lowres
 	BRA	S6_0_CHK_HR
 	INCF	INDF0, W, ACCESS		; Low-res bounds check:
+	INCF	WREG, W, ACCESS
 	CPFSEQ	YY_BUF_IDX, ACCESS		; Should see IDX == N+1 if the packet is complete
 	GOTO	ERR_COMMAND			; and correctly terminated
 	;
 	; start bulk update of channels
 	;
 	; Remember that since the protocol specifies that we get N-1 in the length field,
-	; we will always have at least 1 channel to change.  (Thre's no way to specify a
+	; we will always have at least 1 channel to change.  (There's no way to specify a
 	; BULK_UPD command to change 0 channels.)
 	;
 	; Does the target range of channels lie entirely within the slave chip's 
@@ -2695,6 +2764,8 @@ S6_0_PD_ALL:
 S6_0_UPDATE_MSB:
 	;
 	; Copy the bytes directly into SSR registers
+	; on entry, W = N+1
+	; on return, K = N+1
 	;
 	CLRWDT
 	LFSR	0, YY_BUFFER			; FSR0 points to each source data byte to copy
@@ -2709,6 +2780,7 @@ S6_0_UPDATE_MSB:
 	 MOVWF	KK, ACCESS			; KK=24-start (max # of channels on OUR chip)
 	ENDIF
 	MOVFF	POSTINC0, I			; K=I=N counter		(I = *FSR0++)
+	INCF	I, F, ACCESS
 	MOVFF	I, K				; (We'll use K for the LSB update later)
 
 S6_0_UPDATE_NEXT:
@@ -2782,31 +2854,30 @@ S6_0_INCR:
 	INCF	I, F, ACCESS			; next byte; I++, J+=7
 	MOVLW	7
 	ADDWF	J, F, ACCESS
-	MOVF	INDF0, W, ACCESS		; W=N
+	INCF	INDF0, W, ACCESS		; W=N
 	SUBWF	J, W, ACCESS			; J < N? keep counting
 	BNC	S6_0_INCR
 	;
-	; I is now the number of LSB bytes, INDF0 is N (# channels), 
+	; I is now the number of LSB bytes, INDF0 is N-1 (# channels-1), 
 	; our intermediate sentinel $56 should be at N+1, total data 
-	; length should be N+1+I
-	;
-	INCF	INDF0, W, ACCESS		; J = W = N+1
-	MOVWF	J, ACCESS
-	ADDWF	I, W, ACCESS			; W = N + 1 + I
-	SUBWF	YY_BUF_IDX, ACCESS		; packetlen < N + 1 + I ?
-	BC	S6_0_HAVE_ALL_DATA
-	GOTO	S6_0_NEED_MORE			; stopped early; fix up and keep reading
+	; length should be N+2+I
+	
+	INCF	INDF0, W, ACCESS		; W = N
+	INCF	WREG, W, ACCESS			; J = W = N+1
+	MOVWF	J, ACCESS			; 
+	INCF	WREG, W, ACCESS			; W = N+2
+	ADDWF	I, W, ACCESS			; W = N + 2 + I
+	SUBWF	YY_BUF_IDX, W, ACCESS		; packetlen = N + 2 + I ?
+	BZ	S6_0_HAVE_ALL_DATA
+	GOTO	S6_KEEP_LOOKING
 
 S6_0_HAVE_ALL_DATA:
-	INCF	INDF0, W, ACCESS		; W = N+1
+	MOVF	J, W, ACCESS
 	ADDWF	FSR0L, F, ACCESS		; move pointer to YY_BUFFER[N+1]
 	MOVLW	0x56
 	CPFSEQ	INDF0, ACCESS			; sentinel byte correct for high-res block?
 	GOTO	ERR_COMMAND			; NO, abort command
-	MOVF	J, W, ACCESS			; W = N+1
-	ADDWF	I, W, ACCESS			; W = N+1+I
-	CPFSEQ	YY_BUF_IDX, ACCESS		; packet size must == N+1+I
-	GOTO	ERR_COMMAND			; or else we abort here
+	MOVF	J, W, ACCESS			; W = N+1 (entry condition for S6_0_UPDATE_MSB)
 	RCALL	S6_0_UPDATE_MSB			; set all the MSBs first
 	;
 	; Update all the LSBs
@@ -2837,7 +2908,7 @@ S6_NOT_INIT	EQU	7	; 1-------  1 if not yet prepared to collect bits
 	 MOVLW	0x56
 	ENDIF
 	CPFSEQ	POSTINC0, ACCESS		; now FSR0->first block of bits
-	BRA	ERR_S6_0_INVALID
+	GOTO	ERR_COMMAND
 	LFSR	1, SSR_00_VALUE	
 	MOVF	TARGET_SSR, W, ACCESS		; Move FSR1 to first SSR in target range
 	ANDLW	0x3F
@@ -2867,8 +2938,10 @@ S6_0_LSB_B#v(X):
 	  BRA	S6_0_LSB_C#v(X)
 	 ENDIF
 S6_0_LSB_A#v(X):				; NOT packing up for the slave, just updating locally
-	 BTFSC	INDF0, #v(X), ACCESS		; If the source bit is set,
-	 BSF	POSTINC1, 0, ACCESS		; set the LSB of the target SSR and move on to the next one.
+	 BTFSS	INDF0, #v(X), ACCESS		; If the source bit is zero,
+	 BCF	INDF1, 0, ACCESS		; clear the LSB of the target SSR and move on 
+	 INCF	FSR1, F, ACCESS			; to the next one. (SET_MSB routine already
+						; set them by default.)
 	 IF ROLE_MASTER
 S6_0_LSB_C#v(X):
 	  BTFSS	YY_YY, 7, ACCESS		; If we've already handled this, stop counting KK.
@@ -2907,12 +2980,6 @@ S6_0_NO_FLUSH:
 	CLRF	YY_STATE, ACCESS
 	RETURN
 
-S6_0_NEED_MORE:
-	DECF	INDF0, F, ACCESS		; move YY_BUFFER[0] back to N-1
-	GOTO	S6_KEEP_LOOKING
-
-ERR_S6_0_INVALID:				; input validator failed to reject soon enough
-	ERR_BUG	0x04, ERR_CLASS_IN_VALID
 
 S6_1_DATA:
 	DECFSZ	WREG, F, ACCESS
@@ -2954,7 +3021,7 @@ S6_1_VALID_1:
 S6_1_VALID_2:
 	LFSR	0, YY_BUFFER+2
 	MOVF	POSTDEC0, W, ACCESS		; check 1st sentinel
-	ANDLW	0x3F
+	;ANDLW	0x3F
 	SUBLW	0x3A
 	BZ	S6_1_CONFIGURE
 	GOTO	ERR_COMMAND
@@ -3105,13 +3172,17 @@ S6_4_SET_PHASE:
 	 CALL	SIO_WRITE_W
 	 MOVF	INDF0, W, ACCESS
 	 CALL	SIO_WRITE_W
+	 MOVLW	0x50
+	 CALL	SIO_WRITE_W
+	 MOVLW	0x4F
+	 CALL	SIO_WRITE_W
 	ENDIF
 	MOVFF	INDF0, PHASE_OFFSETL
 	BTFSC	YY_YY, 0, ACCESS
 	BSF	PHASE_OFFSETL, 7, ACCESS
 	CLRF	PHASE_OFFSETH, ACCESS
 	BTFSC	YY_YY, 1, ACCESS
-	BSF	PHASE_OFFSETH, 1, ACCESS
+	BSF	PHASE_OFFSETH, 0, ACCESS
 	BEGIN_EEPROM_WRITE 3
 	MOVFF	PHASE_OFFSETH, EEDATA
 	WRITE_EEPROM_DATA
@@ -3162,12 +3233,12 @@ S6_5_ADDR:
 	CPFSEQ	POSTDEC0, ACCESS
 	GOTO	ERR_COMMAND
 	MOVLW	0x49
-	CPFSEQ	POSTDEC0, ACCESS
+	CPFSEQ	INDF0, ACCESS
 	GOTO	ERR_COMMAND
 	;
 	; set address
 	;
-	MOVF	INDF0, W, ACCESS
+	MOVF	YY_YY, W, ACCESS
 	ANDLW	0x0F
 	MOVWF	MY_ADDRESS, ACCESS
 	BEGIN_EEPROM_WRITE 2
@@ -3665,13 +3736,13 @@ S6_RESTART:
 
 S6_KEEP_LOOKING:
 	MOVF	YY_BUF_IDX, W, ACCESS		; Have we reached our limit (idx >= max)?
-	CPFSGT	YY_LOOKAHEAD_MAX, ACCESS	; 
+	CPFSGT	YY_LOOKAHEAD_MAX, ACCESS	; (skip if MAX > bytes read so far)
 	GOTO	ERR_COMMAND			; Yes:  Abort here and ignore data to next cmd
 	LFSR	0, YY_BUFFER			; No: Save character in buffer and keep waiting
 	MOVF	YY_BUF_IDX, W, ACCESS
 	ADDWF	FSR0L, F, ACCESS
 	MOVFF	YY_DATA, INDF0
-	INCF	YY_BUF_IDX, W, ACCESS
+	INCF	YY_BUF_IDX, F, ACCESS
 	RETURN
 
 S7_DATA:
@@ -4371,10 +4442,10 @@ X 	SET	0
 	  BCF	PLAT_#v(X), BIT_#v(X), ACCESS	; turn off light
  	 ELSE
 	  BSF	PLAT_#v(X), BIT_#v(X), ACCESS	; turn off SSR
+	  TSTFSZ SSR_00_VALUE+#v(X), BANKED	; is this SSR fully off?
+	  BCF	SSR_STATE2, ALL_OFF, ACCESS	; no, ergo they aren't ALL off now. clear the flag
  	 ENDIF
 UPDATE_MIN_SKIP_#v(X):
-	 TSTFSZ	SSR_00_VALUE+#v(X), BANKED	; is this SSR fully off?
-	 BCF	SSR_STATE2, ALL_OFF, ACCESS	; no, ergo they aren't ALL off now. clear the flag
 
 	 BTFSS	SSR_00_FLAGS+#v(X), FADE_UP, BANKED
 	 BRA	TRY_DOWN_#v(X)
@@ -4389,8 +4460,6 @@ UPDATE_MIN_SKIP_#v(X):
 	 BTFSS	SSR_00_FLAGS+#v(X), FADE_CYCLE, BANKED	; cycle back?
 	 BRA	END_FADE_#v(X)
 	 BSF	SSR_00_FLAGS+#v(X), FADE_DOWN, BANKED	
-	 BTFSC	SSR_00_FLAGS+#v(X), MAX_OFF_TIME, BANKED; maximizing off-time?
-	 SETF	SSR_00_COUNTER+#v(X), BANKED
 	 BRA	END_FADE_#v(X)
 
 TRY_DOWN_#v(X):
@@ -4406,6 +4475,8 @@ TRY_DOWN_#v(X):
 	 BCF	SSR_00_FLAGS+#v(X), FADE_DOWN, BANKED	; stop fading
 	 BTFSC	SSR_00_FLAGS+#v(X), FADE_CYCLE, BANKED	; cycle back?
 	 BSF	SSR_00_FLAGS+#v(X), FADE_UP, BANKED
+	 BTFSC	SSR_00_FLAGS+#v(X), MAX_OFF_TIME, BANKED; maximizing off-time?
+	 SETF	SSR_00_COUNTER+#v(X), BANKED
 
 END_FADE_#v(X):
 X	 ++
@@ -4416,6 +4487,7 @@ X	 ++
 	;
 	BTFSS	SSR_STATE2, ALL_OFF, ACCESS
 	BRA	BE_AWAKE_NOW
+	SET_SSR_STEADY SSR_RED			; XXX temporary
 	DECFSZ	AUTO_OFF_CTRL, F, ACCESS	
 	RETURN
 	SETF	AUTO_OFF_CTRL, ACCESS
@@ -4432,6 +4504,7 @@ BE_AWAKE_NOW:
 	;
 	; we should be awake.  Make sure we are and reset counters
 	;
+	SET_SSR_OFF SSR_RED			; XXX temporary
 	BTFSC	SSR_STATE, SLEEP_MODE, ACCESS
 	CALL	DO_CMD_WAKE
 	SETF	AUTO_OFF_CTRH, ACCESS
@@ -4484,3 +4557,14 @@ HALT_SLEEP:
 	BRA	HALT_SLEEP
 	
 	END
+
+
+; pattern handling
+; LEVEL STEP SPEED FLAGS
+; 255   255   30   DN CYC	rapid flash
+; 255     2    1   DN		blink fade
+; 255   255   30   DN CYC MAX	slow flash
+;   0     4    1   UP CYC	rapid fade
+;   0     1    1   UP CYC	slow fade
+
+
