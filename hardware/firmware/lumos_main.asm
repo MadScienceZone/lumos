@@ -1,22 +1,17 @@
 ; vim:set syntax=pic ts=8:
-; timeer setup
 ;
-; XXX do i need to set RCON bits a power-up?
-; boot 1024 words
-; tmr1 lp
-; wdt=1:1024 (~4s?)
-; no failsafe clk monitor or osc switchover
-;
-; DONE, but mostly left intact (hard to get around need due to length of branches)
+; XXX  auto on/off disabled temporarily
+; XXX  do i need to set RCON bits a power-up?
+; DONE but mostly left intact (hard to get around need due to length of branches)
 ;        refactor this:
 ;	SUBWF	YY_BUF_IDX, W, ACCESS		; input bytes in packet
 ;	BC	$+4
 ;	GOTO	S6_KEEP_LOOKING			; input < 2? not done yet
 ;	BZ	$+4
 ;	GOTO	ERR_COMMAND			; input > 2? too big: reject
-; XXX XXX XXX ** KILL BROADCAST ADDR IDEA ** it's not going to work XXX XXX XXX
-; XXX double-check all inequality tests
-; XXX review logic flow for each chip type
+; XXX  XXX XXX ** KILL BROADCAST ADDR IDEA ** it's not going to work XXX XXX XXX
+; XXX  double-check all inequality tests
+; XXX  review logic flow for each chip type
 ; DONE check all BRA $+x values after assembly -- changed to use labels
 ; DONE add slave phase/error code to query
 ; DONE add master error code to query
@@ -28,10 +23,9 @@
 ; DONE kill high/low res setting
 ; DONE option button
 ; DONE green LED different based on priv mode
-; XXX ERR_COMMAND light should have limited lifetime
-; XXX use BTG to toggle bits
-; XXX cease transmission if more data received
-; XXX halts after sending QUERY response packet
+; DONE ERR_COMMAND light should have limited lifetime
+; XXX  cease transmission if more data received
+; DONE halts after sending QUERY response packet
 ; DONE add inhibit privileged mode command
 ;
 		LIST n=90
@@ -986,9 +980,9 @@ EEPROM_USER_END		EQU	0x3FF
 ; SSR_STATE          |      |      |SLICE |PRIV_ |SLEEP |DRAIN |PRE_  |TEST_ |
 ;                    |INCYC |PRECYC| _UPD | MODE |_MODE |_TR   |PRIV  |MODE  |
 ;                    |______|______|______|______|______|______|______|______|
-; SSR_STATE2         |TEST_ |TEST_ |TEST_ |ALL_  |PRIV_ |                    |
-;                    |PAUSE |UPD   |BUTTON|OFF   |FORBID|                    |
-;                    |______|______|______|______|______|______|______|______|
+; SSR_STATE2         |TEST_ |TEST_ |TEST_ |ALL_  |PRIV_ |INHIBI|             |
+;                    |PAUSE |UPD   |BUTTON|OFF   |FORBID|T_OUTP|             |
+;                    |______|______|______|______|______|UT____|______|______|
 ; YY_STATE           |                                                       |
 ;                    |                      Parser State                     |
 ;                    |______|______|______|______|______|______|______|______|
@@ -1135,6 +1129,7 @@ TEST_UPD	EQU	6	; -1------  Time to update the test count-down timer
 TEST_BUTTON	EQU	5	; --1-----  Waiting for button release in test mode
 ALL_OFF		EQU	4	; ---1----  All SSRs are currently completely off
 PRIV_FORBID	EQU	3	; ----1---  Forbidden to enter privileged mode again
+INHIBIT_OUTPUT	EQU	2	; -----1--  Forbid any further output
 
 ;
 ; SSR_FLAGS words for each output show state information about those
@@ -2300,7 +2295,7 @@ ERR_NOT_IMP:
 ERR_COMMAND:
 	MOVLW	0x20
 	MOVWF	LAST_ERROR, ACCESS
-    SET_SSR_PATTERN SSR_RED, .255, .1, .32, BIT_FADE_DOWN
+	SET_SSR_PATTERN SSR_RED, .255, .1, .32, BIT_FADE_DOWN
 ERR_ABORT:
 	;SET_SSR_STEADY SSR_RED
 	CLRF	YY_STATE, ACCESS	; reset state machine
@@ -2310,6 +2305,15 @@ RECEIVE_COMMAND:
 CMD_BIT	EQU	7
 
 	CLRWDT
+	;
+	; First of all, if we received a byte at all, that means
+	; we're not the one expected to be talking anymore.
+	; we should never see this while trying to output anything,
+	; if everyone else is playing by the same rules,
+	; but this is a fail-safe just in case.  In this case, we
+	; will immediately shut up.
+	;
+	BSF	SSR_STATE2, INHIBIT_OUTPUT, ACCESS
 	;
 	; We just received a byte.  The state machine dictates what
 	; we do with the byte we just got.
@@ -2502,12 +2506,12 @@ S1_DATA:
 	;
 ON_OFF_YY_DATA:
 	CALL	XLATE_SSR_ID
+	CLRF	YY_STATE, ACCESS			; reset command state
 	BTFSC	TARGET_SSR, INVALID_SSR, ACCESS
 	GOTO	ERR_COMMAND				; SSR number out of range
 	BTFSC	TARGET_SSR, NOT_MY_SSR, ACCESS
 	BRA	PASS_DOWN_ON_OFF
 	BTFSC	YY_DATA, 6, ACCESS
-	CLRF	YY_STATE, ACCESS			; reset command state
 	BRA	ON_OFF_ON
 	CLRF	WREG, ACCESS
 	GOTO	SSR_OUTPUT_VALUE			; set value off and return
@@ -2526,6 +2530,7 @@ PASS_DOWN_ON_OFF:
 	 BSF    WREG, 6, ACCESS
 	 CALL 	SIO_WRITE_W
 	 SET_SSR_BLINK_FADE SSR_YELLOW	; slave activity indicator
+	 RETURN
 	ELSE
 	 GOTO	ERR_COMMAND
 	ENDIF
@@ -3462,7 +3467,8 @@ S6_9_QUERY:
 	 CALL	SIO_WRITE_W
 	ELSE
 	 IF ROLE_STANDALONE
-	  BSF	PORT_T_R, BIT_T_R, ACCESS	; Fire up our transmitter now
+	  BSF	PORT_T_R, BIT_T_R, ACCESS		; Fire up our transmitter now
+	  BCF	SSR_STATE2, INHIBIT_OUTPUT, ACCESS	; Allow sending output
 	 ELSE
 	  ERR_BUG 0x0F, ERR_CLASS_INT_COMMAND
 	 ENDIF
@@ -4487,7 +4493,7 @@ X	 ++
 	;
 	BTFSS	SSR_STATE2, ALL_OFF, ACCESS
 	BRA	BE_AWAKE_NOW
-	SET_SSR_STEADY SSR_RED			; XXX temporary
+	;SET_SSR_STEADY SSR_RED			; XXX temporary
 	DECFSZ	AUTO_OFF_CTRL, F, ACCESS	
 	RETURN
 	SETF	AUTO_OFF_CTRL, ACCESS
@@ -4496,17 +4502,17 @@ X	 ++
 	; 
 	; We've been idle too long.  Go to sleep now.
 	;
-	BTFSS	SSR_STATE, SLEEP_MODE, ACCESS
-	CALL	DO_CMD_SLEEP
+	;XXX BTFSS	SSR_STATE, SLEEP_MODE, ACCESS
+	;XXX CALL	DO_CMD_SLEEP
 	RETURN
 	
 BE_AWAKE_NOW:
 	;
 	; we should be awake.  Make sure we are and reset counters
 	;
-	SET_SSR_OFF SSR_RED			; XXX temporary
-	BTFSC	SSR_STATE, SLEEP_MODE, ACCESS
-	CALL	DO_CMD_WAKE
+	;SET_SSR_OFF SSR_RED			; XXX temporary
+	;XXX BTFSC	SSR_STATE, SLEEP_MODE, ACCESS
+	;XXX CALL	DO_CMD_WAKE
 	SETF	AUTO_OFF_CTRH, ACCESS
 	SETF	AUTO_OFF_CTRL, ACCESS
 	RETURN
