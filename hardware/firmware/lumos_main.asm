@@ -1,5 +1,6 @@
 ; vim:set syntax=pic ts=8:
 ;
+; XXX  check flow of all commands, especially the clearing of the state machine
 ; XXX  auto on/off disabled temporarily
 ; XXX  do i need to set RCON bits a power-up?
 ; DONE but mostly left intact (hard to get around need due to length of branches)
@@ -2572,7 +2573,7 @@ S3_DATA:
 	BSF	STATUS, C, ACCESS
 	RLCF	YY_DATA, W, ACCESS			; Shift LSB into value byte
 	CLRF	YY_STATE, ACCESS			; reset state (end of command)
-	MOVF	YY_DATA, W, ACCESS
+	;XXX removed MOVF	YY_DATA, W, ACCESS
 	GOTO	SSR_OUTPUT_VALUE			; set SSR to 8-bit YY_DATA value
 
 PASS_DOWN_SET_LVL:
