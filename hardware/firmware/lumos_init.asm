@@ -42,7 +42,10 @@
 	CONFIG	PWRT=OFF	; power-up timer disabled
 	CONFIG	BOREN=OFF	; no brown-out reset
 	CONFIG	WDT=ON		; watchdog timer enabled
-	CONFIG 	WDTPS=1024	; watchdog 1:1,024 postscaler (~4s)
+;	CONFIG 	WDTPS=1024	; watchdog 1:1,024 postscaler (~4s)
+;	CONFIG	WDTPS=8192	; watchdog 1:8,192 postscaler (~32.8s)
+	CONFIG	WDTPS=16384	; watchdog 1:16,384 postscaler (~65.5s)
+;	CONFIG	WDTPS=32768	; watchdog 1:32,768 postscaler (~131s)
 	CONFIG	MCLRE=ON	; /MCLR pin is for /MCLR, not I/O
 	CONFIG 	LPT1OSC=OFF	; TMR1 is high-power
 	CONFIG	PBADEN=OFF	; PORTB pins digital, not A/D on power-up

@@ -1,7 +1,10 @@
 ; vim:set syntax=pic ts=8:
+; sublw k-W
+; subwf f-W
+; subfwb W-f-~C
 ;
-; XXX  check flow of all commands, especially the clearing of the state machine
-; XXX  auto on/off disabled temporarily
+; DONE check flow of all commands, especially the clearing of the state machine
+; DONE auto on/off disabled temporarily
 ; XXX  do i need to set RCON bits a power-up?
 ; DONE but mostly left intact (hard to get around need due to length of branches)
 ;        refactor this:
@@ -11,7 +14,7 @@
 ;	BZ	$+4
 ;	GOTO	ERR_COMMAND			; input > 2? too big: reject
 ; XXX  XXX XXX ** KILL BROADCAST ADDR IDEA ** it's not going to work XXX XXX XXX
-; XXX  double-check all inequality tests
+; DONE double-check all inequality tests
 ; XXX  review logic flow for each chip type
 ; DONE check all BRA $+x values after assembly -- changed to use labels
 ; DONE add slave phase/error code to query
@@ -25,9 +28,11 @@
 ; DONE option button
 ; DONE green LED different based on priv mode
 ; DONE ERR_COMMAND light should have limited lifetime
-; XXX  cease transmission if more data received
+; XXX  cease transmission if more data received -- study this out more
 ; DONE halts after sending QUERY response packet
 ; DONE add inhibit privileged mode command
+; XXX  sleep mode leaves I/O bits on; should tristate first
+; XXX  sleep mode seems never to get relinquished
 ;
 		LIST n=90
 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -176,6 +181,7 @@
 ; 0F  Illegal internal command sent from master chip (received raw QUERY packet)
 ; 10  Could not determine device type                                  _
 ; 11  Command impossible to carry out on this hardware (chip without T/R tried to release control of bus)
+; 12  Internal inter-CPU command executed on wrong class hardware
 ; 
 ; 20  Unrecognized command received or command arguments incorrect
 ; 21  Attempt to invoke privileged command from normal run mode
@@ -1152,7 +1158,7 @@ BIT_MAX_OFF_TIME EQU	0x10
 ;                    |______|______|______|______|______|______|______|______|
 ;
 NOT_MY_SSR	EQU	7
-INVALID_SSR	EQU	6
+INVALID_SSR	EQU	6		; MUST be bit 6
 TARGET_SSR_MSK	EQU	0x3F
 
 
@@ -2153,6 +2159,32 @@ DRAIN_TRANSMITTER:
 	 ERR_BUG 0x11, ERR_CLASS_DEVICE
     	ENDIF
 
+DRAIN_M_S_TX_BLOCKING:
+	;
+	; version of DRAIN_TRANSMITTER which is designed to clear
+	; master->slave comms in critical situations.  Blocks until
+	; the pending output is sent to the slave.
+	;
+	IF ROLE_MASTER
+	 BANKSEL SIO_DATA_START
+	 CLRWDT
+DRAIN_M_S_DRAIN_SIO_QUEUE:
+	 BTFSC	SIO_STATUS, TXDATA_QUEUE, BANKED
+	 BRA	DRAIN_M_S_DRAIN_SIO_QUEUE
+	 CLRWDT
+DRAIN_M_S_DRAIN_UART_TX_BUF:
+	 BTFSS	PIR1, TXIF, ACCESS
+	 BRA	DRAIN_M_S_DRAIN_UART_TX_BUF
+	 CLRWDT
+DRAIN_M_S_DRAIN_UART_SHIFT_REG:
+	 BTFSS	TXSTA, TRMT, ACCESS
+	 BRA	DRAIN_M_S_DRAIN_UART_SHIFT_REG
+	 CLRWDT
+	 RETURN
+	ELSE
+	 ERR_BUG 0x12, ERR_CLASS_DEVICE
+	ENDIF
+
 DO_TEST_MODE:
 	CLRWDT
 
@@ -2544,7 +2576,7 @@ S2_DATA:
 	BTFSC	TARGET_SSR, INVALID_SSR, ACCESS
 	GOTO	ERR_COMMAND
 	BTFSC	YY_DATA, 6, ACCESS	; preserve bit 6 (LSB of value)
-	BSF	TARGET_SSR, 6, ACCESS
+	BSF	TARGET_SSR, 6, ACCESS	; Reuse bit 6 (INVALID_SSR) for this purpose now
 	INCF	YY_STATE, F, ACCESS	; -> state 3 (wait for level byte)
 	RETURN
 
@@ -2600,7 +2632,7 @@ S4_DATA:
 	BTFSC	TARGET_SSR, INVALID_SSR, ACCESS
 	GOTO	ERR_COMMAND
 	BTFSC	YY_DATA, 6, ACCESS	; preserve bit 7 (resolution flag)
-	BSF	TARGET_SSR, 6, ACCESS
+	BSF	TARGET_SSR, 6, ACCESS	; (reusing the INVALID_SSR bit)
 	WAIT_FOR_SENTINEL .57, B'01010101', 0	; -> S6.0 when sentinel found
 	RETURN
 
@@ -2612,7 +2644,7 @@ S5_DATA:
 	BTFSC	TARGET_SSR, INVALID_SSR, ACCESS
 	GOTO	ERR_COMMAND
 	BTFSC	YY_DATA, 6, ACCESS	; preserve bit 6 (direction flag)
-	BSF	TARGET_SSR, 6, ACCESS
+	BSF	TARGET_SSR, 6, ACCESS	; (reusing the INVALID_SSR bit)
 	MOVLW	7
 	MOVWF	YY_STATE, ACCESS	; -> state 7 (wait for step count)
 	RETURN
@@ -2746,10 +2778,12 @@ S6_0_DATA_N_OK:
 	; range?  If so, just pass the whole command down to it, with starting SSR
 	; number translated down to its range...
 	;
+	CLRF	YY_STATE, ACCESS		; reset state machine now (we have multiple exit points below)
 	BTFSS	TARGET_SSR, NOT_MY_SSR, ACCESS
 	BRA	S6_0_UPDATE_MSB
 	IF ROLE_MASTER
 	 CLRWDT
+	 SET_SSR_BLINK_FADE SSR_YELLOW	; slave activity indicator
 	 MOVLW	0xB0				; command code
 	 CALL	SIO_WRITE_W
 	 MOVF	TARGET_SSR, W, ACCESS		; starting channel
@@ -2809,6 +2843,7 @@ S6_0_UPD_NXT_ZERO:
 S6_0_PASS_DOWN_MSB:
 	 DCFSNZ	I, F, ACCESS			; we left before I-- happened
 	 RETURN					; already out of data to send; don't bother the slave
+	 SET_SSR_BLINK_FADE SSR_YELLOW	; slave activity indicator
 	 MOVLW	0xB0				; Start command to slave with I remaining values
 	 CALL	SIO_WRITE_W			
 	 CLRF	WREG, ACCESS 					; target SSR always 0 in this case
@@ -2833,25 +2868,6 @@ S6_0_PD_NEXT_MSB:
 ; if N+C < 24 then A=N, do update
 ; else set A = N-(N+C-24) = -C+24 = 24-C, do update
 ; update: decr A,N  when A runs out, switch to pass down mode until N runs out
-;
-;
-; XXX note
-;   N: result negative (2s comp)
-;  OV: overflow into sign bit occurred
-;   Z: result zero
-;  DC: carry into bit 4   for SUB, DC = ~DBORROW
-;   C: carry into bit 8   for SUB, C = ~BORROW
-;
-; SUBLW k  or SUBWF k,d,a
-;  W <- k-W   d <- k-W
-;
-; k<W	 ~C
-; k<=W	 ~C ||  Z
-; k>W	  C && ~Z
-; k>=W	  C
-; k==W	  Z
-; k!=W   ~Z
-;
 ;
 S6_0_CHK_HR:					; High-res bounds check:
 	CLRF	I, ACCESS			; I=Number of LSB bytes=int((N+6)/7)
@@ -3078,6 +3094,23 @@ S6_2_VALID2:
 	GOTO	ERR_COMMAND
 
 S6_2_SET_BAUD:
+	;
+	; Change the baud rate in the slave first, or we'll
+	; never be able to talk to it again...
+	;
+	IF ROLE_MASTER
+	 SET_SSR_BLINK_FADE SSR_YELLOW	; slave activity indicator
+	 MOVLW 	0xF0				; F0 72 <baud> 26  -> slave
+	 CALL	SIO_WRITE_W
+	 MOVLW 	0x72
+	 CALL	SIO_WRITE_W
+	 MOVF	INDF0, W, ACCESS
+	 CALL	SIO_WRITE_W
+	 MOVLW	0x26
+	 CALL	SIO_WRITE_W
+	 CALL	DRAIN_M_S_TX_BLOCKING		; wait for command to slave to be fully sent
+	ENDIF					; before changing the UART speed on it.
+
 	BEGIN_EEPROM_WRITE 1
 	MOVFF	INDF0, EEDATA			; save value permanently (address 001)
 	WRITE_EEPROM_DATA
@@ -3172,6 +3205,7 @@ S6_4_SET_PHASE:
 	; Set phase (and notify slave)
 	;
 	IF ROLE_MASTER
+	 SET_SSR_BLINK_FADE SSR_YELLOW	; slave activity indicator
 	 MOVLW	0xF0
 	 CALL	SIO_WRITE_W
 	 MOVF	YY_YY, W, ACCESS
@@ -3292,10 +3326,13 @@ S6_6_SLEEP:
 	GOTO	ERR_COMMAND
 	CLRF 	YY_STATE, ACCESS
 DO_CMD_SLEEP:
+	BTFSC	SSR_STATE, PRIV_MODE, ACCESS	; don't sleep in priv mode
+	RETURN
 	;
 	; Pass command to slave
 	;
 	IF ROLE_MASTER
+	 SET_SSR_BLINK_FADE SSR_YELLOW	; slave activity indicator
 	 MOVLW	0xF0
 	 CALL	SIO_WRITE_W
 	 CLRF	WREG, ACCESS
@@ -3358,6 +3395,7 @@ DO_CMD_WAKE:
 	; Pass command to slave
 	;
 	IF ROLE_MASTER
+	 SET_SSR_BLINK_FADE SSR_YELLOW	; slave activity indicator
 	 MOVLW	0xF0
 	 CALL	SIO_WRITE_W
 	 MOVLW	0x01
@@ -3460,6 +3498,7 @@ S6_9_QUERY:
 	; return status of unit
 	;
 	IF ROLE_MASTER
+	 SET_SSR_BLINK_FADE SSR_YELLOW	; slave activity indicator
 	 MOVLW	0xF0			; initiate write-through IC_TXSTA command
 	 CALL	SIO_WRITE_W		; to slave CPU
 	 MOVLW	0x23
@@ -3739,7 +3778,7 @@ S6_13_DATA:
 
 S6_RESTART:
 	; We stopped too early -- resume now
-	RETURN
+	RETURN					; XXX Nothing seems to call this anymore.
 
 S6_KEEP_LOOKING:
 	MOVF	YY_BUF_IDX, W, ACCESS		; Have we reached our limit (idx >= max)?
@@ -3808,6 +3847,7 @@ S8_PASS_DOWN_RAMP_LVL:
 	; Hand off RAMP_LVL command to slave chip.
 	;
 	IF ROLE_MASTER
+	 SET_SSR_BLINK_FADE SSR_YELLOW	; slave activity indicator
 	 MOVLW 	0xC0				; command byte
 	 CALL	SIO_WRITE_W
 	 MOVF	TARGET_SSR, W, ACCESS
@@ -3817,6 +3857,7 @@ S8_PASS_DOWN_RAMP_LVL:
 	 CALL	SIO_WRITE_W
 	 DECF	YY_DATA, W, ACCESS		; speed - 1
 	 CALL	SIO_WRITE_W
+	 CLRF	YY_STATE, ACCESS
 	 RETURN
 	ENDIF
 	ERR_BUG	0x06, ERR_CLASS_IN_VALID
@@ -4008,6 +4049,7 @@ S9_PRIV_0:
 	BCF	SSR_STATE, PRIV_MODE, ACCESS
 	SET_SSR_SLOW_FADE SSR_GREEN
 	IF ROLE_MASTER
+	 SET_SSR_BLINK_FADE SSR_YELLOW	; slave activity indicator
 	 MOVLW	0xF0					; send to slave chip: F0 21 00010111 00000111
 	 CALL	SIO_WRITE_W
 	 MOVLW	0x21
@@ -4444,7 +4486,14 @@ UPDATE_MINIMUM_LEVEL:
 X 	SET	0
 	WHILE X <= SSR_MAX
  	 COMF	SSR_00_VALUE+#v(X), W, BANKED	; is this set to maximum?
-	 BZ	UPDATE_MIN_SKIP_#v(X)
+	 ;BZ	UPDATE_MIN_SKIP_#v(X)
+	 BNZ	UPDATE_MIN_DIMMED_#v(X)
+	 IF X < SSR_LIGHTS
+	  BCF	SSR_STATE2, ALL_OFF, ACCESS	; "light fully on" means they aren't all off.  Clear the flag.
+	 ENDIF
+	 BRA	UPDATE_MIN_SKIP_#v(X)
+
+UPDATE_MIN_DIMMED_#v(X):
   	 IF X >= SSR_LIGHTS
 	  BCF	PLAT_#v(X), BIT_#v(X), ACCESS	; turn off light
  	 ELSE
@@ -4503,8 +4552,8 @@ X	 ++
 	; 
 	; We've been idle too long.  Go to sleep now.
 	;
-	;XXX BTFSS	SSR_STATE, SLEEP_MODE, ACCESS
-	;XXX CALL	DO_CMD_SLEEP
+	BTFSS	SSR_STATE, SLEEP_MODE, ACCESS
+	CALL	DO_CMD_SLEEP
 	RETURN
 	
 BE_AWAKE_NOW:
@@ -4512,8 +4561,8 @@ BE_AWAKE_NOW:
 	; we should be awake.  Make sure we are and reset counters
 	;
 	;SET_SSR_OFF SSR_RED			; XXX temporary
-	;XXX BTFSC	SSR_STATE, SLEEP_MODE, ACCESS
-	;XXX CALL	DO_CMD_WAKE
+	BTFSC	SSR_STATE, SLEEP_MODE, ACCESS
+	CALL	DO_CMD_WAKE
 	SETF	AUTO_OFF_CTRH, ACCESS
 	SETF	AUTO_OFF_CTRL, ACCESS
 	RETURN
@@ -4551,16 +4600,27 @@ HALT_MODE:
 	; Shut down forever
 	;
 	CALL	S0_CMD0			; blackout SSR outputs
-	SET_SSR_OFF SSR_GREEN
-	SET_SSR_OFF SSR_YELLOW
-	SET_SSR_OFF SSR_RED
+	BCF	INTCON, GIEH, ACCESS		; disable high-priority interrupts
+	BCF	INTCON, GIEL, ACCESS		; disable low-priority interrupts
+	BSF	PLAT_RED, BIT_RED, ACCESS	; set only RED light
+	BCF	PLAT_GREEN, BIT_GREEN, ACCESS
+	BCF	PLAT_YELLOW, BIT_YELLOW, ACCESS
 	IF HAS_ACTIVE
-	 SET_SSR_OFF SSR_ACTIVE
+	 BCF	PLAT_ACTIVE, BIT_ACTIVE, ACCESS
 	ENDIF
+	MOVLW	b'01110011'			; Set oscillator mode for our long slumber
+		; 0-------			; ~IDLEN enter SLEEP mode, not an idle mode
+		; -111----			;  IRCF=7 select 8 MHz internal clock speed
+		; ------11			;  SCS=3 system clock is now internal oscillator
+	MOVWF	OSCCON, ACCESS
+	BSF	WDTCON, SWDTEN, ACCESS		; make sure WDT is enabled
 HALT_SLEEP:
 	CLRWDT
 	SLEEP
-	BTG	PLAT_RED, BIT_RED, ACCESS	; when we wake up from WDT, toggle red LED
+	; when we wake up from WDT, flashs red light briefly
+	BSF	PLAT_RED, BIT_RED, ACCESS
+	CALL	DELAY_1_6_SEC			; 1/6 sec
+	BCF	PLAT_RED, BIT_RED, ACCESS
 	BRA	HALT_SLEEP
 	
 	END
