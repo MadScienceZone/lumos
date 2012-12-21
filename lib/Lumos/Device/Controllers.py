@@ -27,6 +27,7 @@
 #
 from Lumos.Device.LynX10ControllerUnit         import LynX10ControllerUnit
 from Lumos.Device.LumosControllerUnit          import LumosControllerUnit
+from Lumos.Device.LumosLegacyControllerUnit    import LumosLegacyControllerUnit
 from Lumos.Device.FirecrackerX10ControllerUnit import FirecrackerX10ControllerUnit
 from Lumos.Device.RenardControllerUnit         import RenardControllerUnit
 from Lumos.Device.Olsen595ControllerUnit       import Olsen595ControllerUnit
@@ -39,6 +40,7 @@ from Lumos.Device.FireGodControllerUnit        import FireGodControllerUnit
 supported_controller_types = {
     'lynx10':   LynX10ControllerUnit,
     'lumos':    LumosControllerUnit,
+    'oldlumos': LumosLegacyControllerUnit,
     'cm17a':    FirecrackerX10ControllerUnit,
     'renard':   RenardControllerUnit,
     'olsen595': Olsen595ControllerUnit,
