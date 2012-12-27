@@ -270,11 +270,11 @@ LUMOS_INIT:
 	MOVWF	T0CON, ACCESS
 	CLRF	TMR0H, ACCESS
 	CLRF	TMR0L, ACCESS	; reset TMR0 
-	MOVLW	b'10001000'
+	MOVLW	b'10000000'
 		; 1-------	; TMR1 read/write 16 bits at a time
 		; -X------	; N/A
 		; --00----	; TMR1 prescaler = 1:1
-		; ----1---	; TMR1 oscillator power on
+		; ----0---	; TMR1 oscillator power off
 		; -----00-	; TMR1 uses system clock (Fosc/4)
 		; -------0	; TMR1 off
 	MOVWF	T1CON, ACCESS

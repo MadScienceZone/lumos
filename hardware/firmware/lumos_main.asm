@@ -895,7 +895,7 @@ _MAIN_EEPROM_TBL	EQU	0x14000
 _EEPROM	CODE_PACK	0xF00000
 	DE	0xFF		; 000: 0xFF constant
 	DE	SIO_19200	; 001: baud rate default
-	DE	0x00		; 002: default device ID
+	DE	0x03    	; 002: default device ID
 	DE	0x00, 0x02	; 003: default phase offset
 	DE	0x00, 0x00, 0x00; 005: reserved
 	DE	0x00, 0x00, 0x00; 008: reserved

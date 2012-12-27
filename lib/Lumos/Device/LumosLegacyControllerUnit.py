@@ -32,7 +32,7 @@ class LumosLegacyControllerUnit (ControllerUnit):
     """
     ControllerUnit subclass for my custom 48-channel SSR boards.
     """
-    def __init__(self, id, power, network, address, resolution=32):
+    def __init__(self, id, power_source, network, address, resolution=32):
         """
         Constructor for a 48-Channel SSR board object:
             LumosLegacyControllerUnit(id, power, address, [resolution])
@@ -46,10 +46,11 @@ class LumosLegacyControllerUnit (ControllerUnit):
         which is correct for the 3.1 revision of the boards.
         """
 
-        ControllerUnit.__init__(self, id, power, network, resolution)
+        ControllerUnit.__init__(self, id, power_source, network, resolution)
         self.address = int(address)
         self.type = 'Lumos Legacy 48-Channel SSR Controller'
-        self.iter_channels = self._iter_non_null_channel_list
+        self.num_channels=48
+        #self.iter_channels = self._iter_non_null_channel_list
         if not 0 <= self.address <= 15:
             raise ValueError, "Address %d out of range for Lumos 48-Channel SSR Controller" % self.address
 
@@ -62,7 +63,7 @@ class LumosLegacyControllerUnit (ControllerUnit):
     #def iter_channels(self):
     #    return range(48)
 
-    def add_channel(self, id, name=None, load=None, dimmer=True, warm=None, resolution=None, power=None):
+    def add_channel(self, id, name=None, load=None, dimmer=True, warm=None, resolution=None, power_source=None):
         try:
             id = int(id)
             assert 0 <= id <= 47
@@ -74,7 +75,7 @@ class LumosLegacyControllerUnit (ControllerUnit):
         else:
             resolution=self.resolution
 
-        ControllerUnit.add_channel(self, id, name, load, dimmer, warm, resolution, power)
+        ControllerUnit.add_channel(self, id, name, load, dimmer, warm, resolution, power_source)
 
     #
     # hardware protocol, for a unit with address <a>

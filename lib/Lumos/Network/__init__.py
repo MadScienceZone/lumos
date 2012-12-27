@@ -57,9 +57,7 @@ class Network (object):
         self.units = {}
 
     def set_verbose(self, fileobj):
-
-
-        This class does not support this operation, so this method is
+        """This class does not support this operation, so this method is
         just a place-holder.  Other Network-derived classes may define
         this method."""
         pass

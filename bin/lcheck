@@ -36,8 +36,13 @@ import sys
 #========================================================================
 
 parser = OptionParser(usage="%prog [-hv] config-files...", version='@@RELEASE@@')
-parser.add_option('-v', '--verbose', action='store_true', help='Enable more descriptive output')
+parser.add_option('-v', '--verbose', action='count', help='Enable more descriptive output')
 (options, files) = parser.parse_args()
+
+def trace(level, msg):
+    global options
+    if level <= options.verbose:
+        print msg
 
 for file in files:
     if options.verbose: print "Checking", file
@@ -54,7 +59,7 @@ for file in files:
     for sourceID in sorted(s.all_power_sources):
         source = s.all_power_sources[sourceID]
         maxload_W[sourceID] = 0
-        if options.verbose: print "  %-10s %5gA %5gV %6dW" % (source.id, source.amps, source.volts, source.amps*source.volts)
+        if options.verbose: print "  %-20s %5.1fA %5gV %6dW" % (source.id, source.amps, source.volts, source.amps*source.volts)
 
     if options.verbose:
         print "-" * 78
@@ -85,13 +90,18 @@ for file in files:
         print "  UNIT     CHAN POWER   LOAD D WARM DESCRIPTION"
 
     for netID in sorted(s.networks):
+        trace(2, "net="+netID)
         net = s.networks[netID]
         for unitID in sorted(net.units):
+            trace(2, "--unit="+unitID)
             unit = net.units[unitID]
             if unitID in unitnames:
                 raise ValueError, "Unit '%s' is not unique!" % unitID
             unitnames[unitID] = 1
+            #trace(3, "channel list is {0}".format(`unit.channels`))
+            #trace(3, "sorted iter is {0}".format(sorted(unit.iter_channels())))
             for chanID in sorted(unit.iter_channels()):
+                trace(2, "----channel={}".format(chanID))
                 channel = unit.channels[chanID]
                 channel_power, channel_source = channel.current_load()
                 if options.verbose:
@@ -108,13 +118,14 @@ for file in files:
 
 
     def trace_load_of(pso, maxload_W):
+        trace(2, "trace_load_of(pso={}, maxload_W={}) ENTER".format(`pso`, maxload_W))
         ps = pso.id
         pso_watts = pso.amps * pso.volts
         psmax_W = maxload_W[ps]
         total_W = psmax_W + sum([trace_load_of(ss, maxload_W) for ss in pso.subordinates])
         
         if options.verbose:
-            print "  {0:10s} Loaded to {1:3d}%".format(ps, int(total_W*100 // pso_watts))
+            print "  {0:20s} Loaded to {1:3d}%".format(ps, int(total_W*100 // pso_watts))
 
         if total_W > pso_watts:
             over = -(pso_watts - total_W)
