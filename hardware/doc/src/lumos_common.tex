@@ -1,0 +1,511 @@
+% When sizing images, a full-width image is about 126 mm, half-size
+% are about 63 mm, full height about 170 mm.
+%
+% Using the circuit boards for hardcovers changes the page size.  The
+% board is 267x178mm, so leaving 5mm at the top and bottom (and assuming
+% the paper will extend 5mm into the spine past the hinge point), that
+% make the new page size 257x178.
+%
+% LiveJournal book typesetting macros
+% version 1.0 
+% Steve Willoughby <steve@alchemy.com> 12/2009
+%
+% Provides the following (see below for more details)
+% COMMANDS:
+%  \acronym[*]{TEXT}                        Typeset TEXT as an acronym (\mc)  + index automatically unless *
+%  \asidenote{text}                         Stage-whispers to reader
+%  \footnoteB{text}                         2nd tier of footnotes
+%  \ix{text}                                Typeset <text> plus do \index{<text>}
+%  \LLimg[opts]{filename}                   Include image (wraps \epsfig)  opts: width= etc
+%  \LLquote[*!][subtext]{[/@]author}{text}  Epigraph (*=wide, !=narrow)
+%  \LLquotex[subtext]{[/@]author}{text}{w}  Eipgraph (random paragraph width)
+%                                             {/author}  suppress indexing
+%                                             {@author}  suppress "Last, First"
+%                                             {x!y}      typeset x, index as y
+%                                             {x!}       typeset x, do not index
+%  \LLqindex*                               Suppress author indexing for next \LJquote
+%  \LLqindex{entry}                         Index next \LJquote as <entry>, typeset author as-is in \LJquote arg
+%  \LLstart{versal}{word}{leader}           Initial paragraph of entry
+%  \LLstart*                                Begin entry text w/o initial par.
+%
+%  \LLversal{versal}{word+leader}           "Initial" paragraph after \LJstart
+%  \marginComment{text}                     Simple comment, but in margins
+%  \mc{TEXT}                                Set TEXT in medium caps
+%  \Qauthor[subtext]{author}                Give credit to author of quotation.
+%  \starsep[char]                           Decorative * * * * separator
+%  \strong{text}                            Typeset with strong emphasis
+%  \TM                                      Trademark symbol
+%  \URL{url}                                Set url name (tt font)
+%  \URLref[*][text]{url}                    text refs URL in footnote (*=B)
+%  \Var[*]{name}                            Variable (*=bracketed)
+%  \work[*]{title}                          Cited work name (Italics)  + index automatically unless *
+%
+% ENVIRONMENTS:
+%  SourceCode                               Print block of source code in a box
+%  Coding                                   Use |verbatim| and \Var in env
+%                                            also \Var* puts <> around variable name
+%
+% LABELS:
+%\flushbottom
+%\raggedbottom
+%\setstocksize{8.5in}{7in}
+%\settrimmedsize{8.5in}{7in}{*}
+%\checkandfixthelayout
+\usepackage{ifpdf}
+\usepackage{multirow}
+\usepackage{ifthen}
+\usepackage{relsize}
+\usepackage{indent}
+\usepackage{bigfoot}
+\usepackage[normalem]{ulem}
+\usepackage{suffix}
+\usepackage{wrapfig}
+\usepackage{epsfig}
+\usepackage{textcomp}
+\usepackage{lettrine}
+\usepackage{bytefield}
+\usepackage{bbding}
+\usepackage{substr}
+%\usepackage{xstring}
+\usepackage[T1]{fontenc}
+%\usepackage{palatino}
+%\usepackage{bera}
+\usepackage{tgschola}
+%\usepackage{tgpagella}
+%\usepackage{fouriernc}
+%\usepackage{CJK}
+%\usepackage{pinyin}
+%\usepackage{aurical}
+%\usepackage{emerald}
+\usepackage{colortbl}
+\usepackage{longtable}
+\usepackage{color}
+\usepackage{calc}
+\usepackage{graphicx}
+\usepackage{soul}
+\usepackage{xfrac}
+\usepackage{wallpaper}
+%\usepackage{tikz}
+\usepackage{circuitikz}	
+%\makeatletter
+%\let\pinyinXi\Xi
+%\let\pinyinPi\Pi
+%\let\Xi\@undefined
+%\let\Pi\@undefined
+%\makeatother
+%\usepackage{fourier}
+\makeindex
+%\makeindex[tags]
+%\makeindex[comments]
+%\makeindex[quotes]
+\newcommand\ix[1]{#1\index{#1}}
+%\makeglossary
+\showindexmarks
+%\nouppercaseheads
+\hideindexmarks
+%
+% Page Layout Parameters
+%
+\setstocksize{11in}{8.5in}        % printing on letter stock  8.5x11
+%\settrimmedsize{234mm}{180mm}{*}  % trimmed paper dimensions ~7.5x9.5
+%
+% old sizes
+%
+%\settrimmedsize{234mm}{184mm}{*}  % trimmed paper dimensions ~7.5x9.5
+%\settrims{23mm}{35mm}             % offset into stock of trimmed paper
+%\settypeblocksize{182mm}{32pc}{*} % dimensions of type block
+%\setlrmargins{*}{27mm}{*}         % margins 27mm from outer edge
+%\setulmargins{*}{27mm}{*}         % margins 27mm from bottom edge
+%\setheaderspaces{*}{12mm}{*}      % 12mm between header and text baselines
+%\setmarginnotes{5mm}{15mm}{2mm}   % margin notes 15mm wide, 5mm from text, 2mm from each other
+%
+% new sizes
+%
+%\settrimmedsize{257mm}{180.5mm}{*}% trimmed paper dimensions 
+%\settrims{12mm}{37mm}             % offset into stock of trimmed paper
+%\settypeblocksize{205mm}{31pc}{*} % dimensions of type block
+%\setlrmargins{*}{27mm}{*}         % margins 27mm from outer edge
+%\setulmargins{*}{27mm}{*}         % margins 27mm from bottom edge
+%\setheaderspaces{*}{12mm}{*}      % 12mm between header and text baselines
+%\setmarginnotes{5mm}{15mm}{2mm}   % margin notes 15mm wide, 5mm from text, 2mm from each other
+\fixpdflayout
+%
+\trimFrame
+\checkandfixthelayout
+
+\newcommand\defaultchaptercolor{%
+  \definecolor{chapterboxcolor}{rgb}{.647,.129,.149}%
+}
+\defaultchaptercolor
+\makeatletter
+\newlength\dlf@normtxtw
+\setlength\dlf@normtxtw{\textwidth}
+\def\myhelvetfont{\def\fdefault{mdput}}
+\newsavebox{\feline@chapter}
+\newcommand\feline@chapter@marker[1][4cm]{%
+\sbox\feline@chapter{%
+\resizebox{!}{#1}{\fboxsep=1pt%
+%\colorbox{chapterboxcolor}{\color{white}\bfseries\sffamily\thechapter}%
+\colorbox{chapterboxcolor}{\color{white}\bfseries\thechapter}%
+}}%
+\rotatebox{90}{%
+\resizebox{%
+\heightof{\usebox{\feline@chapter}}+\depthof{\usebox{\feline@chapter}}}%
+{!}{\scshape\so\@chapapp}}\quad%
+\raisebox{\depthof{\usebox{\feline@chapter}}}{\usebox{\feline@chapter}}%
+}
+\newcommand\feline@chm[1][4cm]{%
+\sbox\feline@chapter{\feline@chapter@marker[#1]}%
+\makebox[0pt][l]{% aka \rlap
+\makebox[1cm][r]{\usebox\feline@chapter}%
+}}
+\makechapterstyle{daleif1}{
+\renewcommand\chapnamefont{\normalfont\Large\scshape\raggedleft\so}
+\renewcommand\chaptitlefont{\normalfont\huge\bfseries\scshape\color{chapterboxcolor}}
+\renewcommand\chapternamenum{}
+\renewcommand\printchaptername{}
+\renewcommand\printchapternum{\null\hfill\feline@chm[2.5cm]\par}
+\renewcommand\afterchapternum{\par\vskip\midchapskip}
+\renewcommand\printchaptertitle[1]{\chaptitlefont\raggedleft ##1\par}
+}
+\makeatother
+\chapterstyle{daleif1}
+
+
+%\chapterstyle{veelo}
+%\stockletter      % 8.5 x 11  in stock paper size
+%\pagestatement    % 8.5 x 5.5 in page size
+%\settrimmedsize{9in}{6in}{*}
+%\settrims{1in}{1.25in}
+%\setlrmarginsandblock{.5in}{.5in}{*}
+%\setulmarginsandblock{1in}{1in}{*}
+%\trimFrame
+%\quarkmarks
+%
+% Footnote Setup
+%
+\DeclareNewFootnote{default}
+\DeclareNewFootnote{B}[fnsymbol]
+\MakeSortedPerPage{footnoteB}
+
+%
+% Fix table of contents spacing
+% @pnumwidth [1.55em] width of box holding page numbers in TOC
+% @tocrmarg  [2.55em] title text indentation from right margin
+% @dotsep    [4.5]    math units of space between TOC leader dots.
+%
+\makeatletter
+\renewcommand{\@pnumwidth}{2.5em}
+\makeatother
+%
+%
+%
+% LLquoteblock environment:
+%   Sets text flush-right in Italic font.  Use \Qauthor to give credit
+%   after each quote in the block.
+%
+
+\setlength{\epigraphrule}{0pt}
+%
+% \Qauthor[subtext]{author}
+%    Give credit to the author of a quotation.  Optional subtext set
+%    on the following line in smaller type.
+%
+\newcommand\Qauthor[2][]{%
+  \\%
+  \textnormal{---#2%
+    \ifthenelse{\equal{#1}{}}{}{%
+      \\%
+      {\footnotesize #1}%
+    }%
+  }%
+}
+%
+% Indexing
+% \ix{<text>} typesets <text> and indexes it too (identical in both
+%             cases--to get something different, use \index explicitly).
+%
+% \LLquote[subtext]{author}{quote text}
+%    Epigraph (a single quote).  The optional subtext is set smaller
+%    in upright shape under the author.  Authors are given an em-dash
+%    in caps and small caps fully flush right.  The quote text itself
+%    is in Italics in a 40% width paragraph which is itself against the
+%    right margin.
+%
+%    The author's name is indexed.  The following special syntax is
+%    recognized for the {author} parameter:
+%XXX    <text>      - index <text> after trying to change* to Lastname, First
+%XXX    @<text>     - index <text> as-is*
+%XXX    /<text>     - typeset <text> but do NOT index (use \index manually)
+%
+%XXX    <text>!<i>  - typeset as <text>, index as <i> using all the usual
+%                     indexing controls in <i>.
+%XXX    <text>!     - typeset <text> but do NOT index.
+%
+%    (*These functions are handled by external scripts which prepare the
+%    indexes)
+%
+% \LLquote*[subtext]{author}{quote text}
+%    Alternative for wider quotations (uses 60% width).
+%
+% \LLquote![subtext]{author}{quote text}
+%    Alternative for narrow quotations (uses 25% width).
+%
+% \LLquotex[subtext]{author}{quote text}{width}
+%    Extended and generalized form allowing you to specify your own
+%    paragraph width.
+%
+           \newcommand\LLquote[3][]{\LLquotex[#1]{#2}{#3}{0.400\textwidth}}
+\WithSuffix\newcommand\LLquote*[3][]{\LLquotex[#1]{#2}{#3}{0.60\textwidth}}
+\WithSuffix\newcommand\LLquote![3][]{\LLquotex[#1]{#2}{#3}{0.25\textwidth}}
+%
+\newcommand\SuppressLjQuoteIndexing{norm}
+\newcommand\LLqindex[1]{%
+  \index[quotes]{#1}%
+  \renewcommand\SuppressLjQuoteIndexing{nil}%
+}
+\WithSuffix\newcommand\LLqindex*{\renewcommand\SuppressLjQuoteIndexing{nil}}
+
+\newcommand\LLquotex[4][]{%
+  \setlength{\epigraphwidth}{#4}%
+  \ifthenelse{\equal{\SuppressLjQuoteIndexing}{norm}}{%
+    \index[quotes]{#2}%
+    \IfCharInString{@}{#2}{%
+      \IfBeforeSubStringEmpty{@}{#2}{%
+        \def\LLqAuthor{\BehindSubString{@}{#2}}%
+      }{%
+        \def\LLqAuthor{#2}%
+      }%
+    }{%
+      \def\LLqAuthor{#2}%
+    }%
+  }{%
+    \renewcommand\SuppressLjQuoteIndexing{norm}%
+    \def\LLqAuthor{#2}%
+  }%
+  \ifthenelse{\equal{#1}{}}{%
+    \epigraph{{\em #3}}{{---\LLqAuthor}}%
+  }{%
+    \epigraph{{\em #3}}{{---\LLqAuthor}\\
+{\footnotesize #1}}%
+  }%
+}
+
+% \LLqindex*    Do not index author name at all for next quote
+% \LLqindex{@i} Use <i> as index entry for next \LLquote
+% \LLqindex{i}  Use <i> as index entry for next \LLquote, changing to Last, First format
+% \LLquote[work]{author}{text}  Set quote and index author in Last, First format
+% \LLquote[work]{@author}{text} Set quote and index author as-is
+
+%\maxsecnumdepth{chapter}
+
+% SourceCode environment:
+%   Typesets source code in a verbatim box.
+%
+\newenvironment{SourceCode}{\boxedverbatim}{\endboxedverbatim}
+%
+% Coding environment:
+%   Code verbatim inside |bars|
+%   Variables in \Var[*]{...} command  * form uses <> brackets around name
+%   
+\newenvironment{Coding}{\MakeShortVerb{\|}}{\DeleteShortVerb{\|}}
+\newcommand\Var[1]{{\itshape #1\/}}
+\WithSuffix\newcommand\Var*[1]{$\langle${\itshape #1\/}$\rangle$}
+\newcommand\marginComment[1]{%
+  \marginpar{%
+    \ECFAugie%
+    \noindent #1%
+  }%
+}
+% \LLstart{versal}{first word}{emphasized text}
+%   Begin an entry with an initial dropped versal, plus some
+%   style applied to the rest of the first word and some 
+%   starting text.
+%
+\newcommand\LLstart[3]{\LLversal{#1}{\lowercase{#2 #3}}}
+
+%\noindent{\tiny [ \box\ljAttrBox\ ]}\par}
+%
+% \LLversal{versal}{first word(s)}
+%   Begin a chapter paragraph.  This is just like \LLstart but without the
+%   meta-post information being printed.
+%   (In fact, \LLstart calls \LLversal to do the initial text.)
+%
+\newcommand\LLversal[2]{%
+ \ifthenelse{\equal{#1}{A}}{%
+  \lettrine[lines=3,findent=-1.1em,nindent=.9em,slope=.6em]{#1}{#2}%---------------A
+ }{%
+  \ifthenelse{\equal{#1}{B}}{%
+   \lettrine[lines=3,findent=-.4em]{#1}{#2}%---------------------------------------B
+  }{%
+   \ifthenelse{\equal{#1}{C}}{%
+    \lettrine[lines=3,findent=-.2em]{#1}{#2}%--------------------------------------C
+   }{%
+    \ifthenelse{\equal{#1}{D}}{%
+     \lettrine[lines=3,findent=-.4em]{#1}{#2}%-------------------------------------D
+    }{%
+     \ifthenelse{\equal{#1}{E}}{%
+      \lettrine[lines=3,findent=-.2em]{#1}{#2}%------------------------------------E
+     }{%
+      \ifthenelse{\equal{#1}{G}}{%
+       \lettrine[lines=3,findent=-.3em]{#1}{#2}%-----------------------------------G
+      }{%
+       \ifthenelse{\equal{#1}{I}}{%
+        \lettrine[lines=3,findent=-.1em]{#1}{#2}%----------------------------------I
+       }{%
+        \ifthenelse{\equal{#1}{K}}{%
+         \lettrine[lines=3,findent=+.1em]{#1}{#2}%---------------------------------K
+        }{%
+         \ifthenelse{\equal{#1}{L}}{%
+          \lettrine[lines=3,findent=-1.1em,nindent=1.5em]{#1}{#2}%-----------------L
+         }{%
+          \ifthenelse{\equal{#1}{O}}{%
+           \lettrine[lines=3,findent=-.3em]{#1}{#2}%-------------------------------O
+          }{%
+           \ifthenelse{\equal{#1}{Q}}{%
+            \lettrine[lines=3,findent=-.3em]{#1}{#2}%------------------------------Q
+           }{%
+            \ifthenelse{\equal{#1}{R}}{%
+             \lettrine[lines=3,findent=-.3em]{#1}{#2}%-----------------------------R
+            }{%
+             \ifthenelse{\equal{#1}{S}}{%
+              \lettrine[lines=3,findent=-.2em]{#1}{#2}%----------------------------S
+             }{%
+              \ifthenelse{\equal{#1}{V}}{%
+               \lettrine[lines=3,findent=+.1em,nindent=0em,slope=-.5em]{#1}{#2}%---V
+              }{%
+               \ifthenelse{\equal{#1}{W}}{%
+                \lettrine[lines=3,nindent=-.1em,slope=-.4em]{#1}{#2}%--------------W
+               }{%
+                \ifthenelse{\equal{#1}{Y}}{%
+                 \lettrine[lines=3,findent=+.1em,nindent=0em,slope=-.5em]{#1}{#2}%-Y
+                }{%
+                 \lettrine[lines=3]{#1}{#2}%---------------------------------------*
+	        }%
+               }%
+	      }%
+	     }%
+            }%
+           }%
+          }%
+         }%
+        }%
+       }%
+      }%
+     }%
+    }%
+   }%
+  }%
+ }%
+}
+
+%
+% \LLimg[options]{filename}
+%   Place an inline EPS image here in the text (this needs refinement)
+%
+\newcommand\LLimg[2][]{%
+  \ifthenelse{\equal{#2}{}}{%
+    \emph{XXX Image? #1 #2}%
+    \typeout{Missing image name in LLimg!}%
+  }{%
+    \ifthenelse{\boolean{pdf}}{%
+      \ifthenelse{\equal{#1}{}}{%
+        \epsfig{file=images/#2, width=\textwidth}%
+      }{%
+        \epsfig{file=images/#2, #1}%
+      }%
+    }{%
+      \ifthenelse{\equal{#1}{}}{%
+        \epsfig{file=eps/#2.eps, width=\textwidth}%
+      }{%
+        \epsfig{file=eps/#2.eps, #1}%
+      }%
+    }%
+  }%
+}% 
+%
+%
+% \URLref[*][text]{url}
+%   Refer to a URL somehow (as <a href="url">text</a> would have been)
+%   Starred form uses 2nd level of footnotes (for use within a footnote)
+%
+\newcommand\URLref[2][]{#1\footnote{\URL{#2}}}
+\WithSuffix\newcommand\URLref*[2][]{#1\footnoteB{\URL{#2}}}
+%
+% \acronym{letters}
+% \mc{letters}
+%   Typesets all-caps in slightly smaller font.  \mc just does the
+%   typesetting, while \acronym also adds an entry in the main index
+%   for the term (maybe someday we'll add to the glossary as well).
+%
+\newcommand\acronym[1]{{\smaller #1}\index{#1@\acronym*{#1}}}
+\WithSuffix\newcommand\acronym*[1]{{\smaller #1}}
+\newcommand\mc[1]{{\smaller #1}}
+%
+% \starsep[symbol]
+%   Star paragraph section separator.  The default symbol is
+%   a fancy asterisk from the dingbats font.
+%
+\newcommand\starsep[1][\Asterisk]{
+	\medskip
+	\centerline{#1\qquad#1\qquad#1\qquad#1}
+	\medskip
+}
+
+%
+% \asidenote{text}
+%   Side comments (just set in smaller type)
+%
+\newcommand\asidenote[1]{{\footnotesize #1}}
+
+%
+% unfinished
+%
+%\tracingmacros=1
+\newcommand\strong[1]{{\bfseries #1}}
+\newcommand\TM{\texttrademark}
+\newcommand\work[1]{\emph{#1}\index{#1@\work*{#1}}}
+\WithSuffix\newcommand\work*[1]{\emph{#1}}
+\newcommand\URL[1]{{\ttfamily #1}}
+
+%
+% notes
+%
+% Within a group or environment:
+%  switch font family:           \rmfamily \sffamily \ttfamily
+%  switch series within family:  \mdseries \bfseries
+%  switch letter shape:          \upshape \slshape \itshape \scshape
+%
+% (lower-level: select 12pt Garamond medium italic with T1 encoding with 15pt leading.)
+%   \fontencoding{T1}
+%   \fontfamily{garamond}
+%   \fontseries{m}
+%   \fontshape{it}
+%   \fontsize{12}{15}
+%   \selectfont
+%
+% relsize package: \smaller etc for relative sizing
+% \begin{wrapfigure}[number of narrow lines]{placement}[overhang]{width} ... \end{wrapfigure}
+%   placement: r=right, l=left, i=inside, o=outside,  <--here
+%              R=right, L=left, I=inside, O=outside,  <--float
+%   overhang: out into margin [default \wrapoverhang, initially 0]
+%
+% Indexing notes:
+%	\index[indexname]{entry}
+%	\ix{text} is convenience --> text\index{text}
+%
+%	As far as the entries themselves, the following special characters may be used:
+%		main-entry[!sub-entry[!sub-sub-entry]]		(max 3 levels)
+%		xxx|(		start page range for entry xxx
+%		xxx|)		end page range for entry xxx
+%		xxx|see{yyy}	make xxx cross-reference to yyy (place anywhere, not in doc)
+%		xxx@yyy		sort as xxx, but typeset as yyy (may incl. TeX source in yyy)
+%		xxx|fff		format entry xxx's page number with \fff{pageno}
+%		xxx|fff(	start page range w/pageno formatting (end with "xxx|)")
+%	
+%	"@ "! "|  -> literal @ ! |
+%
+% if index doesn't show up in TOC, add this at index point:
+% \clearpage (etc)
+% \addcontentsline{toc}{chapter}{Index}
+% \printindex
