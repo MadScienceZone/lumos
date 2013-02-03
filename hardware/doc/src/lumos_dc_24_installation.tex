@@ -30,7 +30,9 @@
 \mc{RISK OF FIRE, ELECTROCUTION, SERIOUS INJURY OR DEATH!} 
 \end{center}
 
-This circuit design, including but not limited to any associated plans, schematics, designs, board layouts, documentation, and/or components, is \mc{EXPERIMENTAL} and for \mc{EDUCATIONAL} purposes only. It is not a finished consumer-grade product and has not been reviewed by a body such as Underwriter's Laboratories. It is assumed that you have the necessary understanding and skill to assemble and/or use electronic circuits.
+This circuit design, including but not limited to any associated plans, schematics, designs, board layouts, documentation, 
+and/or components, is \mc{EXPERIMENTAL} and for \mc{EDUCATIONAL} purposes only. It is not a finished consumer-grade product.
+It is assumed that you have the necessary understanding and skill to assemble and/or use electronic circuits.
 
 Proceed \mc{ONLY} if you know exactly what you are doing, understand the proper procedures for working with the high voltage present on the components and PC boards, and understand that you do so \mc{ENTIRELY AT YOUR OWN RISK.}
 
@@ -41,6 +43,9 @@ The author makes \mc{NO} representation as to suitability or fitness for any pur
 
 \strut\vfill
 \noindent Edition 1.0, for Lumos 24-Channel DC Controller circuit version 1.0.8.
+
+\smallskip
+
 
 \noindent Copyright \copyright\ 2013 by Steven L. Willoughby,
 Aloha, Oregon, USA.  All Rights Reserved.  
@@ -79,6 +84,13 @@ the same PC serial port.
 By plugging DC-powered Christmas lights into the Lumos controller, your PC can orchestrate
 a dazzling display of lights synchronized to music.
 
+This manual assumes you have a Lumos controller board built and ready to put into operation.
+We will describe how to install it in a working circuit.  
+
+The operational details involved
+in getting the controller to work with software is described in 
+\emph{Using Lumos\TM\ SSR Controllers.}
+
 \section{Intended Audience}
 This is an ``advanced'' level do-it-yourself electronic circuit project.  It is not
 an off-the-shelf consumer-ready product.  It is only designed for educational and experimental
@@ -101,7 +113,8 @@ to build and/or use this unit, you do so \mc{ENTIRELY AT YOUR OWN RISK}.
 
 If you purchased hardware materials from us (such as a PC board or programmed controller chip),
 we will---at our sole discretion---replace, repair, or refund the cost of those materials if they were defective in manufacture
-as shipped to you, but are not liable for damage caused by your handling or assembly of the unit.
+as shipped to you, up to 90~days from the date they were shipped to you, 
+but are not liable for damage caused by your handling or assembly of the unit.
 Otherwise, we make no representation of suitability or fitness for any particular purpose and disclaim
 all other warranty or liability of any kind to the full extent permitted by law.
 
@@ -467,7 +480,9 @@ into the procedure and are unable to complete it.
 		This may be nearly any semi-modern PC.  Lumos has successfully been run on systems as small as 
 		a laptop with 256\,Mb of memory to large, high-performance servers.  It may be run on Microsoft
 		Windows, Linux, \mc{BSD UNIX}, and Mac \mc{OSX}.  See the software manual \emph{Using the Lumos Software} 
-		for full details.
+		for full details.  You may also use other software with Lumos controllers, such as the popular
+		Vixen program (assuming compatible drivers are available and loaded), or a program which uses the
+		\acronym{DMX512} protocol (assuming the Lumos controller is configured for \acronym{DMX512} operation).
 		
 	\item	{\bfseries An \ix{RS-485 converter}.}
 		If your Lumos board is an RS-485-compatible model, it will be built for either full-duplex or half-duplex
@@ -500,7 +515,7 @@ into the procedure and are unable to complete it.
 
 	\item	{\bfseries \ix{RS-485} \ix{terminator plug}.}  \emph{(RS-485 models only.)}
 		Both ends of the RS-485 ``chain'' must end in a terminator.
-		Usually, your RS-485 converter will have a terinator built into it, so it can form one end of the chain
+		Usually, your RS-485 converter will have a terminator built into it, so it can form one end of the chain
 		by itself.
 		\marginpar{\centerline{\LLimg[width=1.5in]{termplug}}}
 
@@ -621,7 +636,7 @@ To connect the controllers to your PC, follow these steps:
 	\item	Insert a special ``\ix{terminator plug}'' into the last Lumos controller's ``\mc{OUT/THRU}'' (J13) connector.
 	\item	Refer to Figure~\ref{fig:netcables} to see how the serial network cables look
 		when connected.  The unit on the left has two cables attached.  The blue cable is the incoming data line
-		from the PS's RS-485 converter.  The orange cable is going out from this Lumos controller to the next one in the
+		from the PC's RS-485 converter.  The orange cable is going out from this Lumos controller to the next one in the
 		chain, which is shown on the right of Figure~\ref{fig:netcables}.  Note that on the second unit, the orange cable
 		from the first unit is plugged in to the ``\mc{IN}'' jack, and a terminator plug is placed in the ``\mc{OUT}'' jack,
 		ending the chain at that point.
@@ -901,300 +916,11 @@ pointers, hints, and tips to assist you further.  If that doesn't answer all you
 there is an \ix{online forum} where you may submit questions for help.
 
 \backmatter
+\appendix
 
-\chapter{Appendix A: Connector Pinouts}
-\section{RS-485 Connection (8p8c Female Modular Jacks)}
-\begin{center}
-\begin{tikzpicture}[scale=.25]
-	\draw [thick] (0,0) -- (0,13) -- (13,13) -- (13,0) -- cycle;
-	\draw (2,11) -- (11,11) -- (11,4) -- (9,4) -- (9,3) -- (8,3) -- (8,2) -- (5,2) -- (5,3) -- (4,3) -- (4,4) -- (2,4) -- cycle;
-	\foreach \x in {3, 4, 5, 6, 7, 8, 9, 10} {
-		\draw (\x,11) -- (\x,8);
-	}
-	\node [below] at (3,8) {1};
-	\node [below] at (10,8) {8};
-	\node [right] at (15,12) {\strut 1 Return Data ($+$); \emph{[Full-duplex models only]}};
-	\node [right] at (15,10.5) {\strut 2 Return Data ($-$); \emph{[Full-duplex models only]}};
-	\node [right] at (15,9) {\strut 3 Cable Check};
-	\node [right] at (15,7.5)  {\strut 4 Data ($-$)};
-	\node [right] at (15,6)  {\strut 5 Data ($+$)};
-	\node [right] at (15,4.5)  {\strut 6 Cable Check};
-	\node [right] at (15,3)  {\strut 7 Data Ground};
-	\node [right] at (15,1.5)  {\strut 8 Return Data Ground};
-\end{tikzpicture}
-\end{center}
-Note that the jacks are labeled ``in'' and ``out/thru'' on the board.  This is intended to remind the user
-that these are daisy-chained connections with a signal coming ``in'' to the board on one wire, and on ``through'' to
-the next board in the circuit (or ``out'' back to the host PC in the case of responses to query commands).  These
-names also mirror the naming conventions used with \acronym{DMX} equipment. 
+\input pinouts
 
-Electrically, however, the RS-485 serial ``network'' is a single bus running from the host PC to the last Lumos
-controller.  Each controller ``taps'' into the line as it goes by.  This means that, labeling notwithstanding,
-the ``in'' and ``out/thru'' jacks are in fact completely identical and interchangeable.
-
-The ``cable check'' lines are simply passed through the Lumos board from input to output, with the expectation that
-the terminator will connect them together.  These lines are not used by Lumos boards at all.  They are provided as
-a convenient way for the host PC interface to verify cable continuity by sending a voltage down one pin all
-the way to the terminator and back on the other pin.  This helps warn the user if a cable becomes disconnected.
-The Lumos front panel circuit board is one example of a circuit which makes use of this feature.
-
-The two grounds on pins 7 and 8 are actually shorted together and connected to the common signal ground
-on the Lumos board.
-
-\newpage
-
-\section{RS-485 Terminator (8p8c Male Plug)}
-The terminator plug consists of a pair of $120\Omega$ resistors.  One is connected across pins 1--2, and the other
-across pins 4--5.  This provides the proper line termination at the end of the RS-485 chain.  A terminator must
-be plugged in to each end of the chain (but note that often the PC's RS-485 adaptor contains a built-in terminator).
-
-To enable the cable check feature to work, pins 3 and 6 must also be shorted together.
-
-The schematic diagram for the terminator is included below.  Often, the resistors are mounted to a small circuit
-board which fits inside the modular plug, making a self-contained terminator plug.
-\begin{center}
-	\begin{circuitikz}
-		\draw (0,0) -- (1,0) -- (1,4.5) -- (0,4.5) -- cycle;
-		\node at (.5,.5) {8};
-		\node at (.5,1) {7};
-		\node at (.5,1.5) {6};
-		\node at (.5,2) {5};
-		\node at (.5,2.5) {4};
-		\node at (.5,3) {3};
-		\node at (.5,3.5) {2};
-		\node at (.5,4) {1};
-		\draw (1,4) to[R, l=$120\Omega$] (3,4);
-		\draw (3,4) -- (3,3.5) -- (1,3.5);
-		\draw (1,2.5) to[R] (3,2.5);
-		\draw (3,2.5) -- (3,2.0) -- (1,2.0);
-		\draw (1,3) -- (4,3) -- (4,1.5) -- (1,1.5);
-	\end{circuitikz}
-\end{center}
-
-\section{RS-232 Serial Connection (9-pin Female DE-9 Jack)}
-\begin{center}
-	\begin{tikzpicture}[scale=.25]
-		\draw [thick] (0,7) -- (12,7) -- (10,3) -- (2,3) -- cycle;
-		\foreach \x in {2, 4, 6, 8, 10} {
-			\draw (\x, 6) circle (.5);
-		}
-		\foreach \x in {3, 5, 7, 9} {
-			\draw (\x, 4) circle (.5);
-		}
-		\node [above] at (10,7) {1};
-		\node [above] at (2,7) {5};
-		\node [below] at (3,3) {9};
-		\node [below] at (9,3) {6};
-		\node [right] at (14,7) {2 Receive Data\strut};
-		\node [right] at (14,5.5) {3 Transmit Data\strut};
-		\node [right] at (14, 4) {4 Data Terminal Ready\strut};
-		\node [right] at (14, 2.5) {5 Signal Ground\strut};
-		\node [right] at (30, 7) {6 Data Set Ready\strut};
-		\node [right] at (30, 5.5) {7 Request to Send\strut};
-		\node [right] at (30, 4) {8 Clear to Send\strut};
-	\end{tikzpicture}
-\end{center}
-For Lumos boards configured to use RS-232 serial connections to a host PC, a standard 9-pin connector is used,
-with the Lumos board wired as a \acronym{DCE} device.
-
-On the Lumos board, Data Terminal Ready (\acronym{DTR}) and Data Set Ready (\acronym{DSR}) on pins 4 and 6 are shorted
-together, as are Request to Send (\acronym{RTS}) and Clear to Send (\acronym{CTS}) on pins 7 and 8.  This should satisfy
-most communications software which expects to see these signals present, although the Lumos board itself does not
-perform any hardware or software handshaking.
-
-Receive Data (\acronym{RxD}) and Transmit Data (\acronym{TxD}) are named from the point of view of the \acronym{DTE} (host
-PC), so \acronym{TxD} is the wire which carries data from the host PC to the Lumos board.
-
-\section{Sensor Input Terminals (J16)}
-\begin{center}
-	\begin{tikzpicture}[scale=.5]
-		\draw [thick] (.5,.5) -- (5.5,.5) -- (5.5,1.5) -- (.5,1.5) -- cycle;
-		\foreach \x in {1, 2, 3, 4, 5} {
-			\draw (\x,1) circle (.4);
-		}
-		\draw [thick] (4.5, .5) -- (4.5, 1.5);
-		\node [above] at (1,1.5) {$\overline{\hbox{A}}$};
-		\node [above] at (2,1.5) {$\overline{\hbox{B}}$};
-		\node [above] at (3,1.5) {$\overline{\hbox{C}}$};
-		\node [above] at (4,1.5) {$\overline{\hbox{D}}$};
-		\node [above right] at (4.5,1.5) {$\overline{\hbox{PWR CTL}}$};
-		\node [left] at (.5,1) {J16};
-		\node [right] at (5.5,1) {J9};
-	\end{tikzpicture}
-\end{center}
-If the Lumos controller is built to accommodate one or more sensor inputs, a set of terminals will be installed
-at J16, next to the $\overline{\hbox{\mc{PWR CTL}}}$ output at J9.  These are labeled from left to right (as the board
-is viewed right-side-up from the front) as 
-$\overline{\hbox{\mc{A}}}$,
-$\overline{\hbox{\mc{B}}}$,
-$\overline{\hbox{\mc{C}}}$, 
-and
-$\overline{\hbox{\mc{D}}}$.
-It is important to note that the board's circuitry must be configured for certain inputs to be enabled
-at the time the board is built, and that the board must be configured (using software) to recognize those
-inputs, before they will be usable.
-
-Each input accepts a \acronym{TTL}-level signal.  The lines are pulled up to +5\,V internally.  The board
-can be configured to react to the inputs as active-high or active-low.
-
-\section{Logic Output Terminals (J18)}
-\begin{center}
-	\begin{tikzpicture}[scale=.5]
-		\draw [thick] (.5,.5) -- (5.5,.5) -- (5.5,1.5) -- (.5,1.5) -- cycle;
-		\foreach \x in {1, 2, 3, 4, 5} {
-			\draw (\x,1) circle (.4);
-		}
-		\node [above] at (1,1.5) {0};
-		\node [above] at (2,1.5) {1};
-		\node [above] at (3,1.5) {2};
-		\node [above] at (4,1.5) {3};
-		\node [above right] at (4.5,1.5) {GND};
-		\node [left] at (.5,1) {J18};
-	\end{tikzpicture}
-\end{center}
-For experimental use, \acronym{TTL}-level outputs for the first four channels are available on J18.  These
-are active-low outputs, where a ``low'' (0) state indicates that the output should be on, and a ``high''
-(1) state means that the output should be off.  Note that if an output is at a dimmer level other than
-fully on or fully off, the signal will pulse with a duty cycle corresponding to the dimmer level.
-
-\section{ICSP Header (J11)}
-\begin{center}
-	\begin{tikzpicture}[scale=.5]
-		\draw [line width=10] (.6,1)--(5.4,1);
-		\foreach \x in {1, 2, 3, 4, 5} {
-			\foreach \y in {1} {
-				\draw [fill=white] (\x-.2,\y-.2) -- (\x-.2,\y+.2) -- (\x+.2,\y+.2) -- (\x+.2,\y-.2) -- cycle;
-			}
-		}
-		\draw (5.5,1) -- (6,1.25) -- (6,0.75) -- cycle;
-		\node [above] at (1,1.5) {5};
-		\node [above] at (2,1.5) {4};
-		\node [above] at (3,1.5) {3};
-		\node [above] at (4,1.5) {2};
-		\node [above] at (5,1.5) {1};
-		\node [right] at (7, 3.0) {1 $\hbox{V}_{\hbox{\footnotesize DD}}$ (+5\,V)};
-		\node [right] at (7, 2.0) {2 $\hbox{V}_{\hbox{\footnotesize SS}}$ (Ground)};
-		\node [right] at (7, 1.0) {3 $\hbox{V}_{\hbox{\footnotesize PP}}/\overline{\hbox{\mc{MCLR}}}/\overline{\hbox{\mc{RESET}}}$};
-		\node [right] at (15, 3.0) {4 PGD$/\overline{\hbox{\mc{PWR CTL}}}$};
-		\node [right] at (15, 2.0) {5 PGC$/\overline{\hbox{\mc{OPTION}}}$};
-	\end{tikzpicture}
-\end{center}
-This header is used for reprogramming a new firmware image onto the microcontroller chip.  Be sure to check the pinout
-used by your programmer before connecting it to this port.  It may be different!
-
-During normal operations, this header may also be used to connect off-board buttons for the reset and option functions.  These
-buttons should be normally open, but connect their respective pins to ground when pushed. 
-
-\section{Voltage Select Headers (J6--J8, J17)}
-\begin{center}
-	\begin{tikzpicture}[scale=.5]
-		%\draw [line width=10] (.6,1)--(4.4,1);
-		\draw [line width=10] (1,.6)--(1,4.4);
-		\draw [line width=10] (5,.6)--(5,4.4);
-		\foreach \y in {1, 2, 3, 4} {
-			\foreach \x in {1, 5} {
-				\draw [fill=white] (\x-.2,\y-.2) -- (\x-.2,\y+.2) -- (\x+.2,\y+.2) -- (\x+.2,\y-.2) -- cycle;
-			}
-		}
-		\node [above] at (1,4.4) {J17};
-		\node [above] at (5,4.4) {J6--J8};
-		\node [left] at (.8,1) {VRO};
-		\node [left] at (.8,2) {+O};
-		\node [left] at (.8,3) {+I};
-		\node [left] at (.8,4) {VRI};
-		\node [left] at (4.8,1) {VRI};
-		\node [left] at (4.8,2) {+I};
-		\node [left] at (4.8,3) {+O};
-		\node [left] at (4.8,4) {VRO};
-
-		\node [right] at (7, 4) {+I: Positive voltage in from power supply};
-		\node [right] at (7, 3) {+O: Positive voltage out to circuit};
-		\node [right] at (7, 2) {VRI: Input to voltage regulator};
-		\node [right] at (7, 1) {VRO: Output from voltage regulator};
-	\end{tikzpicture}
-\end{center}
-J6--J8 are used to select the input voltage supplied to the power control blocks for channels 0--7, 8--15, and 16--23
-respectively.  Likewise, J17 selects the input voltage supplied to the logic portion of the board.  Although the pinouts
-are mirrored between J17 and the others, their operation is the same.  If a regulated +5\,V supply is employed, there is no
-need for the on-board regulator (and in fact it can't function properly unless its input is at least +8\,V), so a jumper
-is placed across the middle two pins (connecting +I and +O), bypassing the voltage regulator entirely.  \emph{In this 
-case, it is critically important that the input voltage be a clean, regulated +5\,V supply.  If this voltage is exceeded,
-permanent damage to the Lumos board will result!}
-
-If +8\,V to +24\,V is attached to an input, the corresponding jumper block needs jumpers installed into the outer two pins,
-connecting +I to VRI and +O to VRO.  This routes the incoming power through the voltage regulator.
-
-If it is necessary to move this selection to a front panel switch, this can be accomplished simply by attaching a
-\acronym{DPDT} switch to each jumper block header like this:
-%  o
-%  o      o<-o  o
-%  o      o<-o  o
-%  o
-\begin{center}
-	\begin{tikzpicture}[scale=.5]
-		\draw [line width=10] (1,.6)--(1,4.4);
-		\draw (6,3.25) -- (6,4) -- (3,4) -- (3,3) -- (1,3);
-		\draw (6,1.75) -- (6,1) -- (3,1) -- (3,2) -- (1,2);
-		\draw (7,3.25) -- (7,4.5) -- (2,4.5) -- (2,4) -- (1,4);
-		\draw (7,1.75) -- (7,.5) -- (2,.5) -- (2,1) -- (1,1);
-		\foreach \y in {1, 2, 3, 4} {
-			\foreach \x in {1} {
-				\draw [fill=white] (\x-.2,\y-.2) -- (\x-.2,\y+.2) -- (\x+.2,\y+.2) -- (\x+.2,\y-.2) -- cycle;
-			}
-		}
-		\foreach \x in {5, 6, 7} {
-			\foreach \y in {2, 3} {
-				\draw (\x,\y) circle (.25);
-			}
-		}
-		\draw [thick, ->] (5.75,2) -- (5.25,2);
-		\draw [thick, ->] (5.75,3) -- (5.25,3);
-		\draw [dashed]    (5.6,2) -- (5.6, 3);
-		\draw (4.75,2) -- (4,2) -- (4,3) -- (4.75, 3);
-	\end{tikzpicture}
-\end{center}
-
-\section{Relay Control Connection (26-pin Male IDC Header)}
-%
-%   . . . . . . . . . . . . .
-%   . . . . . . . . . . . . .
-%
-\begin{center}
-	\begin{tikzpicture}[scale=.25]
-		\foreach \x in {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13} {
-			\foreach \y in {1, 2} {
-				\draw (\x-.1,\y-.1) -- (\x-.1,\y+.1) -- (\x+.1,\y+.1) -- (\x+.1,\y-.1) -- cycle;
-			}
-		}
-		%\draw         (.4,.4) -- (.4,2.6) -- (13.6,2.6) -- (13.6,.4) -- (.4,.4);
-		\draw         (.4,.4) -- (.4,2.6) -- (13.6,2.6) -- (13.6,.4) -- (8,.4) -- (8,.2) -- (6,.2) -- (6,.4) -- cycle;
-		\draw [thick] (.2,.2) -- (.2,2.8) -- (13.8,2.8) -- (13.8,.2) -- cycle;
-		\node [below] at (1,0) {\strut1};
-		\node [above] at (1,3) {\strut2};
-		\node [below] at (2,0) {\strut3};
-		\node [above] at (2,3) {\strut4};
-		\node [below] at (3.5,0) {\strut$\cdots$};
-		\node [above] at (3.5,3) {\strut$\cdots$};
-		\node [below] at (13,0) {\strut 25};
-		\node [above] at (13,3) {\strut 26};
-	\end{tikzpicture}
-\end{center}
-For Lumos controllers built as ``dumb'' relay boards with no built-in logic control of their own, a 26-pin 
-\acronym{IDC} ribbon cable header.  This is used to connect the relays to the controlling circuit (e.g.,
-a Lumos 48-channel controller).  The pinout of this header is:
-\begin{center}
-	\begin{tabular}{rl|rl|rl|rl}
-1&$\overline{\hbox{\mc{SSR23}}}$&8&$\overline{\hbox{\mc{SSR3}}}$&15&Gnd                           &22&$\overline{\hbox{\mc{SSR9}}}$ \\
-2&$\overline{\hbox{\mc{SSR0}}}$&9&$\overline{\hbox{\mc{SSR19}}}$&16&+5\,V                         &23&$\overline{\hbox{\mc{SSR13}}}$ \\
-3&$\overline{\hbox{\mc{SSR22}}}$&10&$\overline{\hbox{\mc{SSR4}}}$&17&$\overline{\hbox{\mc{SSR16}}}$&24&$\overline{\hbox{\mc{SSR10}}}$ \\
-4&$\overline{\hbox{\mc{SSR1}}}$&11&$\overline{\hbox{\mc{SSR18}}}$&18&$\overline{\hbox{\mc{SSR7}}}$&25&$\overline{\hbox{\mc{SSR12}}}$\\
-5&$\overline{\hbox{\mc{SSR21}}}$&12&$\overline{\hbox{\mc{SSR5}}}$&19&$\overline{\hbox{\mc{SSR15}}}$&26&$\overline{\hbox{\mc{SSR11}}}$\\
-6&$\overline{\hbox{\mc{SSR2}}}$&13&$\overline{\hbox{\mc{SSR17}}}$&20&$\overline{\hbox{\mc{SSR8}}}$\\
-7&$\overline{\hbox{\mc{SSR20}}}$&14&$\overline{\hbox{\mc{SSR6}}}$&21&$\overline{\hbox{\mc{SSR14}}}$
-	\end{tabular}
-\end{center}
-
-\chapter{Appendix B: Troubleshooting}\label{ch:troubleshooting}
+\chapter{Troubleshooting}\label{ch:troubleshooting}
 %\LLstart{W}{HILE}{we anticipate} 
 While we anticipate the Lumos board will provide many hours of worry-free operation,
 as with any device (particularly one built as a \acronym{DIY} project), sometimes things don't go
@@ -1296,79 +1022,18 @@ One unit does not respond to commands.
 	\item[Terminator Plug:]
 		An RS-485 network requires a terminator at each end.  This is a small plug which plugs into
 		the last unit in the daisy chain.
-	\item[\acronym{TTL}:] Transistor-Transistor Logic, one of the ways digital logic circuits can be
+	\item[\acronym{TTL} (Transistor-Transistor Logic):] One of the ways digital logic circuits can be
 		constructed.  For our purposes here, we consider a ``\acronym{TTL}-level'' signal to be a
 		logic input or output where a voltage near +5\,V is ``high'' (binary 1 or ``true'') and a
 		voltage near 0\,V is ``low'' (binary 0 or ``false'').  The inputs should never be above
 		+5 nor below 0 volts.
 \end{description}
 
-\chapter{Acknowledgements}
-
-\section*{Kickstarter Project}
-We launched a Kickstarter project to build a test network of Lumos DC boards for final testing
-and debugging before releasing the final designs and firmware as an open source \acronym{DIY}
-project.
-
-Thank you to all our Kickstarter backers who made the final testing of the Lumos DC controllers
-possible!
-
-\begin{center}
-\begin{tabular}{ll}
-\multicolumn{2}{c}{\bfseries Fan Level}\\
-Amanda Allen\\
-\multicolumn{2}{c}{{\huge\strut}\bfseries Supporter Level}\\
-Carey Adams &
-Beth Gordon  \\
-Sue Allen &
-Sara Jacobson \\
-Andrej \v Cibej &
-Tanya Spackman \\
-Betsy Fernley \\
-\multicolumn{2}{c}{{\huge\strut}\bfseries Backer Level}\\
-DC \\
-\multicolumn{2}{c}{{\huge\strut}\bfseries Silver Level}\\
-David Johnston & Melf \\
-\multicolumn{2}{c}{{\huge\strut}\bfseries Gold Level}\\
-Rob Beasley & Phil Willoughby \\
-\multicolumn{2}{c}{{\huge\strut}\bfseries Patron Level}\\
-Casey Annis&
-Robert A. Nesius\\
-William H. Ayers&
-Patrick Quinn-Graham\\
-Jon and Rebecca Garver&
-Jama Scaggs\\
-Andy Kitzke&
-Doug Van Camp\\
-Joseph Moss&
-Matthew Wentworth
-\end{tabular}
-\end{center}
-and the others who offered moral support, other contributions, or who wished to contribute
-anonymously.
-\section*{Technical Legacy}
-The do-it-yourself computerized Christmas light hobby thrives as a community of enthusiasts
-who contribute their ideas and designs for others to build, enjoy, and improve upon with new
-designs of their own.  
-This journey began for me years ago with the discovery of Hill Robertson's Computer Christmas
-website ({\ttfamily www.computerchristmas.com}).  It continues on many other sites including 
-Chuck Smith's Planet Christmas ({\ttfamily www.planetchrist\-mas\-.com}), 
-{\ttfamily doityourselfchristmas.com}, and many others.  
-
-Over the years the users of these forums have produced some great designs which have become
-\emph{de facto} standards as others adopt them and refine them in their own designs.  The Lumos
-boards' \mc{TRIAC} and \mc{MOSFET} relay circuits (the final few components at the controlled
-outputs) are a continuation of the standard circuits used by those communities, inspired most
-by Robert Stark's \mc{TRIAC} design and the \mc{DC} \mc{MOSFET} circuits by John Wilson (from Computer
-Christmas and Do It Yourself Christmas, respectively).  I am pleased to contribute back my own
-innovations on these themes (all of the rest of the Lumos boards, including control logic
-and firmware, are my original contributions) for the benefit of the community.  
-
+\input acknowledgements 
 
 \indexintoc
 \printindex
 \clearpage
 
-%\chapter{Colophon}
-
+\input colophon
 \end{document}

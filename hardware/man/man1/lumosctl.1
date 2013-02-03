@@ -1,3 +1,15 @@
+.\" lumosctl(1) manual entry ("manpage") for printing by command-line users
+.\" via the man(1) command.  This file also contains hints used by our quick-and-
+.\" dirty script which reformats it into the overall Lumos user manual set.  These
+.\" are in comments and won't interfere with troff/groff/nroff formatting.
+.\" 
+.\" Copyright (c) 2012, 2013 by Steven L. Willoughby, Aloha, Oregon, USA.
+.\" All Rights Reserved.  Released under the terms and conditions of the
+.\" Open Software License (see the LICENSE file which accompanied this software
+.\" release for details.)
+.\"
+.\" <<bold-is-fixed>> <<ital-is-var>>
+.\" XXX have to deal with nested font changes properly
 .TH LUMOSCTL 1 2.0 "Lumos SSR Controller" "Utility Commands"
 .SH NAME
 lumosctl \- Manual control for Lumos SSR controller hardware
@@ -33,6 +45,7 @@ lumosctl \- Manual control for Lumos SSR controller hardware
 Where
 .I channel-outputs 
 may be any combination of:
+.\" <<center>>
 .RS
 .LP
 .IR channel [\fB@\fP level [\fB,\fP...]]
@@ -70,14 +83,17 @@ operation of
 is to make a number of channel output level 
 changes as determined by the non-option arguments which are of the
 form:
+.\" <<center>>
 .RS
 .I channel
 .RE
 or
+.\" <<center>>
 .RS
 .IB channel @ level \fR[\fP,\fR...]\fP
 .RE
 or
+.\" <<center>>
 .RS
 .IB channel \fR{\fPu\fR|\fPd\fR}[\fP: steps \fR[\fP: time \fR]]\fP
 .RE
@@ -125,14 +141,14 @@ for a channel, such as:
 Then the channel named (10 in this example) is assigned the first value
 (0), and the subsequent values are assigned to the immediately following
 channels (so channel 11 is set to 0, 12 is set to 255, and so forth).
-.LP
-Note that if a controller implements a lower resolution dimmer than
-256 levels (e.g., 128 or 64 levels), the same number scale is used
-(0\-255), with the dimmer output scaled accordingly.  For example,
-if the hardware implements only 128 dimmer levels, then levels 0 and 1
-are fully off, 2 and 3 are the next level up, and so on, with
-values 252 and 253 being the penultimate dimmer level,
-and 254 and 255 being fully on.
+.\".LP
+.\"Note that if a controller implements a lower resolution dimmer than
+.\"256 levels (e.g., 128 or 64 levels), the same number scale is used
+.\"(0\-255), with the dimmer output scaled accordingly.  For example,
+.\"if the hardware implements only 128 dimmer levels, then levels 0 and 1
+.\"are fully off, 2 and 3 are the next level up, and so on, with
+.\"values 252 and 253 being the penultimate dimmer level,
+.\"and 254 and 255 being fully on.
 .LP
 In addition to the channel-setting argument described above,
 an argument of the form
@@ -140,7 +156,7 @@ an argument of the form
 causes stored sequence 
 .I i
 to be executed.  Note that this is run in the \*(lqbackground\*(rq\(emany
-subsequent channel-setting arguments will be acted upon 
+subsequent channel-setting arguments will be acted upon \" <</ital-is-var>>
 .I while
 the sequence is running.  If a sequence was already running, it is stopped first.
 As a special case, 
@@ -148,7 +164,7 @@ As a special case,
 stops the currently-running sequence but does not start a new one.
 .LP
 A pause in the execution of the arguments may be effected by adding an
-argument of the form
+argument of the form \" <<ital-is-var>>
 .BI p t \fR[\fPs\fR[\fPec\fR[\fPond\fR[\fPs\fR]]]]\fP
 which makes
 .B lumosctl
@@ -164,15 +180,25 @@ configuration changes.
 .LP
 When giving multiple types of commands in one invocation of this
 program, they will be carried out in the following order:
-.LP
-.nf
-1. Address Change
-2. Kill all channels
-3. Other configuration changes
-4. Disable privileges
-5. Channel(s) off/on/dim/etc.
-6. Shutdown
-.fi
+.TP \" <<enumerate>>
+1. 
+Address Change
+.TP
+2. 
+Kill all channels
+.TP
+3. 
+Other configuration changes
+.TP
+4. 
+Disable privileges
+.TP
+5. 
+Channel(s) off/on/dim/etc.
+.TP
+6. 
+Shutdown
+.\" <</>>
 .SH OPTIONS
 .LP
 Each of the following options may be specified by either a long
@@ -188,7 +214,7 @@ or
 .RB \*(lq "\-\-address=12" \*(rq.
 .LP
 Long option names may be abbreviated to any unambiguous initial substring.
-.TP 27
+.TP 27 \" <<list>>
 .BI \-\-address= addr
 .RB ( \-a
 .IR addr )
@@ -310,9 +336,9 @@ and is one of the letters
 or
 .BR D .
 This may be followed by the following option letters as needed:
-.RS
+.RS \" <<itemize>>
 .TP 4
-.B o
+.BR o
 Trigger once: play sequence
 .I seq
 only one time.  The action will not be taken again until the sensor
@@ -338,17 +364,17 @@ transitions to inactive again, terminate the action.
 The sensor is to be considered \*(lqactive\*(rq when at a logic
 high output (active-high mode).  Normally, sensors are active-low
 (active when the input is at ground).
-.LP
+.LP \" <</>>
 If 0 is specified for any of the sequence numbers, that means no
 sequence is called for that part of the trigger action.
-.RE
+.RE 
 .TP
 .BI \-\-set\-address= addr
 .RB ( \-A
 .IR addr )
 Change the device address to
 .IR addr .
-This must be an integer in the range [0, 15].\"; however, the address 15
+This must be an integer in the range 0\-15.\"; however, the address 15
 .\"is also a limited \*(lqbroadcast\*(rq address, so ideally the address
 .\"of a Lumos controller should be in the range [0, 14] unless you know
 .\"for sure that the board can be loacated at address 15 without upsetting
@@ -363,10 +389,12 @@ Set a new baud rate for the device to start using from now on.
 .RB ( \-P
 .IR offset )
 Set the phase 
+.\" <</ital-is-var>>
 .I offset 
-in the device to the specified value.  This must be an integer in the range [0, 511].
+in the device to the specified value.  This must be an integer in the range 0\-511.
 .I "This is an advanced setting which affects the ability of the AC relay boards to"
 .I "function properly. Do not change this setting unless you know exactly what you are doing."
+.\" <<ital-is-var>>
 .TP
 .B \-\-sleep
 .RB ( \-z )
@@ -397,18 +425,19 @@ Output messages to the standard output.  Additional
 .B \-\-verbose
 options increases verbosity.  High levels of verbosity include a dump
 of every bit sent or received on the serial network.
+.\" <</>>
 .SH "CONFIGURATION FILE FORMAT"
 .LP
 The files read and written by the 
 .B \-\-dump\-configuration
 and
 .B \-\-load\-configuration
-options uses a fairly standard configuration file format similar to the
+options use a fairly standard configuration file format similar to the
 \*(lqini\*(rq files used by early versions of Microsoft Windows and other 
-systems.  Full details of this format see
+systems.  For full details of this format see
 .BR "http://docs.python.org/library/configparser.html" ,
 but the highlights include:
-.TP 3
+.TP 3 \" <<enumerate>>
 1.
 One data value per line (long lines may be continued by indentation ala RFC 822 headers).
 .TP
@@ -418,15 +447,15 @@ and the value itself.
 .TP
 3.
 A syntax 
-.B %(name)s
+.BI %( name )s
 can be used to substitute values into other values.  Literal percent signs in values
 are simply doubled 
 .RB (\*(lq %% \*(rq).
-.LP
-All confugration data are contained in a stanza called
+.LP \" <</>>
+All configration data are contained in a stanza called
 .RB \*(lq [lumos_device_settings] \*(rq.
 The values are:
-.TP
+.TP \" <<list>>
 .BI baud= n
 The configured serial I/O speed of the device.  Supported values include 300, 600, 1200, 2400,
 4800, 9600, 19200, 38400, 57600, 115200, and 250000.  Speeds slower than 9600 baud
@@ -438,29 +467,30 @@ at DMX512 slot
 .RI # n ,
 where
 .I n
-is an integer in the range [1, 512].
+is an integer in the range 1\-512.
 If this field is not present, the Lumos board will not be configured to recognize DMX512 packets
 at all.
 .TP
-.BR phase= offset
+.BI phase= offset
 The AC waveform phase offset for the unit.  This should only be changed if needed due to some
 anomaly with the zero-crossing detector which throws off the unit's timing.  This is an integer
-in the range [0, 511].  [Default is 2.]
-.TP
-.BR resolution= { high | low }
-If
-.RB \*(lq high \*(rq,
-channel output levels in the full range [0, 255] are recognized.  If 
-.RB \*(lq low \*(rq,
-then only 128 levels are used, although the data values referenced by the user remain in the range
-[0, 255].  However, only 7 bits of dimmer data are transmitted to the hardware unit, saving a small
-amount of transmission data.  In this mode, values 0 and 1 are the fully-off value, 2 and 3 are the 
-next step up from that, 254 and 255 are fully on, and so forth.
+in the range 0\-511.  [Default is 2.]
+.\".TP
+.\".BR resolution= { high | low }
+.\"If
+.\".RB \*(lq high \*(rq,
+.\"channel output levels in the full range [0, 255] are recognized.  If 
+.\".RB \*(lq low \*(rq,
+.\"then only 128 levels are used, although the data values referenced by the user remain in the range
+.\"[0, 255].  However, only 7 bits of dimmer data are transmitted to the hardware unit, saving a small
+.\"amount of transmission data.  In this mode, values 0 and 1 are the fully-off value, 2 and 3 are the 
+.\"next step up from that, 254 and 255 are fully on, and so forth.
 .TP
 .BI sensors= list
-The value is a list of single letters in the range [A, D].  Each letter appearing in this
+The value is a list of single letters in the range A\-D.  Each letter appearing in this
 list indicates that the corresponding sensor input should be enabled in the hardware.
 You must ensure that the hardware is really configured that way.  
+.\" <</>>
 .SS "Sensor Configuration"
 .LP
 For each sensor listed in the 
@@ -476,7 +506,7 @@ is the name of the sensor
 or
 .RB \*(lq D \*(rq),
 with the following fields:
-.TP
+.TP \" <<list>>
 .BI enabled= bool
 If 
 .RB \*(lq yes \*(rq,
@@ -506,36 +536,37 @@ Sequence
 .I id
 number to be played when the action stops. Note that the
 main sequence might not have played to completion.
+.\" <</>>
 .SH "SEQUENCE SOURCE SYNTAX"
 .LP
 Each source file given to 
 .B \-\-load\-sequence
 contains one or more sequence definitions as described here.  The formal syntax
 definition for the sequence language is:
-.RS
+.RS \" <<code>>
 .nf
 .na
 <sequence> ::= SEQUENCE <id> ['(' <arg-list> ')'] <block>
-<statement-list> ::= <statement> <newline> | <statement-list> <statement> <newline>
-.\"<statement> ::= [<symbol> ':'] [<command>]
+<statement-list> ::= <statement> <newline> 
+    | <statement-list> <statement> <newline>
 <statement> ::= BLACKOUT
-	| CHANNEL <chan> <state>
-	| RAMP <direction> <chan> [BY <steps> [PER <time>]]
-	| CALL <id> ['(' <value-list> ')']
-	| EXECUTE <id> ['(' <value-list> ')']
-	| WAIT <time>
-	| FOR <symbol> '=' <value> TO <value> [BY <value>] <block>
-	| IF <condition> <block>
-	| UNLESS <condition> <block>
-	| REPEAT [<value> [AS <symbol>]] <block>
-	| BREAK <symbol>
-	| CONTINUE <symbol>
-	| <symbol> '=' <value>
-	| SLEEP
-	| WAKE
-	| SUSPEND [WITH UPDATE]
-	| RESUME [WITH FADE]
-	| EXIT
+    | CHANNEL <chan> <state>
+    | RAMP <direction> <chan> [BY <steps> [PER <time>]]
+    | CALL <id> ['(' <value-list> ')']
+    | EXECUTE <id> ['(' <value-list> ')']
+    | WAIT <time>
+    | FOR <symbol> '=' <value> TO <value> [BY <value>] <block>
+    | IF <condition> <block>
+    | UNLESS <condition> <block>
+    | REPEAT [<value> [TIME[S]]] [AS <symbol>] <block>
+    | BREAK <symbol>
+    | CONTINUE <symbol>
+    | <symbol> '=' <value>
+    | SLEEP
+    | WAKE
+    | SUSPEND [WITH UPDATE]
+    | RESUME [WITH FADE]
+    | EXIT
 <block> ::= ':' <newline> <statement-list> END
 <id> ::= 0 | 1 | ... | 127
 <chan> ::= <value> (allowed range 0...63)
@@ -548,18 +579,18 @@ definition for the sequence language is:
 <cycles> ::= 1 | 2 | ... | 128
 <real> ::= <digits> ['.' [<digits>]] | [<digits>] '.' <digits>
 <condition> ::= SUSPENDED
-	| SENSOR <sens-list>
-	| <value> <comparison> <value>
+    | SENSOR <sens-list>
+    | <value> <comparison> <value>
 <comparison> ::= '<' | '>' | '==' | '!=' | '<=', '>='
 <arg-list> ::= <symbol> | <arg-list> ',' <symbol>
 <value-list> ::= <value> | <value-list> ',' <value>
 <value> ::= <int> 
-	| <symbol>
-	| <value> '*' <value>
-	| <value> '+' <value>
-	| <value> '-' <value>
-	| <value> '/' <value>
-	| '(' <value> ')'
+    | <symbol>
+    | <value> '*' <value>
+    | <value> '+' <value>
+    | <value> '-' <value>
+    | <value> '/' <value>
+    | '(' <value> ')'
 <int> ::= ['-' | '+'] <digits>
 <symbol> ::= <letter> | <symbol> <digit> | <symbol> <letter>
 <digits> ::= <digit> | <digits> <digit>
@@ -570,7 +601,7 @@ definition for the sequence language is:
 <newline> ::= '\en'
 .fi
 .ad
-.RE
+.RE \" <</code>>
 .LP
 While the language keywords are shown here in upper-case letters,
 in fact all symbols are interpreted irrespective of case throughout
@@ -592,14 +623,14 @@ by a newline), ending with an
 .B END
 statement.
 .LP
-.TP
-.BI "IF SENSOR " s1 " \fR[\fPOR " s2\fR...]\fP ": \fR...\fP END"
+.TP \" <<list>>
+.BI "IF SENSOR " s1 " \fR[\fPOR " s2 "\fR] [...]\fP: \fR...\fP END"
 Execute the statements in the block if any of the sensors are currently active.
 .TP
-.BI "IF SUSPENDED: " \fR...\fP " END
+.BR "IF SUSPENDED: " ... " END"
 Execute the block if the unit is currently in a suspended state.
 .TP
-.BI "IF " condition ": " \fR...\fP " END
+.BI "IF " condition ": \fR...\fP END"
 Execute the block if the condition holds. This is a simple comparison between
 two values, where the comparison may be equals, not equals, less than, greater than,
 less than or equal, or greater than or equal as represented by the operators
@@ -621,7 +652,7 @@ substituted for
 .BR IF .
 In this case, the sense of the conditional test is reversed.
 .TP
-.BI "REPEAT " "\fR[\fPn\fR] [\fP" AS " var\fR]\fP" ": \fR...\fP END"
+.BI "REPEAT \fR[\fP" n " \fR[\fPTIME\fR[\fPS\fR]]\fP \fR[\fPAS " var "\fR]\fP: \fR...\fP END"
 Repeat the statements in the block until forced to quit via 
 .B EXIT
 or
@@ -637,7 +668,7 @@ but never reaches,
 to be visible within the block as the variable
 .IR var .
 .TP
-.BI "FOR " var = start " TO " end " \fR[\fPBY " step\fR]\fP ": \fR...\fP END"
+.BI "FOR " var = start " TO " end " \fR[\fPBY " step "\fR]\fP: \fR...\fP END"
 Repeat the statements in the block once for each value of 
 .I var
 from
@@ -660,46 +691,46 @@ statements just like the
 .B REPEAT
 loops are.
 .TP
-.BI BREAK " \fR[\fPvar\fR]\fP"
+.BI "BREAK \fR[\fP" var \fR]\fP
 Terminate the innermost loop immediately.  If an outer loop is to be terminated,
 then specify its index 
 .I var
 to identify which loop is the target of this statement.
 .TP
-.BI CONTINUE " \fR[\fPvar\fR]\fP"
+.BI "CONTINUE \fR[\fP" var \fR]\fP
 Begin the next iteration of the innermost loop immediately.  
 If an outer loop is to be continued,
 then specify its index 
 .I var
 to identify which loop is the target of this statement.
 .TP
-.BI "SEQUENCE " id " \fR[(" var ", \fR...\fP)\fR]\fP: \fR...\fP END"
+.BI "SEQUENCE " id \fR[\fP( var ", \fR...\fP)\fR]\fP: \fR...\fP END"
 Define a stored sequence consisting of the statements to the 
 .BR END .
 The 
 .I id
 may be a number from 0 to 127, with a few caveats:
-.RS
+.RS \" <<desc>>
 .TP
-0
-Sequence #0 may
+#0:
+Sequence #0 may \" <</ital-is-var>>
 .I never
 be explicitly invoked by anything.  This sequence is invoked automatically
 during device boot to initialize the unit.
 .TP
-1\-63
+#1\-63:
 Sequences in this range are stored in EEPROM and will survive a power failure
 or device reboot.  Note that there probably won't be enough available memory
 to actually store 63 sequences.
 .TP
-64\-127
+#64\-127:
 Sequences in this range are stored in RAM and will 
 .I not
 survive a power failure
 or device reboot.  Note that there probably won't be enough available memory
-to actually store 64 sequences in RAM.
-.RE
-.LP
+to actually store 64 sequences in RAM. \" <<ital-is-var>>
+.RE \" <</>>
+.LP \" <</>>
 If input parameters are expected, they are given symbolic names inside
 parentheses between the sequence
 .I id
@@ -708,11 +739,11 @@ and the colon.  A maximum of four parameters are allowed.
 .LP
 Each statement is described briefly here.  For more details, see the
 Lumos board user manual.
-.TP
+.TP \" <<list>>
 .B BLACKOUT
 Immediately turn off all channel outputs.
 .TP
-.BI CALL " id \fR[\fP" ( value ",\fR ...\fP)\fR]\fP"
+.BI "CALL " id \fR[\fP( value ",\fR ...\fP)\fR]\fP"
 Suspend the execution of the current sequence and begin executing
 sequence
 .RI # id .
@@ -725,18 +756,18 @@ The
 .I id
 cannot be 0.
 .TP
-.BI CHANNEL " c " ON|OFF| value \fR[\fP%\fR]\fP
+.BI "CHANNEL " c " ON|OFF|" value \fR[\fP%\fR]\fP
 Change the output level of channel
 .I c
 to fully on, fully off, or to a specific value.  If the value
 is followed by a percent sign 
 .RB (\*(lq % \*(rq),
-then the value is assumed to be a percentage in the range [0, 100].  Otherwise
-the value interpreted as an absolute output value in the range [0, 255].  Note that
-sequences are always considered to be \*(lqhigh resolution\*(rq so this number range
-is used ragardless of whether the board itself is in high or low resolution mode.
+then the value is assumed to be a percentage in the range 0\-100.  \"Otherwise
+.\"the value interpreted as an absolute output value in the range [0, 255].  Note that
+.\"sequences are always considered to be \*(lqhigh resolution\*(rq so this number range
+.\"is used ragardless of whether the board itself is in high or low resolution mode.
 .TP
-.BI EXECUTE " id \fR[\fP" ( value ",\fR ...\fP)\fR]\fP"
+.BI "EXECUTE " id \fR[\fP( value ",\fR ...\fP)\fR]\fP"
 Abandon the current sequence and begin executing the specified sequence
 instead.
 When that sequence has completed, execution of the current sequence
@@ -751,13 +782,13 @@ cannot be 0.
 .B EXIT
 Terminate execution of the current sequence.
 .TP
-.BI "RAMP UP|DOWN " c " \fR[\fPBY " steps " \fR[\fPPER " time " \fR[\fPSEC[ONDS]]]
+.BI "RAMP UP|DOWN " c " \fR[\fPBY " steps " \fR[\fPPER " time " \fR[\fPSEC\fR[\fPONDS\fR]]]\fP"
 Start fading channel
 .I c
 up or down from its current output level to the maximum or minimum value.  This is done
 by adding or subtracting the value of
 .I steps
-(which is in the range [1, 128]) each time, pausing for
+(which is in the range 1\-128) each time, pausing for
 .I time
 between each value change.  If the
 .I time
@@ -766,8 +797,8 @@ value is followed by
 or
 .BR SECONDS ,
 it is assumed to be the number of seconds between level changes (a real number
-in the range [0.0083, 1.0667]). 
-Otherwise, it is assumed to be an integer in the range [1, 128] specifying the number
+in the range 0.0083\-1.0667). 
+Otherwise, it is assumed to be an integer in the range 1\-128 specifying the number
 of 1/120ths of a second for the pause.  
 .TP
 .BR "RESUME " [ "WITH FADE" ]
@@ -806,6 +837,7 @@ Wake up the unit from
 .B SLEEP
 mode.  The power supply is commanded to start (if a suitable one is appropriately
 configured).
+.\" <</>>
 .SH AUTHOR
 .LP
 Software Alchemy / support@alchemy.com
@@ -814,27 +846,28 @@ Software Alchemy / support@alchemy.com
 This version of 
 .B lumosctl
 is compatible with the following boards:
-.TP 2
+.TP 2 \" <<itemize>> <</ital-is-var>>
 *
 Lumos 48-channel controller version 3.1 or 3.2
-.I "providing it has been upgraded or installed with ROM firmware version 2.0 or later"
+.I "providing it has been upgraded or installed with ROM firmware version 3.0 or later"
 (boards with ID markings beginning with \*(lq48CTL-3-1\*(rq or \*(lqLUMOS-48CTL-3.2\*(rq).  (Whether this controller is
 driving AC or DC boards is irrelevant.)
 .TP 
 *
 Lumos 24-channel DC controller version 1.0 (boards with ID markings beginning with
 \*(lqLUMOS-24SSR-DC-1.0\*(rq).
+.\" <</>>
 .SH HISTORY
 
 .LP
-This program first appeared under then name
+This program first appeared under the name
 .B 48ssrctl
 and was used only for the Lumos 48-channel AC controller boards, employing the
-older firmware (ROM version
-.RI 1. x ).
+older firmware (ROM versions less than
+.RI 3. x ).
 .LP
 This document describes version 2.0 of this utility, which is the first to carry
-this name and to include the expanded features for firmware version 2.0.
+this name and to include the expanded features for firmware version 3.0.
 .SH LIMITATIONS
 .LP
 This program does not send DMX512 commands to the device(s), only Lumos native
@@ -842,9 +875,11 @@ commands.
 .SH BUGS
 .LP
 The sequence language is constrained by the limits of the hardware (such as 8-bit
-unsigned integer values and limited arithmetic expression evaluation), and can
+unsigned integer values and limited arithmetic expression evaluation), 
+by the need to 
 be compiled to fit in a very small memory space.  As such, the optimization
 toward certain use cases and against others may seem odd at first, but it serves that
 purpose.
 .LP
-Submit any found to support@alchemy.com
+Submit any other issues found to 
+.BR support@alchemy.com .

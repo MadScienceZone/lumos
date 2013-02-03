@@ -55,6 +55,7 @@
 \usepackage{multirow}
 \usepackage{ifthen}
 \usepackage{relsize}
+\usepackage{rotating}
 \usepackage{indent}
 \usepackage{bigfoot}
 \usepackage[normalem]{ulem}
@@ -63,7 +64,7 @@
 \usepackage{epsfig}
 \usepackage{textcomp}
 \usepackage{lettrine}
-\usepackage{bytefield}
+\usepackage[endianness=big]{bytefield}
 \usepackage{bbding}
 \usepackage{substr}
 %\usepackage{xstring}
@@ -303,6 +304,7 @@
 %   Typesets source code in a verbatim box.
 %
 \newenvironment{SourceCode}{\boxedverbatim}{\endboxedverbatim}
+\newcommand\codetype[1]{{\ttfamily #1}}
 %
 % Coding environment:
 %   Code verbatim inside |bars|
