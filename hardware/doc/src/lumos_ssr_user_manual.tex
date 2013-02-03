@@ -1,0 +1,2458 @@
+\documentclass[letterpaper,twoside,onecolumn,openright,final]{memoir}
+%    vs.       others...   oneside twocolumn openleft  draft showtrims
+%                          twoside onecolumn openany   ms
+%                                            openright final 
+\input lumos_common
+\begin{document}
+\newcommand\z[1]{{\ttfamily #1}}
+\newenvironment{BF}{\begin{center}\begin{bytefield}{8}\bitheader{0-7}\\}{\end{bytefield}\end{center}}
+\definecolor{lightgray}{gray}{0.8}
+\frontmatter
+  \def\lightxbase{0}
+  \def\light#1#2{%
+    % \light{A/G/Y/R/G2/Y2/R2}{on/off/}   at \y
+    % A  G  Y  R            -- both 48 AND 24
+    % A1 G1 Y1 R1 G2 Y2 R2  -- 48 only
+    % A0 G0 Y0 R0           -- 24 only
+    \ifthenelse{\equal{#1}{A}}{\def\lightx{0}\def\lightc{yellow}\def\lighty{.3}\def\lightxx{1.8}\def\lightyy{.45}}{%
+      \ifthenelse{\equal{#1}{G}}{\def\lightx{.3}\def\lightc{green}\def\lighty{.3}\def\lightxx{1.5}\def\lightyy{.3}}{%
+        \ifthenelse{\equal{#1}{Y}}{\def\lightx{.6}\def\lightc{yellow}\def\lighty{.3}\def\lightxx{1.8}\def\lightyy{.15}}{%
+          \ifthenelse{\equal{#1}{R}}{\def\lightx{.9}\def\lightc{red}\def\lighty{.3}\def\lightxx{1.5}\def\lightyy{0}}{%
+            \ifthenelse{\equal{#1}{G2}}{\def\lightx{.3}\def\lightc{green}\def\lighty{0}\def\lightxx{}\def\lightyy{}}{%
+              \ifthenelse{\equal{#1}{Y2}}{\def\lightx{.6}\def\lightc{yellow}\def\lighty{0}\def\lightxx{}\def\lightyy{}}{%
+                \ifthenelse{\equal{#1}{R2}}{\def\lightx{.9}\def\lightc{red}\def\lighty{0}\def\lightxx{}\def\lightyy{}}{%
+		  \ifthenelse{\equal{#1}{G1}}{\def\lightx{.3}\def\lightc{green}\def\lighty{.3}\def\lightxx{}\def\lightyy{}}{%
+		    \ifthenelse{\equal{#1}{Y1}}{\def\lightx{.6}\def\lightc{yellow}\def\lighty{.3}\def\lightxx{}\def\lightyy{}}{%
+		      \ifthenelse{\equal{#1}{R1}}{\def\lightx{.9}\def\lightc{red}\def\lighty{.3}\def\lightxx{}\def\lightyy{}}{%
+		        \ifthenelse{\equal{#1}{A1}}{\def\lightx{0}\def\lightc{yellow}\def\lighty{.3}\def\lightxx{}\def\lightyy{}}{%
+		          \ifthenelse{\equal{#1}{G0}}{\def\lightx{1.5}\def\lightc{green}\def\lighty{.3}\def\lightxx{}\def\lightyy{}}{%
+		            \ifthenelse{\equal{#1}{Y0}}{\def\lightx{1.8}\def\lightc{yellow}\def\lighty{.15}\def\lightxx{}\def\lightyy{}}{%
+		              \ifthenelse{\equal{#1}{R0}}{\def\lightx{1.5}\def\lightc{red}\def\lighty{0}\def\lightxx{}\def\lightyy{}}{%
+		                \ifthenelse{\equal{#1}{A0}}{\def\lightx{1.8}\def\lightc{yellow}\def\lighty{.45}\def\lightxx{}\def\lightyy{}}{%
+		                }%
+        		      }%
+        		    }%
+        		  }%
+		        }%
+		      }%
+		    }%
+		  }%
+		}%
+              }%
+            }%
+          }%
+        }%
+      }%
+    }
+    \draw [fill, color=\lightc] (\lightx+\lightxbase,\y+\lighty) circle (.1);
+    \lightstate{#2}{\lightx+\lightxbase}{\lighty}
+    \ifthenelse{\equal{\lightxx}{}}{}{%
+      \draw [fill, color=\lightc] (\lightxx+\lightxbase,\y+\lightyy) circle (.1);
+      \lightstate{#2}{\lightxx+\lightxbase}{\lightyy}
+    }%
+  }%
+  \def\lightstate#1#2#3{%
+    \ifthenelse{\equal{#1}{on}}{\draw [thick] (#2,\y+#3) circle (.1);}{%
+      \ifthenelse{\equal{#1}{off}}{\draw [thick, fill, color=gray] (#2,\y+#3) circle (.1);}{%
+        \ifthenelse{\equal{#1}{sfd}}{\draw [thick, dashed] (#2,\y+#3) circle (.1);}{%
+          \ifthenelse{\equal{#1}{x}}{\draw [thick, fill, color=white] (#2,\y+#3) circle (.1);\draw (#2,\y+#3) -- +(-.1,-.1) -- +(.1,.1) -- +(0,0) -- +(-.1,.1) -- +(.1,-.1);}{%
+            \ifthenelse{\equal{#1}{sfl}}{\draw [thick, dotted] (#2,\y+#3) circle (.1);}{%
+              \ifthenelse{\equal{#1}{ffl}}{\draw [thick, dotted] (#2,\y+#3) circle (.1);\draw [thick] (#2,\y+#3) circle (.05);}{%
+                \ifthenelse{\equal{#1}{blk}}{\draw [thick] (#2,\y+#3) circle (.1); \draw [thick] (#2,\y+#3) -- +(-.1,0) -- +(.1,0) -- +(0,0) -- +(0,-.1) -- +(0,.1);}{%
+                  \ifthenelse{\equal{#1}{ffd}}{\draw [thick, dashed] (#2,\y+#3) circle (.1); \draw [thick] (#2,\y+#3) circle (.05);}{%
+                    \ifthenelse{\equal{#1}{sss}}{\draw [thick, dashed] (#2,\y+#3) circle (.1); \draw [thick] (#2,\y+#3) circle (.02);}{%
+ 		    }%
+		  }%
+	        }%
+  	      }%
+ 	    }%
+ 	  }%
+  	}%
+      }%
+    }%
+  }%
+
+\thispagestyle{empty}
+\ThisLLCornerWallPaper{1}{images/cover}
+%\strut 
+\vfill
+\begin{center}
+{\HUGE Using the Lumos\TM}
+
+\bigskip
+
+{\HUGE  SSR Controllers}
+
+\vfill
+
+\end{center}
+
+\newpage
+\begin{center}
+\LLimg[width=1in]{danger-generic}
+
+%DANGER! 
+
+\mc{RISK OF FIRE, ELECTROCUTION, SERIOUS INJURY OR DEATH!} 
+\end{center}
+
+This circuit design, including but not limited to any associated plans, schematics, designs, board layouts, documentation, 
+and/or components, is \mc{EXPERIMENTAL} and for \mc{EDUCATIONAL} purposes only. It is not a finished consumer-grade product.
+It is assumed that you have the necessary understanding and skill to assemble and/or use electronic circuits.
+
+Proceed \mc{ONLY} if you know exactly what you are doing, understand the proper procedures for working with the high voltage present on the components and PC boards, and understand that you do so \mc{ENTIRELY AT YOUR OWN RISK.}
+
+The author makes \mc{NO} representation as to suitability or fitness for any purpose whatsoever, and disclaims any and all liability or warranty to the full extent permitted by applicable law.
+\index{warranty, limitation of}
+\index{danger warnings}
+\index{warnings}
+
+\strut\vfill
+\noindent Edition 2.0, for Lumos controllers with \acronym{ROM} version 3.0.
+
+\smallskip
+
+
+\noindent Copyright \copyright\ 2013 by Steven L. Willoughby,
+Aloha, Oregon, USA.  All Rights Reserved.  
+This document is released under the terms and conditions of the 
+Creative Commons ``Attribution-NoDerivs 3.0 Unported'' license.  
+In summary, you are free to use, reproduce, and redistribute this 
+document provided you give full attribution to its author and do not
+alter it or create derivative works from it.  See
+\URL{http://creativecommons.org/licenses/by\-nd\-/\-3.0/} for the full
+set of licensing terms.
+
+\begin{center}
+\LLimg[width=.5in]{cc}\LLimg[width=.5in]{by}\LLimg[width=.5in]{nd}
+\end{center}
+
+\newpage
+\tableofcontents
+
+\mainmatter
+
+\chapter{Introduction}
+\LLstart{C}{ongratulations}{on joining} the many computer-controlled
+Christmas light enthusiasts, \ix{theatrical lighting} technicians, electronics hobbyists,
+\index{Christmas lights}
+and home automation innovators who are experimenting with new ways to have computers
+control lights and other electronic devices.
+
+This manual details the software controls implemented by the Lumos controllers
+and the communication protocols they use with the host PC.
+
+\section{Intended Audience}
+This is an ``advanced'' level do-it-yourself electronic circuit project.  It is not
+an off-the-shelf consumer-ready product.  It is only designed for educational and experimental
+use by experienced hobbyists and professionals who possess the skill to construct electronic
+\marginpar{\centerline{\LLimg[height=.5in]{danger-sign}}}
+circuits, to understand how they function, troubleshoot problems with them, and to use them safely.
+
+This manual provides
+basic usage and configuration instructions suitable for all users of
+Lumos controllers.
+
+Some of the information in this manual gives a level of technical detail suited to advanced
+users and software developers who need to understand the workings of Lumos controllers
+to write applications which interace with them.  
+
+\section{Limitation of Warranty}
+\index{danger warnings}
+\index{warnings}
+\index{warranty, limitation of}
+Since this is a do-it-yourself project, the quality of the final product, and whether it 
+functions as intended, is largely a result of your own efforts in building it.  As such, we
+cannot offer to troubleshoot, repair, or replace a board we did not assemble for you.  Accordingly,
+\marginpar{\centerline{\LLimg[height=.5in]{danger-sign}}}
+these instructions, and all accompanying plans, schematics, software, hardware, and other
+project materials are provided to you ``\mc{AS-IS}'' at no cost, as a courtesy between 
+\acronym{DIY} hobbyists with \mc{NO WARRANTY} of any kind expressed or implied.  If you proceed
+to build and/or use this unit, you do so \mc{ENTIRELY AT YOUR OWN RISK}.
+
+If you purchased hardware materials from us (such as a PC board or programmed controller chip),
+we will---at our sole discretion---replace, repair, or refund the cost of those materials if they were defective in manufacture
+as shipped to you, up to 90~days from the date they were shipped to you,
+but are not liable for damage caused by your handling or assembly of the unit.
+Otherwise, we make no representation of suitability or fitness for any particular purpose and disclaim
+all other warranty or liability of any kind to the full extent permitted by law.
+
+\section{How to Use this Manual}
+Start with the information in the first part of the manual to learn how to operate and configure
+your Lumos controller, and how to use the host PC to alter its configuration settings.
+
+If you need to koow the low-level details concerning how the board communicates with the PC,
+continue reading the more advanced material which comprises the remainder of this manual.
+
+\section{The Name of the Game}
+The name ``Lumos'' is a combination of \emph{lumen}, the Latin word for ``light,''
+and the initial letters of ``Orchestration System.''  Hence, ``Light Orchestration System''
+which is the most common application for which the Lumos hardware and software are used---running
+computerized lighting displays.
+
+\section{Getting Additional Help}
+The \ix{product website} at \URL{www.alchemy.com/lumos} contains additional documentation,
+\index{website}
+pointers, hints, and tips to assist you further.  If that doesn't answer all your questions,
+there is an \ix{online forum} where you may submit questions for help.
+
+
+\chapter{Safety Information}\label{ch:safety}
+
+\LLstart{B}{efore}{you use} your Lumos controller, please take the time to
+carefully read the following \ix{safety precautions}.  Failure to follow this advice could
+result in death or serious injury, damage to the Lumos controller unit, and/or damage
+to the other devices plugged into the controller.
+\index{danger warnings}
+\index{warnings}
+
+\section{Small Part Danger}
+This board contains small parts which could pose a \ix{choking hazard} to small children.
+This product is not a toy and is not intended for use by children in any circumstance.
+The small parts on the product can be swallowed by children under 4~years of age. Keep
+\marginpar{\centerline{\LLimg[height=.5in]{danger-generic}}}
+out of reach of children.
+
+\section{Hazardous Voltage}
+Exercise care when working with any electrical system, including one such as the Lumos DC
+controllers (even though in theory they deal with low voltages).  The power supplies of the
+loads plugged into the Lumos controller, and even the power loads being controlled, may present
+\marginpar{\centerline{\LLimg[width=.5in]{danger-shock}}}
+a \ix{shock hazard} if not wired and handled using standard safety protocols.  Never touch or work
+with live circuits. Always disconnect the power source before working on your Lumos controller.
+
+When working with loads outdoors, be sure all supplies are plugged into \acronym{GFIC}-protected
+circuits.
+
+\section{Electrostatic Discharge (ESD) Warning}
+Many of the components used in this project are sensitive to static electricity.  Always use a proper
+\acronym{ESD}-safe work environment when handling them, or these parts may be permanently damaged.  If
+a part is damaged in this way, 
+\marginpar{\centerline{\LLimg[height=.5in]{esd_symbol_l}}}
+it is impossible to tell by looking at the part, and you won't necessarily
+feel the \ix{static discharge} which caused the damage.  Never take the risk of handling sensitive components
+without \acronym{ESD} protection in place.
+\index{danger warnings}
+\index{warnings}
+
+These parts include all transistors (Q0--Q23), voltage regulators (U6--U8 and U11), diodes (D0--D11),
+and integrated circuits (U0--U5, U9--U10, and U12--U13).
+
+\section{Circuit Loading}
+Always respect the maximum voltage and current capacity of the board and your wiring.  Overloading any
+\index{overloaded circuits}
+\index{maximum limits}
+of these may result serious injury, death, fire, and/or severe damage to any or all of the devices in use.
+
+Each block of eight controlled loads may not exceed 
+\marginpar{\centerline{\LLimg[height=.5in]{danger-sign}}}
+10\,A total for the block.  
+Each single output channel
+may not exceed 5\,A.  These should be considered \emph{absolute maximum} tolerances.  The board was designed
+to operate at sustained levels below those limits.
+
+\chapter{Overview of the Lumos Controller Models}
+\LLstart{T}{here}{are currently} four different hardware projects which are part of the Lumos
+family of controllers, which are the subject of this manual:
+\section{48-Channel Controller}
+\begin{figure}
+  \begin{center}
+    \LLimg{48ctl}
+  \end{center}
+  \caption{Lumos 48-Channel Controller}
+\end{figure}
+This board controls 48 channels of outputs but does not contain any actual relay circuits of its own.
+The \acronym{TTL}-level outputs are designed to be sent directly to a 24-channel relay board (AC, DC,
+or one of each), although of course they could be connected to another compatible circuit.
+
+The controller supports only half-duplex RS-485 communications.
+It occupies a single address for the Lumos command protocol.  When in \acronym{DMX512} mode, it consumes
+48 slots beginning at an arbitrarily-configured starting slot number.
+
+This board contains its own power supply.  It accepts a 120\,V~AC input (with provision for an
+optional power switch built-in).  This power source provides the +5\,V~DC supply for the controller
+itself as well as the logic-side components of the relay boards to which it is connected.  The controller
+also uses this AC supply to pick up the power waveform's zero-crossing point for AC relay board
+dimmer synchronization.  This means that it is necessary that the AC power supplied to the controller
+be in phase with the power supply to the relays' loads (or exactly 180$^\circ$ out of phase).  This should
+be the case in any standard residential or commercial office environment.
+
+\emph{Although a few prototypes of this board have been built and used successfully, it has not yet been
+released as an open-hardware project.  We may do so in the future, possibly with an enhanced circuit
+design.}
+
+\section{48-Channel Front Panel}
+\begin{figure}
+  \begin{center}
+    \LLimg{IMG393}
+  \end{center}
+  \caption{Lumos 48-Channel Front Panel (Bare \acronym{PCB})}
+\end{figure}
+Designed to work with the Lumos 48-Channel controller, this panel is connected to the controller's outputs
+in parallel with the relay boards.  It provides an \acronym{LED} for each output channel, allowing you
+to see at a glance the activity and state of all outputs.  Additionally, it has \acronym{LED}s which show
+that power is being sent to the relays, cable check \acronym{LED}s to show that the cables are plugged in
+the entire length of the network, and serial I/O status indicators. It allows for the controller's status
+\acronym{LED}s to be displayed on the front panel as well.
+
+This board also contains a pair of RS-232-to-RS-485 converters, one full-duplex and one half-duplex.
+These may be switched between two modes: one where the host PC is always holding the bus to transmit
+constantly (or at least at will), and the other where the PC can turn the transmitter on or off by
+changing the state of the \acronym{DTR} line.
+
+\emph{Although a few prototypes of this board have been built and used successfully, it has not yet been
+released as an open-hardware project.  We may do so in the future, possibly with an enhanced circuit
+design.}
+
+\section{24-Channel AC Relay}
+\begin{figure}
+  \begin{center}
+    \LLimg{24ac}
+  \end{center}
+  \caption{Lumos 24-Channel AC Relay}
+\end{figure}
+This board controls 24 output channels of 120\,V~AC, arranged in three separate blocks of 8~channels.
+Each block is separately powered and completely isolated from the other blocks and from the low-voltage
+logic side of the board (which connects to the controller).  Each block is designed to supply up to
+5\,A per channel, with a maximum of 8\,A total per block at any given time.
+
+\emph{Although a few prototypes of this board have been built and used successfully, it has not yet been
+released as an open-hardware project.  We may do so in the future, possibly with an enhanced circuit
+design.}
+\section{24-Channel DC Controller/Relay}
+\begin{figure}
+  \begin{center}
+    \LLimg{lumosboard}
+  \end{center}
+  \caption{Lumos 24-Channel DC Controller/Relay}
+\end{figure}
+This board controls 24 output channels for low-voltage~DC loads, arranged in three separate blocks 
+of 8~channels.  Each block is separately powered and completely isolated from the other blocks and 
+from the logic side of the board (i.e., the on-board controller or connection to an external
+controller).  Each block may be powered with +5\,V~DC or a voltage from +8 to +24\,V~DC and
+is designed to supply up to 5\,A per channel, with a maximum of 10\,A total per block at any 
+given time.
+
+Unlike the AC relay board described above, this may be constructed as a relay-only board (and attached
+to something like the Lumos 48-Channel controller) or as a stand-alone controller itself.  In the latter
+configuration, it uses one address for Lumos-protocol communication, or 24 \acronym{DMX512} slots.
+Communications options (selected permanently at the time the controller is assembled) include
+RS-232, full-duplex RS-485, and half-duplex RS-485.
+
+By sacrificing one or more of the on-board diagnostic \acronym{LED}s, 1--4 input signals may be 
+monitored by the controller, triggering user-programmed actions.  This allows for things like
+a light sensor to trigger nighttime lighting which turns off in the daytime, or to announce the
+arrival of guests when a door sensor is opened.
+
+
+\chapter{Operating the Board Controls}
+\LLstart{T}{he}{Lumos controllers include} two front-panel buttons labeled ``Option'' and ``Reset.''
+This chapter will describe how to use these buttons to control the board manually.  We will assume the
+Reset button is red and the Option button is green.  Depending on components chosen when building the
+board, these colors may vary.
+
+\section{Resetting the Board}
+The red Reset button is connected directly to the microcontroller's $\overline{\hbox{\mc{MCLR}}}$ input.
+As long as the button is pressed, the \acronym{CPU} will be halted.  No operations of the controller
+will be active at this time.  
+
+When the button is released, the \acronym{CPU} will reboot as if powered up.  This restores the ability
+to enter configuration mode, resets all output channels to be fully off, clears sequences stored in
+normal \acronym{RAM} memory, clears all faults and error conditions, and re-initialized all the hardware
+and software components.
+
+\section{Entering Configuration Mode}\label{sec:configmode}
+Some functions are only enabled when the controller is in a special ``configuration'' mode\footnote{In
+some places in other documentation, including the controller's firmware source code, this is also
+referred to as ``privileged mode''.} to prevent potentially harmful effects such as accidentally changing
+the device's address, baud rate, or other configuraiton parameters.
+
+To initiate configuration mode, press and hold the green Option button until the \acronym{LED}s start
+flashing rapidly (approximately 2~seconds).  Then release the Option button until the \acronym{LED}s
+fade to a state where the green \acronym{LED}(s) are flashing rapidly.\footnote{In normal run mode,
+the green \acronym{LED}(s) are slowly fading up and down.}
+
+The board is now in configuration mode and can be instructed by the host PC to change critical
+settings.
+
+To leave configuration mode, the host PC may issue a command to cancel the mode, or you may press
+the red Reset button (which also has the effect of rebooting the system).
+
+\section{Running a Test Pattern}
+When setting up a board in the field, it may be helpful to manually have the board turn on its
+output channels as a test that everything is connected and working properly.
+
+To do this, first place the board in configuration mode as described in Section~\ref{sec:configmode}.
+After the green light is flashing rapidly and the others are off, press and hold the Option button
+again until the lights go off, then release.
+
+The red \acronym{LED} will now be slowly fading up and down (instead of the green \acronym{LED} doing that
+as it does in normal run mode).  The controller will turn off all output channels, and turn channel \#0
+on fully.  
+
+After a one-second delay, channel \#0 will turn off and \#1 will turn on.  This will continue indefinitely,
+each channel turning on it its turn each second.  The panel \acronym{LED}s will display the currently-active
+channel number in binary.  Note that 24-channel boards only show the least significant 3 bits, so you
+will see which channel within the block (0--7) is active, but not which block.  48-channel controllers
+show the entire channel number.  See Figure~\ref{fig:testbin} for a reference chart of the output
+codes.
+\begin{figure}
+  \begin{center}
+    \begin{tikzpicture}
+  \def\y{10}
+  \light{A1}{off}\light{G1}{off}\light{Y1}{off}\light{R1}{off}\light{G2}{off}\light{Y2}{off}\light{R2}{sfd}
+  \light{A0}{off}\light{G0}{off}\light{Y0}{off}\light{R0}{sfd}
+  \node [right] at (2,\y) {Channel \#0};
+  \def\y{9}
+  \light{A1}{off}\light{G1}{off}\light{Y1}{off}\light{R1}{on}\light{G2}{off}\light{Y2}{off}\light{R2}{sfd}
+  \light{A0}{off}\light{G0}{off}\light{Y0}{on}\light{R0}{sfd}
+  \node [right] at (2,\y) {Channel \#1};
+  \def\y{8}
+  \light{A1}{off}\light{G1}{off}\light{Y1}{on}\light{R1}{off}\light{G2}{off}\light{Y2}{off}\light{R2}{sfd}
+  \light{A0}{off}\light{G0}{on}\light{Y0}{off}\light{R0}{sfd}
+  \node [right] at (2,\y) {Channel \#2};
+  \def\y{7}
+  \light{A1}{off}\light{G1}{off}\light{Y1}{on}\light{R1}{on}\light{G2}{off}\light{Y2}{off}\light{R2}{sfd}
+  \light{A0}{off}\light{G0}{on}\light{Y0}{on}\light{R0}{sfd}
+  \node [right] at (2,\y) {Channel \#3};
+  \def\y{6}
+  \light{A1}{off}\light{G1}{on}\light{Y1}{off}\light{R1}{off}\light{G2}{off}\light{Y2}{off}\light{R2}{sfd}
+  \light{A0}{on}\light{G0}{off}\light{Y0}{off}\light{R0}{sfd}
+  \node [right] at (2,\y) {Channel \#4};
+  \def\y{5}
+  \light{A1}{off}\light{G1}{on}\light{Y1}{off}\light{R1}{on}\light{G2}{off}\light{Y2}{off}\light{R2}{sfd}
+  \light{A0}{on}\light{G0}{off}\light{Y0}{on}\light{R0}{sfd}
+  \node [right] at (2,\y) {Channel \#5};
+  \def\y{4}
+  \light{A1}{off}\light{G1}{on}\light{Y1}{on}\light{R1}{off}\light{G2}{off}\light{Y2}{off}\light{R2}{sfd}
+  \light{A0}{on}\light{G0}{on}\light{Y0}{off}\light{R0}{sfd}
+  \node [right] at (2,\y) {Channel \#6};
+  \def\y{3}
+  \light{A1}{off}\light{G1}{on}\light{Y1}{on}\light{R1}{on}\light{G2}{off}\light{Y2}{off}\light{R2}{sfd}
+  \light{A0}{on}\light{G0}{on}\light{Y0}{on}\light{R0}{sfd}
+  \node [right] at (2,\y) {Channel \#7};
+
+  \def\y{2}
+  \light{A1}{on}\light{G1}{off}\light{Y1}{off}\light{R1}{off}\light{G2}{off}\light{Y2}{off}\light{R2}{sfd}
+  \light{A0}{off}\light{G0}{off}\light{Y0}{off}\light{R0}{sfd}
+  \node [right] at (2,\y) {Channel \#8};
+  \def\y{1}
+  \light{A1}{on}\light{G1}{off}\light{Y1}{off}\light{R1}{on}\light{G2}{off}\light{Y2}{off}\light{R2}{sfd}
+  \light{A0}{off}\light{G0}{off}\light{Y0}{on}\light{R0}{sfd}
+  \node [right] at (2,\y) {Channel \#9};
+  \def\y{0}
+  \light{A1}{on}\light{G1}{off}\light{Y1}{on}\light{R1}{off}\light{G2}{off}\light{Y2}{off}\light{R2}{sfd}
+  \light{A0}{off}\light{G0}{on}\light{Y0}{off}\light{R0}{sfd}
+  \node [right] at (2,\y) {Channel \#10};
+  \def\y{-1}
+  \light{A1}{on}\light{G1}{off}\light{Y1}{on}\light{R1}{on}\light{G2}{off}\light{Y2}{off}\light{R2}{sfd}
+  \light{A0}{off}\light{G0}{on}\light{Y0}{on}\light{R0}{sfd}
+  \node [right] at (2,\y) {Channel \#11};
+  \def\y{-2}
+  \light{A1}{on}\light{G1}{on}\light{Y1}{off}\light{R1}{off}\light{G2}{off}\light{Y2}{off}\light{R2}{sfd}
+  \light{A0}{on}\light{G0}{off}\light{Y0}{off}\light{R0}{sfd}
+  \node [right] at (2,\y) {Channel \#12};
+  \def\y{-3}
+  \light{A1}{on}\light{G1}{on}\light{Y1}{off}\light{R1}{on}\light{G2}{off}\light{Y2}{off}\light{R2}{sfd}
+  \light{A0}{on}\light{G0}{off}\light{Y0}{on}\light{R0}{sfd}
+  \node [right] at (2,\y) {Channel \#13};
+  \def\y{-4}
+  \light{A1}{on}\light{G1}{on}\light{Y1}{on}\light{R1}{off}\light{G2}{off}\light{Y2}{off}\light{R2}{sfd}
+  \light{A0}{on}\light{G0}{on}\light{Y0}{off}\light{R0}{sfd}
+  \node [right] at (2,\y) {Channel \#14};
+  \def\y{-5}
+  \light{A1}{on}\light{G1}{on}\light{Y1}{on}\light{R1}{on}\light{G2}{off}\light{Y2}{off}\light{R2}{sfd}
+  \light{A0}{on}\light{G0}{on}\light{Y0}{on}\light{R0}{sfd}
+  \node [right] at (2,\y) {Channel \#15};
+
+  \def\lightxbase{5}
+  \def\y{10}
+  \light{A1}{off}\light{G1}{off}\light{Y1}{off}\light{R1}{off}\light{G2}{off}\light{Y2}{on}\light{R2}{sfd}
+  \light{A0}{off}\light{G0}{off}\light{Y0}{off}\light{R0}{sfd}
+  \node [right] at (7,\y) {Channel \#16};
+  \def\y{9}
+  \light{A1}{off}\light{G1}{off}\light{Y1}{off}\light{R1}{on}\light{G2}{off}\light{Y2}{on}\light{R2}{sfd}
+  \light{A0}{off}\light{G0}{off}\light{Y0}{on}\light{R0}{sfd}
+  \node [right] at (7,\y) {Channel \#17};
+  \def\y{8}
+  \light{A1}{off}\light{G1}{off}\light{Y1}{on}\light{R1}{off}\light{G2}{off}\light{Y2}{on}\light{R2}{sfd}
+  \light{A0}{off}\light{G0}{on}\light{Y0}{off}\light{R0}{sfd}
+  \node [right] at (7,\y) {Channel \#18};
+  \def\y{7}
+  \light{A1}{off}\light{G1}{off}\light{Y1}{on}\light{R1}{on}\light{G2}{off}\light{Y2}{on}\light{R2}{sfd}
+  \light{A0}{off}\light{G0}{on}\light{Y0}{on}\light{R0}{sfd}
+  \node [right] at (7,\y) {Channel \#19};
+  \def\y{6}
+  \light{A1}{off}\light{G1}{on}\light{Y1}{off}\light{R1}{off}\light{G2}{off}\light{Y2}{on}\light{R2}{sfd}
+  \light{A0}{on}\light{G0}{off}\light{Y0}{off}\light{R0}{sfd}
+  \node [right] at (7,\y) {Channel \#20};
+  \def\y{5}
+  \light{A1}{off}\light{G1}{on}\light{Y1}{off}\light{R1}{on}\light{G2}{off}\light{Y2}{on}\light{R2}{sfd}
+  \light{A0}{on}\light{G0}{off}\light{Y0}{on}\light{R0}{sfd}
+  \node [right] at (7,\y) {Channel \#21};
+  \def\y{4}
+  \light{A1}{off}\light{G1}{on}\light{Y1}{on}\light{R1}{off}\light{G2}{off}\light{Y2}{on}\light{R2}{sfd}
+  \light{A0}{on}\light{G0}{on}\light{Y0}{off}\light{R0}{sfd}
+  \node [right] at (7,\y) {Channel \#22};
+  \def\y{3}
+  \light{A1}{off}\light{G1}{on}\light{Y1}{on}\light{R1}{on}\light{G2}{off}\light{Y2}{on}\light{R2}{sfd}
+  \light{A0}{on}\light{G0}{on}\light{Y0}{on}\light{R0}{sfd}
+  \node [right] at (7,\y) {Channel \#23};
+
+%         gyAGYR gyAGYR
+% 24-31   011000 011111
+% 32-39   100000 100111
+% 40-47   101000 101111
+ 
+  \def\y{2}
+  \light{A1}{on}\light{G1}{off}\light{Y1}{off}\light{R1}{off}\light{G2}{off}\light{Y2}{on}\light{R2}{sfd}
+  \node [right] at (7,\y) {Channel \#24};
+  \def\y{1}
+  \light{A1}{on}\light{G1}{off}\light{Y1}{off}\light{R1}{on}\light{G2}{off}\light{Y2}{on}\light{R2}{sfd}
+  \node [right] at (7,\y) {Channel \#25};
+  \def\y{0}
+  \light{A1}{on}\light{G1}{on}\light{Y1}{on}\light{R1}{on}\light{G2}{off}\light{Y2}{on}\light{R2}{sfd}
+  \node [right] at (7,\y) {Channel \#31};
+  \def\y{-1}
+  \light{A1}{off}\light{G1}{off}\light{Y1}{off}\light{R1}{off}\light{G2}{on}\light{Y2}{off}\light{R2}{sfd}
+  \node [right] at (7,\y) {Channel \#32};
+  \def\y{-2}
+  \light{A1}{off}\light{G1}{on}\light{Y1}{on}\light{R1}{on}\light{G2}{on}\light{Y2}{off}\light{R2}{sfd}
+  \node [right] at (7,\y) {Channel \#39};
+  \def\y{-3}
+  \light{A1}{on}\light{G1}{off}\light{Y1}{off}\light{R1}{off}\light{G2}{on}\light{Y2}{off}\light{R2}{sfd}
+  \node [right] at (7,\y) {Channel \#40};
+  \def\y{-4}
+  \light{A1}{on}\light{G1}{on}\light{Y1}{on}\light{R1}{off}\light{G2}{on}\light{Y2}{off}\light{R2}{sfd}
+  \node [right] at (7,\y) {Channel \#46};
+  \def\y{-5}
+  \light{A1}{on}\light{G1}{on}\light{Y1}{on}\light{R1}{on}\light{G2}{on}\light{Y2}{off}\light{R2}{sfd}
+  \node [right] at (7,\y) {Channel \#47};
+  \def\lightxbase{0}
+    \end{tikzpicture}
+  \end{center}
+  \caption{Test-mode Channel Indicators\label{fig:testbin}}
+\end{figure}
+
+If the Option buton is pressed briefly, the pulsing red \acronym{LED} freezes (steady on) and the cycle
+pauses on the current output channel.  Pressing the Option button again resumes the cycle.
+      
+\section{Restoring to Factory Settings}
+If the board is unresponsive and cannot be reconfigured via the host PC (for example, if you configured
+it to use a baud rate your host PC can't match), follow these steps to reset the device to its 
+factory default settings:
+\begin{enumerate}
+	\item	Press and hold the Reset button.
+	\item	While holding Reset, press and hold Option.
+	\item	While continuing to hold Option, release Reset.
+	\item	When the red \acronym{LED} lights, release the Option button.
+	\item	When the red \acronym{LED} turns off, press and hold the Option button again.
+	\item	When the red \acronym{LED} turns on, release the Option button.
+\end{enumerate}
+
+If those steps were carried out exactly as described, the \acronym{LED}s will all flash rapidly 
+and the controller will reboot with the factory settings in place.  This means, among other things,
+it will be at address 0, set to use Lumos commands only (not \acronym{DMX512}), and will communicate
+at 19,200~baud.
+
+Failure to perform each step at the right time will prevent the factory reset from occurring.
+
+\strong{Note:} If the red \acronym{LED} (the top one for 48-channel boards) is configured as a
+sensor input, one of the other \acronym{LED}s will be used instead.  \emph{If all of the 
+\acronym{LED}s have been replaced with sensor inputs, then channel~\#0 will be turned on
+and off instead, to signal this sequence.  Have a suitable load plugged into that output.}
+
+\chapter{Configuring the Board}
+\LLstart{T}{here}{are a number of settings} which can be made on the Lumos controllers.  Generally,
+this is accomplished by using the \z{lumosctl} command-line program on the host PC.  The basic configuration
+options include such things as setting the device address, communication speed, etc.  These can be set
+directly on the command line with \z{lumosctl}.
+
+In the following examples, the command-line prompt is represented by a `\z{\$}' character.
+Text that is typed literally as shown in printed in \z{fixed-width type}, while values which are
+to be replaced with a value appropriate for your usage are printed in \Var*{Italics} in angle brackets
+(the angle brackets are not actually typed, however).
+
+For every command, you need to include three values:
+\begin{itemize}
+	\item 	The serial port on the host PC to which the Lumos controller is attached.  This is
+		given to \z{lumosctl}'s \z{----port} option, as ``\z{----port=}\Var*{name}''.  On many
+		systems, it is enough to say ``\z{----port=0}'' or ``\z{----port=1}'' to specify the first
+		or second ``standard'' port.  A specific port name may be given, such as 
+		``\z{----port=COM1}'' or ``\z{----port=/dev/ttys0}''.
+	\item	The speed (baud rate) at which to communicate with the Lumos controller.  This is
+		the speed the controller is \emph{currently} using, not the one you want to change it
+		to.  This is given as ``\z{----speed=}\Var*{rate}'', such as ``\z{----speed=19200}''.
+	\item	The Lumos controller's address, given as ``\z{----address=}\Var*{addr}''.  For example,
+		``\z{----addr=0}''.
+\end{itemize}
+
+If you aren't sure what device addresses exist on the serial line, you can have \z{lumosctl} 
+probe to discover them all:
+\begin{SourceCode}
+$ lumosctl --port=COM1 --speed=19200 --probe
+Probe discovered 2 devices:
+Address 00: lumos48ctl
+Address 04: lumos24dc
+$ _
+\end{SourceCode}
+
+If that doesn't discover everything you thought it should, you can add \z{----verbose} to the command
+to see more detail.  Adding more and more \z{----verbose} options increases the amount of information
+printed.  The default port is the ``first'' standard port, the default speed is 19,200 bits per second,
+and the default address is 0.
+
+If you want to print a full report of the state of a device, include the \z{----report} option:
+\begin{SourceCode}
+$ lumosctl --port=COM1 --speed=19200 --address=0 --report
+\end{SourceCode}
+
+The \z{----port}, \z{----speed}, and \z{----address} options assume a reasonable default value if
+they were not specified.  For the sake of simplicity, we'll assume from here on that you either
+accept these defaults or are specifying them to have the values you need; we won't explicitly
+show them in the examples that follow.
+
+\section{Setting the Device Address}
+Set a new address by giving \z{----set--address=}\Var*{newaddr}.  Don't forget to include the
+device's current address with \z{----address=}\Var*{oldaddr}.  For example, to change a board
+from address 0 to 12:
+
+\begin{SourceCode}
+$ lumosctl --address=0 --set-address=12
+\end{SourceCode}
+
+Once the address is set, you'll need to use that value for \z{----address} from that point forward.
+
+\section{Setting the Device Speed}
+Set a new speed by giving \z{----set--baud-rate=}\Var*{newspeed}.  Don't forget to include the
+device's current speed with \z{----speed=}\Var*{oldspeed}, so it has any hope of seeing the command
+to change it.  For example, to change a board
+from 19200 to 57600 baud:
+
+\begin{SourceCode}
+$ lumosctl --speed=19200 --set-baud-rate=57600
+\end{SourceCode}
+
+Once the speed is set, you'll need to use that value for \z{----speed} from that point forward.
+
+\section{Sensors}\label{sec:sensors}
+
+If your board is built to accommodate sensor inputs, you need to set the \acronym{EEPROM}
+settings so the controller stops driving those lines as outputs and starts watching them as
+inputs.
+
+To do this, use the \z{----dump--configuration=}\Var*{file} option.  This dumps the device's
+configuration state into a text file on the host PC.
+
+\begin{SourceCode}
+$ lumosctl --dump-configuration=lumos_board.cfg
+\end{SourceCode}
+
+Looking in the \z{lumos\_board.cfg}, find a section beginning with ``\z{[lumos\_device\_settings]}''.
+there is a field ``\z{sensors=}\Var*{list}'' which should contain a list of all the sensors 
+configured as inputs.  
+
+So if we had lines A and C wired up to sensor inputs instead of \acronym{LED} outputs, we need to 
+change this line in the \z{lumos\_board.cfg} file to read:
+
+\begin{SourceCode}
+[lumos_device_settings]
+sensors=ac
+\end{SourceCode}
+
+Leave the other fields alone, just as they are.
+
+For each sensor, we can arrange for an action to take place every time one of them activates.
+The actions taken are set up as ``Programmed Sequences'' (see Chapter~\ref{ch:sequences}).
+Assuming that the actions we want to carry out are already programmed and loaded as described in
+that chapter, we associate those sequences with sensor inputs by introducing a new section
+in the \z{lumos\_board.cfg} file called \z{[lumos\_device\_sensor\_}\Var*{x}\z{]}, where 
+\Var*{x} is the sensor letter (or we edit that section, if it's already in the file).
+
+For example, to set sensor A to play sequence 100 when it first activates, then continue to loop
+sequence 101 as long as the sensor remains active, then finally play sequence 102 as soon as the
+sensor stops being active, and assuming we want ``active'' to mean when the signal on that input
+is at a logic 1 level (active high), we would put this in the file:
+
+\begin{SourceCode}
+[lumos_device_sensor_a]
+enabled=yes
+mode=while
+setup=100
+sequence=101
+terminate=102
+active_low=no
+\end{SourceCode}
+
+If we want sensor C to be active low, and trigger sequence 42 one time when it activates, our 
+file needs this section added to it:
+
+\begin{SourceCode}
+[lumos_device_sensor_c]
+enabled=yes
+mode=once
+sequence=42
+active_low=yes
+\end{SourceCode}
+
+Once the file is set up with all the configuration changes you wish to make, it may be 
+loaded back to the board again with the \z{----load--configuration=}\Var*{file} option:
+
+\begin{SourceCode}
+$ lumosctl --load-configuration=lumos_board.cfg
+\end{SourceCode}
+
+Assigning sequences to as sensor-triggered events may also be arranged on the fly via
+the \z{lumosctl} program.  The same effects could be performed thus:
+
+\begin{SourceCode}
+$ lumosctl --sensor=aw+:100:101:102 --sensor=co::42:
+\end{SourceCode}
+
+Note that configuring a sensor line as an input or output \emph{must} be done from the
+configuration file.
+
+See Chapter~\ref{ch:sequences} for complete details on how to create sequences and store them
+into a Lumos controller.  Full details on the operation of \z{lumosctl} in this and other
+areas begins on page~\pageref{ch:lumosctl} in the appendices.
+
+\section{Setting a Lumos Controller to Use \acronym{DMX512}}
+Setting up the controller to be a \acronym{DMX512} device is another task performed via
+the configuration file (see Section~\ref{sec:sensors} for instructions about how to dump
+and load a configuration file).
+
+First, get the current configuration settings into a file:
+\begin{SourceCode}
+$ lumosctl --dump-configuration=lumos_board.cfg
+\end{SourceCode}
+In the \z{[lumos\_device\_settings]} section, add a field ``\z{dmxchannel=}\Var*{c}'' where
+\Var*{c} is the starting slot number you wish the Lumos controller to use.  This will be 
+channel \#0 on this board.  
+
+To cause a 24-channel Lumos board to occupy \acronym{DMX} slots 200--247, this would be:
+\begin{SourceCode}
+[lumos_device_settings]
+dmxchannel=200
+\end{SourceCode}
+
+Now download that configuration into the controller board:
+\begin{SourceCode}
+$ lumosctl --load-configuration=lumos_board.cfg
+\end{SourceCode}
+
+If you want to change the board to be a Lumos-protocol board instead of \acronym{DMX512},
+just follow the same process, but \emph{delete} the \z{dmxchannel=}\Var*{c} line completely
+before loading the configuration onto the Lumos board.
+
+\section{Canceling Configuration Mode}
+When you're finished configuring the controller board, you may use either of these options:
+\begin{SourceCode}
+$ lumosctl --disable-privileged-mode
+$ lumosctl --forbid-privileged-mode
+\end{SourceCode}
+
+Either of these returns the board to normal run mode.  The second goes a step further, forbidding
+the board from going back into configuration mode again, until the next time the board is reset or
+power cycled.
+
+\chapter{Creating Programmed Sequences}\label{ch:sequences}
+\LLstart{T}{he}{normal operating mode} for a Lumos controller is to receive a stream
+of real-time commands from the host PC, acting on them as they arrive.  However, it is 
+also possible to program a number of complex actions into the controller's memory.  The
+host PC can then send a much smaller command to tell the controller to execute a stored
+sequence of actions.  If sensor inputs are enabled, the board may be set up to trigger the
+execution of a stored sequence when sensor activity is detected.
+
+\strong{N.B.: The following information assumes a high-level (if somewhat simple) language
+to describe sequences, which gets compiled into a more compact bytecode which is loaded onto the
+device itself.  This language compiler has not yet been written.  Section~\ref{sec:bytecode}
+below describes the bytecode actually understood by the device.  At the time of this writing,
+it is necessary to create this bytecode manually and load it into the device as described
+in that section.}
+
+These sequences are written using a small, simple programming language.  It is intended to
+make it possible to describe some basic operations supported by the device, not to create a
+fully general-purpose programming system.  This, plus the need to design the sequence data
+to be as compact as possible, drove the design of this language to be optimized toward efficiency
+and to enable a certain set of common operations.  This optimization means, however, that some
+other functions are limited or omitted.  We'll point out the major caveats along the way as we
+describe this system in this chapter.
+
+\section{Basic Sequence Syntax and Structure}
+Each sequence is numbered with an ID from 0--127.  The sequence begins with a declaration of this
+ID in the form ``\z{SEQUENCE} \Var*{id}\z{:}'' followed by all the lines of instructions, and ends
+with the word ``\z{END}'' on the final line.
+
+When writing a sequence of instructions to be stored into the controller, each individual instruction
+is placed on a line by itself.  For example, if we define sequence~\#1 to set 
+channel~\#0 on, \#1 to half brightness, and \#2 off,
+the sequence code would be:
+\begin{SourceCode}
+sequence 1:
+  channel 0 on
+  channel 1 50%
+  channel 2 off
+end
+\end{SourceCode}
+% on #0			C1 00
+% dimmer #1,127		42 01 7F
+% off #2                41 02
+
+The indentation is simply a convention to make the code more readable; the Lumos system ignores it.
+Similarly, Lumos sequences are case-insensitive.  The previous sequence could just as well have been
+written:
+\begin{SourceCode}
+SEQUENCE 1:
+  Channel 0 ON
+  Channel 1 50%
+  CHANNEL 2 Off
+END
+\end{SourceCode}
+
+\section{Expressions}
+Anywhere a number is expected, a complex math expression may be used.  Standard algebraic order of
+operations is enforced on the expression, so parentheses force the enclosed sub-expression to be
+evaluated first, then multiplication and division, then addition and subtraction.  All of the following
+instructions turn channel 10 to 1/3 brightness:
+\begin{SourceCode}
+channel 10 33.3333333333%
+channel 2*(2+3) 1/3
+channel 10 1.0/3.0
+\end{SourceCode}
+
+\strong{Note:} If the expression is able to be fully interpreted using known values at the time 
+the source code is compiled on the host PC, it is evaluated with all the precision of floating-point
+math operations to the extent supported by the PC.  The final result of the calculation, however, 
+needs to be reduced to (in most cases) an unsigned 8-bit integer value (0--255) for storage on the 
+Lumos controller.  If the expression must be interpreted at run-time on the Lumos device itself,
+there's a much more limited expression evaluation system available at that point.  Only addition,
+subtraction, and multiplication of unsigned 8-bit values is possible there.  The compiler may reject
+your expression if it can't be handled within those constraints.
+
+The math operators supported are summarized in Figure~\ref{fig:mathop}.
+\begin{figure}
+  \begin{center}
+    \begin{tabular}{|rcl|l|}\hline
+	\multicolumn{3}{|c|}{Expression} & Meaning\\\hline\hline
+	\Var{x} & \z{+} & \Var{y} & add $x+y$ \\\hline
+	\Var{x} & \z{-} & \Var{y} & subtract $x-y$ \\\hline
+	\Var{x} & \z{*} & \Var{y} & multiply $x\times y$ \\\hline
+	\Var{x} & \z{/} & \Var{y} & divide $x/y$ \\\hline
+	\Var{x} & \z{//} & \Var{y}& divide $x/y$ using integer division\\\hline
+	\Var{x} & \z{\%} & \Var{y}& the remainder when dividing $x/y$ \\\hline
+    \end{tabular}
+  \end{center}
+  \caption{Supported Math Operations\label{fig:mathop}}
+\end{figure}
+
+\section{Variable Assignment}
+To a rather limited extent, variables may be defined values and then used in sequences in place
+of numeric values, like so:
+\begin{SourceCode}
+x = 42
+channel x on
+channel x+1 on
+channel x+2 on
+\end{SourceCode}
+%
+% optimized a bit:
+%
+% push #42	4F 2A
+% dup		32
+% on		81
+% add		23
+% dup		32
+% on		81
+% add		23
+% on		81
+% 
+% not optimized
+%
+% push #42	4F 2A		; BSF+0
+% push	0	CF 00
+% on		81
+% push 	0	CF 00
+% add		23
+% on		81
+% push 	0	CF 00
+% add	#2	43 02
+% on		23
+
+\section{Controlling Output Channels}
+We already saw the \z{CHANNEL} command which can be used to turn a designated channel \z{ON}, 
+\z{OFF}, or to a given percentage.  It may also be given a raw value from 0--255.  All of the following
+set channel~\#4 to full brightness:
+\begin{SourceCode}
+channel 4 100%
+channel 4 255
+cahnnel 4 on
+\end{SourceCode}
+
+We may also start a channel smoothly fading up or down from its current brightness to either fully
+on or fully off.  The following instructions cause channel~\#12 to fade to black by reducing its 
+output value by 2 every .2 seconds.  Simultaneously, channel~\#13 will increase in brightness by 1 step
+every 1/120\,second.
+\begin{SourceCode}
+ramp down 12 by 2 per .2 seconds
+ramp up 13
+\end{SourceCode}
+
+There is also a single command for turning all output channels off at once:
+\begin{SourceCode}
+blackout
+\end{SourceCode}
+
+\section{Device State Changes}
+There are commands \z{SLEEP} and \z{WAKE} to turn on and off sleep mode if desired.
+These control power-saving features but don't disrupt the interpretation or execution of
+incoming commands.
+
+There are also \z{SUSPEND} and \z{RESUME} commands.  \z{SUSPEND} causes the controller
+to ignore any further input, on the premise that the sequence wants to take priority over
+whatever the host PC wanted the controller to do.  \z{RESUME} allows the board to resume
+normal operation (acting on received commands from the host PC).
+
+If the command \z{SUSPEND WITH UPDATE} is given, then the device will track changes to
+channel outputs made by the host PC, but still will not act on them until a \z{RESUME}
+command (at which point, the output channels will simply change to what would be the
+final result of all the changes received---it does not ``replay'' all of the changes
+that were delayed at that point).  
+
+The \z{RESUME WITH FADE} is just like \z{RESUME}, except it will fade all channels to black
+first, then fade up the channels to their reume values.
+
+For example, if you have a light sensor configured to run sequence 1 once when it senses daylight,
+and then run sequence 2 when it senses darkness, and you want to inhibit outputs during the daytime
+but still allow the host PC to set a pattern of channel values which will be displayed immediately
+upon dusk, the sequences could be coded:
+\begin{SourceCode}
+sequence 1:
+  suspend with update
+  blackout
+end
+
+sequence 2:
+  resume with fade
+end
+\end{SourceCode}
+
+\section{Flow Control}
+In addition to the linear sequence of instructions to change channel outputs, there are
+a number of instructions which alter the flow of execution itself.  This includes the usual
+collection including conditionals, loops, and so forth.  
+
+If you want to have sequence 123 turn on channel \#4 if sensor B is active at that moment,
+or turn it off otherwise, the following code will suffice:
+\begin{SourceCode}
+sequence 123:
+  if sensor b:
+    channel 4 on
+  else:
+    channel 4 off
+  end
+end
+\end{SourceCode}
+
+We can turn on every even numbered channel from \#0--\#10, with a half-second delay up through \#6
+and then instantly for the rest:
+\begin{SourceCode}
+sequence 47:
+  for ch=0 to 10 by 2:
+    channel ch on
+    if channel <= 6:
+      wait 0.5 seconds
+    end
+  end
+end
+\end{SourceCode}
+
+We can flash channels \#1 and \#3 repeatedly until our sequence is forced to stop:
+\begin{SourceCode}
+sequence 9:
+  repeat:
+    channel 1 on
+    channel 3 on
+    wait 1 second
+    channel 1 off
+    channel 3 off
+    wait 1 second
+  end
+end
+\end{SourceCode}
+
+Loops can be interrupted using \z{BREAK}, \z{CONTINUE}, and \z{EXIT}.
+See the \z{lumosctl} documentation (page~\pageref{sh:lumosctl}) for full details.
+
+\section{Subroutines and Sequence Chains}
+One sequence can invoke another sequence, either as a subroutine (so that the execution
+temporarily detours into the called sequence, and then the calling sequence resumes where
+it left off), or as a ``chain'' from one sequence to another (where the calling sequence 
+stops as the called sequence starts, so there is no returning from that point).
+
+Here we have sequence 12 which calls sequence 13 in a loop:
+\begin{SourceCode}
+sequence 12:
+  repeat 10 times as i:
+    call 13
+    wait i seconds
+  end
+  execute 14
+end
+
+sequence 13:
+  channel 0 on
+  wait 2
+  channel 0 off
+end
+
+sequence 14:
+  blackout
+end
+\end{SourceCode}
+Note that the \z{EXECUTE} instruction terminated sequence 12 and started
+sequence 14.  When sequence 14 finishes, nothing further is done.
+
+Sometimes it's valuable to be able to pass parameters to subroutines.  Sequences support
+up to four parameters which must be declared in both the definition of the sequence and
+the \z{EXECUTE} or \z{CALL} which invokes it.  Here's a program which turns on each channel
+from 0--24 repeatedly.
+\begin{SourceCode}
+sequence 1:
+  repeat:
+    for c=0 to 24:
+      call 2(c)
+    end
+  end
+end
+
+sequence 2(chan):
+  channel chan on
+  wait 1 second
+  channel chan off
+end
+\end{SourceCode}
+%
+% 0 loop	0	2A
+% 1 loop	0	2A
+% 2 pctr		36
+% 3 call	$C,#1	48 0C 01
+% 6 next	1,#24	2B 01 18
+% 9 next	0	AB 00
+% b exit		00
+% c push	0	8F 00
+% e on			81
+% f wait	#nn	49 nn
+%11 push	0	0F 00
+%13 off			01
+%14 exit		00
+
+\section{Temporary vs.\ Permanent Sequences}
+Sequences numbered from 0--63 are stored into non-volatile \acronym{EEPROM} memory and will remain
+in place until explicitly erased or replaced.  Sequences numbered 64-127 are stored in temporary 
+\acronym{RAM} and will be lost at the next device reset.  This enables the host PC to download
+sequences for short-term temporary use.
+
+\section{Storing Sequences into Device Memory}
+The device files are stored into the Lumos controller using the \z{lumosctl} command:
+\begin{SourceCode}
+$ lumosctl --clear-sequences
+$ lumosctl --load-sequence=my_program_file
+\end{SourceCode}
+
+The initial \z{----clear--sequences} option is not always needed.  It erases all sequences
+from memory.  Then each subsequent \z{----load--sequence} option loads a file containing one
+or more sequences into the device.
+
+If a sequence is loaded which already exists on the device, the old one is replaced with the
+new one.  Note, however, that Lumos controllers have a very na\"\i ve memory management capability.
+They are really designed to simply have a set of sequences loaded on them, later erased
+\emph{en masse} and replaced by a new set.
+
+If replacement sequences are written on top of old ones, it is quite likely that the memory
+will get fragmented quickly and you'll run out of available memory too early.
+Simply adding new sequences shouldn't be a problem, however.
+
+You can see how much memory is available by running \z{lumosctl} with the \z{----report} 
+option.
+\begin{SourceCode}
+$ lumosctl --report --address=2
+...
+XXX
+$ _
+\end{SourceCode}
+
+\section{Bytecode Reference}\label{sec:bytecode}
+\emph{This is an advanced reference section most users will never have any reason to 
+read.}  For the curious, however, we note that when you load a sequence source file
+into \z{lumosctl}, it compiles the source into bytecode which is what actually gets 
+sent to the controller, and is what is stored in its memory.  The following reference
+details the format of that bytecode.
+
+\subsection{Execution Model}
+The execution model is a small stack-based 
+\footnote{Several other
+models were experimented with, but this provided better flexibility with a minimal
+number of bytes required for the sequence instruction bytes themselves, which need to
+be stored in a limited space on the controller.} 
+machine environment, in which
+each sequence is an independent program which begins at
+address 0 in its own memory area.  
+
+All memory locations, including program and stacks, are 8~bits wide.  Unless otherwise
+indicated, data values are unsigned 8-bit integers.
+
+\subsection{Stacks}
+There are actually three independent stacks used: a call-return stack, data stack, and loop
+counter stack.
+
+The call-return stack receives three bytes every time a sequence calls another sequence:
+\begin{BF}
+  \begin{rightwordgroup}{previous calling sequence}
+  \wordbox{1}{return address}\\
+  \wordbox{1}{return sequence}\\
+  \wordbox{1}{stack frame ptr}
+  \end{rightwordgroup}\\
+  \begin{rightwordgroup}{calling sequence}
+  \wordbox{1}{return address}\\
+  \wordbox{1}{return sequence}\\
+  \wordbox{1}{stack frame ptr}
+  \end{rightwordgroup}\\
+  \wordbox[]{1}{$\vdots$ \\[1ex]}\\
+  \wordbox[]{1}{(increasing addresses)}
+\end{BF}
+
+The loop counter stack holds all the loop counter values.  At any given time,
+the top of the stack is the counter for the innermost executing loop.
+
+If the code is executing a nested loop such as:
+\begin{SourceCode}
+repeat as x:
+  for y=1 to 10:
+    repeat 10 as z:
+      ...
+    end
+  end
+end
+\end{SourceCode}
+
+The loop stack would look like:
+\begin{BF}
+  \wordbox{1}{\Var{x}}\\
+  \wordbox{1}{\Var{y}}\\
+  \wordbox{1}{\Var{z}}\\
+  \wordbox[]{1}{$\vdots$ \\[1ex]}\\
+  \wordbox[]{1}{(increasing addresses)}
+\end{BF}
+
+Note that a counter variable is allocated for \emph{every} loop entered,
+even if the source code didn't associate it with a variable name
+(e.g., if the innermost was ``\z{REPEAT 10:}'' without the 
+``\z{AS Z}'' part).
+
+The data stack contains the parameters passed to the current
+sequence, if any, followed by local variables for the sequence.
+The remaining room is for working stack space for calculations
+and values consumed by the opcodes.
+
+At each call, parameters are pushed onto the stack and then the
+stack frame pointer is moved to point to the first parameter.
+This way, parameters and local variables are referenced within the
+sequence as offsets from the frame pointer, while working values
+are obtained by pushing and popping values from the top of the stack.
+
+\begin{BF}
+  \begin{leftwordgroup}{Stack Frame}
+  \begin{rightwordgroup}{parameters passed \\ to this sequence}
+  \wordbox{1}{\Var{p$_0$}}\\
+  \wordbox{1}{\Var{p$_1$}}\\
+  \wordbox[]{1}{$\vdots$ \\[1ex]}\\
+  \wordbox{1}{\Var{p$_n$}}
+  \end{rightwordgroup}\\
+  \begin{rightwordgroup}{local variables}
+  \wordbox{1}{\Var{v$_0$}}\\
+  \wordbox{1}{\Var{v$_1$}}\\
+  \wordbox[]{1}{$\vdots$ \\[1ex]}\\
+  \wordbox{1}{\Var{v$_n$}}
+  \end{rightwordgroup}\\
+  \wordbox{1}{working stack}
+  \end{leftwordgroup}\\
+  \wordbox[]{1}{$\vdots$ \\[1ex]}\\
+  \wordbox[]{1}{(increasing addresses)}
+\end{BF}
+ 
+\subsection{Instruction Format}
+
+Each instruction is at least one byte long. The first byte is the opcode which always
+has the general format:
+%\newcommand\zh{\bitheader{0-7}}
+\begin{BF}
+  \bitbox{1}{\Var{f}} & \bitbox{1}{\Var{i}} & \bitbox{1}{\Var{d}} & \bitbox{5}{\Var*{cmd}}
+\end{BF}
+Where:
+\begin{itemize}
+	\item[\Var{f}=] Instruction-specific flag.
+	\item[\Var{i}=] All data values are immediate bytes (\Var{i}=1) instead of being popped
+		from the stack (\Var{i}=0).
+	\item[\Var{d}=] Take no stack/immediate values; assume default values inherently (\Var{d}=1).
+\end{itemize}
+
+Following the opcode byte are any direct addressing bytes (generally, addresses of locations
+on the stack for data values, or addresses to jump to) which must be constants at runtime.
+
+After that are zero or more data bytes providing the values needed by the instruction, if the immediate
+addressing mode is used (bit \Var{i}=1).  Otherwise they will be popped from the data stack as needed.
+
+\subsection{Addressing Modes}
+The following addressing modes are supported:
+\begin{itemize}
+	\item\emph{Default addressing} means that no data values are provided, 
+		and the instruction should assume
+		a useful default value instead.  Denoted below as an instruction missing any
+		mention of the defaulted arguments.  The preferred notation is to name the value
+		as normal, and allow the assembler to optimize it to the default version.
+	\item\emph{Direct addressing} specifies a memory location as a constant value following
+		the opcode.  Examples include jump and loop instructions which directly name an
+		instruction address within the sequence, and operations which specify a local
+		variable or parameter as a constant offset from the stack frame pointer.  Note
+		that some instructions mandate a direct argument even if others are pulled from
+		the stack, memory, or take defaults.  Denoted below as a number (or name
+		defined as a number) without other punctuation.
+	\item\emph{Immediate addressing} mode means that the values needed by the instruciton are
+		provided as constant bytes following the opcode, rather than being taken from the
+		stack.  Denoted below as a value prefixed by a pound sign (\z\#).
+	\item\emph{Indirect addressing} is used when a data value used by an operation is
+		specified, but that value specifies an address in memory (specifically, the value
+		is an unsigned integer added to the stack frame pointer).  
+		Denoted by square brackets around the argument value.
+	\item\emph{Indirect Stack} values are obtained by popping an address from the stack and
+		then using it as the location for the value to use.  Noted by square brackets
+		and dollar sign together (\z{[\$]}).
+	\item\emph{Inherent} means that the instruction simply needs no further values to perform
+		its operation; the data is inerent in the instruction itself.
+	\item\emph{Stack addressing} means that the data value is popped from the stack.  These are
+		popped in the order they would appear if given as immediate bytes, so they would
+		need to be pushed in opposite order to that.  Denoted by a dollar sign (\z\$) as
+		the argument to the instruction.
+\end{itemize}
+
+The addressing mode is selected by various bits in the opcode byte.
+
+For example, the instruction to set the dimmer output level for a channel (mnemonic ``\z{dimmer}'', 
+base hex opcode \z{0x02}) may have the following forms:
+
+% dimmer #1,16	42 01 10
+% dimmer 	02
+% push	 #9	4F 09
+% push	9	8F 09
+% push  #0	2F
+% pctr	2	66 02
+
+\begin{center}
+\begin{bytefield}[leftcurlyspace=0pt, rightcurlyspace=0pt, leftcurly=., rightcurly=.]{24}
+	\bitbox[]{8}{\footnotesize byte 0} &
+	\bitbox[]{8}{\footnotesize byte 1} &
+	\bitbox[]{8}{\footnotesize byte 2} \\
+
+	\begin{leftwordgroup}{immed.}
+	\begin{rightwordgroup}{\z{dimmer \#1,16}}
+	\bitbox{1}{\z0} & \bitbox{1}{\z1} & \bitbox{1}{\z0} & \bitbox{5}{\z{0x02}} &
+	\bitbox{8}{\z{0x01}} & \bitbox{8}{\z{0x10}}
+	\end{leftwordgroup}
+	\end{rightwordgroup} \\
+
+	\begin{leftwordgroup}{stack}
+	\begin{rightwordgroup}{\z{dimmer \$}}
+	\bitbox{1}{\z0} & \bitbox{1}{\z0} & \bitbox{1}{\z0} & \bitbox{5}{\z{0x02}} &
+	\bitbox[]{8}{} & \bitbox[]{8}{}
+	\end{leftwordgroup}
+	\end{rightwordgroup} \\
+\end{bytefield}
+\end{center}
+
+In the first case, the \z{dimmer} command takes the channel number (1) and level (16) as 
+immediate values in the sequence program itself.  In the second case, it pops two values
+off the stack, the first number popped being the channel number and the second one being
+the value.
+
+Consider the \z{push} command as well:
+
+\begin{center}
+\begin{bytefield}[leftcurlyspace=0pt, rightcurlyspace=0pt, leftcurly=., rightcurly=.]{16}
+	\bitbox[]{8}{\footnotesize byte 0} &
+	\bitbox[]{8}{\footnotesize byte 1} \\
+
+	\begin{leftwordgroup}{immediate}
+	\begin{rightwordgroup}{\z{push \#9}}
+	\bitbox{1}{\z0} & \bitbox{1}{\z1} & \bitbox{1}{\z0} & \bitbox{5}{\z{0x0F}} &
+	\bitbox{8}{\z{0x09}}
+	\end{leftwordgroup}
+	\end{rightwordgroup} \\
+
+	\begin{leftwordgroup}{indirect}
+	\begin{rightwordgroup}{\z{push [9]}}
+	\bitbox{1}{\z1} & \bitbox{1}{\z0} & \bitbox{1}{\z0} & \bitbox{5}{\z{0x0F}} &
+	\bitbox{8}{\z{0x09}}
+	\end{leftwordgroup}
+	\end{rightwordgroup} \\
+
+	\begin{leftwordgroup}{default}
+	\begin{rightwordgroup}{\z{push \#0}}
+	\bitbox{1}{\z0} & \bitbox{1}{\z0} & \bitbox{1}{\z1} & \bitbox{5}{\z{0x0F}} &
+	\bitbox[]{8}{}
+	\end{leftwordgroup}
+	\end{rightwordgroup}
+\end{bytefield}
+\end{center}
+
+\subsection{Instruction Set}
+
+\subsubsection{\z{EXIT}: Stop Execution of a Sequence}
+\begin{bytefield}[leftcurlyspace=0pt, rightcurlyspace=0pt, leftcurly=., rightcurly=.]{16}
+	\bitbox[]{8}{\footnotesize byte 0} \\
+
+	\begin{rightwordgroup}{\z{exit}}
+	\bitbox{1}{\z0} & \bitbox{1}{\z0} & \bitbox{1}{\z0} & \bitbox{5}{\z{0x00}}
+	\end{rightwordgroup} \\
+\end{bytefield}
+
+\begin{SourceCode}
+00 EXIT
+\end{SourceCode}
+
+\begin{Coding}
+|00  EXIT|
+\end{Coding}
+
+The current sequence is terminated.  This will return to the previous sequence context
+(resuming the previous sequence if we arrived here from a \z{CALL} instruction.  If this
+was the outermost executing sequence, then no sequence will be running anymore.
+
+\subsubsection{\z{ON/OFF}: Turn a Channel On Or Off}
+\begin{bytefield}[leftcurlyspace=0pt, rightcurlyspace=0pt, leftcurly=., rightcurly=.]{16}
+	\bitbox[]{8}{\footnotesize byte 0} &
+	\bitbox[]{8}{\footnotesize byte 1} \\
+
+	\begin{rightwordgroup}{\z{off} \Var*{channel}}
+	\bitbox{1}{\z0} & \bitbox{1}{\z0} & \bitbox{1}{\z0} & \bitbox{5}{\z{0x01}} & \bitbox{8}{\Var*{channel}}
+	\end{rightwordgroup} \\
+	\begin{rightwordgroup}{\z{on} \Var*{channel}}
+	\bitbox{1}{\z1} & \bitbox{1}{\z0} & \bitbox{1}{\z0} & \bitbox{5}{\z{0x01}} & \bitbox{8}{\Var*{channel}}
+	\end{rightwordgroup} \\
+\end{bytefield}
+
+\begin{SourceCode}
+01      OFF $
+41 cc   OFF #cc
+81      ON  $
+C1 cc   ON  #cc
+\end{SourceCode}
+
+The current sequence is terminated.  This will return to the previous sequence context
+(resuming the previous sequence if we arrived here from a \z{CALL} instruction.  If this
+was the outermost executing sequence, then no sequence will be running anymore.
+
+
+\section{Example Sequences}
+including source, assembly, binary
+
+\chapter{Communication Protocol Details}\label{ch:proto}
+\LLstart{T}{he}{protocol used by Lumos boards} to receive commands is designed to be compact (so as to 
+conserve the number of bytes transmitted to carry out common functions) while remaining 
+simple and fast for the controller to interpret.  It is also designed so that multiple devices can
+share the same RS-485 network connection.  As long as they all implement this basic protocol, they can
+safely avoid misinterpreting each other's commands even if they do not know the details of each other's
+command structure.  This includes, for example, Lumos boards at different revision levels.  (There are
+also more devices designed by the author which have very different command sets but use a compatible
+protocol so they may peacefully coexist with Lumos controllers on the same network.)
+
+The protocol is essentially a stream of 8-bit bytes transmitted over an asynchronous communication link
+such as RS-232 or RS-485.  Commands may consist of as little as a single byte, or could be an arbitrarily
+large number of bytes long.  
+
+The first byte of a command always has this format:  
+\begin{BF}
+	\bitbox{1}{\z1} & \bitbox{3}{\Var*{cmd}} & \bitbox{4}{\Var*{addr}}
+\end{BF}
+The most significant bit is always set.  The next significant three bits, \Var*{cmd}, specify the
+command being given to the device.  The least significant four bits, \Var*{addr}, specify the
+address of the device which should act on this command.
+
+Any following data bytes in a multi-byte command always have their most significant bit clear:
+\begin{BF}
+	\bitbox{1}{\z0} & \bitbox{7}{\Var*{data}}
+\end{BF}
+
+This suggests the following algorithm for devices listening to the data stream, upon the receipt
+of each byte:
+
+\begin{enumerate}
+	\item	If bit 7 is set:
+		\begin{enumerate}
+			\item	If I was in the middle of collecting data bytes for a command,
+				clearly the host has abandoned it and is beginning a new command, 
+				so I should abandon it too and return to normal passive scanning mode.
+			\item	If \Var*{addr} matches my address, interpret command code \Var*{cmd}
+				and act upon it.
+			\item	Otherwise, ignore this byte.
+		\end{enumerate}
+	\item	Otherwise:
+		\begin{enumerate}
+			\item	If I was in the middle of collecting data bytes, collect this one too.
+				Act on the command when the last expected byte is received.
+			\item	Otherwise, ignore this byte.
+		\end{enumerate}
+\end{enumerate}
+
+If more than eight commands are needed, we reserve command 7 as an extended command, where the bits
+in the following byte are used:
+\begin{BF}
+	\bitbox{1}{\z1} & \bitbox[t]{1}{\z1} & \bitbox[t]{1}{\z1} & \bitbox[t]{1}{\z1} & \bitbox{4}{\Var*{addr}}\\
+	\bitbox{1}{\z0} & \bitbox{7}{\Var*{cmd}}
+\end{BF}
+%This is, in fact, done in the case of the Lumos protocol.  The most common commands are assigned codes
+%0--6, allowing them to be sent in 1--4 bytes.  Other commands are given extended codes.
+
+Note that where a value for \Var*{channel} is given in the commands that follow, the protocol's bitfield
+may allow for a greater number of channels than the Lumos board actually has.  For example, typically six bits
+are allocated for channel numbers, giving a range of values of 0--63, but Lumos boards are usually built
+to have 24 or 48 channels.  If a command specifies a \Var*{channel} value the board does not support,
+it will flag the command as an error and ignore it.
+
+In the command descriptions that follow, we will show the bytes sent or received graphically, using the
+following notation:
+\begin{itemize}
+	\item Binary bits are shown in fixed-width type: \z0, \z1.
+	\item Decimal numbers are shown in normal type: 123.
+	\item Hexadecimal numbers are shown in fixed-width type with a leading \z{0x}: \z{0x42}.
+	\item Single-bit flags are shown in Italics as single-letter names: \Var{f}.
+	\item Multi-bit fields are shown in Italics with angle brackets: \Var*{speed}.
+\end{itemize}
+
+\section{\z{0x0}--\z{0x6}: Common Commands}
+With the command code embedded in the packet's initial byte, these commands represent the most commonly
+used features of the Lumos boards, thereby using the minimum number of bytes to transmit over the
+wire, possibly even a single byte for the entire command.
+
+\subsection{\z{0x0}: Blackout}
+\begin{BF}
+  \bitbox{1}{\z1} & \bitbox{3}{0} & \bitbox{4}{\Var*{addr}}
+\end{BF}
+Immediately turns all output channels completely off.
+
+\subsection{\z{0x1}: Channel On/Off}
+\begin{BF}
+  \bitbox{1}{\z1} & \bitbox{3}{1} & \bitbox{4}{\Var*{addr}}\\
+  \bitbox{1}{\z0} & \bitbox{1}{\Var{s}} & \bitbox{6}{\Var*{channel}}
+\end{BF}
+Turns output \Var*{channel} fully on (\Var{s}=1) or off (\Var{s}=0).  %Although \Var*{channel}
+%may have a value in the range 0--63, if the Lumos board does not implement that many channels,
+%it will flag the command as an error and ignore it.
+
+\subsection{\z{0x2}: Set Channel Output Level}
+\begin{BF}
+  \bitbox{1}{\z1} & \bitbox{3}{2} & \bitbox{4}{\Var*{addr}}\\
+  \bitbox{1}{\z0} & \bitbox{1}{\Var{h}} & \bitbox{6}{\Var*{channel}}\\
+  \bitbox{1}{\z0} & \bitbox{7}{\Var*{level}}
+\end{BF}
+Sets the output level of the designated \Var*{channel} to a level in the range 0--255.  The controller
+will simply switch the output to a steady off or on state if the level is 0 or 255, respectively.  Otherwise,
+it will use pulse width modification to send a square wave pulse that will be on a fraction of the time
+approximately equivalent to the value on a 0--255 scale.  See Chapter~\ref{ch:too} for more information
+about how this pulsing works and how it affects the apparent brightness of lights controlled by that channel.
+
+Note that the value of the output level is encoded as the combination of the \Var*{level} field and the \Var{h}
+bit, with \Var{h} forming the \emph{least significant} bit of the resulting value:
+\begin{BF}
+  \bitbox{7}{\Var*{level}} & \bitbox{1}{\Var{h}}
+\end{BF}
+
+This means is that for the sake of simplicity, you may choose to ignore the \Var{h} bit,\footnote{For best
+results, if you choose to do this, set \Var{h}=0 unless setting the channel at maximum brightness, in which case
+ set \Var{h}=1.} and just use a 0--127
+value for \Var*{level}, and it will work (although the steps between each level will be twice as large).
+
+\subsection{\z{0x3}: Bulk Channel Update}
+\begin{BF}
+  \bitbox{1}{\z1} & \bitbox{3}{3} & \bitbox{4}{\Var*{addr}}\\
+  \bitbox{1}{\z0} & \bitbox{1}{\Var{m}} & \bitbox{6}{\Var*{channel}}\\
+  \bitbox{1}{\z0} & \bitbox{7}{\Var*{N}$-$1}\\
+  \bitbox{1}{\z0} & \bitbox{7}{\Var*{level$_0$}}\\
+  \wordbox[]{1}{$\vdots$ \\[1ex]} \\
+  \bitbox{1}{\z0} & \bitbox{7}{\Var*{level$_{N-1}$}}\\
+  \begin{rightwordgroup}{if \Var{m}=1}
+  \bitbox{1}{\z0} 
+	& \bitbox[]{1}{\z1}
+	& \bitbox[]{1}{\z0}
+	& \bitbox[]{1}{\z1}
+	& \bitbox[]{1}{\z0}
+	& \bitbox[]{1}{\z1}
+	& \bitbox[]{1}{\z1}
+	& \bitbox[r]{1}{\z0}\\
+  \bitbox{1}{\z0} 
+	& \bitbox{1}{$h_0$}
+	& \bitbox{1}{$h_1$}
+	& \bitbox{1}{$h_2$}
+	& \bitbox{1}{$h_3$}
+	& \bitbox{1}{$h_4$}
+	& \bitbox{1}{$h_5$}
+	& \bitbox{1}{$h_6$}\\
+  \wordbox[]{1}{$\vdots$ \\[1ex]} \\
+  \bitbox{1}{\z0} 
+	& \bitbox[t]{4}{$\cdots$}
+	& \bitbox[tr]{3}{$h_{N-1}$}
+	\end{rightwordgroup}\\
+  \bitbox{1}{\z0} 
+	& \bitbox[tb]{1}{\z1}
+	& \bitbox[tb]{1}{\z0}
+	& \bitbox[tb]{1}{\z1}
+	& \bitbox[tb]{1}{\z0}
+	& \bitbox[tb]{1}{\z1}
+	& \bitbox[tb]{1}{\z0}
+	& \bitbox[tbr]{1}{\z1}
+\end{BF}
+If more than a small number of channel levels are being updated at once,
+it is more economical to send a single bulk update command with all their
+new values in one payload, rather than initiate individual commands for them.
+
+This updates \Var*{N} channels starting with \Var*{channel} and continuing to
+\Var*{channel}$+$\Var*{N}$-$1.  Note that the value \Var*{N}$-$1 is passed, not \Var*{N}.
+This allows for any number of channels from 1--128 to be updated.
+
+As with the ``Set Output Channel Level'' command above, the 8-bit level value for
+the $i$th channel in the list is the combination of the \Var*{level$_i$} field and the $h_i$ bit:
+\begin{BF}
+  \bitbox{7}{\Var*{level$_i$}} & \bitbox{1}{\Var{h$_i$}}
+\end{BF}
+
+This command has two modes of operation as selected by the \Var{m} bit.  In low-resolution
+mode (\Var{m}=0), all the \Var{h} bits are omitted, and the level range is effectively
+0--127, with 0 being fully off and 127 being fully on.\footnote{The Lumos device intelligently
+handles these edge conditions rather than simply assuming the least significant bit is always 
+set or clear.}  In high-resolution mode (\Var{m}=1), then all bits are specified and the full
+range of values (0--255) is supported.
+
+\subsection{\z{0x4}: Ramp Channel Level}
+\begin{BF}
+  \bitbox{1}{\z1} & \bitbox{3}{4} & \bitbox{4}{\Var*{addr}}\\
+  \bitbox{1}{\z0} & \bitbox{1}{\Var{d}} & \bitbox{6}{\Var*{channel}}\\
+  \bitbox{1}{\z0} & \bitbox{7}{\Var*{steps}$-1$}\\
+  \bitbox{1}{\z0} & \bitbox{7}{\Var*{time}$-1$}
+\end{BF}
+Smoothly increases (\Var{d}=1) or decreases (\Var{d}=0) the output level of the specified
+\Var*{channel} by the specified number of \Var*{steps}, with a delay of \Var*{time}/120
+seconds between each change.  Since the values passed are actually \Var*{steps}$-$1 and \Var*{time}$-$1,
+the effective ranges for each of those values is 1--128.
+
+\subsection{Unimplemented Single-byte Codes}
+\begin{BF}
+  \bitbox{1}{\z1} & \bitbox{3}{5} & \bitbox{4}{\Var*{addr}}
+\end{BF}
+\begin{BF}
+  \bitbox{1}{\z1} & \bitbox{3}{6} & \bitbox{4}{\Var*{addr}}
+\end{BF}
+Codes 5 and 6 are not implemented and are reserved for future Lumos features.
+
+\section{\z{0x700}--\z{0x71f}: Extended Commands}
+Less frequently used commands use an extended code, where the initial byte's command code is
+7 (all bits set), and the following byte gives the remaining bits of the command.  The first
+32 such codes (extended code values \z{0x00}--\z{0x1f}) are set aside for normal-mode commands.
+Additionally, response packets sent back to the host PC from the Lumos boards are formatted the
+same as commands, with codes assigned starting at \z{0x71f}, counting down, while the commands
+start at \z{0x700}, counting up. There is a currently-unimplemented zone of codes in the middle
+which is reserved for future use.
+
+\subsection{\z{0x700}: Sleep}
+\begin{BF}
+  \bitbox{1}{\z1} & \bitbox{3}{7} & \bitbox{4}{\Var*{addr}}\\
+  \bitbox{1}{\z0} & \bitbox{7}{0}\\
+  \bitbox{1}{\z0} 
+	&\bitbox[b]{1}{\z1}
+	&\bitbox[b]{1}{\z0}
+	&\bitbox[b]{1}{\z1}
+	&\bitbox[b]{1}{\z1}
+	&\bitbox[b]{1}{\z0}
+	&\bitbox[b]{1}{\z1}
+	&\bitbox[br]{1}{\z0}\\
+  \bitbox{1}{\z0} 
+	&\bitbox[b]{1}{\z1}
+	&\bitbox[b]{1}{\z0}
+	&\bitbox[b]{1}{\z1}
+	&\bitbox[b]{1}{\z1}
+	&\bitbox[b]{1}{\z0}
+	&\bitbox[b]{1}{\z1}
+	&\bitbox[br]{1}{\z0}
+\end{BF}
+Put the controller into sleep mode.  This signals the controlled load's power supply to shut down
+(whether the power supply is equipped or inclined to obey that signal is another matter).  The Lumos
+board may automatically---even immediately---wake out of sleep mode if it is asked to supply an output
+$>$0 on any of its channels.
+
+\subsection{\z{0x701}: Wake}
+\begin{BF}
+  \bitbox{1}{\z1} & \bitbox{3}{7} & \bitbox{4}{\Var*{addr}}\\
+  \bitbox{1}{\z0} & \bitbox{7}{1}\\
+  \bitbox{1}{\z0} 
+	&\bitbox[b]{1}{\z1}
+	&\bitbox[b]{1}{\z0}
+	&\bitbox[b]{1}{\z1}
+	&\bitbox[b]{1}{\z1}
+	&\bitbox[b]{1}{\z0}
+	&\bitbox[b]{1}{\z1}
+	&\bitbox[br]{1}{\z0}\\
+  \bitbox{1}{\z0} 
+	&\bitbox[b]{1}{\z1}
+	&\bitbox[b]{1}{\z0}
+	&\bitbox[b]{1}{\z1}
+	&\bitbox[b]{1}{\z1}
+	&\bitbox[b]{1}{\z0}
+	&\bitbox[b]{1}{\z1}
+	&\bitbox[br]{1}{\z0}
+\end{BF}
+Wake up the controller out of sleep mode.  This signals the controlled load's power supply to turn on
+(whether the power supply is equipped or inclined to obey that signal is another matter).  The Lumos
+board may automatically go into sleep mode again if some period of time elapses during which it had
+no output channels with levels $>$0.
+
+\subsection{\z{0x702}: Shut Down}
+\begin{BF}
+  \bitbox{1}{\z1} & \bitbox{3}{7} & \bitbox{4}{\Var*{addr}}\\
+  \bitbox{1}{\z0} & \bitbox{7}{2}\\
+  \bitbox{1}{\z0} 
+	&\bitbox[b]{1}{\z1}
+	&\bitbox[b]{1}{\z0}
+	&\bitbox[b]{1}{\z1}
+	&\bitbox[b]{1}{\z1}
+	&\bitbox[b]{1}{\z0}
+	&\bitbox[b]{1}{\z0}
+	&\bitbox[br]{1}{\z0}\\
+  \bitbox{1}{\z0} 
+	&\bitbox[b]{1}{\z1}
+	&\bitbox[b]{1}{\z0}
+	&\bitbox[b]{1}{\z1}
+	&\bitbox[b]{1}{\z1}
+	&\bitbox[b]{1}{\z0}
+	&\bitbox[b]{1}{\z0}
+	&\bitbox[br]{1}{\z1}
+\end{BF}
+Shuts the controller completely down.  After this command executes, the Lumos board will shut down
+as many of its functions as possible, reducing its power consumption to the bare minimum.  It will
+no longer respond to any commands sent.  The only way out of a shut down is to reset or power cycle
+the board.
+
+\subsection{\z{0x703}: Query}
+\begin{BF}
+  \bitbox{1}{\z1} & \bitbox{3}{7} & \bitbox{4}{\Var*{addr}}\\
+  \bitbox{1}{\z0} & \bitbox{7}{3}\\
+  \bitbox{1}{\z0} 
+	&\bitbox[b]{1}{\z0}
+	&\bitbox[b]{1}{\z1}
+	&\bitbox[b]{1}{\z0}
+	&\bitbox[b]{1}{\z0}
+	&\bitbox[b]{1}{\z1}
+	&\bitbox[b]{1}{\z0}
+	&\bitbox[br]{1}{\z0}\\
+  \bitbox{1}{\z0} 
+	&\bitbox[b]{1}{\z1}
+	&\bitbox[b]{1}{\z0}
+	&\bitbox[b]{1}{\z1}
+	&\bitbox[b]{1}{\z0}
+	&\bitbox[b]{1}{\z1}
+	&\bitbox[b]{1}{\z0}
+	&\bitbox[br]{1}{\z0}
+\end{BF}
+Reports the device status back to the host PC.  On half-duplex networks, the host PC needs to switch
+to listening mode immediately after sending this command, although on full duplex networks, this is not
+necessary.  The response packet is:
+\subsubsection{\z{0x71f} [reply] Query Response from Lumos Controller}
+\label{bb:query-reply}
+\begin{BF}
+  \bitbox{1}{\z1} & \bitbox{3}{7} & \bitbox{4}{\Var*{addr}}\\
+  \bitbox{1}{\z0} & \bitbox{7}{31}\\
+%  \bitbox{1}{\z0} 
+%	&\bitbox[b]{1}{\z0}
+%	&\bitbox[b]{1}{\z0}
+%	&\bitbox[b]{1}{\z1}
+%	&\bitbox[b]{1}{\z1}
+%	&\bitbox[b]{1}{\z1}
+%	&\bitbox[b]{1}{\z1}
+%	&\bitbox[br]{1}{\z1}\\
+  \bitbox{1}{\z0} & \bitbox{3}{\Var*{R$_1$}} & \bitbox{4}{\Var*{R$_0$}}\\
+  \bitbox{1}{\z0} 
+	&\bitbox{4}{\Var*{S$_c$}}
+	&\bitbox{1}{\Var{d}}
+	&\bitbox{2}{\Var*{C$_1$}}\\
+  \bitbox{1}{\z0} & \bitbox{7}{\Var*{C$_0$}} \\
+  \bitbox{1}{\z0} 
+	&\bitbox{4}{\Var*{S$_m$}}
+	&\bitbox{1}{\Var{q}}
+	&\bitbox{1}{\Var{s}}
+	&\bitbox{1}{\Var{f}}\\
+  \bitbox{1}{\z0} 
+	&\bitbox{4}{\Var*{S$_a$}}
+	&\bitbox{1}{\Var{X}}
+	&\bitbox{2}{\Var{P$_1$}}\\
+  \bitbox{1}{\z0} & \bitbox{7}{\Var*{P$_0$}} \\
+  \bitbox{1}{\z0} & \bitbox{7}{\Var*{E$_1$}} \\
+  \bitbox{1}{\z0} & \bitbox{7}{\Var*{E$_0$}} \\
+  \bitbox{1}{\z0} & \bitbox{7}{\Var*{M$_1$}} \\
+  \bitbox{1}{\z0} & \bitbox{7}{\Var*{M$_0$}} \\
+  \bitbox{1}{\z0} 
+	&\bitbox{1}{\Var{Q}}
+	&\bitbox{1}{\z0}
+	&\bitbox{5}{\Var*{model}}\\
+  \bitbox{1}{\z0} & \bitbox{7}{\Var*{exec}} \\
+  \begin{rightwordgroup}{each sensor A--D}
+  \bitbox{1}{\z0} 
+	& \bitbox{1}{\Var{o}} 
+	& \bitbox{1}{\Var{w}} 
+	& \bitbox{1}{\Var{e}} 
+	& \bitbox{4}{\Var*{sens}}\\
+  \bitbox{1}{\z0} 
+	& \bitbox{7}{\Var*{pre}}\\
+  \bitbox{1}{\z0} 
+	& \bitbox{7}{\Var*{run}}\\
+  \bitbox{1}{\z0} 
+	& \bitbox{7}{\Var*{post}}\\
+  \wordbox[]{1}{$\vdots$ \\[1ex]} 
+  \end{rightwordgroup}\\
+  \bitbox{1}{\z0} 
+	& \bitbox{7}{\Var*{fault$_1$}}\\
+  \bitbox{1}{\z0} 
+	& \bitbox{7}{\Var*{fault$_0$}}\\
+  \bitbox{1}{\z0} 
+	& \bitbox{5}{}
+	& \bitbox{2}{\Var*{P$'_1$}}\\
+  \bitbox{1}{\z0} 
+	& \bitbox{7}{\Var*{P$'_0$}}\\
+  \bitbox{1}{\z0} & \bitbox{7}{\Var*{serial$_1$}}\\
+  \bitbox{1}{\z0} & \bitbox{7}{\Var*{serial$_0$}}\\
+  \bitbox{1}{\z0} 
+	& \bitbox[b]{1}{\z0} 
+	& \bitbox[b]{1}{\z1} 
+	& \bitbox[b]{1}{\z1} 
+	& \bitbox[b]{1}{\z0} 
+	& \bitbox[b]{1}{\z0} 
+	& \bitbox[b]{1}{\z1} 
+	& \bitbox[br]{1}{\z1}
+\end{BF}
+The information contained in this packet describes several facts about the Lumos unit:
+\begin{description}
+	\item[Device identity:]
+		The reporting device's current address \Var*{addr} on the network;
+		the \acronym{ROM} version (major revision \Var*{R$_1$}, minor \Var*{R$_0$});
+		the device's \Var*{serial} number, or 0 if no number was assigned (i.e., a \acronym{ROM}
+		image downloaded and loaded by a hobbyist working on their own); The device model
+		code is in the \Var*{model} field.  The following values are currently defined
+		for \Var*{model}: 0=48-channel controller, 1=24-channel DC controller.
+	\item[General Status:]
+		The \Var{q} flag indicates if the device is in configuration mode (\Var{q}=1)
+		or normal run mode (\Var{q}=0); the \Var{s} flag shows whether it is in sleep
+		mode (\Var{s}=1); The \Var{X} flag is true (\Var{X}=1) if configuration mode is
+		locked out.  If a sequence is currently running, the \Var{Q} flag will be set and the
+		sequence number is in field \Var*{exec}.  The fault code from the last failed command
+		is contained in field \Var*{fault}, which is a value in the range 0--16,383:
+
+		\begin{center}\begin{bytefield}{14}
+			\bitheader{0,6,7,13}\\
+			\bitbox{7}{\Var*{fault$_1$}} & \bitbox{7}{\Var*{fault$_0$}}\\
+		\end{bytefield}\end{center}
+
+		A value of 0 means there was no fault detected since the last query command (i.e.,
+		the fault condition is cleared by the query command).
+	\item[Sensor information:]
+		Three values describe the sensor configuration and state: \Var*{S$_c$} indicates 
+		the sensor lines configured as inputs (1) or as \acronym{LED} outputs (0);
+		\Var*{S$_m$} shows which sensor inputs are masked out (1) or are being monitored (0);
+		and \Var*{S$_a$} indicates which sensors are currently reading a logic 1 or 0.  In each
+		case, the sensor lines are represented by these bits in each field:
+
+		\begin{center}\begin{bytefield}{8}
+			\bitheader{3,4,5,6}\\
+			\bitbox{1}{} 
+				& \bitbox{1}{A}
+				& \bitbox{1}{B}
+				& \bitbox{1}{C}
+				& \bitbox{1}{D}
+				& \bitbox{3}{}
+		\end{bytefield}\end{center}
+
+		Each sensor's trigger information is given by a block of four bytes.  The first
+		contains the field \Var*{sens} which identifies the sensor (0=A, 1=B, 2=C, 3=D).
+		Flag \Var{o} is set if the trigger is set to fire once only each time the sensor
+		activates, \Var{w} it it's set to run while the sensor is active, and \Var{e}
+		indicates if the sensor is active high (\Var{e}=1) or active low (\Var{e}=0).
+		The following three bytes, \Var*{pre}, \Var*{run}, and \Var*{post}, specify the
+		sequence number to be executed initially, repeatedly while active, and at the end,
+		respectively.
+	\item[\acronym{DMX512} configuration:]
+		The bit \Var{d} indicates that the board is in normal Lumos mode (\Var{d}=0) or
+		\acronym{DMX512} mode (\Var{d}=1).  If in \acronym{DMX512} mode, its starting
+		\acronym{DMX} channel is \Var*{C}$+$1, which is a value in the range 1--512, sent
+		in two fields:
+
+		\begin{center}\begin{bytefield}{9}
+			\bitheader{0,6,7,8}\\
+			\bitbox{2}{\Var*{C$_1$}} & \bitbox{7}{\Var*{C$_0$}}
+		\end{bytefield}\end{center}
+	\item[Memory state:]
+		The \Var{f} flag is true (\Var{f}=1) if the sequence storage memory overflowed when
+		being sent a new program; The number of bytes of \acronym{EEPROM} memory free for
+		storage of permanent sequences is given by the \Var*{E} field, while the bytes of
+		available \acronym{RAM} memory for temporary storage is in the \Var*{M} field.  Each
+		of these values is in the range 0--16,383, sent as two fields:
+
+		\begin{center}\begin{bytefield}{14}
+			\bitheader{0,6,7,13}\\
+			\bitbox{7}{\Var*{E$_1$}} & \bitbox{7}{\Var*{E$_0$}}\\
+			\bitbox{7}{\Var*{M$_1$}} & \bitbox{7}{\Var*{M$_0$}}
+		\end{bytefield}\end{center}
+	\item[Operating parameters:]
+		The internal timing mechanism's phase offset value \Var*{P} is a number in the range
+		0--512, given by the combination of two fields.  For 48-channel units, the phase offset
+		of the secondary microcontroller is given in \Var*{P$'$}.
+
+		\begin{center}\begin{bytefield}{9}
+			\bitheader{0,6,7,8}\\
+			\bitbox{2}{\Var*{P$_1$}} & \bitbox{7}{\Var*{P$_0$}}\\
+			\bitbox{2}{\Var*{P$'_1$}} & \bitbox{7}{\Var*{P$'_0$}}
+		\end{bytefield}\end{center}
+\end{description}
+
+\subsection{\z{0x704}: Define Sequence}
+\begin{BF}
+	\bitbox{1}{\z1} & \bitbox{3}{7} & \bitbox{4}{\Var*{addr}} \\
+	\bitbox{1}{\z0} & \bitbox{7}{4} \\
+	\bitbox{1}{\z0} & \bitbox{7}{\Var*{id}} \\
+	\bitbox{1}{\z0} & \bitbox{7}{\Var*{N}$-$1} \\
+	\begin{rightwordgroup}{\Var*{N} bytes}
+	\wordbox[ltr]{1}{\Var*{data}}\\
+	\skippedwords\\
+	\wordbox[lrb]{1}{}
+	\end{rightwordgroup}\\
+  \bitbox{1}{\z0} 
+	& \bitbox[b]{1}{\z1} 
+	& \bitbox[b]{1}{\z0} 
+	& \bitbox[b]{1}{\z0} 
+	& \bitbox[b]{1}{\z0} 
+	& \bitbox[b]{1}{\z1} 
+	& \bitbox[b]{1}{\z0} 
+	& \bitbox[br]{1}{\z0}\\
+  \bitbox{1}{\z0} 
+	& \bitbox[b]{1}{\z1} 
+	& \bitbox[b]{1}{\z1} 
+	& \bitbox[b]{1}{\z1} 
+	& \bitbox[b]{1}{\z0} 
+	& \bitbox[b]{1}{\z0} 
+	& \bitbox[b]{1}{\z1} 
+	& \bitbox[br]{1}{\z1}
+\end{BF}
+Downloads a new sequence \Var*{data} of \Var*{N} bytes in length into the Lumos controller.  This sequence
+will be known with the given \Var*{id}.  If a sequence is stored as \Var*{id}=0, it will be executed
+automatically whenever the Lumos board is reset.  It cannot explicitly be invoked by a command from the
+host PC.
+
+Sequences with \Var*{id} in the range 0--63 are stored in permanent \acronym{EEPROM} memory and will
+remain in the controller even after a reset or power cycle.  Those with \Var*{id} in the range 64--127
+are stored temporarily in \acronym{RAM} memory and will be lost when the device resets.
+
+\subsection{\z{0x705}: Execute Stored Sequence}
+\begin{BF}
+	\bitbox{1}{\z1} & \bitbox{3}{7} & \bitbox{4}{\Var*{addr}} \\
+	\bitbox{1}{\z0} & \bitbox{7}{5}\\
+	\bitbox{1}{\z0} & \bitbox{7}{\Var*{id}}
+\end{BF}
+Starts executing the stored sequence with the given \Var*{id}.  If another sequence was
+in progress, it is stopped.  If \Var*{id}=0, the current sequence is stopped without
+starting a new one.
+
+\subsection{\z{0x706}: Define Sensor Action}
+\begin{BF}
+	\bitbox{1}{\z1} & \bitbox{3}{7} & \bitbox{4}{\Var*{addr}} \\
+	\bitbox{1}{\z0} & \bitbox{7}{6}\\
+	\bitbox{1}{\z0} & \bitbox{1}{\Var{o}} & \bitbox{1}{\Var{w}} & \bitbox{1}{\Var{e}} & \bitbox{2}{\color{lightgray}\rule{\width}{\height}}
+
+		& \bitbox{2}{\Var*{id}} \\
+	\bitbox{1}{\z0} & \bitbox{7}{\Var*{pre}}\\
+	\bitbox{1}{\z0} & \bitbox{7}{\Var*{exec}}\\
+	\bitbox{1}{\z0} & \bitbox{7}{\Var*{post}}\\
+	\bitbox{1}{\z0} 
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[br]{1}{\z0}
+\end{BF}
+Defines the action to be taken when the sensor \Var*{id} triggers.  (\Var*{id}=0 is sensor A,
+\Var*{id}=1 is B, 
+\Var*{id}=2 is B, and
+\Var*{id}=3 is B.)
+The sensor is triggered on the rising edge if \Var{e}=1, or the falling edge if \Var{e}=0.
+
+When that sensor is triggered, any currently executing sequence is stopped.  Then the sequence
+number \Var*{pre} is executed once.  The \Var{exec} sequence will be executed one time if \Var{o}=1, or
+repeatedly while the sensor continues to be active if \Var{w}=1; if neither of those bits is set, the sequence loops forever until explicitly stopped.\footnote{The action if both bits are set is undefined.}
+When the sensor no longer is triggering, \Var*{exec} plays on until it completes, then \Var*{post} is
+run once.
+
+Note that if another sensor triggers or an ``Execute Stored Sequence'' command is run, it immediately
+stops the current sequence and all associated sequences.  This may cause \Var*{post} to not execute.
+
+
+\subsection{\z{0x707} Mask Sensors}
+\begin{BF}
+	\bitbox{1}{\z1} & \bitbox{3}{7} & \bitbox{4}{\Var*{addr}} \\
+	\bitbox{1}{\z0} & \bitbox{7}{7}\\
+	\bitbox{1}{\z0} 
+		& \bitbox{3}{\color{lightgray}\rule{\width}{\height}}
+		& \bitbox{1}{A}
+		& \bitbox{1}{B}
+		& \bitbox{1}{C}
+		& \bitbox{1}{D}
+\end{BF}
+Sets input sensor masks for the given sensors.  If the mask value is 1, that sensor is ignored.
+If the mask is 0, it is responded to normally.
+
+\subsection{\z{0x708} Erase All Stored Sequences}
+\begin{BF}
+	\bitbox{1}{\z1} & \bitbox{3}{7} & \bitbox{4}{\Var*{addr}} \\
+	\bitbox{1}{\z0} & \bitbox{7}{8}\\
+	\bitbox{1}{\z0} 
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[br]{1}{\z1}\\
+	\bitbox{1}{\z0} 
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[br]{1}{\z1}
+\end{BF}
+All stored sequences are erased.
+
+\subsection{Reserved Command Codes}
+Codes \z{0x709}--\z{0x71d} are reserved for future commands.  \z{0x71e}--\z{0x71f} are currently used
+for response packets from the Lumos controller.
+
+\subsection{\z{0x71e} [reply] Query \acronym{NAK}}
+\begin{BF}
+	\bitbox{1}{\z1} & \bitbox{3}{7} & \bitbox{4}{\Var*{addr}} \\
+	\bitbox{1}{\z0} & \bitbox{7}{30}
+\end{BF}
+When the host PC sends a ``query'' command to the Lumos controller, the ultimate response will be
+the reply packet documented on page~\pageref{bb:query-reply}.  However, if there will be a delay
+before the Lumos controller is ready to provide that response, it may send this ``\acronym{NAK}''
+packet to indicate that it's not yet ready to reply.  This keeps the host PC from timing out and
+abandoning the controller's reply.
+
+
+\section{\z{0x720}--\z{0x73f}: Reserved}
+These codes are reserved for internal use by the Lumos system and may not be used externally.
+
+\section{\z{0x740}--\z{0x77f}: Configuration-Mode Commands}
+These commands make changes to the state of the device in some manner which requires the device to
+be in configuration mode.  If these are encountered outside configuration mode, they will be 
+rejected.
+
+\subsection{\z{0x74}$x$ [config] Set Phase Offset}
+\begin{BF}
+	\bitbox{1}{\z1} & \bitbox{3}{7} & \bitbox{4}{\Var*{addr}} \\
+	\bitbox{1}{\z0} & \bitbox{3}{4} & \bitbox{2}{\color{lightgray}\rule{\width}{\height}} & \bitbox{2}{\Var*{P$_1$}}\\
+	\bitbox{1}{\z0} & \bitbox{7}{\Var*{P$_0$}}\\
+	\bitbox{1}{\z0} 
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[br]{1}{\z0}\\
+	\bitbox{1}{\z0} 
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[br]{1}{\z1}
+\end{BF}
+Sets the controller's phase offset to \Var*{P}, which is a 9-bit value in the range 0--511:
+		\begin{center}\begin{bytefield}{9}
+			\bitheader{0,6,7,8}\\
+			\bitbox{2}{\Var*{P$_1$}} & \bitbox{7}{\Var*{P$_0$}}\\
+		\end{bytefield}\end{center}
+This affects the internal timing mechanism within the Lumos controller used to synchronize
+dimmer pulses to the AC waveform (for AC controllers).  It shouldn't need to be changed.
+{\bfseries This command is only recognized if the controller is in configuration mode.}
+
+\subsection{\z{0x76}$x$ [config] Set Device Address}
+\begin{BF}
+	\bitbox{1}{\z1} & \bitbox{3}{7} & \bitbox{4}{\Var*{addr}} \\
+	\bitbox{1}{\z0} & \bitbox{3}{6} & \bitbox{4}{\Var*{addr$'$}}\\
+	\bitbox{1}{\z0} 
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[br]{1}{\z1}\\
+	\bitbox{1}{\z0} 
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[br]{1}{\z1}\\
+	\bitbox{1}{\z0} 
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[br]{1}{\z0}
+\end{BF}
+Changes the address of unit from \Var*{addr} to \Var*{addr$'$}.  This is effective immediately, so the
+very next command must be addressed to \Var*{addr$'$} for this unit to respond to it.
+{\bfseries This command is only recognized if the controller is in configuration mode.}
+
+\subsection{\z{0x770} [config] Cancel Configuration Mode}
+\begin{BF}
+	\bitbox{1}{\z1} & \bitbox{3}{7} & \bitbox{4}{\Var*{addr}} \\
+	\bitbox{1}{\z0} & \bitbox{7}{112}
+\end{BF}
+Cancel configuration mode and return to normal operating mode.  From this point forward,
+commands marked ``[config]'' will no longer be recognized.
+{\bfseries This command is only recognized if the controller is in configuration mode.}
+
+\subsection{\z{0x771} [config] Configure Device}
+\begin{BF}
+	\bitbox{1}{\z1} & \bitbox{3}{7} & \bitbox{4}{\Var*{addr}} \\
+	\bitbox{1}{\z0} & \bitbox{7}{113}\\
+	\bitbox{1}{\z0} 
+		& \bitbox{1}{\Var{A}}
+		& \bitbox{1}{\Var{B}}
+		& \bitbox{1}{\Var{C}}
+		& \bitbox{1}{\Var{D}}
+		& \bitbox{1}{\Var{d}}
+		& \bitbox{2}{\Var*{C$_1$}}\\
+	\bitbox{1}{\z0} 
+		\bitbox{7}{\Var*{C$_0$}}\\
+	\bitbox{1}{\z0} 
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[br]{1}{\z0}\\
+	\bitbox{1}{\z0} 
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[br]{1}{\z1}
+\end{BF}
+Sets general configuration parameters not already covered elsewhere in this command set.
+Flags \Var{A}--\Var{D} control whether a given sensor input line is an input (1) or output (0).
+If configured as inputs, the Lumos controller does not drive a voltage on them but watches for
+a signal there to which the Lumos board will respond if programmed to do so.  If configured as outputs,
+the Lumos controller assumes they are connected to diagnostic \acronym{LED}s and will drive them
+with +5\,V to turn on the corresponding \acronym{LED}s and 0\,V to turn them off.
+
+If flag \Var{d} is set (\Var{d}=1), the Lumos controller will operate in \acronym{DMX512} mode 
+(however,
+note that anytime it is in configuration mode, \acronym{DMX512} command reception is disabled and the
+Lumos commands described here are recognized.  When \Var{d}=1, the first \acronym{DMX512} channel
+claimed by this controller is channel \Var*{C}+1, which is a 9-bit value in the range 1--512:
+		\begin{center}\begin{bytefield}{9}
+			\bitheader{0,6,7,8}\\
+			\bitbox{2}{\Var*{C$_1$}} & \bitbox{7}{\Var*{C$_0$}}\\
+		\end{bytefield}\end{center}
+This corresponds to Lumos controller channel 0.
+{\bfseries This command is only recognized if the controller is in configuration mode.}
+
+\subsection{\z{0x772} [config] Set Baud Rate}
+\begin{BF}
+	\bitbox{1}{\z1} & \bitbox{3}{7} & \bitbox{4}{\Var*{addr}} \\
+	\bitbox{1}{\z0} & \bitbox{7}{114}\\
+	\bitbox{1}{\z0} & \bitbox{7}{\Var*{speed}}\\
+	\bitbox{1}{\z0} 
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[br]{1}{\z0}
+\end{BF}
+Sets the Lumos controller's baud rate as indicated by \Var*{speed}, according to the following
+table:
+\begin{center}
+	\begin{tabular}{|r|r|}\hline
+		{\bfseries \Var*{speed}} & {\bfseries Bits per Second}\\\hline\hline
+		0 & 300\\\hline
+		1 & 600  \\\hline
+		2 & 1,200\\\hline
+		3 & 2,400\\\hline
+		4 & 4,800\\\hline
+		5 & 9,600\\\hline
+		6 & 19,200\\\hline
+		7 & 38,400\\\hline
+		8 & 57,600\\\hline
+		9 & 115,200\\\hline
+		10& 250,000\\\hline
+	\end{tabular}
+\end{center}
+This setting does not affect \acronym{DMX512} mode, which always uses a fixed speed of
+250,000\,bps.  
+{\bfseries This command is only recognized if the controller is in configuration mode.}
+
+\emph{Note that for 48-channel controllers, this also sets the intra-processor communication
+speed (which the two microcontrollers use to coordinate their actions).  Setting this to a low
+speed is not recommended.}
+
+\subsection{\z{0x773} [config] Restore Factory Defaults}
+\begin{BF}
+	\bitbox{1}{\z1} & \bitbox{3}{7} & \bitbox{4}{\Var*{addr}} \\
+	\bitbox{1}{\z0} & \bitbox{7}{115}\\
+	\bitbox{1}{\z0} 
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[br]{1}{\z0}\\
+	\bitbox{1}{\z0} 
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[br]{1}{\z0}
+\end{BF}
+Restores the device to its original factory settings.  Note that, among other things, this
+will change the device's address to 0 and its baud rate to 19,200\,bps.
+{\bfseries This command is only recognized if the controller is in configuration mode.}
+
+\subsection{\z{0x774} [config] Forbid Configuration Mode}
+\begin{BF}
+	\bitbox{1}{\z1} & \bitbox{3}{7} & \bitbox{4}{\Var*{addr}} \\
+	\bitbox{1}{\z0} & \bitbox{7}{116}
+\end{BF}
+Cancels configuration mode, returning to normal operating mode.  Additionally, this
+command prevents the device from re-entering configuration mode from this point forward
+until it is reset or power-cycled.
+{\bfseries This command is only recognized if the controller is in configuration mode.}
+
+\subsection{Reserved Command Codes}
+Codes \z{0x775}--\z{0x77f} are reserved for future use as configuration-mode commands.
+
+\chapter{DMX512 Command Structure}\label{ch:dmx}
+When configured in \acronym{DMX512} mode, all of the Lumos commands documented in Chapter~\ref{ch:proto}
+are not recognized. The Lumos controller will be only looking for \acronym{DMX512} command packets.
+To use the Lumos commands for configuration of the board (e.g., to turn off \acronym{DMX512} mode or change
+the starting channel number), activate configuration mode using the Option button.  That will disable \acronym{DMX512} mode for the time the device is in configuration mode.
+
+The \acronym{DMX} protocol always uses a fixed speed of 250,000 baud.  There is only one packet type 
+recognized by a Lumos controller.  All other packets are silently ignored.
+
+A packet begins with a ``break'' condition on the line.  Immediately following the break is a sequence
+of one or more bytes of data.  The first byte must be a zero (other values for this initial byte are used
+to send other kinds of \acronym{DMX512} packets, but we're not interested in those so they are simply
+ignored.
+
+After the zero byte there will be up to 512 channel value bytes.  (It is permissible for the packet to end
+before all 512 channel values have been sent.)  The Lumos controller is configured to have a starting address
+within the \acronym{DMX512} ``universe.'' This corresponds to Channel~0 of the Lumos controller.  For example,
+if a Lumos controller were configured to \acronym{DMX512} channel 10, then it would ignore the first nine
+bytes of channel values in each packet.  The tenth byte would set the output value of the controller's Channel~0, the next byte would set the output level for Channel~1, and so on, up to the thirty-forth byte
+which sets Channel~23 (for a 24-channel controller), or the fifty-eighth byte which sets Channel~47 (for
+a 48-channel controller).
+
+If the packet ends before the Lumos controller has received enough bytes to set all of its channels,
+the remaining channels simply keep their previously-known output values.
+
+The bytes in these packets are 8-bit values, directly giving the channel output values of 0--255, with 0
+being fully off and 255 being fully on.
+
+A packet has the general form shown in Figure~\ref{fig:dmx}. Note that \acronym{DMX512} 
+channel numbers start with 1.
+\begin{figure}
+ \begin{BF}
+%  \wordbox[tlr]{1}{Break}\\
+%  \skippedwords\\
+%  \wordbox[lrb]{1}{($\ge$92\,$\mu$S)}\\
+%  \wordbox[tlr]{1}{Mark}\\
+%  \skippedwords\\
+%  \wordbox[lrb]{1}{($\ge$12\,$\mu$S)}\\
+  \begin{rightwordgroup}{Start signal}
+  \wordbox{1}{Break ($\ge$92\,$\mu$S)}\\
+  \wordbox{1}{Mark ($\ge$12\,$\mu$S)}
+  \end{rightwordgroup}\\
+  \begin{rightwordgroup}{Data packet}
+  \wordbox{1}{0}\\
+  \wordbox{1}{\Var*{value$_1$}}\\
+  \wordbox{1}{\Var*{value$_2$}}\\
+  \wordbox{1}{\Var*{value$_3$}}\\
+  \wordbox[]{1}{$\vdots$ \\[1ex]} \\
+  \wordbox{1}{\Var*{value$_{512}$}}
+  \end{rightwordgroup}
+ \end{BF}
+ \caption{DMX Packet\label{fig:dmx}}
+\end{figure}
+\chapter{Theory of Operation}\label{ch:too}
+
+\backmatter
+\appendix
+
+\chapter{Diagnostic Codes}
+\section{Decoding \acronym{LED} Patterns}
+The front panel \acronym{LED}s provide an indication of the state of the Lumos controller.
+During boot, they rapidly change to indicate the phase of the initialization process being
+performed.  If the device gets stuck during that process, the \acronym{LED} pattern will indicate
+where the problem occurred.  During normal runtime operation, they inform the user of the
+mode and status of the system, errors encountered, etc.
+
+The various codes are summarized in Figure~\ref{fig:leds}.
+\begin{figure}
+ \begin{tikzpicture}
+  \def\y{10}
+  \light{A}{off}\light{G}{off}\light{Y}{off}\light{R}{off}\light{G2}{off}\light{Y2}{off}\light{R2}{off}
+  \node [right] at (2,\y) {[boot] Boot process not yet started};
+  \def\y{9}
+  \light{A}{off}\light{G}{off}\light{Y}{off}\light{R}{on}\light{G2}{off}\light{Y2}{off}\light{R2}{off}
+  \node [right] at (2,\y) {[boot] \acronym{EEPROM} setup stage};
+  \def\y{8}
+  \light{A}{off}\light{G}{off}\light{Y}{on}\light{R}{on}\light{G2}{off}\light{Y2}{off}\light{R2}{off}
+  \node [right] at (2,\y) {[boot] \acronym{EEPROM} write operation};
+  \def\y{7}
+  \light{A}{off}\light{G}{off}\light{Y}{on}\light{R}{off}\light{G2}{off}\light{Y2}{off}\light{R2}{off}
+  \node [right] at (2,\y) {[boot] \acronym{EEPROM} read operation / system initialization};
+  \def\y{6}
+  \light{A}{off}\light{G}{on}\light{Y}{on}\light{R}{off}\light{G2}{off}\light{Y2}{off}\light{R2}{off}
+  \node [right] at (2,\y) {[boot] system initialization};
+  \def\y{5}
+  \light{A}{off}\light{G}{on}\light{Y}{off}\light{R}{off}\light{G2}{off}\light{Y2}{off}\light{R2}{off}
+  \node [right] at (2,\y) {[boot] system initialized but main loop/timing system non-functional};
+  \def\y{4}
+  \light{A}{ffl}\light{G}{ffl}\light{Y}{ffl}\light{R}{ffl}\light{G2}{ffl}\light{Y2}{ffl}\light{R2}{ffl}
+  \node [right] at (2,\y) {[run] factory defaults restored (will now reboot)};
+  \def\y{3}
+  \light{A}{off}\light{G}{sfd}\light{Y}{off}\light{R}{off}\light{G2}{off}\light{Y2}{off}\light{R2}{off}
+  \node [right] at (2,\y) {[run] normal run mode};
+  \def\y{2}
+  \light{A}{blk}\light{G}{sfd}\light{Y}{x}\light{R}{x}\light{G2}{x}\light{Y2}{x}\light{R2}{x}
+  \node [right] at (2,\y) {[run] received command addressed to this unit};
+  \def\y{1}
+  \light{A}{off}\light{G}{ffl}\light{Y}{off}\light{R}{off}\light{G2}{off}\light{Y2}{off}\light{R2}{off}
+  \node [right] at (2,\y) {[config] configuration mode};
+  \def\y{0}
+  \light{A}{x}\light{G}{x}\light{Y}{blk}\light{R}{x}\light{G2}{x}\light{Y2}{blk}\light{R2}{x}
+  \node [right] at (2,\y) {[run] intra-processor communication activity};
+  \def\y{-1}
+  \light{A}{x}\light{G}{x}\light{Y}{x}\light{R}{on}\light{G2}{x}\light{Y2}{x}\light{R2}{x}
+  \node [right] at (2,\y) {[run] command rejected (invalid, bad arguments, disallowed, etc.)};
+  \def\y{-2}
+  \light{A}{x}\light{G}{x}\light{Y}{on}\light{R}{ffl}\light{G2}{x}\light{Y2}{x}\light{R2}{x}
+  \node [right] at (2,\y) {[run] communications error (framing error)};
+  \def\y{-3}
+  \light{A}{x}\light{G}{x}\light{Y}{ffl}\light{R}{ffl}\light{G2}{x}\light{Y2}{x}\light{R2}{x}
+  \node [right] at (2,\y) {[run] communications error (overrun error)};
+  \def\y{-4}
+  \light{A}{x}\light{G}{x}\light{Y}{sfd}\light{R}{ffl}\light{G2}{x}\light{Y2}{x}\light{R2}{x}
+  \node [right] at (2,\y) {[run] communications error (device buffer overflow)};
+  \def\y{-5}
+  \light{A}{ffl}\light{G}{sfd}\light{Y}{ffl}\light{R}{off}\light{G2}{x}\light{Y2}{x}\light{R2}{x}
+  \node [right] at (2,\y) {[run] internal fault detected};
+  \def\y{-6}
+  \light{A}{off}\light{G}{sfl}\light{Y}{sfl}\light{R}{sfl}\light{G2}{sfl}\light{Y2}{sfl}\light{R2}{sfl}
+  \node [right] at (2,\y) {[sleep] in sleep mode};
+  \def\y{-7}
+  \light{A}{off}\light{G}{off}\light{Y}{off}\light{R}{sss}\light{G2}{off}\light{Y2}{off}\light{R2}{sss}
+  \node [right] at (2,\y) {[halt] system halted (shutdown) normally};
+  \def\y{-8}
+  \light{A}{ffl}\light{G}{off}\light{Y}{ffl}\light{R}{ffl}\light{G2}{off}\light{Y2}{off}\light{R2}{off}
+  \node [right] at (2,\y) {[halt] system failure while trying to halt};
+  \def\y{-9}
+  \light{A}{x}\light{G}{x}\light{Y}{x}\light{R}{ffl}\light{G2}{x}\light{Y2}{x}\light{R2}{x}
+  \node [right] at (2,\y) {[halt] system failure (exact error on other \acronym{LED}s)};
+  
+    
+%  \def\ON#1#2#3{\CO{#1}{#2}{#3} \draw (#1,#2) circle (.1);}
+%  \def\CO#1#2#3{\draw [fill, color=#3] (#1,#2) circle (.1);}
+%   \ON{.0}{.0}{yellow}\ON{.3}{.0}{green}\ON{.6}{.0}{yellow}\ON{.6}{.0}{red}
+ \end{tikzpicture}
+ \caption{Diagnostic \acronym{LED} Patterns\label{fig:leds}}
+\end{figure}
+
+\begin{figure}
+ \begin{tikzpicture}
+ \def\y{9}
+  \light{A}{ffl}\light{G}{x}\light{Y}{ffl}\light{R}{off}\light{G2}{ffl}\light{Y2}{off}\light{R2}{off}
+  \node [right] at (2,\y) {Dispatch table overrun};
+ \def\y{8}
+  \light{A}{ffl}\light{G}{x}\light{Y}{ffl}\light{R}{off}\light{G2}{x}\light{Y2}{off}\light{R2}{on}
+  \node [right] at (2,\y) {Input validator failure};
+ \def\y{7}
+  \light{A}{ffl}\light{G}{x}\light{Y}{ffl}\light{R}{off}\light{G2}{ffl}\light{Y2}{ffl}\light{R2}{ffl}
+  \node [right] at (2,\y) {Reset failure};
+ \def\y{6}
+  \light{A}{ffl}\light{G}{x}\light{Y}{ffl}\light{R}{off}\light{G2}{x}\light{Y2}{off}\light{R2}{ffl}
+  \node [right] at (2,\y) {Hardware fault};
+ \def\y{5}
+  \light{A}{ffl}\light{G}{x}\light{Y}{ffl}\light{R}{off}\light{G2}{x}\light{Y2}{off}\light{R2}{sfd}
+  \node [right] at (2,\y) {Internal command error};
+ \def\y{4}
+  \light{A}{ffl}\light{G}{x}\light{Y}{ffl}\light{R}{off}\light{G2}{off}\light{Y2}{ffl}\light{R2}{off}
+  \node [right] at (2,\y) {Other/unknown failure};
+ \end{tikzpicture}
+ \caption{Internal Fault Condition Codes\label{fig:leds-errors}}
+\end{figure}
+
+\begin{figure}
+ \begin{tabular}{rl}
+  \z{0x01} & Command interpreter dispatch overrun \\
+  \z{0x02} & Pass-down command in non-master \acronym{ROM} (set level)\\
+  \z{0x03} & Pass-down command in non-master \acronym{ROM} (bulk update)\\
+  \z{0x05} & Command interpreter dispatch overrun (in state 6)\\
+  \z{0x06} & Pass-down command in non-master \acronym{ROM} (ramp level)\\
+  \z{0x07} & Command interpreter dispatch overrun (in state 9)\\
+  \z{0x08} & Command interpreter dispatch overrun (in state 10, non-slave)\\
+  \z{0x0A} & Bad sentinel byte in internal command\\
+  \z{0x0B} & Command interpreter dispatch overrun (internal commands)\\
+  \z{0x0C} & Command interpreter dispatch overrun (internal commands)\\
+  \z{0x0D} & Command interpreter dispatch overrun (state 13)\\
+  \z{0x0E} & Command interpreter dispatch overrun (state 17)\\
+  \z{0x0F} & Could not determine \acronym{ROM} type (query)\\
+  \z{0x10} & Operation on wrong \acronym{ROM} type (query)\\
+  \z{0x11} & Device does not support T/$\overline{\hbox{R}}$ operation \\
+  \z{0x12} & Code executed on wrong \acronym{ROM} (M/S communication) \\
+  \z{0x20} & Invalid command\\
+  \z{0x21} & Configuration-mode command outside configuration mode\\
+  \z{0x22} & Command not implemented\\
+  \z{0x23} & Command incomplete\\
+  \z{0x70} & Failed to reset following factory default restore\\
+ \end{tabular}
+ \caption{Error Condition Codes Reported Via Query Command\label{fig:errcodes}}
+\end{figure}
+
+
+
+\section{Numeric Error Codes}
+\chapter{Lumosctl CLI Manual Entry}\label{ch:lumosctl}
+The \z{lumosctl} command-line utility is used to configure and program the Lumos controllers.  It can also
+be used to control the output states, but not in as fine-tuned or sophisticated a manner as programs
+such as \z{lplay} (part of the Lumos light orchestration software suite) or a third-party program
+such as Vixen.
+
+This chapter provides the documentation for the \z{lumosctl} command.  This same information is also
+provided to the \acronym{CLI} user on Unix, Linux, or Macintosh systems via the \z{man} command.  
+
+In this documentation, the following typographical conventions are used:
+\begin{itemize}
+	\item	\Var*{Variables}, which indicate values to be replaced with suitable values when you
+		invoke the program, are shown in Italic type inside angle brackets.  (The angle brackets
+		are not typed as part of the command syntax.)
+	\item	\z{Literal text} which should be typed as-is, as well as the names of commands, is set
+		in fixed-width text.
+	\item	\emph{File names} are set in Italics.  Italics are also used for general points of emphasis.
+	\item	{}[Optional values] are enclosed in square brackets.  These may be omitted if appropriate.
+		(The brackets themselves are not typed as part of the command syntax.)
+\end{itemize}
+References to other program manual entries look like ``\z{lumosctl}(1)'' which indicates that the
+\z{lumosctl} command is documented in section~1 of the manual, which is the section for general 
+user commands on Unix-like systems.
+
+\input lumosctl
+\chapter{Troubleshooting}
+factory reset
+\chapter{Glossary}\label{ch:glossary}
+\begin{description}
+	\item[\acronym{CLI}]
+%	\item[Active Low:]
+%		A logic signal which is considered ``on'' when the signal is ``low'' (binary 0 or 0\,V),
+%		and ``off'' when the signal is ``high'' (binary 1 or +5\,V).  Lumos relay circuits are 
+%		triggered with active-low signals.
+%	\item[Annular Ring:]
+%		The exposed ring of metal around a hole in a \acronym{PCB} where a component is to be 
+%		mounted.  The solder will flow across the component lead and onto the annular ring.
+%	\item[Daisy Chain:]
+%		The arrangement of wiring a number of devices together by connecting the first to the second,
+%		then adding another connection from the second to the third, and so forth.  The network
+%		connection diagram in Figure~\ref{fig:net} shows an example of a daisy chain.
+%	\item[\acronym{DIP} (Dual In-line Package):]
+%		The style of chip where the pins are laid out in two parallel rows.
+%	\item[\acronym{DIY}:] ``Do-It-Yourself.''
+%	\item[Duplex:]
+%		a feature of a serial line.  On a full-duplex connection, separate data wires are present
+%		to carry data in both directions, so one device can send and receive data at the same time.
+%		On a half-duplex connection, only a single set of data wires is present, so devices must
+%		take turns transmitting over them.
+%	\item[\acronym{ESD} (Electro-Static Discharge):]
+%		static electricity which builds on your skin and is then discharged into sensitive
+%		components when you touch them.  Invisible to the eye, this can punch microscopic holes
+%		in the inside of the components, severely damaging them.
+%	\item[Heat Protection:]
+%		A temporary heat sink applied to a component when soldering that component onto
+%		the \acronym{PCB}.  Typically used for heat-sens\-i\-tive components such as transistors
+%		and integrated circuit chips.
+%	\item[Jumper Block:]
+%		A series of pins mounted to the \acronym{PCB}.  Different options are configured for the
+%		circuit by placing a jumper over certain pairs of pins, shorting them together.
+%	\item[\acronym{LED} (Light Emitting Diode):]
+%		A special kind of diode which emits light when current passes from its anode to its cathode.
+%	\item[\acronym{MOSFET}:]
+%		The type of transistor which forms the major part of a Lumos DC relay channel.  The name
+%		is an acronym for Metal Oxide Semiconductor Field Effect Transistor.
+%	\item[\acronym{PCB} (Printed Circuit Board):]
+%		The board where electronic components are mounted to form a complete circuit.  Metal
+%		traces are ``printed'' (actually etched) onto the surface of the board itself to make the
+%		connections between components.
+	\item[Power cycle]
+%	\item[RS-232:]
+%		A standard hardware protocol for sending serial data between two devices (such as a computer
+%		and a modem or a single Lumos board).  Shielded cable should be used for best results, and
+%		the cable length should not exceed 25\,ft.
+%	\item[RS-485:]
+%		A standard hardware protocol for sending serial data between multiple devices on a single
+%		cable length (electrically it is a single cable which each device ``taps into'' along the
+%		line; physically it is typically a ``daisy chain'' arrangement where a short cable connects
+%		one device to the next, another cable to the next, and so on). Unshielded twisted-pair cable
+%		is used (like Ethernet cable), and the cable lengths should not exceed a total of 4,000\,ft
+%		(1,200\,m).
+	\item[\acronym{SSR} (Solid-State Relay):] A device which controls an external power load.  In
+		contrast to a mechanical relay, an \acronym{SSR} has no moving parts, but does its switching
+		electronically.
+%	\item[Terminator Plug:]
+%		An RS-485 network requires a terminator at each end.  This is a small plug which plugs into
+%		the last unit in the daisy chain.
+%	\item[\acronym{TTL} (Transistor-Transistor Logic):] One of the ways digital logic circuits can be
+%		constructed.  For our purposes here, we consider a ``\acronym{TTL}-level'' signal to be a
+%		logic input or output where a voltage near +5\,V is ``high'' (binary 1 or ``true'') and a
+%		voltage near 0\,V is ``low'' (binary 0 or ``false'').  The inputs should never be above
+%		+5 nor below 0 volts.
+\end{description}
+
+\input acknowledgements
+
+\indexintoc
+\printindex
+\clearpage
+
+\input colophon
+
+\end{document}

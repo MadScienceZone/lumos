@@ -1,0 +1,256 @@
+#!/usr/bin/python
+# vi:set ai sm nu ts=4 sw=4 expandtab:
+#
+# convert manpages to LaTeX macros
+#
+import sys
+import shlex
+import re
+
+#
+# this is simplistic, and only meant to handle our documents here
+#
+
+
+next_function = None
+extra_function = None
+verbatim = False
+stack = []
+bold_font = 'strong'
+ital_font = 'emph'
+rs_center = 0
+
+def bold_italic(*args):
+    global bold_font, ital_font
+    return alternate_font((bold_font, ital_font), args)
+
+def bold_roman(*args):
+    global bold_font
+    return alternate_font((bold_font, None), args)
+
+def roman_bold(*args):
+    global bold_font
+    return alternate_font((None, bold_font), args)
+
+def roman_italic(*args):
+    global ital_font
+    return alternate_font((None, ital_font), args)
+
+def italic(text):
+    global ital_font
+    return "\\" + ital_font + "{" + text + "}\n"
+
+def italic_bold(*args):
+    global bold_font, ital_font
+    return alternate_font((ital_font, bold_font), args)
+
+def italic_roman(*args):
+    global ital_font
+    return alternate_font((ital_font, None), args)
+
+def italic_bold(*args):
+    global bold_font, ital_font
+    return alternate_font((ital_font, bold_font), args)
+
+def alternate_font(fonts, pieces):
+    result=[]
+    font_idx=0
+    for piece in pieces:
+        if fonts[font_idx] is None:
+            result.append(piece)
+        else:
+            result.append('\\' + fonts[font_idx] + '{' + piece + '}')
+        font_idx = (font_idx + 1) % len(fonts)
+    return ''.join(result) + "\n"
+
+
+def bold (text):
+    global bold_font
+    return "\\"+bold_font+"{" + text + "}\n"
+
+def heading(name, section, version, program, sectionname):
+    return ""
+
+def section_heading(name):
+    return "\\section*{"+name+"}\n"
+
+def subsection(name):
+    return "\\subsection*{"+name+"}\n"
+
+def paragraph_break():
+    return "\n\n"
+
+def break_line():
+    return "\\\\\n"
+
+def right_shift():
+    global rs_center
+    if rs_center:
+        return "\\begin{center}\n"
+    return "" #% --- RS ---\n"
+
+def left_shift():
+    global rs_center
+    if rs_center:
+        rs_center -= 1
+        return "\\end{center}\n"
+    return "" #% --- RE ---\n"
+
+def no_fill():
+    return "" #% --- nf ---\n"
+
+def fill():
+    return "" #% --- fi ---\n"
+
+def tagged_paragraph(indent=4):
+    global next_function
+    next_function = start_tagged_paragraph
+    return "% tagged paragraph, width={}\n".format(indent)
+
+def start_tagged_paragraph(tag):
+    global stack
+    if stack:
+        if stack[-1] == 'itemize' and tag.strip() != '*':
+            return "\\item[{"+tag.strip()+"}]\n"
+        elif stack[-1] in ('enumerate', 'itemize'):
+            return "\\item\n"
+        elif stack[-1] == 'list':
+            return "\\item[{"+tag.strip()+"}]\\hfill\\\\\n"
+        else:
+            return "\\item[{"+tag.strip()+"}]\n"
+    else:
+        raise ValueError("I don't know what to do with this TP request")
+
+def null(*args):
+    if not len(args):
+        return ""
+    raise ValueError("Unrecognized request . " + ' '.join(args))
+
+def ignore(*args):
+    return ""
+
+functions = [
+    [re.compile(r'\\".*'),       r'',                    True],
+    [re.compile(r'\\-'),         r'--',                  True],
+    [re.compile(r'\\\(em'),      r'---',                 True],
+    [re.compile(r'\\\(en'),      r'--',                  True],
+    [re.compile(r'\\f([RBIP])'), r'\001\1',              True],
+    [re.compile(r'\\\*\(lq'),    r'``',                  True],
+    [re.compile(r'\\\*\(rq'),    r"\003\003",            True],
+    [re.compile(r'([${}#_%&])'), r"\002\1",              False],
+    [re.compile(r'\\e'),         r"\002textbackslash ",  False],
+    [re.compile(r'\\e'),         "\\\\",                 True],
+]
+
+final_functions = [
+    [re.compile(r'\001R'),        r'\\textnormal{',      True],
+    [re.compile(r'\001P'),        r'}',                  True],
+    [re.compile(r'\001B'),        (lambda x: '\\' + bold_font + '{'), True],
+    [re.compile(r'\001I'),        (lambda x: '\\' + ital_font + '{'), True],
+    [re.compile(r'\002'),         r'\\',                 True],
+    [re.compile(r'\003'),         r"'",                  True],
+    [re.compile(r'\.\.\.'),       r'\\dots ',            False],
+]
+
+requests = {
+    '.':    null,
+    '.ad':  ignore,
+    '.B':   bold,
+    '.BI':  bold_italic,
+    '.br':  break_line,
+    '.BR':  bold_roman,
+    '.fi':  fill,
+    '.I':   italic,
+    '.IB':  italic_bold,
+    '.IR':  italic_roman,
+    '.LP':  paragraph_break,
+    '.na':  ignore,
+    '.nf':  no_fill,
+    '.RB':  roman_bold,
+    '.RE':  left_shift,
+    '.RI':  roman_italic,
+    '.RS':  right_shift,
+    '.SH':  section_heading,
+    '.SS':  subsection,
+    '.TH':  heading, 
+    '.TP':  tagged_paragraph,
+}
+
+    
+
+with open(sys.argv[1], 'r') as troff_source:
+    with open(sys.argv[2], 'w') as latex:
+        for line in troff_source:
+            if '<<bold-is-fixed>>'  in line: bold_font = 'codetype'
+            if '<</bold-is-fixed>>' in line: bold_font = 'strong'
+            if '<<ital-is-var>>'    in line: ital_font = 'Var*'
+            if '<</ital-is-var>>'   in line: ital_font = 'emph'
+            if '<<center>>'         in line: rs_center += 1
+
+            if '<<code>>' in line: 
+                latex.write('\\begin{SourceCode}\n')
+                verbatim = True
+
+            if '<</code>>' in line:
+                latex.write('\\end{SourceCode}\n')
+                verbatim = False
+
+            if '<<desc>>' in line: 
+                stack.append('description')
+                latex.write('\\begin{description}\n')
+
+            if '<<list>>' in line: 
+                stack.append('list')
+                latex.write('\\begin{list}{}{}\n')
+
+            if '<<itemize>>' in line: 
+                stack.append('itemize')
+                latex.write('\\begin{itemize}\n')
+
+            if '<<enumerate>>' in line: 
+                stack.append('enumerate')
+                latex.write('\\begin{enumerate}\n')
+
+#            m = re.search(r'<<list(\s+(\d+)\s*(in|mm|cm|pc|pt|em|ex|en)?)?\s*>>', line)
+#            if m:
+#                stack.append('list')
+#                if m.group(2):
+#                    width = int(m.group(2))
+#                else:
+#                    width = 4
+#
+#                units = m.group(3) or 'ex'
+#                latex.write('\\begin{list}{}{x\\\\y}\n')
+
+
+            if '<</>>' in line:
+                latex.write('\\end{'+stack.pop()+'}\n')
+
+
+            for code in functions:
+                if code[0].search(line):
+                    if not verbatim or code[2]:
+                        line = code[0].sub(code[1], line)
+
+            if line.startswith('.'):
+                fields = shlex.split(line)
+                if fields[0] in requests:
+                    line = requests[fields[0]](*fields[1:])
+                else:
+                    raise NotImplementedError('No support for request {} (args: {})'.format(
+                        fields[0], ', '.join(fields[1:])))
+
+            for code in final_functions:
+                if code[0].search(line):
+                    if not verbatim or code[2]:
+                        line = code[0].sub(code[1], line)
+
+            if extra_function is not None:
+                line = extra_function(line)
+                extra_function = None
+                
+            if next_function is not None:
+                extra_function = next_function
+                next_function = None
+
+            latex.write(line)
