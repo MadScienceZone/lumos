@@ -19,6 +19,8 @@ lumosctl -- Manual control for Lumos SSR controller hardware
 \Var*{sens}]
 [\codetype{--E}
 \Var*{sens}]
+[\codetype{--H}
+\Var*{hexfile}]
 [\codetype{--p}
 \Var*{port}]
 [\codetype{--P}
@@ -267,6 +269,15 @@ Turn off all output channels at once.
 Load the device configuration from the named
 \Var*{file}
 and program that into the device.
+% tagged paragraph, width=4
+\item[{\codetype{----load--hex--sequence=}\Var*{file}}]\hfill\\
+(\codetype{--H}
+\Var*{file})
+Load one or more pre-compiled sequences from the specified hex 
+\Var*{file}.
+This is expected to be the output from the 
+\codetype{lumosasm}(1)
+command.
 % tagged paragraph, width=4
 \item[{\codetype{----load--sequence=}\Var*{file}}]\hfill\\
 (\codetype{--s}
@@ -858,6 +869,8 @@ older firmware (ROM versions less than
 
 This document describes version 2.0 of this utility, which is the first to carry
 this name and to include the expanded features for firmware version 3.0.
+\section*{SEE ALSO}
+\codetype{lumosasm}(1).
 \section*{LIMITATIONS}
 
 

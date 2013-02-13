@@ -1,0 +1,27 @@
+%
+%
+% 
+%
+%
+%
+%  ||||||| x 260
+% 0-------------------------1/120--------------------1/60 s
+\begin{figure}
+	\begin{center}
+		\begin{tikzpicture}[scale=.75]
+			\draw [thick, <-] (16,0) -- (0,0) -- (0,10);
+			\draw [thick] (0,5) -- (16,5);
+			\draw [dashed] (8,0) -- (8,10);
+			\draw [dashed] (16,0) -- (16,10);
+			\node [below] at (0,0) {\vphantom{$1\over1$}0\,s};
+			\node [below] at (16,0) {$1\over120$\,s};
+			%\node [below] at (16,0) {$1\over60$\,s};
+			\foreach \x in {1, 2, ..., 259} {
+				\draw [very thin] (\x*16/260,2) -- (\x*16/260,8);
+			}
+
+			\draw [very thick,blue] plot[samples=50,domain=0:16](\x,{3*sin (\x/(16/3.1415926) r)+5});
+		\end{tikzpicture}
+		\caption{\label{fig:slices}Half-AC Cycle Divided into 260 Slices}
+	\end{center}
+\end{figure}
