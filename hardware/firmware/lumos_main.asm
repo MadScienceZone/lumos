@@ -76,9 +76,9 @@
 ; TO USE, THE ABOVE-LISTED PRODUCTS.
 ; 
 ;
-; Copyright (c) 2012 by Steven L. Willoughby, Aloha, Oregon, USA.  All Rights
-; Reserved.  Released under the terms and conditions of the Open Software
-; License, version 3.0.
+; Copyright (c) 2012, 2013 by Steven L. Willoughby, Aloha, Oregon, USA.  
+; All Rights Reserved.  Released under the terms and conditions of the 
+; Open Software License, version 3.0.
 ;
 ; Portions based on earlier code copyright (c) 2004, 2005, 2006, 2007
 ; Steven L. Willoughby, Aloha, Oregon, USA.  All Rights Reserved.
@@ -109,7 +109,7 @@
 ;    Install a 10K pull-up resistor between J5 pin 5 and +5V.
 ;    (Optional) /PWRCTL output to P/S available on J5 pin 4.
 ;    Option button should only be attached to the master microcontroller.
-;    Both need their own reset buttons.
+;    Both need reset signals.
 ;
 ; Serial control (RS-232 or RS-485) at 19.2kbps by default.
 ; Configurable from 300 to 250000.
@@ -279,14 +279,6 @@
 ; processes the command (which may require some following data bytes, all
 ; of which must have their MSB cleared).  Otherwise, the unit ignores the
 ; byte.
-;                     ___7______6______5______4______3______2______1______0__
-; Broadcast Command: |      |                    |                           |
-;                    |   1  |    Command code    |            15             |
-;                    |______|______|______|______|______|______|______|______|
-;
-; All units recognize address 1111 (15) as a "broadcast" address (all units
-; respond to CERTAIN commands addressed to this target).  It's possible to address
-; a unit as #15, but you won't be able to send those certain commands to it exclusively.
 ;
 ;                     ___7______6______5______4______3______2______1______0__
 ; Extended Command:  |      |                    |                           |
@@ -313,6 +305,36 @@
 ; devices which share the same protocol format but not necessarily a compatible
 ; command set may safely know which bytes can be ignored without knowing the
 ; details of each other's command sets.
+;
+; Two special bytes are recognized:
+;
+;                     ___7______6______5______4______3______2______1______0__
+; MSB Escape:        |      |                                                |
+;                    |   0  |   1      1      1      1      1      1      0  |
+;                    |______|______|______|______|______|______|______|______|
+;
+; If this ($7E) byte is received, it is ignored but the next byte received will
+; have its MSB bit set.  This allows data bytes to have full 8-bit values without
+; violating the communication protocol described above.  That second byte is not
+; interpreted further.
+;
+;                     ___7______6______5______4______3______2______1______0__
+; Literal Escape     |      |                                                |
+;                    |   0  |   1      1      1      1      1      1      1  |
+;                    |______|______|______|______|______|______|______|______|
+;
+; If this ($7F) byte is received, it is ignored but the next byte is accepted
+; as-is without further interpretation.
+;
+; Specific Special Cases:
+; 	Sequence    Resulting byte
+; 	$7E $7E     $FE
+; 	$7E $7F     $FF
+; 	$7F $7E     $7E
+; 	$7F $7F     $7F
+;
+; A command byte (received with MSB already set) trumps all of the above.  It is
+; taken as the start of a command and the escape sequence in progress is canceled.
 ;
 ; Commands recognized:
 ;
@@ -987,8 +1009,8 @@ EEPROM_USER_END		EQU	0x3FF
 ; SSR_STATE          |      |      |SLICE |PRIV_ |SLEEP |DRAIN |PRE_  |TEST_ |
 ;                    |INCYC |PRECYC| _UPD | MODE |_MODE |_TR   |PRIV  |MODE  |
 ;                    |______|______|______|______|______|______|______|______|
-; SSR_STATE2         |TEST_ |TEST_ |TEST_ |ALL_  |PRIV_ |INHIBI|             |
-;                    |PAUSE |UPD   |BUTTON|OFF   |FORBID|T_OUTP|             |
+; SSR_STATE2         |TEST_ |TEST_ |TEST_ |ALL_  |PRIV_ |INHIBI|MSB_  |LITER |
+;                    |PAUSE |UPD   |BUTTON|OFF   |FORBID|T_OUTP|ESC   |AL_ESC|
 ;                    |______|______|______|______|______|UT____|______|______|
 ; YY_STATE           |                                                       |
 ;                    |                      Parser State                     |
@@ -1137,6 +1159,8 @@ TEST_BUTTON	EQU	5	; --1-----  Waiting for button release in test mode
 ALL_OFF		EQU	4	; ---1----  All SSRs are currently completely off
 PRIV_FORBID	EQU	3	; ----1---  Forbidden to enter privileged mode again
 INHIBIT_OUTPUT	EQU	2	; -----1--  Forbid any further output
+MSB_ESC		EQU	1	; ------1-  MSB Escape pending
+LITERAL_ESC	EQU	0	; -------1  Literal Escape pending
 
 ;
 ; SSR_FLAGS words for each output show state information about those
@@ -2366,6 +2390,8 @@ CMD_BIT	EQU	7
 	; command to complete?  If so, abort it and start over.
 	; otherwise, get to work.
 	;
+	BCF	SSR_STATE2, MSB_ESC, ACCESS	; cancel escape sequence if any
+	BCF	SSR_STATE2, LITERAL_ESC, ACCESS
 	MOVF	YY_STATE, W, ACCESS
 	BZ	INTERP_START	 
 	;
@@ -2507,6 +2533,38 @@ S0_CMD_ERR:
 	 
 DATA_BYTE:
 	CLRWDT
+	;
+	; Check for escape sequences
+	;
+	; in MSB mode? set this byte's MSB and skip down
+	BTFSS	SSR_STATE2, MSB_ESC, ACCESS
+	BRA	DB_CHK_LITERAL
+	BSF	SIO_INPUT, 7, BANKED
+	BCF	SSR_STATE2, MSB_ESC, ACCESS
+	BRA	DB_HANDLER
+DB_CHK_LITERAL:
+	; no, how about in literal mode? if so, just pass through this byte
+	BTFSS	SSR_STATE2, LITERAL_ESC, ACCESS
+	BRA	DB_CHK_7E
+	BCF	SSR_STATE2, LITERAL_ESC, ACCESS
+	BRA	DB_HANDLER
+DB_CHK_7E:
+	; no, ok, then is this the start of an MSB escape?
+	MOVLW	0x7E
+	CPFSEQ	SIO_INPUT, BANKED
+	BRA	DB_CHK_7F
+	BSF	SSR_STATE2, MSB_ESC, ACCESS
+	RETURN
+
+DB_CHK_7F:
+	; no, then maybe we're starting a literal escape?
+	MOVLW	0x7F
+	CPFSEQ	SIO_INPUT, BANKED
+	BRA	DB_HANDLER
+	BSF	SSR_STATE2, LITERAL_ESC, ACCESS
+	RETURN
+	
+DB_HANDLER:
 	;
 	; Data byte:  If we're at state 0, we aren't expecting
 	; this, so just ignore it. 

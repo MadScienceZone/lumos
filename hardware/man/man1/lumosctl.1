@@ -32,6 +32,8 @@ lumosctl \- Manual control for Lumos SSR controller hardware
 .IR sens ]
 .RB [ \-E
 .IR sens ]
+.RB [ \-H 
+.IR hexfile ]
 .RB [ \-p
 .IR port ]
 .RB [ \-P
@@ -277,6 +279,15 @@ Turn off all output channels at once.
 Load the device configuration from the named
 .I file
 and program that into the device.
+.TP
+.BI \-\-load\-hex\-sequence= file
+.RB ( \-H
+.IR file )
+Load one or more pre-compiled sequences from the specified hex 
+.IR file .
+This is expected to be the output from the 
+.BR lumosasm (1)
+command.
 .TP 
 .BI \-\-load\-sequence= file
 .RB ( \-s
@@ -868,6 +879,8 @@ older firmware (ROM versions less than
 .LP
 This document describes version 2.0 of this utility, which is the first to carry
 this name and to include the expanded features for firmware version 3.0.
+.SH "SEE ALSO"
+.BR lumosasm (1).
 .SH LIMITATIONS
 .LP
 This program does not send DMX512 commands to the device(s), only Lumos native
