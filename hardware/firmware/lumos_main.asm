@@ -1494,6 +1494,57 @@ SET_SSR_OFF MACRO IDX
 	 SET_SSR_VALUE IDX, 0
 	ENDM
 
+;
+; Sending 8-bit data bytes in our 7-bit protocol
+; (in data bytes, in other words) requires this
+; escaping mechanism:
+;   If high bit set, send $7E + low 7 bits
+;   Literal $7E is sent as $7F + $7E
+;   Literal $7F is sent as $7F + $7F
+; 
+; Other interesting cases inferred from the above:
+;   $FE is sent as $7E + $7E
+;   $FF is sent as $7E + $7F
+;
+; This calls the SIO_WRITE_W entry point, so the bank
+; will shift as a result.
+;
+SND8BIT	MACRO	VALUE
+	MOVLW	VALUE
+	SEND_8_BIT_W
+	ENDM
+
+S8B_LABEL SET	1
+SEND_8_BIT_W MACRO
+	MOVWF	EIGHTBITSIOBUF, ACCESS
+	MOVLW	0x7F				; sending literal $7F?
+	CPFSEQ	EIGHTBITSIOBUF, ACCESS
+	BRA	S8B_CHK_7E#v(S8B_LABEL)
+	CALL	SIO_WRITE_W			; send $7F to escape first
+	MOVLW	0x7F				; then the literal $7F itself.
+	CALL	SIO_WRITE_W			
+	BRA	S8B_END#v(S8B_LABEL)
+S8B_CHK_7E#v(S8B_LABEL):
+	MOVLW	0x7E				; sending literal $7E?
+	CPFSEQ	EIGHTBITSIOBUF, ACCESS
+	BRA	S8B_CHK_MSB#v(S8B_LABEL)
+	MOVLW	0x7F				; send $7F to escape first
+	CALL	SIO_WRITE_W
+	MOVLW	0x7E				; then the literal $7E itself.
+	CALL	SIO_WRITE_W
+	BRA	S8B_END#v(S8B_LABEL)
+S8B_CHK_MSB#v(S8B_LABEL):
+	BTFSS	EIGHTBITSIOBUF, 7, ACCESS	; MSB set?
+	BRA	S8B_SEND_NORMAL#v(S8B_LABEL)
+	MOVLW	0x7E				; send $7E to escape first
+	CALL	SIO_WRITE_W
+	BCF	EIGHTBITSIOBUF, 7, ACCESS	; clear MSB and (fall-thru to) send it.
+S8B_SEND_NORMAL#v(S8B_LABEL):
+	MOVF	EIGHTBITSIOBUF, W, ACCESS	; send byte
+	CALL	SIO_WRITE_W	
+S8B_END#v(S8B_LABEL):
+S8B_LABEL ++
+	ENDM
 
 ;==============================================================================
 ; BOOT BLOCK
@@ -1994,6 +2045,7 @@ TEST_CYCLE	RES	1
 TEST_SSR  	RES	1
 AUTO_OFF_CTRH	RES	1
 AUTO_OFF_CTRL	RES	1
+EIGHTBITSIOBUF	RES	1		; buffer for 8-bit data adjustments
 I               RES	1
 J               RES	1
 K               RES	1
@@ -2619,7 +2671,8 @@ PASS_DOWN_ON_OFF:
 	 ANDLW	0x3F
 	 BTFSC	YY_DATA, 6, ACCESS
 	 BSF    WREG, 6, ACCESS
-	 CALL 	SIO_WRITE_W
+	 SEND_8_BIT_W
+	 ;CALL 	SIO_WRITE_W
 	 SET_SSR_BLINK_FADE SSR_YELLOW	; slave activity indicator
 	 RETURN
 	ELSE
@@ -2672,9 +2725,11 @@ PASS_DOWN_SET_LVL:
 	 CALL	SIO_WRITE_W
 	 BCF	TARGET_SSR, 7, ACCESS
 	 MOVF	TARGET_SSR, W, ACCESS
-	 CALL	SIO_WRITE_W
+	 SEND_8_BIT_W
+	 ;CALL	SIO_WRITE_W
 	 MOVF	YY_DATA, W, ACCESS
-	 CALL	SIO_WRITE_W
+	 SEND_8_BIT_W
+	 ;CALL	SIO_WRITE_W
 	 CLRF	YY_STATE, ACCESS
 	 SET_SSR_BLINK_FADE SSR_YELLOW	; slave activity indicator
 	 RETURN
@@ -2845,11 +2900,13 @@ S6_0_DATA_N_OK:
 	 MOVLW	0xB0				; command code
 	 CALL	SIO_WRITE_W
 	 MOVF	TARGET_SSR, W, ACCESS		; starting channel
-	 CALL	SIO_WRITE_W
+	 SEND_8_BIT_W
+	 ;CALL	SIO_WRITE_W
 	 LFSR	0, YY_BUFFER			; now write YY_BUFFER[0..YY_BUF_IDX-1]
 S6_0_PD_ALL:
 	 MOVF	POSTINC0, W, ACCESS
-	 CALL	SIO_WRITE_W
+	 SEND_8_BIT_W
+	 ;CALL	SIO_WRITE_W
 	 DECFSZ YY_BUF_IDX, F, ACCESS
 	 BRA	S6_0_PD_ALL
 	 MOVLW	0x55				; and finally the trailing sentinel byte $55.
@@ -2907,12 +2964,15 @@ S6_0_PASS_DOWN_MSB:
 	 CLRF	WREG, ACCESS 					; target SSR always 0 in this case
 	 BTFSC	TARGET_SSR, 6, ACCESS		; but keep the resolution bit
 	 BSF	WREG, 6, ACCESS
-	 CALL	SIO_WRITE_W			
+	 SEND_8_BIT_W
+	 ;CALL	SIO_WRITE_W			
 	 DECF	I, W, ACCESS			; I channels left for slave to update, protocol wants I-1
-	 CALL 	SIO_WRITE_W
+	 SEND_8_BIT_W
+	 ;CALL 	SIO_WRITE_W
 S6_0_PD_NEXT_MSB:
 	 MOVF	POSTINC0, W, ACCESS
-	 CALL	SIO_WRITE_W			; ... write I bytes of values ...
+	 SEND_8_BIT_W
+	 ;CALL	SIO_WRITE_W			; ... write I bytes of values ...
 	 DECFSZ	I, F, ACCESS
 	 BRA	S6_0_PD_NEXT_MSB
 	 MOVLW	0x55				; sentinel $55 after bytes
@@ -3008,7 +3068,8 @@ X	SET	6
 	  BTFSS	I, 7, ACCESS			; if we wrap around to bit 7 again, we filled up the block.
 	  BRA	S6_0_LSB_B#v(X)
 	  MOVF	YY_YY, W, ACCESS		; ship out the completed byte
-	  CALL	SIO_WRITE_W
+	  SEND_8_BIT_W
+	  ;CALL	SIO_WRITE_W
 	  CLRF 	YY_YY, ACCESS
 	  RRNCF	I, F, ACCESS
 S6_0_LSB_B#v(X):
@@ -3051,7 +3112,8 @@ S6_0_DONE:
 	 BTFSC	I, 7, ACCESS			; pending output
 	 BRA	S6_0_SENTINEL
 	 MOVF	YY_YY, W, ACCESS
-	 CALL	SIO_WRITE_W
+	 SEND_8_BIT_W
+	 ;CALL	SIO_WRITE_W
 S6_0_SENTINEL:
 	 MOVLW	0x55				; add sentinel to output
 	 CALL	SIO_WRITE_W
@@ -3156,6 +3218,9 @@ S6_2_SET_BAUD:
 	; Change the baud rate in the slave first, or we'll
 	; never be able to talk to it again...
 	;
+	; limit baud rate value 
+	MOVLW	0x0F
+	ANDWF	INDF0, F, ACCESS
 	IF ROLE_MASTER
 	 SET_SSR_BLINK_FADE SSR_YELLOW	; slave activity indicator
 	 MOVLW 	0xF0				; F0 72 <baud> 26  -> slave
@@ -3267,9 +3332,11 @@ S6_4_SET_PHASE:
 	 MOVLW	0xF0
 	 CALL	SIO_WRITE_W
 	 MOVF	YY_YY, W, ACCESS
-	 CALL	SIO_WRITE_W
+	 SEND_8_BIT_W
+	 ;CALL	SIO_WRITE_W
 	 MOVF	INDF0, W, ACCESS
-	 CALL	SIO_WRITE_W
+	 SEND_8_BIT_W
+	 ;CALL	SIO_WRITE_W
 	 MOVLW	0x50
 	 CALL	SIO_WRITE_W
 	 MOVLW	0x4F
@@ -3590,7 +3657,8 @@ S6_9_QUERY:
 	BSF	WREG, 2, ACCESS
 	BTFSC	SSR_STATE, SLEEP_MODE, ACCESS
 	BSF	WREG, 1, ACCESS
-	CALL	SIO_WRITE_W			; 05 masks, priv, sleep, mem full	<0ABCDqsf> XXX NOT ALL IMPLEMENTED
+	SEND_8_BIT_W
+	;CALL	SIO_WRITE_W			; 05 masks, priv, sleep, mem full	<0ABCDqsf> XXX NOT ALL IMPLEMENTED
 	CLRF	WREG, ACCESS	
 	BTFSC	SSR_STATE2, PRIV_FORBID, ACCESS
 	BSF	WREG, 2, ACCESS			
@@ -3598,10 +3666,12 @@ S6_9_QUERY:
 	BSF	WREG, 1, ACCESS
 	BTFSC	PHASE_OFFSETL, 7, ACCESS
 	BSF	WREG, 0, ACCESS
-	CALL	SIO_WRITE_W			; 06 active sensors, xpriv, phase<8:7>	<0ABCDXpp> XXX NOT ALL IMPLEMENTED
+	SEND_8_BIT_W
+	;CALL	SIO_WRITE_W			; 06 active sensors, xpriv, phase<8:7>	<0ABCDXpp> XXX NOT ALL IMPLEMENTED
 	MOVF	PHASE_OFFSETL, W, ACCESS
 	BCF	WREG, 7, ACCESS
-	CALL	SIO_WRITE_W			; 07 phase <6:0>			<0ppppppp>
+	SEND_8_BIT_W
+	;CALL	SIO_WRITE_W			; 07 phase <6:0>			<0ppppppp>
 	CLRF	WREG, ACCESS
 	CALL	SIO_WRITE_W			; 08 eeprom memory free <14:7>		<0eeeeeee> XXX NOT IMPLEMENTED
 	CLRF	WREG, ACCESS
@@ -3619,7 +3689,8 @@ S6_9_QUERY:
 	  ERR_BUG 0x10, ERR_CLASS_DEVICE
 	 ENDIF
 	ENDIF
-	CALL	SIO_WRITE_W			; 12 sequence flag, device ID		<0X0iiiii> XXX NOT ALL IMPLEMENTED
+	SEND_8_BIT_W
+	;CALL	SIO_WRITE_W			; 12 sequence flag, device ID		<0X0iiiii> XXX NOT ALL IMPLEMENTED
 	CLRF	WREG, ACCESS
 	CALL	SIO_WRITE_W			; 13 executing sequence			<0xxxxxxx> XXX NOT IMPLEMENTED
 
@@ -3661,7 +3732,8 @@ S6_9_QUERY:
 	
 	MOVF	LAST_ERROR, W, ACCESS
 	CLRF	LAST_ERROR, ACCESS
-	CALL	SIO_WRITE_W			; 30 fault code				<0fffffff>
+	SEND_8_BIT_W
+	;CALL	SIO_WRITE_W			; 30 fault code				<0fffffff>
 	IF ROLE_MASTER
 	 MOVLW	B'00011011'
 	 CALL	SIO_WRITE_W			; 31 end of packet to slave chip
@@ -3910,11 +3982,14 @@ S8_PASS_DOWN_RAMP_LVL:
 	 CALL	SIO_WRITE_W
 	 MOVF	TARGET_SSR, W, ACCESS
 	 BCF	TARGET_SSR, 7, ACCESS
-	 CALL	SIO_WRITE_W			; channel + direction
+	 SEND_8_BIT_W
+	 ;CALL	SIO_WRITE_W			; channel + direction
 	 DECF	YY_YY, W, ACCESS		; steps - 1
-	 CALL	SIO_WRITE_W
+	 SEND_8_BIT_W
+	 ;CALL	SIO_WRITE_W
 	 DECF	YY_DATA, W, ACCESS		; speed - 1
-	 CALL	SIO_WRITE_W
+	 SEND_8_BIT_W
+	 ;CALL	SIO_WRITE_W
 	 CLRF	YY_STATE, ACCESS
 	 RETURN
 	ENDIF
@@ -4259,17 +4334,20 @@ S11_DATA:
 	 BTFSS	YY_COMMAND, 0, ACCESS		; doing IC_TXSTA?	///////
 	 BRA	S11_END_TRANSMIT		; no, skip to end	///////
 	 MOVF	LAST_ERROR, W, ACCESS		; yes, send our private	///////
-	 CALL	SIO_WRITE_W			; at the end of the     ///////
+	 SEND_8_BIT_W
+	 ;CALL	SIO_WRITE_W			; at the end of the     ///////
 	 CLRF	LAST_ERROR, ACCESS		; stream 		///////
 	 CLRF	WREG, ACCESS					;			///////
 	 BTFSC	PHASE_OFFSETH, 0, ACCESS	;			///////
 	 BSF	WREG, 1, ACCESS			;			///////
 	 BTFSC	PHASE_OFFSETL, 7, ACCESS	;			///////
 	 BSF	WREG, 0, ACCESS			;			///////
-	 CALL	SIO_WRITE_W			;			///////
+	 SEND_8_BIT_W
+	 ;CALL	SIO_WRITE_W			;			///////
 	 MOVF	PHASE_OFFSETL, W, ACCESS	;			///////
 	 BCF	WREG, 7, ACCESS			;			///////
-	 CALL	SIO_WRITE_W			;			///////
+	 SEND_8_BIT_W
+	 ;CALL	SIO_WRITE_W			;			///////
 	 MOVLW	0x33				;			///////
 	 CALL	SIO_WRITE_W			;			///////
 S11_END_TRANSMIT:				;			///////
@@ -4287,8 +4365,12 @@ S11_WRITE_NEXT_BYTE:				;			///////
 	 BRA	S11_WNB_1			; first byte we see 	///////
 	 BSF	WREG, 7, ACCESS			;			///////
 	 BCF	YY_COMMAND, 7, ACCESS		;			///////
+	 CALL	SIO_WRITE_W			; send raw 1st byte     ///////
+	 BRA	S11_END_1			;			///////
 S11_WNB_1:					;			///////
-	 CALL	SIO_WRITE_W			;			///////
+	 SEND_8_BIT_W				; send escaped byte    	///////
+	 ;CALL	SIO_WRITE_W			;			///////
+S11_END_1:					;			///////
 	 DECF	YY_YY, F, ACCESS		;			///////
 	 RETURN					;			///////
 	ELSE					;			///////
