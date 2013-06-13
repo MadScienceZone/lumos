@@ -791,7 +791,7 @@ CYCLE_TMR_PERIOD	 EQU	0x5D3D
 ; $00007 |_________________|___
 ; $00008 | High Int Vector | V_INT_H
 ; $00017 |_________________|___
-; $00018 | High Int Vector | V_INT_L
+; $00018 | Low Int Vector  | V_INT_L
 ; $0001F |_________________|
 ; $00020 |/////////////////|
 ; $000FF |/////////////////|___
@@ -836,6 +836,11 @@ CYCLE_TMR_PERIOD	 EQU	0x5D3D
 ;;        |/////////////////|___
 ; $15000 |Serial I/O Mod   | _SIO_LOOKUP_TABLES
 ;        |lookup tables    |
+; $150FF |_________________|___
+; $15100 |                 |
+;        |                 |
+; $16FFF |_________________|___
+; $17000 |Flash Loader Code| _FLASH_UPDATE_LOADER
 ; $17FFF |_________________|___
 ;        |/////////////////|
 ;        |/////////////////|

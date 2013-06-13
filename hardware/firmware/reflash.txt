@@ -1,0 +1,18 @@
+* boot loader code branches to reserved block, checks mode bit
+  - if normal mode, branch to START
+  - if reprogram mode, branch to reloader code @ high memory
+
+* ADMIN command to start reflash
+  - sets reprogram bit, reboots
+
+* reloader accepts blocks from serial port at fixed speed
+  - receives 256 byte block + checksum + dest addr
+  - verifies that it was ok
+  - sends ACK / NAK
+  - burns into flash RAM
+  - sends ACK / NAK
+  - reads back block
+  - sends ACK / NAK
+  - loop
+  -
+  - when sent special stop packet, flips normal mode bit, reboot
