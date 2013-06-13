@@ -36,9 +36,9 @@
 ;
 ; Un-comment one of these to select board type for this ROM image:
 ;
-;#define LUMOS_CHIP_TYPE		LUMOS_CHIP_MASTER
+#define LUMOS_CHIP_TYPE		LUMOS_CHIP_MASTER
 ;#define LUMOS_CHIP_TYPE		LUMOS_CHIP_SLAVE
-#define LUMOS_CHIP_TYPE		LUMOS_CHIP_STANDALONE
+;#define LUMOS_CHIP_TYPE		LUMOS_CHIP_STANDALONE
 ;
 ;
 ;

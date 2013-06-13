@@ -32,8 +32,23 @@
 ; When finished, FLASH_UPDATE_END is called, which sets the reset vector
 ; back to _BOOT.
 ;
-
-; This module manages the TXIE interrupt masks as needed
+;
+; This module takes over the entire device operation, disabling all interrupts
+; for the duration of its execution and assuming nothing else.  It sets up and
+; maintains the UART locally.
+;
+; The following assumptions are made about the CPU memory layout:
+;
+;          ____________________
+;  $00000 | Restart vector     | Overwritten to boot into update loader
+;  $00007 |____________________| then pointed to FLASH_UPDATE_RST_VECTOR.
+;  $00008 |                    | 
+;         |                    | The flash loader can change this zone.
+;         | update area        | The addresses shown are typical but 
+;         |                    | configurable in the .inc files.
+;  $16FFF |____________________|
+;  $17000 | Flash loader code  | This module
+;  $17FFF |____________________|
 ;
 	PROCESSOR 	18F4685
 	RADIX		DEC
@@ -44,7 +59,7 @@
 ;	SIO_INIT	Initialize module (call this once first)
 ;
 #include <p18f4685.inc>
-#include "serial-io-bits.inc"
+#include "flash_update_bits.inc"
 
 ;==============================================================================
 ; REGISTERS USED

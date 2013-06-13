@@ -5,7 +5,7 @@
 ;
 ; DONE check flow of all commands, especially the clearing of the state machine
 ; DONE auto on/off disabled temporarily
-; XXX  do i need to set RCON bits a power-up?
+; XXX  do i need to set RCON bits at power-up?
 ; DONE but mostly left intact (hard to get around need due to length of branches)
 ;        refactor this:
 ;	SUBWF	YY_BUF_IDX, W, ACCESS		; input bytes in packet
@@ -13,7 +13,7 @@
 ;	GOTO	S6_KEEP_LOOKING			; input < 2? not done yet
 ;	BZ	$+4
 ;	GOTO	ERR_COMMAND			; input > 2? too big: reject
-; XXX  XXX XXX ** KILL BROADCAST ADDR IDEA ** it's not going to work XXX XXX XXX
+; XXX  XXX XXX ** KILL BROADCAST ADDR IDEA ** it's a dumb idea that has no good use case. XXX XXX XXX
 ; DONE double-check all inequality tests
 ; XXX  review logic flow for each chip type
 ; DONE check all BRA $+x values after assembly -- changed to use labels
@@ -62,7 +62,7 @@
 ;
 ; THIS FIRMWARE, SOFTWARE, AND/OR HARDWARE ARE NOT INTENDED NOR RECOMMENDED 
 ; FOR APPLICATIONS INVOLVING LIFE SUPPORT OR SAFETY-CRITICAL SYSTEMS, RUNNING 
-; FIREWORKS DISPLAYS, ETC.  
+; FIREWORKS/PYROTECHNIC DISPLAYS, ETC.  
 ;
 ; BY OBTAINING AND USING THIS FIRMWARE, AND/OR ACCOMPANYING HARDWARE AND/OR 
 ; CONTROLLING SOFTWARE, YOU AGREE TO THESE CONDITIONS AND THAT TO THE FULLEST 
@@ -292,7 +292,7 @@
 ; bytes as possible (as few as a single byte), but we have more than 8 commands
 ; so we have an extended code.  If the command code is 7 (all bits set), then
 ; the following byte contains the actual command code which may be any value
-; from 0-127
+; from 0-127.
 ;
 ;                     ___7______6______5______4______3______2______1______0__
 ; Data Byte:         |      |                                                |
@@ -506,9 +506,16 @@
 ;
 ; Normally sits at state 0 (Idle) where it pretty much spins free waiting
 ; for the start of a command to come along.
-;       ______________________________________________________,
-;       |                                                     |
-;  _____V____      __________                                 |
+;
+;  __________ my   __________
+; |17 |      |slot|18 |      |
+; |___|      |--->|___|      |
+; | DMX WAIT |<---| DMX UPD  |
+; |__________| brk|__________|
+;    ^  |nottype0       |done
+;    |  V_______________V_____________________________________.
+; brk|  |                                                     |
+;  __|__V____      __________                                 |
 ; | 0 |      |    | 1 |      |                                |
 ; |___|      |--->|___|      |                                |
 ; |   IDLE   |<---| ON_OFF   |                                | 
@@ -755,15 +762,16 @@ CYCLE_TMR_PERIOD	 EQU	0x5D3D
 ; |___  ___|	3- Cable Check IN   	7- Data GND 
 ;    |__|	4- Data B (-)		8- Return Data GND
 ;
-; CC is a cable check indicator.  A signal is sent out on pin 1, expected to be connected
-; to pin 2 at the terminator, so end-to-end continuity of the cable connections can
-; be verified.  Note that the controllers themselves do nothing with the CC signal other
+; CC is a cable check indicator.  A signal is sent out by the host on pin 3, with the
+; expectation that each controller will pass it on down the cable to the terminator
+; which connects it to pin 6 and sends the signal back through the controllers to the
+; host again.  Note that the controllers themselves do nothing with the CC signal other
 ; than pass those pins straight through; it is available however for something at the 
 ; host side to verify cable integrity.
 ;
 ; Data A/B is the twisted pair for the RS-485 data between the host PC and controllers.
 ;
-; Return Data A/B is only implemented if a full duplex RS-485 network is implemented
+; Return Data Y/Z is only implemented if a full duplex RS-485 network is implemented
 ; (an option for some boards but not the default case).  This is dedicated for controllers
 ; sending data back to the host PC.  If using half-duplex, the same data pair is used
 ; for both sending and receiving, and the host PC needs to switch to receive mode
@@ -906,8 +914,8 @@ _MAIN_EEPROM_TBL	EQU	0x14000
 ; $002 |_Device_ID____|     $012 | Storage      |
 ; $003 | Phase     MSB|     $013 |       |      |
 ; $004 |_Offset____LSB|     $014 |       |      |
-; $005 |______________|     $015 |       |      |
-; $006 |______________|       .          .
+; $005 |_DMX_Slot__MSB|     $015 |       |      |
+; $006 |_DMX_Slot__LSB|       .          .
 ; $007 |______________|       .          .
 ; $008 |______________|       .          .
 ; $009 |______________|     $3F9 |       |      |
@@ -924,11 +932,28 @@ _EEPROM	CODE_PACK	0xF00000
 	DE	SIO_19200	; 001: baud rate default
 	DE	0x03    	; 002: default device ID
 	DE	0x00, 0x02	; 003: default phase offset
-	DE	0x00, 0x00, 0x00; 005: reserved
-	DE	0x00, 0x00, 0x00; 008: reserved
-	DE	0x00, 0x00, 0x00; 00B: reserved
-	DE	0x00            ; 00E: reserved
+	DE	0x00, 0x00      ; 005: default DMX=0 (disabled, ch=1)
+	DE	0x00, 0x00, 0x00; 007: reserved
+	DE	0x00, 0x00, 0x00; 00A: reserved
+	DE	0x00, 0x00      ; 00D: reserved
 	DE	0x42		; 00F: sentinel
+
+EE_START	EQU	0x000
+EE_BAUD		EQU	0x001
+EE_DEV_ID	EQU	0x002
+EE_PHASE_H	EQU	0x003
+EE_PHASE_L	EQU	0x004
+EE_DMX_H	EQU	0x005
+EE_DMX_L	EQU	0x006
+EE_RESERVED_7	EQU	0x007
+EE_RESERVED_8	EQU	0x008
+EE_RESERVED_9	EQU	0x009
+EE_RESERVED_A	EQU	0x00A
+EE_RESERVED_B	EQU	0x00B
+EE_RESERVED_C	EQU	0x00C
+EE_RESERVED_D	EQU	0x00D
+EE_RESERVED_E	EQU	0x00E
+EE_END        	EQU	0x00F
 
 _EEPROM_DEFS_TBL CODE_PACK _MAIN_EEPROM_TBL
 DEFAULT_TBL:
@@ -936,9 +961,9 @@ DEFAULT_TBL:
 	DB	SIO_19200		; $001: 19200 baud
 	DB	0x00			; $002: device ID=0
 	DB	0x00, 0x02		; $003: phase offset=2
-	DB	0x00, 0x00, 0x00, 0x00	; $005-$008
-	DB	0x00, 0x00, 0x00, 0x00	; $009-$00C
-	DB 	0x00, 0x00		; $00D-$00E
+	DB	0x00, 0x00            	; $005: DMX slot=0 (disabled, ch=1)
+	DB	0x00, 0x00, 0x00, 0x00	; $007-$00A
+	DB 	0x00, 0x00, 0x00, 0x00	; $00B-$00E
 	DB	0x42			; $00F: constant $42
 
 EEPROM_SETTINGS_LEN	EQU	.16
@@ -1017,6 +1042,12 @@ EEPROM_USER_END		EQU	0x3FF
 ; SSR_STATE2         |TEST_ |TEST_ |TEST_ |ALL_  |PRIV_ |INHIBI|MSB_  |LITER |
 ;                    |PAUSE |UPD   |BUTTON|OFF   |FORBID|T_OUTP|ESC   |AL_ESC|
 ;                    |______|______|______|______|______|UT____|______|______|
+; DMX_SLOTH          |DMX_EN|DMX_  |DMX_  |                           |DMX Sl|
+;                    |      |SPEED |FRAME |                           |ot MSB|
+;                    |______|______|______|______|______|______|______|______|
+; DMX_SLOTL          |                                                       |
+;                    |       Starting DMX Slot Number - 1 (low 8 bits)       |
+;                    |______|______|______|______|______|______|______|______|
 ; YY_STATE           |                                                       |
 ;                    |                      Parser State                     |
 ;                    |______|______|______|______|______|______|______|______|
@@ -1166,6 +1197,15 @@ PRIV_FORBID	EQU	3	; ----1---  Forbidden to enter privileged mode again
 INHIBIT_OUTPUT	EQU	2	; -----1--  Forbid any further output
 MSB_ESC		EQU	1	; ------1-  MSB Escape pending
 LITERAL_ESC	EQU	0	; -------1  Literal Escape pending
+
+;
+; DMX_SLOTH contains these flags and the high-order bit of the DMX channel
+;
+DMX_EN		EQU	7	; 1-------  DMX mode enabled
+DMX_SPEED	EQU	6	; -1------  UART at DMX speed now
+DMX_FRAME	EQU	5	; --1-----  Start of frame detected
+;            			; ---XXXX-  Reserved
+DMX_BIT8	EQU	0	; -------1  MSB of DMX channel
 
 ;
 ; SSR_FLAGS words for each output show state information about those
@@ -1690,6 +1730,15 @@ SSS_SSS:
 	BSF	EECON1, RD, ACCESS
 	MOVFF	EEDATA, PHASE_OFFSETL
 	;
+	INCF	EEADR, F, ACCESS	; EEPROM location 0x005: DMX slot MSB
+	BSF	EECON1, RD, ACCESS
+	MOVFF	EEDATA, DMX_SLOTH
+	;
+	INCF	EEADR, F, ACCESS	; EEPROM location 0x006: DMX slot LSB
+	BSF	EECON1, RD, ACCESS
+	MOVFF	EEDATA, DMX_SLOTL
+	BCF	DMX_SLOTH, DMX_SPEED, ACCESS	; clear flag (we're not running at DMX speed yet)
+	;
 	CLRF	EEADR, ACCESS	; Leave pointer at 0x000
 	;
 	BSF	PLAT_GREEN, BIT_GREEN, ACCESS	; Panel: () G Y ()
@@ -1703,6 +1752,7 @@ SSS_SSS:
 	CLRF	SSR_STATE, ACCESS
 	CLRF	SSR_STATE2, ACCESS
 	CLRF	YY_STATE, ACCESS
+	;
 	MOVLW	.128
 	MOVWF	OPTION_DEBOUNCE, ACCESS
 	CLRF	OPTION_HOLD, ACCESS
@@ -1766,7 +1816,24 @@ CH	 ++
 	CLRF	SSR_00_VALUE+SSR_GREEN, BANKED	; Green light cycles ~ 1/4 Hz
 	SET_SSR_PATTERN SSR_GREEN, 0, 1, 1, BIT_FADE_UP|BIT_FADE_CYCLE
 	BCF	PLAT_PWR_ON, BIT_PWR_ON, ACCESS	; turn on power supply
+	;	
+	; If we're in DMX mode, change our buad rate to 250,000 bps
+	;
+	BTFSS	DMX_SLOTH, DMX_EN, ACCESS
 	GOTO	MAIN
+	MOVLW	SIO_250000
+	CALL	SIO_SET_BAUD_W
+	BSF	DMX_SLOTH, DMX_SPEED, ACCESS
+	GOTO	MAIN
+
+BEGIN_EEPROM_READ MACRO START_ADDR
+	 BCF	INTCON, GIEH, ACCESS	; Disable high-priority interrupts
+	 BCF	INTCON, GIEL, ACCESS	; Disable low-priority interrupts
+	 SET_EEPROM_ADDRESS START_ADDR	; NOTE interrupts need to be OFF here!
+	 BCF	EECON1, EEPGD, ACCESS	; select DATA EEPROM as target
+	 BCF	EECON1, CFGS, ACCESS
+	 BCF	EECON1, WREN, ACCESS	; disable writing
+	ENDM
 
 BEGIN_EEPROM_WRITE MACRO START_ADDR
 	 BCF	INTCON, GIEH, ACCESS	; Disable high-priority interrupts
@@ -1777,10 +1844,19 @@ BEGIN_EEPROM_WRITE MACRO START_ADDR
 	 BSF	EECON1, WREN, ACCESS	; enable writing
 	ENDM
 
+END_EEPROM_READ MACRO			; THIS CANNOT CHANGE WREG
+	 BSF	INTCON, GIEH, ACCESS	; Enable high-priority interrupts
+	 BSF	INTCON, GIEL, ACCESS	; Enable low-priority interrupts
+	 CLRF	EEADRH, ACCESS
+	 CLRF	EEADR, ACCESS
+	ENDM
+	
 END_EEPROM_WRITE MACRO
 	 BCF	EECON1, WREN, ACCESS	; disable writing
 	 BSF	INTCON, GIEH, ACCESS	; Enable high-priority interrupts
 	 BSF	INTCON, GIEL, ACCESS	; Enable low-priority interrupts
+	 CLRF	EEADRH, ACCESS
+	 CLRF	EEADR, ACCESS
 	ENDM
 
 SET_EEPROM_ADDRESS MACRO ADDR
@@ -1805,13 +1881,42 @@ WRITE_EEPROM_LOOP#v(EE_LL_XX):
 	 BCF	PIR2, EEIF, ACCESS	; clear interrupt flag
 EE_LL_XX    ++
 	ENDM
+
+WRITE_EEPROM_DATA_W MACRO
+	MOVWF	EEDATA, ACCESS
+	WRITE_EEPROM_DATA
+	ENDM
+
+WRITE_EEPROM_DATA_W_INC MACRO
+	WRITE_EEPROM_DATA_W
+	INCF	EEADR, F, ACCESS
+	ENDM
+
+READ_EEPROM_DATA MACRO
+	BSF	EECON1, RD, ACCESS
+	ENDM
+
+READ_EEPROM_DATA_REG MACRO REGISTER
+	READ_EEPROM_DATA
+	MOVFF	EEDATA, REGISTER
+	ENDM
+
+READ_EEPROM_DATA_W MACRO
+	READ_EEPROM_DATA
+	MOVFF	EEDATA, WREG
+	ENDM
+
+READ_EEPROM_DATA_W_INC MACRO
+	READ_EEPROM_DATA_W
+	INCF	EEADR, F, ACCESS
+	ENDM
 	
 FACTORY_RESET:
 	CLRWDT
 	;
 	; write default configuration to EEPROM
 	;
-	BEGIN_EEPROM_WRITE 0
+	BEGIN_EEPROM_WRITE EE_START
 	MOVLW	UPPER(DEFAULT_TBL)	; load lookup table pointer
 	MOVWF	TBLPTRU, ACCESS
 	MOVLW	HIGH(DEFAULT_TBL)
@@ -2031,6 +2136,8 @@ PHASE_OFFSETH	RES	1
 PHASE_OFFSETL	RES	1
 SSR_STATE	RES	1		; major state/timing flags
 SSR_STATE2	RES	1		; major state/timing flags
+DMX_SLOTH	RES	1
+DMX_SLOTL	RES	1
 YY_STATE 	RES	1
 YY_COMMAND 	RES	1
 YY_DATA    	RES	1
@@ -2189,6 +2296,7 @@ OPTION_PRE_PRIV:
 	  MOVLW	0x00
 	  CALL	SIO_WRITE_W
 	 ENDIF
+	 CALL	DMX_EXIT_TEMPORARILY
 	 BRA END_OPTION_HANDLER
 
 OPTION_NORMAL:						; ----------------------------------------------------NORMAL
@@ -2377,8 +2485,17 @@ TEST_MODE_1:
 ERR_SERIAL_FRAMING:
 	BANKSEL	SIO_DATA_START
 	BCF	SIO_STATUS, SIO_FERR, BANKED
+	BTFSC	DMX_SLOTH, DMX_EN, ACCESS
+	BRA	START_DMX_FRAME
 	SET_SSR_RAPID_FLASH SSR_RED
 	SET_SSR_STEADY SSR_YELLOW
+	RETURN
+START_DMX_FRAME:
+	;
+	; We're in DMX mode so a framing error (aka break) is really
+	; not an error, but the start of our data frame!
+	;
+	BSF	DMX_SLOTH, DMX_FRAME, ACCESS
 	RETURN
 	
 ERR_SERIAL_OVERRUN:
@@ -2399,12 +2516,12 @@ ERR_SERIAL_FULL:
 ERR_CMD_INCOMPLETE:
 	MOVLW	0x23
 	MOVWF	LAST_ERROR, ACCESS
-    SET_SSR_SLOW_FLASH SSR_RED
+	SET_SSR_SLOW_FLASH SSR_RED
 	GOTO	ERR_ABORT
 ERR_NOT_IMP:
 	MOVLW	0x22
 	MOVWF	LAST_ERROR, ACCESS
-    SET_SSR_RAPID_FLASH SSR_RED
+	SET_SSR_RAPID_FLASH SSR_RED
 	GOTO	ERR_ABORT
 ERR_COMMAND:
 	MOVLW	0x20
@@ -2438,6 +2555,9 @@ CMD_BIT	EQU	7
 	;		store command, then decode it.
 	;
 	CALL	SIO_GETCHAR_W
+	BTFSC	DMX_SLOTH, DMX_SPEED, ACCESS	; check if we're trying to read DMX now
+	GOTO	DMX_RECEIVED_BYTE
+	;
 	CLRWDT
 	BANKSEL	SIO_DATA_START
 	BTFSS	SIO_INPUT, CMD_BIT, BANKED
@@ -3174,9 +3294,25 @@ S6_1_VALID_2:
 	GOTO	ERR_COMMAND
 
 S6_1_CONFIGURE:
+	MOVFF	POSTDEC0, DMX_SLOTL
+	CLRF	DMX_SLOTH, ACCESS
+	BTFSC	INDF0, 0, ACCESS
+	BSF	DMX_SLOTL, 7, ACCESS
+	BTFSC	INDF0, 1, ACCESS
+	BSF	DMX_SLOTH, DMX_BIT8, ACCESS
+	BTFSC	INDF0, 2, ACCESS
+	BSF	DMX_SLOTH, DMX_EN, ACCESS
+	;
+	; Save DMX settings to EEPROM
+	;
+	BEGIN_EEPROM_WRITE EE_DMX_H
+	MOVFF	DMX_SLOTH, EEDATA
+	WRITE_EEPROM_DATA
+	INCF	EEADR, F, ACCESS
+	MOVFF	DMX_SLOTL, EEDATA
+	WRITE_EEPROM_DATA
+	END_EEPROM_WRITE
 	; XXX configure sensors
-	; XXX configure resolution
-	; XXX configure DMX
 	CLRF	YY_STATE, ACCESS
 	RETURN
 
@@ -3239,7 +3375,7 @@ S6_2_SET_BAUD:
 	 CALL	DRAIN_M_S_TX_BLOCKING		; wait for command to slave to be fully sent
 	ENDIF					; before changing the UART speed on it.
 
-	BEGIN_EEPROM_WRITE 1
+	BEGIN_EEPROM_WRITE EE_BAUD
 	MOVFF	INDF0, EEDATA			; save value permanently (address 001)
 	WRITE_EEPROM_DATA
 	END_EEPROM_WRITE
@@ -3353,10 +3489,10 @@ S6_4_SET_PHASE:
 	CLRF	PHASE_OFFSETH, ACCESS
 	BTFSC	YY_YY, 1, ACCESS
 	BSF	PHASE_OFFSETH, 0, ACCESS
-	BEGIN_EEPROM_WRITE 3
+	BEGIN_EEPROM_WRITE EE_PHASE_H
 	MOVFF	PHASE_OFFSETH, EEDATA
 	WRITE_EEPROM_DATA
-	SET_EEPROM_ADDRESS 4
+	SET_EEPROM_ADDRESS EE_PHASE_L
 	MOVFF	PHASE_OFFSETL, EEDATA
 	WRITE_EEPROM_DATA
 	END_EEPROM_WRITE
@@ -3411,7 +3547,7 @@ S6_5_ADDR:
 	MOVF	YY_YY, W, ACCESS
 	ANDLW	0x0F
 	MOVWF	MY_ADDRESS, ACCESS
-	BEGIN_EEPROM_WRITE 2
+	BEGIN_EEPROM_WRITE EE_DEV_ID
 	MOVFF	MY_ADDRESS, EEDATA
 	WRITE_EEPROM_DATA
 	END_EEPROM_WRITE
@@ -3653,11 +3789,19 @@ S6_9_QUERY:
 	CALL	SIO_WRITE_W			; 01 "reply to query" packet type 	<00011111>
 	MOVLW	0x30
 	CALL	SIO_WRITE_W			; 02 ROM/format version 3.0		<00110000>
-	MOVLW	0x00
-	CALL	SIO_WRITE_W			; 03 sensor, DMX status            	<0ABCDdcc> XXX NOT IMPLEMENTED
 	CLRF	WREG, ACCESS
-	CALL	SIO_WRITE_W			; 04 dmx start channel <6:0>		<0ccccccc> XXX NOT IMPLEMENTED
-	CLRF	WREG, ACCESS	
+						;    0XXXX---  XXX sensors NOT IMPLEMENTED
+	BTFSC	DMX_SLOTH, DMX_EN, ACCESS
+	BSF	WREG, 2, ACCESS			;    0----d--  DMX enable bit
+	BTFSC	DMX_SLOTH, DMX_BIT8, ACCESS
+	BSF	WREG, 1, ACCESS			;    0-----c-  DMX channel bit 8
+	BTFSC	DMX_SLOTL, 7, ACCESS		; 
+	BSF	WREG, 0, ACCESS			;    0------c  DMX channel bit 7
+	CALL	SIO_WRITE_W			; 03 sensor, DMX status            	<0ABCDdcc> XXX NOT IMPLEMENTED
+	MOVF	DMX_SLOTL, W, ACCESS		;    0ccccccc  DMX channel bits 6:0
+	ANDLW	0x7F
+	CALL	SIO_WRITE_W			; 04 DMX status
+
 	BTFSC	SSR_STATE, PRIV_MODE, ACCESS
 	BSF	WREG, 2, ACCESS
 	BTFSC	SSR_STATE, SLEEP_MODE, ACCESS
@@ -4198,6 +4342,7 @@ S9_PRIV_0:
 	 CALL	SIO_WRITE_W
 	ENDIF
 	CLRF	YY_STATE, ACCESS
+	CALL	DMX_RESUME
 	RETURN
 
 S9_PRIV_1:
@@ -4719,26 +4864,185 @@ BE_AWAKE_NOW:
 ;
 
 ;
+; If we have DMX mode running but need to shift to Lumos protocol
+; (like entering config mode), we need to reset the baud rate to
+; whatever is configured for non-DMX use.
+;
+DMX_EXIT_TEMPORARILY:
+	CLRWDT
+	BTFSS	DMX_SLOTH, DMX_SPEED, ACCESS
+	RETURN
+	BEGIN_EEPROM_READ EE_BAUD
+	READ_EEPROM_DATA_W
+	END_EEPROM_READ
+	IF ROLE_MASTER
+	 ; Send F0 72 <baud> 26 -> slave CPU
+	 MOVWF	I, ACCESS
+	 MOVLW	0xF0
+	 CALL	SIO_WRITE_W
+	 MOVLW	0x72
+	 CALL	SIO_WRITE_W
+	 MOVF	I, W, ACCESS
+	 CALL	SIO_WRITE_W
+	 MOVLW	0x26
+	 CALL	SIO_WRITE_W
+	 CALL	DRAIN_M_S_TX_BLOCKING
+	 MOVF	I, W, ACCESS
+	ENDIF
+	CALL	SIO_SET_BAUD_W
+	BCF	DMX_SLOTH, DMX_SPEED, ACCESS	; no longer running at DMX speeds
+	RETURN
+
+DMX_RESUME:
+	CLRWDT
+	BTFSC	DMX_SLOTH, DMX_EN, ACCESS
+	BTFSC	DMX_SLOTH, DMX_SPEED, ACCESS
+	RETURN					; either not using DMX at all or already at speed
+	IF ROLE_MASTER
+	 ; Send F0 72 <baud> 26 -> slave CPU
+	 MOVLW	0xF0
+	 CALL	SIO_WRITE_W
+	 MOVLW	0x72
+	 CALL	SIO_WRITE_W
+	 MOVLW	SIO_250000
+	 CALL	SIO_WRITE_W
+	 MOVLW	0x26
+	 CALL	SIO_WRITE_W
+	 CALL	DRAIN_M_S_TX_BLOCKING
+	ENDIF
+	MOVLW	SIO_250000
+	CALL	SIO_SET_BAUD_W
+	BSF	DMX_SLOTH, DMX_SPEED, ACCESS	; now at DMX speed
+	RETURN
+	
+;
 ; Wait for start of packet
 ;
-DMX_WAIT_FOR_SYNC:
-	BTFSC	PIR1, RCIF, ACCESS
-	MOVF	RCREG, W, ACCESS	; throw away received bytes until start of frame
-	BTFSS	RCSTA, FERR, ACCESS	; wait until frame error
-	BRA	DMX_WAIT_FOR_SYNC
-	MOVF	RCREG, W, ACCESS	; clear receive buffer
-DMX_WAIT_FOR_START:
-	BTFSS	PIR1, RCIF, ACCESS
-	BRA	DMX_WAIT_FOR_START	; wait for actual characters to start
-	BTFSC	RCSTA, FERR, ACCESS	; and break to end
-	BRA	DMX_WAIT_FOR_START
-	MOVF	RCREG, W, ACCESS
-	ANDLW	0xFF			; test byte just read, should be 0x00
-	BNZ	DMX_WAIT_FOR_SYNC	; done here, come back when ready for next packet
+;DMX_WAIT_FOR_SYNC:
+;	BTFSC	PIR1, RCIF, ACCESS
+;	MOVF	RCREG, W, ACCESS	; throw away received bytes until start of frame
+;	BTFSS	RCSTA, FERR, ACCESS	; wait until frame error
+;	BRA	DMX_WAIT_FOR_SYNC
+;	MOVF	RCREG, W, ACCESS	; clear receive buffer
+;DMX_WAIT_FOR_START:
+;	BTFSS	PIR1, RCIF, ACCESS
+;	BRA	DMX_WAIT_FOR_START	; wait for actual characters to start
+;	BTFSC	RCSTA, FERR, ACCESS	; and break to end
+;	BRA	DMX_WAIT_FOR_START
+;	MOVF	RCREG, W, ACCESS
+;	ANDLW	0xFF			; test byte just read, should be 0x00
+;	BNZ	DMX_WAIT_FOR_SYNC	; done here, come back when ready for next packet
 
 	; XXX now loop over bytes, aborting on FERR (indicates packet was short)
 	; or when your data have been received.
 
+DMX_RECEIVED_BYTE:
+	CLRWDT
+	;
+	; We just got a DMX byte.  IF DMX_FRAME is set, this is supposedly the start of
+	; a new frame, so any previous frame in progress is aborted.  The state machine
+	; in DMX mode is simply:
+	;	00 IDLE;     waiting for start of frame
+	;	17 DMX_WAIT; waiting for first slot for this device
+	; 	18 DMX_UPD;  updating channels
+	;
+	BTFSS	DMX_SLOTH, DMX_FRAME, ACCESS
+	BRA	DMX_NOT_FIRST
+	BCF	DMX_SLOTH, DMX_FRAME, ACCESS	; clear start-of-frame signal
+	;
+	; Start of frame
+	; The first byte received is in WREG.  If this is 0x00, we need to pay
+	; attention to this frame.  Otherwise, it's something foreign we can ignore.
+	;
+	TSTFSZ	WREG, ACCESS
+	BRA	DMX_WEIRD_FRAME
+	MOVLW	0x17				; start of frame -> state 17
+	MOVWF	YY_STATE, ACCESS
+	MOVFF	DMX_SLOTL, YY_YY		; YY_COMMAND:YY_YY is the number of slots
+	CLRF	YY_COMMAND, ACCESS		; to skip before we get to ours
+	BTFSC	DMX_SLOTH, DMX_BIT8, ACCESS
+	BSF	YY_COMMAND, 0, ACCESS
+	RETURN
+
+DMX_WEIRD_FRAME:
+	CLRF	YY_STATE, ACCESS		; stay at state 0, wait for next frame.
+	RETURN
+
+DMX_NOT_FIRST:
+	MOVWF	YY_DATA, ACCESS			; save input byte in YY_DATA
+	MOVLW	0x17				; are we at state 17?
+	CPFSEQ	YY_STATE, ACCESS
+	BRA	DMX_18
+	;
+	; State 17: waiting for our slot to come up
+	;
+	TSTFSZ	YY_YY, ACCESS			; count off another slot...
+	BRA	DMX_ST_LSB
+	BTFSS	YY_COMMAND, 0, ACCESS
+	BRA	DMX_SLOT_REACHED
+	BCF	YY_COMMAND, 0, ACCESS		; borrow 1 and roll over
+DMX_ST_LSB:
+	DECF	YY_YY, F, ACCESS
+	RETURN
+
+DMX_SLOT_REACHED:
+	;
+	; We have waited long enough, we're up now!
+	;
+	INCF	YY_STATE, F, ACCESS		; move state 17->18 (note YY_YY==0 now)
+
+DMX_18:
+	CLRWDT
+	MOVLW	0x18
+	CPFSEQ	YY_STATE, ACCESS
+	BRA	DMX_19
+	;
+	; State 18: updating slot value YY_DATA into channel YY_YY.
+	;
+	MOVFF	YY_DATA, YY_COMMAND
+	MOVFF	YY_YY, YY_DATA
+	INCF	YY_YY, F, ACCESS
+	CALL	XLATE_SSR_ID
+	BTFSC	TARGET_SSR, INVALID_SSR, ACCESS
+	BRA	DMX_DONE
+	MOVFF	YY_COMMAND, YY_DATA
+	BTFSC	TARGET_SSR, NOT_MY_SSR, ACCESS
+	BRA	DMX_PASS_DOWN_SET_LVL
+	GOTO	SSR_OUTPUT_VALUE ; TARGET_SSR <- YY_DATA
+
+DMX_PASS_DOWN_SET_LVL:
+	IF ROLE_MASTER
+	 MOVLW	0xA0
+	 CALL	SIO_WRITE_W
+	 BCF	TARGET_SSR, 7, ACCESS
+	 BCF	TARGET_SSR, 6, ACCESS
+	 BCF	STATUS, C, ACCESS
+	 RRCF	YY_DATA, F, ACCESS
+	 BTFSC	STATUS, C, ACCESS
+	 BSF	TARGET_SSR, 6, ACCESS	; LSB of value
+	 MOVF	TARGET_SSR, W, ACCESS
+	 SEND_8_BIT_W
+	 MOVF	YY_DATA, W, ACCESS
+	 SEND_8_BIT_W
+	 SET_SSR_BLINK_FADE SSR_YELLOW
+	 RETURN
+	ELSE
+	 ERR_BUG 0x02, ERR_CLASS_IN_VALID
+	ENDIF
+	 
+DMX_DONE:
+	;
+	; reached the end of our range of slots
+	;
+	CLRF	YY_STATE, ACCESS
+	RETURN
+
+DMX_19:
+	;
+	; unknown state!  Force return to idle state
+	;
+	CLRF	YY_STATE, ACCESS
+	RETURN
 	
 HALT_MODE:
 	;
