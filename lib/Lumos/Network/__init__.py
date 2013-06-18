@@ -89,6 +89,11 @@ class Network (object):
     def input_waiting(self):
         raise NotImplementedError("This network type does not support input.")
 
+    def divert_output(self):
+        raise NotImplementedError("This network type does not support diversion.")
+
+    def end_divert_output(self):
+        raise NotImplementedError("This network type does not support diversion.")
 
     def close(self):
         """Close the network device; no further operations are
@@ -120,15 +125,31 @@ class NullNetwork (Network):
 
     def __init__(self, description=None, nulltype='generic'):
         Network.__init__(self, description="[Null instance of {0}]".format(description or 'network'))
-        self.type=nulltype
+        self.type = nulltype
+        self.diversion = None
 
     def send(self, cmd):
-        raise HardwareNotAvailable("Cannot send to {1} network ({0}): support for that device is not found on this compueter (install pyserial/pyparallel?)".format(
-            self.description, self.type))
+        if self.diversion is not None:
+            self.diversion.append(cmd)
+        else:
+            raise HardwareNotAvailable("Cannot send to {1} network ({0}): support for that device is not found on this compueter (install pyserial/pyparallel?)".format(
+                self.description, self.type))
 
     def latch(self):
         raise HardwareNotAvailable("Cannot latch {1} network ({0}): support for that device is not found on this compueter (install pyserial/pyparallel?)".format(
             self.description, self.type))
+
+    def divert_output(self):
+        if self.diversion is None:
+            self.diversion = []
+
+    def end_divert_output(self):
+        if self.diversion is None:
+            return ''
+
+        output = ''.join(self.diversion)
+        self.diversion = None
+        return output
 
     def open(self):
         raise HardwareNotAvailable("Cannot open {1} network ({0}): support for that device is not found on this compueter (install pyserial/pyparallel?)".format(

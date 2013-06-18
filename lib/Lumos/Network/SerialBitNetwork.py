@@ -68,6 +68,7 @@ else:
             Network.__init__(self, description)
             
             self.port = port
+            self.diversion = None
 
             # If the port can be a simple integer, make it so.
             try:

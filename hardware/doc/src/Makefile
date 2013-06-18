@@ -14,13 +14,16 @@ lumos_dc_24_assembly.pdf: lumos_dc_24_assembly.tex $(COMMONS)
 lumos_dc_24_installation.pdf: lumos_dc_24_installation.tex $(COMMONS)
 	pdflatex lumos_dc_24_installation
 
-lumos_ssr_user_manual.pdf: lumos_ssr_user_manual.tex lumosasm.tex lumosctl.tex \
+lumos_ssr_user_manual.pdf: lumos_ssr_user_manual.tex lumosasm.tex lumosctl.tex lumosupgrade.tex \
 		acdutycycle.tex dcdutycycle.tex slices.tex timingchain.tex timingideal.tex \
 		$(COMMONS)
 	pdflatex lumos_ssr_user_manual
 
 lumosasm.tex: ../../man/man1/lumosasm.1
 	./man2latex ../../man/man1/lumosasm.1 lumosasm.tex
+
+lumosupgrade.tex: ../../man/man1/lumosupgrade.1
+	./man2latex ../../man/man1/lumosupgrade.1 lumosupgrade.tex
 
 lumosctl.tex: ../../man/man1/lumosctl.1
 	./man2latex ../../man/man1/lumosctl.1 lumosctl.tex

@@ -135,6 +135,7 @@ else:
             self.txlevel = self._bool(txlevel)
             self.txdelay = self._int(txdelay)
             self.verbose = None
+            self.diversion = None
 
             if txmode not in ('dtr', 'rts'):
                 raise ValueError('{0} is not a valid transmit mode line name'.format(txmode))
@@ -171,6 +172,19 @@ else:
 
         def set_verbose(self, device):
             self.verbose = device
+
+        def divert_output(self):
+            """Start diverting output.  Anything sent will be collected instead of being
+            transmitting anything.  Harmless to call if output is already diverted."""
+            if self.diversion is None:
+                self.diversion = []
+
+        def end_divert_output(self):
+            "End diversion.  Returns the bytes collected as a single string value."
+            if self.diversion is not None:
+                data = ''.join(self.diversion)
+                self.diversion = None
+                return data
 
         def open(self):
             self.dev = serial.Serial(
@@ -219,12 +233,15 @@ else:
         def send(self, cmd):
             if self.dev is None:
                 return None
-
+                
             if self.verbose:
                 self.verbose.write(time.ctime()+"Sending to {0} (port {1}):\n".format(self.description, self.port))
                 self.hexdump(cmd)
 
-            return self.dev.write(cmd)
+            if self.diversion is not None:
+                self.diversion.append(cmd)
+            else:
+                return self.dev.write(cmd)
 
         def close(self):
             if self.dev is not None:

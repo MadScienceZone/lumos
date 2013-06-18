@@ -252,6 +252,13 @@ Each single output channel
 may not exceed 5\,A.  These should be considered \emph{absolute maximum} tolerances.  The board was designed
 to operate at sustained levels below those limits.
 
+Also note that the Lumos output circuits were designed to control simple resistive loads such as
+incandescent lights.  They are not appropriate for all kinds of loads.  Some inductive loads
+(for example, electromagnetic relays and motors) may require a protective ``snubber'' circuit
+between the Lumos output and the load to avoid damage to the Lumos board and/or the attached load.
+
+Do not plug any load into a lumos board which cannot be dimmed.
+
 \chapter{Overview of the Lumos Controller Models}
 \LLstart{T}{here}{are currently} four different hardware projects which are part of the Lumos
 family of controllers, which are the subject of this manual:
@@ -359,7 +366,7 @@ will be active at this time.
 
 When the button is released, the \acronym{CPU} will reboot as if powered up.  This restores the ability
 to enter configuration mode, resets all output channels to be fully off, clears sequences stored in
-normal \acronym{RAM} memory, clears all faults and error conditions, and re-initialized all the hardware
+normal \acronym{RAM} memory, clears all faults and error conditions, and re-initializes all the hardware
 and software components.
 
 \section{Entering Configuration Mode}\label{sec:configmode}
@@ -572,7 +579,7 @@ and off instead, to signal this sequence.  Have a suitable load plugged into tha
 
 \chapter{Configuring the Board}
 \LLstart{T}{here}{are a number of settings} which can be made on the Lumos controllers.  Generally,
-this is accomplished by using the \z{lumosctl} command-line program on the host PC.  The basic configuration
+this is accomplished by using the \z{lumosctl} com\-mand-line program on the host PC.  The basic configuration
 options include such things as setting the device address, communication speed, etc.  These can be set
 directly on the command line with \z{lumosctl}.
 
@@ -656,8 +663,9 @@ configuration state into a text file on the host PC.
 $ lumosctl --dump-configuration=lumos_board.cfg
 \end{SourceCode}
 
-Looking in the \z{lumos\_board.cfg}, find a section beginning with ``\z{[lumos\_device\_settings]}''.
-there is a field ``\z{sensors=}\Var*{list}'' which should contain a list of all the sensors 
+Looking in the \z{lumos\_board.cfg}, find a section beginning with the stanza tag
+``\z{[lumos\_device\_settings]}''.
+There is a field ``\z{sensors=}\Var*{list}'' which should contain a list of all the sensors 
 configured as inputs.  
 
 So if we had lines A and C wired up to sensor inputs instead of \acronym{LED} outputs, we need to 
@@ -704,7 +712,7 @@ active_low=yes
 \end{SourceCode}
 
 Once the file is set up with all the configuration changes you wish to make, it may be 
-loaded back to the board again with the \z{----load--configuration=}\Var*{file} option:
+loaded back to the board again with the \z{----load--con\-fig\-ur\-a\-tion=}\Var*{file} option:
 
 \begin{SourceCode}
 $ lumosctl --load-configuration=lumos_board.cfg
@@ -733,7 +741,8 @@ First, get the current configuration settings into a file:
 \begin{SourceCode}
 $ lumosctl --dump-configuration=lumos_board.cfg
 \end{SourceCode}
-In the \z{[lumos\_device\_settings]} section, add a field ``\z{dmxchannel=}\Var*{c}'' where
+In the \z{[lumos\_device\_settings]} section, add a new field ``\z{dmxchannel=}\Var*{c}'',
+where
 \Var*{c} is the starting slot number you wish the Lumos controller to use.  This will be 
 channel \#0 on this board.  
 
@@ -1162,7 +1171,7 @@ repeat as outer:
 end
 \end{SourceCode}
 
-The loop stack would look like:
+Then the loop stack would look like:
 \begin{center}
 \begin{bytefield}[leftcurlyspace=0pt, rightcurlyspace=0pt, leftcurly=., rightcurly=.]{10}
   \bitbox[]{2}{} & \bitbox[]{8}{(direction of growth)}\\
@@ -1180,7 +1189,7 @@ counter for the next loop out from there, and so on.
 Note that a counter variable is allocated for \emph{every} loop entered,
 even if the source code didn't associate it with a variable name
 (e.g., if the innermost was ``\z{REPEAT 10:}'' without the 
-``\z{AS Z}'' part).
+``\z{AS INNER}'' part).
 
 \subsubsection{Data Stack}
 The data stack contains the parameters passed to the current
@@ -1787,7 +1796,7 @@ This compiles into the following bytecode:
 \begin{SourceCode}
 SEQUENCE #1 ASSEMBLY LISTING
 ADDR BYTES          LINE SOURCE CODE
----- -------------- ---- ----------------------------------------------------
+---- -------------- ---- -----------------------------
 0000 4F 0A          0002 	PUSH    #10
 0002 2A             0003 I_LOOP: LOOP    #0
 0003 4A 14          0004 J_LOOP:	LOOP    #20
@@ -1806,7 +1815,7 @@ ADDR BYTES          LINE SOURCE CODE
 
 SEQUENCE #5 ASSEMBLY LISTING
 ADDR BYTES          LINE SOURCE CODE
----- -------------- ---- ----------------------------------------------------
+---- -------------- ---- -----------------------------
 0000 40 02          0019 	SSFB    #2
 0002 4F 42          0020 	PUSH    #0x42
 0004 AF             0021 	PUSH    [0]
@@ -2444,20 +2453,20 @@ if you want some initialization code to take place at the start of the first ite
 is not repeated on subsequent iterations).
 
 \begin{opdesc}
-  \z{0B} & \Var*{addr}&&\z{NEXT}&\Var*{addr}\z{,\$,\$} & Loop to \Var*{addr} if \z{\{0\}}+\Var{x}>\Var{y}.\\
-  \z{2B} & \Var*{addr}&&\z{NEXT}&\Var*{addr}\z{,\#1,\$}& Loop to \Var*{addr} if \z{\{0\}}+1>\Var{x}.\\
-  \z{4B} & \Var*{addr}& \Var*{inc} \Var*{max}&\z{NEXT}&\Var*{addr}\z{,\#}\Var*{inc}\z{,\#}\Var*{max}& Loop to \Var*{addr} if \z{\{0\}}+\Var*{inc}>\Var*{max}.\\
-  \z{6B} & \Var*{addr}&\Var*{max}&\z{NEXT}&\Var*{addr}\z{,\#1,\#}\Var*{max}& Loop to \Var*{addr} if \z{\{0\}}+1>\Var*{max}.\\
-  \z{15} & \Var*{addr}&&\z{NEXTDEC}&\Var*{addr}\z{,\$,\$} & Loop to \Var*{addr} if \z{\{0\}}--\Var{x}<\Var{y}.\\
-  \z{35} & \Var*{addr}&&\z{NEXTDEC}&\Var*{addr}\z{,\#1,\$}& Loop to \Var*{addr} if \z{\{0\}}--1<\Var{x}.\\
-  \z{55} & \Var*{addr}& \Var*{dec} \Var*{min}&\z{NEXTDEC}&\Var*{addr}\z{,\#}\Var*{dec}\z{,\#}\Var*{min}& Loop to \Var*{addr} if \z{\{0\}}--\Var*{dec}<\Var*{min}.\\
-  \z{75} & \Var*{addr}&\Var*{min}&\z{NEXTDEC}&\Var*{addr}\z{,\#1,\#}\Var*{min}& Loop to \Var*{addr} if \z{\{0\}}--1<\Var*{min}.\\
-  \z{8B} & \Var*{addr}&&\z{NEXTINF}&\Var*{addr}\z{,\$} & $\infty$ loop to \Var*{addr}, \z{\{0\}}+\Var{x}.\\
-  \z{AB} & \Var*{addr}&&\z{NEXTINF}&\Var*{addr}\z{,\#1}& $\infty$ loop to \Var*{addr}, \z{\{0\}}+1.\\
-  \z{CB} & \Var*{addr}&\Var*{inc}&\z{NEXTINF}&\Var*{addr}\z{,\#}\Var*{inc}& $\infty$ loop to \Var*{addr}, \z{\{0\}}+\Var*{inc}.\\
-  \z{95} & \Var*{addr}&&\z{NXDCINF}&\Var*{addr}\z{,\$} & $\infty$ loop to \Var*{addr}, \z{\{0\}}--\Var{x}.\\
-  \z{B5} & \Var*{addr}&&\z{NXDCINF}&\Var*{addr}\z{,\#1}& $\infty$ loop to \Var*{addr}, \z{\{0\}}--1.\\
-  \z{D5} & \Var*{addr}&\Var*{dec}&\z{NXDCINF}&\Var*{addr}\z{,\#}\Var*{dec}& $\infty$ loop to \Var*{addr}, \z{\{0\}}--\Var*{dec}.\\
+  \z{0B} & \Var*{addr}&&\z{NEXT}&\Var*{addr}\z{,\$,\$} & Loop to \Var*{addr} if \z{\{0\}}+=\Var{x}>\Var{y}.\\
+  \z{2B} & \Var*{addr}&&\z{NEXT}&\Var*{addr}\z{,\#1,\$}& Loop to \Var*{addr} if \z{\{0\}}+=1>\Var{x}.\\
+  \z{4B} & \Var*{addr}& \Var*{inc} \Var*{max}&\z{NEXT}&\Var*{addr}\z{,\#}\Var*{inc}\z{,\#}\Var*{max}& Loop to \Var*{addr} if \z{\{0\}}+=\Var*{inc}>\Var*{max}.\\
+  \z{6B} & \Var*{addr}&\Var*{max}&\z{NEXT}&\Var*{addr}\z{,\#1,\#}\Var*{max}& Loop to \Var*{addr} if \z{\{0\}}+=1>\Var*{max}.\\
+  \z{15} & \Var*{addr}&&\z{NEXTDEC}&\Var*{addr}\z{,\$,\$} & Loop to \Var*{addr} if \z{\{0\}}--=\Var{x}<\Var{y}.\\
+  \z{35} & \Var*{addr}&&\z{NEXTDEC}&\Var*{addr}\z{,\#1,\$}& Loop to \Var*{addr} if \z{\{0\}}--=1<\Var{x}.\\
+  \z{55} & \Var*{addr}& \Var*{dec} \Var*{min}&\z{NEXTDEC}&\Var*{addr}\z{,\#}\Var*{dec}\z{,\#}\Var*{min}& Loop to \Var*{addr} if \z{\{0\}}--=\Var*{dec}<\Var*{min}.\\
+  \z{75} & \Var*{addr}&\Var*{min}&\z{NEXTDEC}&\Var*{addr}\z{,\#1,\#}\Var*{min}& Loop to \Var*{addr} if \z{\{0\}}--=1<\Var*{min}.\\
+  \z{8B} & \Var*{addr}&&\z{NEXTINF}&\Var*{addr}\z{,\$} & $\infty$ loop to \Var*{addr}, \z{\{0\}}+=\Var{x}.\\
+  \z{AB} & \Var*{addr}&&\z{NEXTINF}&\Var*{addr}\z{,\#1}& $\infty$ loop to \Var*{addr}, \z{\{0\}}+=1.\\
+  \z{CB} & \Var*{addr}&\Var*{inc}&\z{NEXTINF}&\Var*{addr}\z{,\#}\Var*{inc}& $\infty$ loop to \Var*{addr}, \z{\{0\}}+=\Var*{inc}.\\
+  \z{95} & \Var*{addr}&&\z{NXDCINF}&\Var*{addr}\z{,\$} & $\infty$ loop to \Var*{addr}, \z{\{0\}}--=\Var{x}.\\
+  \z{B5} & \Var*{addr}&&\z{NXDCINF}&\Var*{addr}\z{,\#1}& $\infty$ loop to \Var*{addr}, \z{\{0\}}--=1.\\
+  \z{D5} & \Var*{addr}&\Var*{dec}&\z{NXDCINF}&\Var*{addr}\z{,\#}\Var*{dec}& $\infty$ loop to \Var*{addr}, \z{\{0\}}--=\Var*{dec}.\\
 \end{opdesc}
 
 \subsubsection{\z{NOP}: No Operation}
@@ -3613,7 +3622,7 @@ speed is not recommended.}
 		& \bitbox[br]{1}{\z0}
 \end{BF}
 Restores the device to its original factory settings.  Note that, among other things, this
-will change the device's address to 0 and its baud rate to 19,200\,bps.
+will change the device's address to 0 and its speed to 19,200\,bps.
 {\bfseries This command is only recognized if the controller is in configuration mode.}
 
 \subsection{\z{0x774} [config] Forbid Configuration Mode}
@@ -3691,7 +3700,7 @@ to 50\%, it will be fully on half the time and fully off half the time.  This is
 illustrated in Figure~\ref{fig:dutycycle}.
 \input dutycycle
 
-In more detail, each half-wave period (1/120\,s for the 60\,Hz power frequency standard
+Each half-wave period (1/120\,s for the 60\,Hz power frequency standard
 used in many countries such as the \acronym{USA})\footnote{The AC-powered Lumos boards 
 are not designed to work in environments where the power frequency is not 60\,Hz.  DC-powered
 boards will work regardless, since they never see the AC power directly.} is divided
@@ -3705,18 +3714,20 @@ of a second before the start of the next output cycle.)
 \input slices
 
 
-For the main intended application of these controllers---incandescent lamps for the AC
-boards and \acronym{LED}s for the DC boards---this produces a visual effect of the light
+For the intended application of these controllers---incandescent lamps for the AC
+boards and \acronym{LED}s for the DC boards---this produces the visual effect of the light
 being dimmed.  Note that not all devices can tolerate being supplied power like this,
 so you need to make an informed decision about what to plug into a Lumos 
-controller.\footnote{You might decide it's an acceptable risk to attach one of these loads, such as a
-``non-dimmable'' \acronym{CFL} light, if you only tell the Lumos board to turn it on
-or off, and never use the dimmer settings.  In theory, that may be ok, all other things
+controller.\footnote{You might think it's an acceptable risk to attach one of these loads, such as a
+``non-dimmable'' \acronym{CFL} light, if you tell the Lumos board to only turn it on
+or off, and never use the dimmer settings.  In theory, that might be ok, all other things
 being equal, but you're trusting that your host PC software won't accidentally command
 the board to do something to fade that output, or a stored sequence won't do that,
-or a glitch in communications won't be misinterpreted as such, or that even a firmware
-bug on the controller won't cause this. It's an informed risk you can decide to take, but
-we don't officially recommend it.}
+or a glitch in communications won't be misinterpreted as such, or even that a firmware
+bug on the controller won't cause this. It's an informed risk you can decide whether to take, but
+we don't officially recommend it.} This is similar to many household dimmers, so as a general
+rule of thumb, a light (such as a \acronym{CFL}) marked as ``non-dimmable'' should not
+be dimmed by a Lumos board.  Damage to the Lumos board and the lamp may result.
 
 For DC loads, this \acronym{PWM} signal appears as-is on the output channel (although
 inverted).  Note that the frequency of these pulses is 1/120\,s, which should be
@@ -3740,18 +3751,20 @@ into each half-cycle, as shown in Figure~\ref{fig:acdutycycle}.
 The DC controllers produce a 120\,Hz timing pulse internally so they are consitent with the
 AC controllers, but this doesn't need to be synchronized with anything external.
 
-There is an obscure device setting called ``\ix{phase offset}'' on the Lumos controllers which controls
-the delay between the receipt of the zero-crossing signal and the time of the actual zero-crossing
+\section{Phase Offset}
+There is an obscure device setting called ``\ix{phase offset}'' on the Lumos controllers which adds a
+delay between the receipt of the zero-crossing signal and the time of the actual zero-crossing
 event.  This compensates for the effect of the controller's AC supply being out of phase with the
 load AC supply.  (In the very first prototype Lumos design, the detector circuit needed this but
-that is no longer the case.  In practice, there shouldn't be any phase difference between the controller's
+that is no longer the case.)  
+In practice, there shouldn't be any phase difference between the controller's
 supply and the load supply which would require changing this offset.  Note that being 180$^\circ$
 out of phase---such as being supplied from separate ``sides'' of a residential AC breaker panel---doesn't 
 matter here, since they have the same zero-crossing point.)
 
-We will now describe how the phase offset works in the internal timing chain implemented by the Lumos
+We will now describe how the phase offset works in the internal timing chain of the Lumos
 controller firmware, in case you should find yourself in some strange circumstance where you need
-to change this setting.  Otherwise, the normal setting for this value is 2.
+to change this setting.  Otherwise, use the normal setting for this value (2).
 
 The timing diagram for the controller's output update cycle is shown in Figure~\ref{fig:timingchain}.
 Note the green AC waveform as perceived by the zero-crossing detector vs.\ the blue actual waveform
@@ -3762,10 +3775,10 @@ When the zero-crossing detector senses 0\,V on the incoming power line, it trigg
 on the Lumos microcontroller (\mc{INT} on the diagram).  This starts the phase delay timer which
 counts down a number of slices equal to the ``phase offset'' setting (normally~2).  Once that many
 slices have gone by, the ``working slices'' begin.  During each of these slices, various output
-channels are turned on in order for each of them to be effectively generating the desired \acronym{PWM}
+channels are turned on in order for each of them to generate the desired \acronym{PWM}
 duty cycle.
 
-Assuming that the interrupt arrives at the actual zero-crossing event, as it ideally does,
+Assuming that the interrupt arrives at the actual zero-crossing event, as it ideally should,
 the default phase offset delay of 2 means that we get two
 idle slices before the 256 working slices begin, and two idle slices at the end.  This compensates for
 any slight timing errors thay may creep into the cycle as well as ensuring the \acronym{TRIAC}s 
@@ -3779,6 +3792,12 @@ In both cases, the relay is intended to control a simple resistive load (typical
 lights).  They are not designed to control inductive loads (e.g., motors or flourescent lights).  If you intend
 to use those types of loads with these \acronym{SSR}s, you will need to add protective circuitry (such as an
 additional, higher-power \acronym{SSR} or a ``snubber'' circuit) to the Lumos output.
+
+The specific circuit needed depends on your load, determined by a qualified electrician or other
+appropriately qualified person.  The general idea is to place an appropraitely-sized resistor
+and capacitor across the \acronym{SSR} output like so:
+
+XXX figure needed XXX
 
 \backmatter
 \appendix
@@ -3912,9 +3931,9 @@ The various codes are summarized in Figure~\ref{fig:leds}.
  \def\y{2}
   \light{Y2}{blk} \node [right] at (1,\y) {blink then fade once};
  \def\y{1.5}
-  \light{Y2}{sss} \node [right] at (1,\y) {super-slow fading up/down};
+  \light{Y2}{sss} \node [right] at (1,\y) {super-slow flashing};
  \def\y{1}
-  \light{Y2}{x} \node [right] at (1,\y) {not involved/affected; may have any value};
+  \light{Y2}{x} \node [right] at (1,\y) {not involved or affected; may have any value};
  \end{tikzpicture}
  \caption{Key to LED Patterns\label{fig:leds-key}}
 \end{figure}
@@ -3950,7 +3969,7 @@ The various codes are summarized in Figure~\ref{fig:leds}.
 
 %\section{Numeric Error Codes}
 \chapter{Lumos CLI Command Manual Entries}\label{ch:lumosctl}
-This chapter provides the documentation for the \z{lumosasm} and \z{lumosctl} commands.  
+This chapter provides the documentation for the \z{lumosasm}, \z{lumosctl}, and \z{lumosupgrade} commands.  
 This same information is also
 provided to the \acronym{CLI} user on Unix, Linux, or Macintosh systems via the \z{man} command.  
 
@@ -3972,6 +3991,8 @@ user commands on Unix-like systems.
 \input lumosasm
 \newpage
 \input lumosctl
+\newpage
+\input lumosupgrade
 \chapter{Troubleshooting}
 factory reset
 \chapter{Glossary}\label{ch:glossary}

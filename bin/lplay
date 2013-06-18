@@ -62,7 +62,7 @@ at the start of a loop iteration.
 '''
 )
 parser.add_option('-c', '--config',  metavar='FILE', help='Specify config file [./lumos.conf]')
-parser.add_output('-D', '--debug',   metavar='FILE', help='Dump debugging information to FILE')
+parser.add_option('-D', '--debug',   metavar='FILE', help='Dump debugging information to FILE')
 parser.add_option('-s', '--skew',    metavar='mS', type='int', help='Delay sequence times vs. audio')
 parser.add_option('-T', '--test',    action='store_true', help="Describe playback, don't actually do it")
 parser.add_option('-v', '--verbose', action='store_true', help='Enable more descriptive output')
@@ -80,6 +80,12 @@ show.load_file(options.config, open_device=(not options.test))
 # Functions to support --test mode (real time trace of what actions
 # would have been taken on a real run)
 #========================================================================
+
+def debug_event(time_stamp):
+    global debug_file
+
+    debug_file.write("[Event time {0:.3f}]\n".format(
+        time_stamp / 1000.0))
 
 def trace_event_format(expected_time, func, arglist):
     '''
@@ -308,7 +314,11 @@ while file_next < len(files):
                     (trace_event_format(time_stamp, method, arglist),))
             start_point = time.time()
         else:
+            last_timestamp = None
             for time_stamp, method, arglist, priority in sequence.compile(keep_state=True, skew=options.skew):
+                if options.debug and last_timestamp != time_stamp:
+                    schedule.enter(time_stamp / 1000.0, 0, debug_event, (time_stamp,))
+                    last_timestamp = time_stamp
                 schedule.enter(time_stamp / 1000.0, priority, method, arglist)
 
         if sequence.audio is not None:
@@ -318,6 +328,14 @@ while file_next < len(files):
 
         if sequence.audio is not None:
             pygame.mixer.music.stop()
+
+        print "Dumping stats"
+        for cid in show.controllers:
+            print "--", cid
+            try:
+                show.controllers[cid].dumpstats('/tmp/lumosstats.'+cid)
+            except Exception, e:
+                print "Can't dump stats for {} ({})".format(cid, e)
 
 if options.verbose:
     print "Scene complete."

@@ -160,6 +160,7 @@ class VixenSequence (object):
                     current_time = 0
                     current_channel += 1
                     current_value = None
+            print "Ended conversion at channel", current_channel, "of", len(self.channels), "; time", current_time, "of", self.total_time
 
         except Exception, error:
             raise InvalidVixenSequenceFile('Unable to understand Vixen sequence file (%s)' % error)

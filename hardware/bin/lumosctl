@@ -23,7 +23,7 @@ class NotImplemenetedError (Exception): pass
 
 def parse_arguments():
     global options
-    parser = optparse.OptionParser(usage='%prog [-dFhkPRSvXz] [-A ADDR] [-a ADDR] [-B SPD] [-b SPD] [-C FILE] [-c FILE] [-D LIST] [-E LIST] [-L LVL] [-m mS] [-P PH] [-p PORT] [-s FILE] [-T MODE] [-t ...] [-x DPX] [channel-levels...]', version='%prog, version 1.0')
+    parser = optparse.OptionParser(usage='%prog [-dFhkPRrSvXz] [-A ADDR] [-a ADDR] [-B SPD] [-b SPD] [-C FILE] [-c FILE] [-D LIST] [-E LIST] [-L LVL] [-m mS] [-P PH] [-p PORT] [-s FILE] [-T MODE] [-t ...] [-x DPX] [channel-levels...]', version='%prog, version 1.0')
     parser.add_option('-a', '--address',        metavar='ADDR', type='int', help='Unit address (0-15) [%default]')
     parser.add_option('-S', '--clear-sequences', action='store_true', help='Delete all stored sequences from the device.')
     parser.add_option('-D', '--disable-sensor',  metavar='LIST', help='Disable sensor(s) ABCD in LIST')
@@ -39,6 +39,7 @@ def parse_arguments():
     parser.add_option('-p', '--port', metavar='PORT', help='Serial I/O port to use [%default]')
     parser.add_option('-P', '--probe', action='store_true', help='Discover Lumos devices on network')
     parser.add_option('-R', '--report', action='store_true', help='Report device status to standard output.')
+    parser.add_option('-r', '--read-only' action='store_true', help="Don't read device status")
     parser.add_option('-t', '--sensor', metavar='TRIG', action='append', help='Set trigger event for sensor.')
     parser.add_option('-A', '--set-address', metavar='ADDR', type='int', help='Change unit address (0-15)')
     parser.add_option('-B', '--set-baud-rate', metavar='SPD', type='int', help='Change unit baud rate.')

@@ -211,6 +211,11 @@ Each single output channel
 may not exceed 5\,A.  These should be considered \emph{absolute maximum} tolerances.  The board was designed
 to operate at sustained levels below those limits.
 
+Also note that the Lumos output circuits were designed to control simple resistive loads such as
+incandescent lights.  They are not appropriate for all kinds of loads.  Some inductive loads
+(for example, electromagnetic relays and motors) may require a protective ``snubber'' circuit
+between the Lumos output and the load to avoid damage to the Lumos board and/or the attached load.
+
 %\chapter{What You Will Need}\label{ch:materials}
 %
 %\LLstart{A}{SSEMBLING}{this project} requires soldering approximately 140 components onto a PC board.\footnote{The actual number will vary depending on the options selected.}  Before beginning construction, be sure you have the following tools and materials on hand:
@@ -663,6 +668,11 @@ separate power supplies to distribute load appropriately, or to control differen
 You must supply power to the Lumos controller itself (at connector J10) as well as to each block of 
 output channels you will be controlling.
 
+Also note that the Lumos output circuits were designed to control simple resistive loads such as
+incandescent lights.  They are not appropriate for all kinds of loads.  Some inductive loads
+(for example, electromagnetic relays and motors) may require a protective ``snubber'' circuit
+between the Lumos output and the load to avoid damage to the Lumos board and/or the attached load.
+
 For these instructions, we will guide you through attaching an \mc{ATX}-style \ix{power supply} to a 
 Lumos board, to supply +5\,V power to run the Lumos board itself, and +12\,V to run two strings of \mc{LED}
 Christmas lights.  Figure~\ref{fig:ledconn} shows how the wires are connected, using typical wire colors
@@ -964,10 +974,13 @@ One unit does not respond to commands.
 
 \chapter{Glossary}\label{ch:glossary}
 \begin{description}
-	\item[Active Low:]
-		A logic signal which is considered ``on'' when the signal is ``low'' (binary 0 or 0\,V),
-		and ``off'' when the signal is ``high'' (binary 1 or +5\,V).  Lumos relay circuits are 
+	\item[Active High:]
+		A logic signal which is considered ``on'' when the signal is ``high'' (binary 1 or +5\,V),
+		and ``off'' when the signal is ``low'' (binary 0 or 0\,V).  Lumos relay circuits are 
 		triggered with active-low signals.
+	\item[Active Low:]
+		A logic signal which is considered ``on'' and ``off'' at the opposite signal levels
+		to an ``active high'' signal (q.v.).
 %	\item[Annular Ring:]
 %		The exposed ring of metal around a hole in a \acronym{PCB} where a component is to be 
 %		mounted.  The solder will flow across the component lead and onto the annular ring.

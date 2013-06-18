@@ -597,8 +597,29 @@ FLASH_UPD_EB:	MOVLW	'b'
 		BRA	FLASH_UPD_ERR
 FLASH_UPD_EV:	MOVLW	'v'
 		BRA	FLASH_UPD_ERR
-		; XXX if final, stop
+		BTFSS	FLASH_UPD_FLAG, FL_FL_FINAL, ACCESS
 		BRA	FLASH_UPDATE_NEXT_BLOCK
+		;
+		;       ||
+		;      _||_
+		;      \  /
+		;	\/
+		;
+
+FLASH_UPDATE_END:
+		CLRWDT
+;
+; Stop the download process.
+; At this point, we have just written page zero with our new boot vector
+; so all we need to do really is just reboot.
+; (I was going to reset the boot vector here, but on second thought,
+; that risks booting into a partially-burned--i.e., corrupt--firmware
+; image, so once you start this process the only way out is to complete
+; a download successfully.)
+;
+		RESET		; Go home.
+		GOTO	0	; No, seriously, go.
+
 
 FLASH_UPD_READ_BINARY_BLOCK:
 ; Read exactly FLASH_UPD_I bytes into memory at [FSR0+] by reading
@@ -655,14 +676,6 @@ FLASH_UPD_INVALID_CMD:
 FLASH_UPD_ERR:	RCALL	FLASH_UPDATE_SEND
 		BRA	FLASH_UPDATE_NEXT_BLOCK
 
-
-
-; XXX either disallow writes to $000000 block or override boot vector in the image
-
-FLASH_UPDATE_END:
-		CLRWDT
-		; XXX left off here
-
 FLASH_UPDATE_SEND:
 ;
 ; Send a byte to the serial port
@@ -709,12 +722,12 @@ FLASH_UPD_RC2: 	BTFSS	PIR1, RXIF, ACCESS	; wait for charater to arrive
 		MOVFF	RCREG, FLASH_UPD_INP
 		RETURN
 
-FLASH_UPD_PAUSE:
-		SETF	FLASH_UPD_DLY, ACCESS
-FLASH_UPD_P_L:	CLRWDT
-		DECFSZ	FLASH_UPD_DLY, F, ACCESS
-		BRA	FLASH_UPD_P_L
-		RETURN
+FLASH_UPD_PAUSE:					; Delay 1,025 uS (~1mS)
+		SETF	FLASH_UPD_DLY, ACCESS		; 1
+FLASH_UPD_P_L:	CLRWDT					; 1 \
+		DECFSZ	FLASH_UPD_DLY, F, ACCESS	; 1 | x 255   +1
+		BRA	FLASH_UPD_P_L			; 2 /	      +1
+		RETURN                                  ;             +2
 
 FLASH_UPD_ABORT:
 		; arrange to ignore everything until next Q or > received

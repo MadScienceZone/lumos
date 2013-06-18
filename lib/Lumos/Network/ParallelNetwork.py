@@ -66,6 +66,7 @@ else:
             Network.__init__(self, description)
             
             self.port = port
+            self.diversion = None
 
             # If the port can be a simple integer, make it so.
             try:
@@ -77,13 +78,27 @@ else:
             if open_device:
                 self.open()
 
+        def divert_output(self):
+            if self.diversion is None:
+                self.diversion = []
+
+        def end_divert_output(self):
+            if self.diversion is not None:
+                data = ''.join(self.diversion)
+                self.diversion = None
+                return data
+            else:
+                return ''
+
         def open(self):
             self.dev = parallel.Parallel(port=self.port)
             self.dev.setDataDir(1)
             self.dev.setDataStrobe(0)
 
         def send(self, cmd):
-            if self.dev is not None:
+            if self.diversion is not None:
+                self.diversion.append(cmd)
+            elif self.dev is not None:
                 self.dev.setData(cmd)
                 self.dev.setDataStrobe(1)
                 self.dev.setDataStrobe(0)

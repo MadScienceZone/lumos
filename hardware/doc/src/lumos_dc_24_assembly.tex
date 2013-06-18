@@ -545,22 +545,25 @@ presented here is intended to make assembly as convenient as possible.  Generall
 progressing from the shortest to the tallest components, allowing the board to be laid flat
 face-down on the work surface while soldering the component leads.
 
-\begin{description}
-\item[\HandRight\ Note:] Take care to make good, solid \ix{solder connections} when installing components.
+\begin{itemize}
+\item[\HandRight] \bfseries{Note:} 
+Take care to make good, solid \ix{solder connections} when installing components.
 Hold your soldering iron to the part's lead \emph{and} the \ix{annular ring} of the \acronym{PCB}
 until both are hot, then apply just enough solder to cover the ring, withdraw the solder, then 
 remove the heat.  Good solder connections should be shiny and smooth.
 
-\item[\HandRight\ Note:] The board layout is quite compact, with many components in a small space.  Take
+\item[\HandRight] \bfseries{Note:} 
+The board layout is quite compact, with many components in a small space.  Take
 care when soldering that you don't accidentally heat the wrong component or form solder bridges between
 nearby contact points.
 
-\item[\HandRight\ Note:] We will point out a few places where \acronym{ESD} protection is needed, but
+\item[\HandRight] \bfseries{Note:} 
+We will point out a few places where \acronym{ESD} protection is needed, but
 that is intended to call attention to the issue at some key points, not to be a comprehensive list of
 \emph{every} case where it is needed.  You are expected to use appropriate handling protocols for all
 parts, which includes the use of \acronym{ESD} protection when working with semiconductors (e.g., all
 chips, voltage regulators, transistors, etc.).
-\end{description}
+\end{itemize}
 
 
 \section{Building the Relay Section}
@@ -899,8 +902,10 @@ Perform the following steps to add {\bfseries half-duplex} RS-485 capability:
 \bigskip\noindent{\bfseries Continue} to the section on RS-485 terminators below.
 
 \section{RS-485 Terminator Construction}\label{sec:terminator}
-Each end of an RS-485 communications line must be terminated, or it won't work (in fact, without termination
-it might not even work \emph{at all}).  The schematic for this is on page~\pageref{sch:terminator} in the 
+Each end of an RS-485 communications line must be terminated, or it won't work.
+% (in fact, without termination
+%it might not even work \emph{at all}).  
+The schematic for this is on page~\pageref{sch:terminator} in the 
 appendices.  To build one yourself, you'll need:
 \begin{itemize}
 \item	(2) 120\,$\Omega$ resistors.
@@ -1232,10 +1237,13 @@ a Lumos 24-channel DC controller.
 
 \chapter{Glossary}\label{ch:glossary}
 \begin{description}
-	\item[Active Low:]
-		A logic signal which is considered ``on'' when the signal is ``low'' (binary 0 or 0\,V),
-		and ``off'' when the signal is ``high'' (binary 1 or +5\,V).  Lumos relay circuits are 
+	\item[Active High:]
+		A logic signal which is considered ``on'' when the signal is ``high'' (binary 1 or +5\,V),
+		and ``off'' when the signal is ``low'' (binary 0 or 0\,V).  Lumos relay circuits are 
 		triggered with active-low signals.
+	\item[Active Low:]
+		A logic signal which is considered ``on'' and ``off'' at the opposite signal levels
+		to an ``active high'' signal (q.v.).
 	\item[Annular Ring:]
 		The exposed ring of metal around a hole in a \acronym{PCB} where a component is to be 
 		mounted.  The solder will flow across the component lead and onto the annular ring.

@@ -27,6 +27,7 @@
 # USE THIS PRODUCT AT YOUR OWN RISK.
 # 
 from Lumos.ControllerUnit import ControllerUnit
+import time
 
 class DeviceProtocolError (Exception): pass
 class InternalDeviceError (Exception): pass
@@ -35,6 +36,13 @@ class LumosControllerUnit (ControllerUnit):
     """
     ControllerUnit subclass for my custom 48-channel SSR boards.
     """
+    def dumpstats(self, filename):
+        f = open(filename, 'w')
+        f.write('{0} flush calls():\n'.format(len(self.stats)))
+        for time, count in self.stats:
+            f.write('{0} {1}\n'.format(time, count))
+        f.close()
+
     def __init__(self, id, power_source, network, address=0, resolution=256, num_channels=48):
         """
         Constructor for a Lumos SSR board object:
@@ -55,6 +63,7 @@ class LumosControllerUnit (ControllerUnit):
         #self.iter_channels = self._iter_non_null_channel_list
         self._changed_channels = set()
         self._reset_queue()
+        self.stats=[]
 
         if not 0 <= self.address <= 15:
             raise ValueError("Address {0} out of range for Lumos SSR Controller".format(self.address))
@@ -167,8 +176,10 @@ class LumosControllerUnit (ControllerUnit):
             # If all the channels are at zero, then really we just need to send
             # a one-byte "all channels off" command.
             #
+            byte_count=0
             if sum([i.level or 0 for i in self.channels.values()]) == 0:
                 self.network.send(chr(0x80 | self.address))
+                byte_count += 1
             else:
                 if force:
                     n = self.num_channels
@@ -191,13 +202,16 @@ class LumosControllerUnit (ControllerUnit):
                         chr(0x55)
                     ]
                     self.network.send(''.join(packet))
+                    byte_count += len(packet)
                 else:
                     # individual channel updates A0|a ch v
                     for i in self._changed_channels:
                         if not self.channels[i].level:  # covers None and 0
                             self.network.send(chr(0x90 | self.address) + chr(i & 0x3f))
+                            byte_count += 2
                         elif self.channels[i].level >= self.resolution-1:
                             self.network.send(chr(0x90 | self.address) + self._8_bit_string([0x40 | (i & 0x3f)]))
+                            byte_count += 2
                         else:
                             self.network.send(
                                 chr(0xa0 | self.address) + self._8_bit_string([
@@ -205,7 +219,38 @@ class LumosControllerUnit (ControllerUnit):
                                     (self.channels[i].level >> 1) & 0x7f
                                 ])
                             )
+#<<<<<<< .mine
+#                            byte_count += 3
+#                #else:
+#                #    if n >= (10 if self.num_channels <= 24 else 18):
+#                        # low-res bulk transfer B0|a ch n v*n 55
+#                #        n_1 = self._max_change - self._min_change
+#                #        self.network.send(''.join([
+#                #            chr(0xb0 | self.address),
+#                #            chr(self._min_change & 0x3f),
+#                #            chr((n_1) & 0x3f)
+#                #        ] + [
+#                #            chr((((self.channels[vi].level or 0)) & 0x7f) if vi in self.channels else 0) for vi in range(self._min_change, self._max_change + 1)
+#                #        ] + [
+#                #            chr(0x55)
+#                #        ]))
+#                #    else:
+#                #        # low-res individual channel updates A0|a ch v
+#                #        for i in self._changed_channels:
+#                #            if not self.channels[i].level:
+#                #                self.network.send(chr(0x90 | self.address) + chr(i & 0x3f))
+#                #            elif self.channels[i].level >= self.resolution-1:
+#                #                self.network.send(chr(0x90 | self.address) + chr(0x40 | (i & 0x3f)))
+#                #            else:
+#                #                self.network.send(
+#                #                    chr(0xa0 | self.address) + 
+#                #                    chr(i & 0x3f) +
+#                #                    chr(self.channels[i].level & 0x7f)
+#                #                )
+#=======
+#>>>>>>> .r91
             self._reset_queue()
+            self.stats.append((time.time(), byte_count))
             
 
     def set_channel(self, id, level, force=False):
@@ -303,11 +348,11 @@ class LumosControllerUnit (ControllerUnit):
         self.network.send(chr(0xF0 | self.address) + self._8_bit_string([0x04, id, len(bits)-1] 
             + bits) + 'Ds')
 
-    def raw_sensor_trigger(self, sens_id, seq_id, inverse=False, exec=False):
+    def raw_sensor_trigger(self, sens_id, seq_id, inverse=False, execf=False):
         # inverse is "active high"
         self.network.send(chr(0xF0 | self.address) + self._8_bit_string([
             0x06, 
-            (0x00 if inverse else 0x10) | (0x20 if exec else 0x00) | 
+            (0x00 if inverse else 0x10) | (0x20 if execf else 0x00) | 
                 {'A':0, 'B':1, 'C':2, 'D':3}[sens_id],
             seq_id
         ]) + '<')
