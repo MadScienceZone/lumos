@@ -146,25 +146,28 @@
 ; $03F               |                                                       |
 ;                    |                                                       |
 ;                    |______|______|______|______|______|______|______|______|
-; $040 FLASH_UPD_CKS |                                                       |
-;                    |    Checksum of bytes received so far                  |
+; $040 FLASH_UPD_RC  |                                                       |
+;                    |    Checksum received from host (BYTE AFTER BUF)       |
 ;                    |______|______|______|______|______|______|______|______|
-; $041 FLASH_UPD_I   |                                                       |
+; $041 FLASH_UPD_CKS |                                                       |
+;                    |    Checksum of bytes received so far (BYTE AFTER BUF) |
+;                    |______|______|______|______|______|______|______|______|
+; $042 FLASH_UPD_I   |                                                       |
 ;                    |    General index variable                             |
 ;                    |______|______|______|______|______|______|______|______|
-; $042 FLASH_UPD_DLY |                                                       |
+; $043 FLASH_UPD_DLY |                                                       |
 ;                    |    Delay counter                                      |
 ;                    |______|______|______|______|______|______|______|______|
-; $043 FLASH_UPD_CMP |                                                       |
+; $044 FLASH_UPD_CMP |                                                       |
 ;                    |    Comparison value                                   |
 ;                    |______|______|______|______|______|______|______|______|
-; $044 FLASH_UPD_FLAG|                                  |      |      |      |
+; $045 FLASH_UPD_FLAG|                                  |      |      |      |
 ;                    |                                  |FINAL |ERROR |FIRST |
 ;                    |______|______|______|______|______|______|______|______|
-; $045 FLASH_UPD_INP |                                                       |
+; $046 FLASH_UPD_INP |                                                       |
 ;                    |    Received byte                                      |
 ;                    |______|______|______|______|______|______|______|______|
-; $046               |                                                       |
+; $047               |                                                       |
 ;                    |    Unused RAM                                         |
 ;                                                .
 ;                                                .
@@ -178,17 +181,21 @@
 
 FLASH_UPD_BUF	EQU	0x000
 FLASH_UPD_BUFSZ	EQU	0x040	; MUST be 64
-FLASH_UPD_CKS	EQU	0x040
-FLASH_UPD_I	EQU	0x041
-FLASH_UPD_DLY	EQU	0x042
-FLASH_UPD_CMP	EQU	0x043
-FLASH_UPD_FLAG	EQU	0x044		; flags for this module:
+FLASH_UPD_RC 	EQU	0x040
+FLASH_UPD_CKS	EQU	0x041
+FLASH_UPD_I	EQU	0x042
+FLASH_UPD_DLY	EQU	0x043
+FLASH_UPD_CMP	EQU	0x044
+FLASH_UPD_FLAG	EQU	0x045		; flags for this module:
 FL_FL_FIRST 	EQU	0		; -------X  Set if we're looking for the first nybble of an octet
 FL_FL_ERROR	EQU	1		; ------X-  Set if last operation failed
 FL_FL_FINAL	EQU	2		; -----X--  Set if this is our last block to update
-FLASH_UPD_INP	EQU	0x045
+FLASH_UPD_INP	EQU	0x046
 IF FLASH_UPD_BUFSZ != .64
 	ERROR "FLASH_UPD_BUFSZ must be 64 bytes (hardware requirement)"
+ENDIF
+IF FLASH_UPD_RC != FLASH_UPD_BUF + FLASH_UPD_BUFSZ
+	ERROR "FLASH_UPD_RC must immediately follow FLASH_UPD_BUF"
 ENDIF
 
 FLASH_UPDATE_START:
@@ -416,8 +423,8 @@ FLASH_UPDATE_NEXT_BLOCK:
 ;					<-  0x79 ('y')	Block received ok, wait...
 ;					<-  0x6E ('n')	Block receive error, aborted
 ;					<-  0x21 ('!')  Illegal target address, aborted
-;					<-  0x45 ('E')  Erased OK, wait...
-;					<-  0x65 ('e')  Erase error, aborted
+;					<- NO 0x45 ('E')  Erased OK, wait...
+;					<- NO 0x65 ('e')  Erase error, aborted
 ;					<-  0x42 ('B')	Burned OK, wait...
 ;					<-  0x62 ('b')  Burn error, aborted
 ;					<-  0x56 ('V')	Verified OK, done.
@@ -460,8 +467,10 @@ FLASH_UPDATE_NEXT_BLOCK:
 ; TBLPTRL                     010x xxxx
 ; 
 		CLRWDT
+		CLRF	FLASH_UPD_CKS, ACCESS
 		RCALL	FLASH_UPDATE_RECV
 FLASH_UPD_GOT_BYTE:
+		CLRF	FLASH_UPD_FLAG, ACCESS	; clear all flags at start: !FINAL, !ERROR, !FIRST
 		MOVLW	0x51			; Q: query -> * 
 		CPFSEQ	FLASH_UPD_INP, ACCESS
 		BRA	FLASH_UPD_TRY_BLOCK
@@ -482,17 +491,28 @@ FLASH_UPD_TRY_BLOCK:
 		RCALL	FLASH_UPD_READ_BINARY_BLOCK
 		BTFSC	FLASH_UPD_FLAG, FL_FL_ERROR, ACCESS
 		BRA	FLASH_UPD_INVALID_DATA
+		;
 		; check sentinel byte
+		;
 		RCALL	FLASH_UPDATE_RECV
 		MOVLW	0x7C			; '|' separates address from data
 		CPFSEQ	FLASH_UPD_INP, ACCESS
 		BRA	FLASH_UPD_INVALID_DATA
+		;
 		; set target address to TBLPTR; if it's block #0 this is our final one
+		;
+		BCF	FLASH_UPD_FLAG, FL_FL_FINAL, ACCESS
+		MOVF	0x00, F, ACCESS
+		BNZ	FLASH_UPD_TBNZ
+		MOVF	0x01, F, ACCESS
+		BNZ	FLASH_UPD_TBNZ
 		BSF	FLASH_UPD_FLAG, FL_FL_FINAL, ACCESS
+		;
 		; $000  aaaabbbb )   TBLPTRU 0000aaaa	  16-bit block ID translated to
 		; $001  ccccdddd )=> TBLPTRH bbbbcccc     20-bit FLASH ROM address aligned
 		;                )   TBLPTRL dd000000     to 64-byte boundary
-		SWAPF	0x00, TBLPTRU, ACCESS
+		;
+FLASH_UPD_TBNZ:	SWAPF	0x00, TBLPTRU, ACCESS
 		MOVLW	0x0F
 		ANDWF	TBLPTRU, F, ACCESS		; U=0000aaaa H=XXXXXXXX L=XXXXXXXX
 		SWAPF	0x00, TBLPTRH, ACCESS
@@ -523,28 +543,62 @@ FLASH_UPD_TRY_BLOCK:
 		CPFSEQ	TBLPTRL, ACCESS
 		BRA	FLASH_UPD_D0NE			; dddd0000 != legal value, we're nearly done
 		BRA	FLASH_UPD_A_OK			; all bytes == legal value, we're OK
-FLASH_UPD_0ANE: 
+FLASH_UPD_0ANE: CPFSGT	TBLPTRU, ACCESS	
+		BRA	FLASH_UPD_A_OK			; 0000aaaa < legal value, we're OK
+		BRA	FLASH_UPD_INVALID_ADDRESS	; 0000aaaa > legal value, abort
+FLASH_UPD_BCNE: CPFSGT	TBLPTRH, ACCESS	
+		BRA	FLASH_UPD_A_OK			; bbbbcccc < legal value, we're OK
+		BRA	FLASH_UPD_INVALID_ADDRESS	; bbbbcccc > legal value, abort
+FLASH_UPD_D0NE: CPFSGT	TBLPTRL, ACCESS	
+		BRA	FLASH_UPD_A_OK			; dd000000 < legal value, we're OK
+		BRA	FLASH_UPD_INVALID_ADDRESS	; dd000000 > legal value, abort
+		;
+		; Address OK, proceed...
+		;
+FLASH_UPD_A_OK:	CLRWDT
+		LFSR	FSR0, FLASH_UPD_BUF
+		MOVLW	.65
+		MOVWF	FLASH_UPD_I, ACCESS		; read 65 more bytes (64+checksum)
+		RCALL	FLASH_UPD_READ_BINARY_BLOCK
+		BTFSC	FLASH_UPD_FLAG, FL_FL_ERROR, ACCESS
+		BRA	FLASH_UPD_INVALID_DATA
+		;
+		; Check final sentinel byte
+		;
+		RCALL	FLASH_UPDATE_RECV
+		MOVLW	'.'			; '.' terminates data
+		CPFSEQ	FLASH_UPD_INP, ACCESS
+		BRA	FLASH_UPD_INVALID_DATA
+		;
+		; Check computed checksum value (must be zero)
+		;
+		TSTFSZ	FLASH_UPD_CKS, ACCESS
+		BRA	FLASH_UPD_INVALID_DATA
+		;
+		; Acknowledge receipt
+		;
+		MOVLW	'y'
+		RCALL	FLASH_UPDATE_SEND
+		;
+		; Burn it now
+		;
+		RCALL	FLASH_UPD_BURN_BLOCK
+		BTFSC	FLASH_UPD_FLAG, FL_FL_ERROR, ACCESS
+		BRA	FLASH_UPD_EB
+		MOVLW	'B'
+		RCALL	FLASH_UPDATE_SEND
+             	RCALL	FLASH_UPD_VERIFY_BLOCK
+		BTFSC	FLASH_UPD_FLAG, FL_FL_ERROR, ACCESS
+		BRA	FLASH_UPD_EV
+		MOVLW	'V'
+		RCALL	FLASH_UPDATE_SEND
 
-		CPFSGT	TBLPTRU, ACCESS			
-		BRA	FLASH_UPD_TB1			; 0000aaaa <= legal value, go on
-		BRA	FLASH_UPD_INVALID_ADDRESS	; 0000aaaa >  legal value, abort
-
-
-MOVLW	HIGH(FLASH_UPDATE_ROM_END)
-		CPFSGT	TBLPTRH, ACCESS
-		BRA	FLASH_UPD_TB2			; bbbbcccc <= legal value, go on
-		BRA	FLASH_UPD_INVALID_ADDRESS	; bbbbcccc >  legal value, abort
-FLASH_UPD_TB2:	
-		
-
-
-FLASH_UPD_AOK
-		
-
-		
-
-		
-		; XXX left off here
+FLASH_UPD_EB:	MOVLW	'b'
+		BRA	FLASH_UPD_ERR
+FLASH_UPD_EV:	MOVLW	'v'
+		BRA	FLASH_UPD_ERR
+		; XXX if final, stop
+		BRA	FLASH_UPDATE_NEXT_BLOCK
 
 FLASH_UPD_READ_BINARY_BLOCK:
 ; Read exactly FLASH_UPD_I bytes into memory at [FSR0+] by reading
@@ -578,7 +632,9 @@ FLASH_UPD_RBB:	CLRWDT
 FLASH_UPD_RBB2:	CLRWDT
 		; 2nd nybble: OR into low nybble of [FSR0+]
 		MOVF	FLASH_UPD_INP, W, ACCESS
-		IORWF	POSTINC0, F, ACCESS
+		IORWF	INDF0, F, ACCESS
+		MOVF	POSTINC0, W, ACCESS
+		ADDWF	FLASH_UPD_CKS, F, ACCESS
 		DECFSZ	FLASH_UPD_I, F, ACCESS
 		BRA	FLASH_UPD_RBB0
 		BCF	FLASH_UPD_FLAG, FL_FL_ERROR, ACCESS
@@ -596,7 +652,7 @@ FLASH_UPD_INVALID_ADDRESS:
 
 FLASH_UPD_INVALID_CMD:
 		MOVLW	0x6E			; n: error
-		RCALL	FLASH_UPDATE_SEND
+FLASH_UPD_ERR:	RCALL	FLASH_UPDATE_SEND
 		BRA	FLASH_UPDATE_NEXT_BLOCK
 
 
