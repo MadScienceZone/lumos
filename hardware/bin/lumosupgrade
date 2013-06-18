@@ -1,0 +1,379 @@
+#!/usr/local/bin/python
+# vi:set ai sm nu ts=4 sw=4 expandtab:
+#
+# Download a new firmware image to a Lumos controller.
+#
+# Requires: Python 2.6 or later
+#           Lumos
+#
+import optparse, time, sys, re
+import ConfigParser
+import Lumos
+from   Lumos.Network.SerialNetwork      import SerialNetwork, DeviceTimeoutError
+from   Lumos.Device.LumosControllerUnit import LumosControllerUnit, LumosControllerStatus
+from   Lumos.Show                       import Show
+from   Lumos.PowerSource                import PowerSource
+
+class NotImplemenetedError (Exception): pass
+class NotSupportedError (Exception): pass
+
+def parse_arguments():
+    global options
+    parser = optparse.OptionParser(usage='%prog [-fhnv] -a ADDR [-b SPD] [-L txlevel] [-m txdelay] [-p port] [-T txmode] image-file', version='%prog, version 1.0')
+    parser.add_option('-a', '--address', metavar='ADDR', type='int', help='Unit address (0-15)')
+    parser.add_option('-f', '--force',   action='store_true', help='Force upgrade without prompting')
+#    parser.add_option('-c', '--load-configuration-file', metavar='FILE', help='Configure device based on FILE')
+    parser.add_option('-p', '--port', metavar='PORT', help='Serial I/O port to use [%default]')
+    parser.add_option('-b', '--speed', metavar='SPD', type='int', help='Baud rate to use to talk to device. [%default]')
+    parser.add_option('-m', '--txdelay', metavar='mS', type='int', help='Transmitter control delay (mS) [%default]')
+    parser.add_option('-n', '--dry-run', action='store_true', help="Don't actually change anything")
+    parser.add_option('-L', '--txlevel', metavar='LVL', type='int', help='Transmitter control logic level (0-1) [%default]')
+    parser.add_option('-T', '--txmode', metavar='MODE', action='store', choices=['dtr', 'rts'], help='Transmitter control line [%default]')
+    parser.add_option('-v', '--verbose', action='count', help='Increase output level.')
+    parser.set_defaults(duplex='full', port=0, speed=19200, txmode='dtr', txlevel=1, txdelay=2)
+
+    (options, file_names) = parser.parse_args()
+
+    #
+    # validate options
+    #
+    if not options.address:
+        parser.error('--address (-a) option is required.')
+
+    if not 0 <= options.address <= 15:
+        parser.error('Valid unit addresses are in the range 0..15 only')
+
+    if options.duplex not in ['full', 'half']:
+        parser.error('--duplex value must be "full" or "half".')
+
+    if options.txmode not in ['dtr', 'rts']:
+        parser.error('--txmode value must be "dtr" or "rts".')
+
+    if not 0 <= options.txlevel <= 1:
+        parser.error('--txlevel value must be 0 or 1.')
+
+    if not 0 <= options.txdelay <= 127:
+        parser.error('--txdelay value must be 0-127.')
+
+    return options, file_names, parser
+
+def setup_lumos(options):
+    #
+    # Build Lumos context
+    #
+    show = Show()
+    show.title = 'lumosupgrade'
+    show.description = 'Lumos Firmware Upgrade Utility'
+
+    ps = PowerSource('power')
+
+    io = SerialNetwork(
+        description='Serial port for Lumos devices',
+        port = options.port,
+        baudrate = options.speed,
+        bits = 8,
+        parity = 'none',
+        stop = 1,
+        xonxoff = False,
+        rtscts = False,
+        duplex = options.duplex,
+        txmode = options.txmode,
+        txlevel = options.txlevel,
+        txdelay = options.txdelay,
+   )
+
+    target = LumosControllerUnit(
+        id = 'target',
+        power_source = ps,
+        network = io,
+        address = options.address,
+        resolution = 256,
+        num_channels = 48,
+    )
+
+    show.add_network('io', io)
+    show.add_controller('io', target)
+    for channel_id in range(48):
+        target.add_channel(channel_id, load=0)
+
+    return target, io
+
+def getstatus(target):
+    "Get current device state and return it."
+
+    try:
+        devstatus = target.raw_query_device_status(timeout=5)
+    except DeviceTimeoutError as e:
+        raise IOError("No response received from device at address {0} (read {1} byte{2} before timeout)".format(
+            target.address, len(e.read_so_far), '' if not e.read_so_far else 's'))
+
+    return devstatus
+
+def trace(level, msg, stream=sys.stderr, eol=True):
+    global options
+    if options.verbose >= level:
+        stream.write(msg)
+        if eol:
+            stream.write('\n')
+       else:
+            stream.flush()
+
+def report_on(device):
+    print "Device Type:      {0} ({1} channels)".format(device.hardware_type, device.channels)
+    print "Firmware Version: {0[0]}.{0[1]}".format(device.rom_version)
+
+#class DeviceConfigurationError (Exception): pass
+
+def change_speed(target, io, new_speed):
+    global options
+
+    trace(1, "Changing baud rate to {0}".format(new_speed))
+    io.set_baud_rate(new_speed)
+    time.sleep(1)
+
+def main():
+#    global status_cache, FACTORY_SETTINGS
+    options, file_names, parser = parse_arguments()
+    target, io = setup_lumos(options)
+
+    if options.verbose > 2:
+        io.set_verbose(sys.stderr)
+
+    target.raw_query_device_status()
+    if target.status.hardware_type != 'lumos24dc':
+        raise NotSupportedError('Board type {0} is not supported for this version of lumosupgrade.'
+            .format(target.status.hardware_type))
+    
+    report_on(device.status)
+    if not (options.force or yorn('Proceed to upgrade')):
+        sys.exit(0)
+
+    print "Lumos board's current firmware 
+#        trace(0, "** Returning device to factory settings **")
+#        target.raw_control('__reset__')
+#        trace(0, "** Waiting 10 seconds for device to reset **")
+#        time.sleep(10)
+#        io.set_baud_rate(19200)
+#        target.address = 0
+#        trace(1, "Baud rate reset to 19.2k due to factory setting reset")
+#        trace(1, "Device should now be at address 0 due to factory setting reset")
+#        trace(0, "** Verifying board settings...")
+#        verifystatus(target, baseline=FACTORY_SETTINGS)
+#
+#    if options.set_phase:
+#        assert_priv('--set-phase')
+#        trace(1, "Setting phase offset to {0}".format(options.set_phase))
+#        target.raw_set_phase(options.set_phase)
+#        verifystatus(target, {'phase_offset': options.set_phase})
+#    #
+#    # Configuration Management
+#    #
+#    if options.load_configuration_file:
+#        assert_priv('--load-configuration-file')
+#        new_config = load_configuration(options.load_configuration_file)
+#        trace(1, "Configuring the device")
+#        trace(1, "Verifying configuration change")
+#
+#    if options.dump_configuration_file:
+#        trace(1, "Loading device configuration")
+#        trace(1, "Writing configuration file to {0}".format(options.dump_configuration_file))
+#        dump_configuration(options.dump_configuration_file, status_cache)
+#
+#    #
+#    # All operations requiring privileges are done now,
+#    # so if they want out of this mode, accommodate that wish.
+#    #
+#    if options.drop_privileged_mode:
+#        assert_priv('--drop-privileged-mode')
+#        trace(1, "dropping privileged (configuration) mode")
+#        target.raw_control('noconfig')
+#        verifystatus(target, {'in_config_mode': False})
+#    #
+#    # Sensor control
+#    #
+#    def smask(target, opt, delete=False):
+#        global status_cache, parser
+#
+#        s = set([i.id for i in status_cache.sensors.values() if i.enabled])
+#        expected = dict([(id, status_cache.sensors[id].copy()) for id in 'ABCD'])
+#
+#        if '*' in opt:
+#            opt = 'ABCD'
+#
+#        for o in opt.upper():
+#            if o in 'ABCD':
+#                if delete:
+#                    s.discard(o)
+#                else:
+#                    s.add(o)
+#                expected[o].enabled = not delete
+#            else:
+#                parser.error("Sensors are A, B, C, and D.")
+#
+#        target.raw_control('masksens', s)
+#        verifystatus(target, {'sensors': expected})
+#
+#    for sens_id, sens_opt, sens_pre, sens_trig, sens_post in sensor_triggers:
+#        old = status_cache.sensors
+#        new = dict([(id, status_cache.sensors[id].copy()) for id in status_cache.sensors])
+#
+#        new[sens_id].active_low = ('+' not in sens_opt)
+#        new[sens_id].pre_trigger = sens_pre
+#        new[sens_id].trigger = sens_trig
+#        new[sens_id].post_trigger = sens_post
+#        new[sens_id].trigger_mode = (
+#            'while'  if 'W' in sens_opt else
+#            'repeat' if 'R' in sens_opt else
+#            'once'
+#        )
+#        target.raw_sensor_trigger(sens_id, sens_pre, sens_trig, sens_post, 
+#            inverse = not new[sens_id].active_low,
+#            mode = new[sens_id].trigger_mode
+#        )
+#        verifystatus(trigger, {'sensors': new})
+#
+#    if options.disable_sensor: smask(target, options.disable_sensor, delete=True)
+#    if options.enable_sensor:  smask(target, options.enable_sensor)
+#
+#    #
+#    # Sequence Management
+#    #
+#    if options.clear_sequences:
+#        target.raw_control('clearmem')
+#        print "Sequences cleared.  Available memory now: EEPROM={0.eeprom.memory.free}, RAM={0.ram_memory_free}".format(getstatus(target))
+#
+#    if options.load_sequence:
+#        raise NotImplementedError('the --load-sequence option is not yet implemented.  Use --load-compiled-sequence instead.')
+#
+#    if options.load_compiled_sequence is not None:
+#      for filename in options.load_compiled_sequence:
+#        #
+#        # file:
+#        # #{$<hexid>|<decid>}
+#        # $<hex byte> <space> <hex byte> ...
+#        # ...
+#        # @<dec_#_bytes>
+#        #
+#        sequence_bits = []
+#        length = None
+#        with open(filename, 'r') as infile:
+#            for line in infile:
+#                if line[0] == '#':
+#                    if line[1] == '$':
+#                        id = int(line[2:], 16)
+#                    else:
+#                        id = int(line[1:])
+#                elif line[0] == '$':
+#                    for byte in line[1:].split():
+#                        sequence_bits.append(ord(int(byte, 16)))
+#                elif line[0] == '@':
+#                    length = int(line[1:])
+#                    break
+#                else:
+#                    raise ValueError('Invalid line in compiled sequence file {0}: {1}'.format(filename, line))
+#
+#        if length is None:
+#            raise ValueError('Missing @ record from compiled sequence file {0}'.format(filename))
+#
+#        if length != len(sequence_bits):
+#            raise ValueError('compiled sequence file {0} claims {1} byte{2} but actually read {3}.'.format(
+#                filename, length, '' if length==1 else 's', len(sequence_bits)))
+#    #
+#    # Misc
+#    #
+#    if options.kill_all:
+#        trace(1, 'Killing all channel outputs')
+#        target.kill_all_channels(force=True)
+#
+#    if options.sleep:
+#        trace(1, "Putting unit to sleep")
+#        target.raw_control('sleep')
+#        verifystatus(target, {'in_sleep_mode' : True})
+#
+#    if options.wake:
+#        trace(1, "Waking up unit")
+#        target.raw_control('wake')
+#        verifystatus(target, {'in_sleep_mode' : False})
+#    #
+#    # kill the device if requested
+#    #
+#    if options.shutdown:
+#        target.raw_control('shutdown')
+#    #
+#    # carry out the requested level changes
+#    #
+#    for action in operations:
+#        m = re.match(r'^(\d+)@(\d+(,\d+)*)$', action)
+#        if m:
+#            # <channel>@<level>[,<level>...]
+#            start_chan = int(m.group(1))
+#            levels = [int(x) for x in m.group(2).split(',')]
+#
+#            for idx, level in enumerate(levels):
+#                if status_cache.channels and not 0 <= start_chan + idx < status_cache.channels:
+#                    parser.error("{0}: channel number {1} does not exist for this controller model (valid range is [0,{2}])".format(
+#                        action, start_chan + idx, status_cache.channels - 1))
+#                target.set_channel(start_chan + idx, level)
+#                target.flush()
+#
+#        else:
+#            m = re.match(r'^\d+$', action)
+#            # <channel>
+#            if m:
+#                channel = int(action)
+#                if status_cache.channels and not 0 <= channel < status_cache.channels:
+#                    parser.error("{0}: channel number {1} does not exist for this controller model (valid range is [0,{2}])".format(
+#                        action, channel, status_cache.channels - 1))
+#                target.set_channel(channel, 255)
+#                target.flush()
+#            else:
+#                m = re.match(r'^(\d+)([ud])(:(\d+)(:(\d*\.\d+|\d+\.?)(s(ec(onds?)?)?)?)?)?$', action)
+#                # <channel>u[:<steps>[:<delay>]]
+#                if m:
+#                    channel = int(m.group(1))
+#                    steps = int(m.group(4) or 1)
+#                    if m.group(7):
+#                        delay = int(float((m.group(6) or 1) * 120))
+#                        trace(1, "Using {0}/120 sec for {1} sec".format(delay, m.group(4)))
+#                    else:
+#                        delay = int(m.group(6) or 1)
+#
+#                    if not 1 <= steps <= 128:
+#                        parser.error("{0}: step value of {1} not in required range [1,128]".format(action, steps))
+#
+#                    if not 1 <= delay <= 128:
+#                        parser.error("{0}: delay value of {1} not in required range [1,128]".format(action, delay))
+#
+#                    if status_cache.channels and not 0 <= channel < status_cache.channels:
+#                        parser.error("{0}: channel number {1} does not exist for this controller model (valid range is [0,{2}])".format(
+#                            action, channel, status_cache.channels - 1))
+#
+#                    if m.group(2) == 'u':
+#                        target.raw_ramp_up(channel, steps, delay)
+#                    else:
+#                        target.raw_ramp_down(channel, steps, delay)
+#                else:
+#                    m = re.match(r'^x(\d+)$', action)
+#                    if m:
+#                        sequence = int(m.group(1))
+#                        if not 0 <= sequence <= 127:
+#                            parser.error("{0}: sequence number {1} outside valid range [0, 127]".format(action, sequence))
+#                        target.raw_control('execute', sequence)
+#                    else:
+#                        m = re.match(r'^p(\d*\.\d+|\d+\.?)(s(ec(onds?)?)?)?$', action)
+#                        if m:
+#                            wait_for = float(m.group(1))
+#                            trace(1, "pausing {0} sec...".format(wait_for))
+#                            time.sleep(wait_for)
+#                            trace(2, "resuming after pause")
+#                        else:
+#                            parser.error("{0}: Unrecognized action".format(action))
+#
+#
+
+if __name__ == '__main__':
+    #try:
+        main()
+    #except Exception as e:
+        #sys.stderr.write("{0}: fatal error: {1}\n".format(sys.argv[0], e))
+        #sys.exit(1)
