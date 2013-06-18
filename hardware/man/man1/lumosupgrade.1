@@ -1,0 +1,122 @@
+.\" lumosupgrade(1) manual entry ("manpage") for printing by command-line users
+.\" via the man(1) command.  This file also contains hints used by our quick-and-
+.\" dirty script which reformats it into the overall Lumos user manual set.  These
+.\" are in comments and won't interfere with troff/groff/nroff formatting.
+.\" 
+.\" Copyright (c) 2013 by Steven L. Willoughby, Aloha, Oregon, USA.
+.\" All Rights Reserved.  Released under the terms and conditions of the
+.\" Open Software License (see the LICENSE file which accompanied this software
+.\" release for details.)
+.\"
+.\" <<bold-is-fixed>> <<ital-is-var>>
+.TH LUMOSUPGRADE 1 2.0 "Lumos SSR Controller" "Utility Commands"
+.SH NAME
+lumosupgrade \- Download new firmware image into Lumos controller hardware
+.SH SYNOPSIS
+.B lumosupgrade
+.RB [ \-hv ]
+.B \-a
+.I addr
+.RB [ \-b
+.IR speed ]
+.I image-file
+.SH DESCRIPTION
+.LP
+This command places the target Lumos controller device into
+\*(lqprogram mode\*(rq and downloads a new firmware image
+onto it.  This is used in order to upgrade the Lumos firmware
+to a new version.
+.LP
+The board must first be connected to the host PC (all by itself,
+not sharing a serial connection with other devices), and that connection
+must be bidirectional as the Lumos board needs to be able to acknowledge
+receipt of the new image.
+.LP
+The Lumos board is then placed into configuration mode (sometimes called
+\*(lqprivileged mode\*(rq).  Then the
+.B lumosupgrade
+program is invoked to load a new firmware image onto it.
+.LP
+Once started, this process must run to successful completion
+before the Lumos board may be used for normal operations again.
+If anything goes amiss, the Lumos board may be reset and the 
+.B lumosupgrade
+program re-started.  (Upon reset, the Lumos board will stay in
+program mode until a new image has been loaded into it.  Should the
+board reset/reboot for any reason during the process, the 
+.B lumosupgrade
+process must be started over to ensure a complete image is loaded.)
+.SH OPTIONS
+.LP
+Each of the following options may be specified by either a long
+option (like
+.RB \*(lq \-\-verbose \*(rq)
+or a shorter option letter (like
+.RB \*(lq \-v \*(rq).
+If an option takes a parameter, it may follow the option as
+.RB \*(lq \-a12 \*(rq,
+.RB \*(lq "\-a 12" \*(rq,
+.RB \*(lq "\-\-address 12" \*(rq,
+or
+.RB \*(lq "\-\-address=12" \*(rq.
+.LP
+Long option names may be abbreviated to any unambiguous initial substring.
+.TP 17 \" <<list>>
+.BI \-\-address= addr
+.RB ( \-a
+.IR addr )
+Specifies the address of the target controller unit.  The
+.I addr
+value is an integer from 0 to 15, inclusive.  
+Note that downloading a new firmware image must be done when the
+target unit is the
+.I only
+device plugged in to the computer.  Once the download operation is
+underway, the low-level protocol used to transmit the image to the
+device is not necessarily compatible with other units.  This option
+is required because the command to place the device into programming
+mode must be addressed to the unit.
+.TP
+.B \-\-help
+.RB ( \-h )
+Prints a summary of these options and exits.
+.TP
+.BI \-\-speed= rate
+.RB ( \-b
+.IR rate )
+Set the serial port to the given
+baud
+.IR rate .
+This is the speed the device is already configured to use, and will be used for the initial
+command to enter programming mode.  Once in programming mode, however, a fixed speed of 9600
+baud will be used.
+[Default is 19200 baud.]
+.TP
+.B \-\-verbose
+.RB ( \-v )
+Output messages to the standard output.  Additional 
+.B \-\-verbose
+options increases verbosity.  High levels of verbosity include a dump
+of every bit sent or received on the serial network.
+.\" <</>>
+.SH AUTHOR
+.LP
+Software Alchemy / support@alchemy.com
+.SH COMPATIBILITY
+.LP
+This version of 
+.B lumosupgrade
+is compatible with the following boards:
+.TP 2 \" <<itemize>> <</ital-is-var>>
+*
+Lumos 24-channel DC controller version 1.0 (boards with ID markings beginning with
+\*(lqLUMOS-24SSR-DC-1.0\*(rq).
+.\" <</>>
+.LP
+.I "The 48-channel controllers are not compatible with this program."
+.I "These boards must be reprogrammed using a microcontroller programmer."
+.SH HISTORY
+.LP
+This program first appeared to support Lumos ROM version 3.0.
+.SH "SEE ALSO"
+.BR lumosctl (1).
