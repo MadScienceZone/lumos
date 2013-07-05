@@ -464,7 +464,7 @@ FLASH_UPDATE_NEXT_BLOCK:
 ;
 ; TBLPTRU .... 0001
 ; TBLPTRH           0000 0011
-; TBLPTRL                     010x xxxx
+; TBLPTRL                     01xx xxxx
 ; 
 		CLRWDT
 		CLRF	FLASH_UPD_CKS, ACCESS

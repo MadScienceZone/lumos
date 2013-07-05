@@ -80,7 +80,7 @@
 %\strut 
 %\vfill
 \begin{center}
-{\fontfamily{pag}\fontseries{b}\fontsize{64}{80}\selectfont
+{\fontfamily{ppl}\fontseries{b}\fontsize{48}{50}\selectfont
 Using the\\Lumos\TM\\SSR\\Controllers\\\strut
 }
 
@@ -372,7 +372,8 @@ and software components.
 \section{Entering Configuration Mode}\label{sec:configmode}
 Some functions are only enabled when the controller is in a special ``configuration'' mode\footnote{In
 some places in other documentation, including the controller's firmware source code, this is also
-referred to as ``privileged mode''.} to prevent potentially harmful effects such as accidentally changing
+referred to as ``privileged mode''.  This term is deprecated. The preferred term is now
+``configuration mode.''} to prevent potentially harmful effects such as accidentally changing
 the device's address, baud rate, or other configuraiton parameters.
 
 To initiate configuration mode, press and hold the green Option button until the \acronym{LED}s start
@@ -785,8 +786,10 @@ to describe sequences, which gets compiled into a more compact bytecode which is
 device itself.  This language compiler has not yet been written.  Section~\ref{sec:bytecode}
 below describes the bytecode actually understood by the device.  At the time of this writing,
 it is necessary to create this bytecode manually and load it into the device as described
-in that section.}
+in that section.  To emphasize that this is speculative documentation about a future feature,
+the text appears in a lighter type color.}
 
+{\color{gray}
 These sequences are written using a small, simple programming language.  It is intended to
 make it possible to describe some basic operations supported by the device, not to create a
 fully general-purpose programming system.  This, plus the need to design the sequence data
@@ -2785,6 +2788,7 @@ command:
 $ lumosctl --port=COM1 --speed=19200 --address=2 \
     --load-hex-sequences=sequences.hex
 \end{SourceCode}
+} % end of grayed-out text
 
 \chapter{Communication Protocol Details}\label{ch:proto}
 \LLstart{T}{he}{protocol used by Lumos boards} to receive commands is designed to be compact (so as to 
@@ -2850,8 +2854,8 @@ to have 24 or 48 channels.  If a command specifies a \Var*{channel} value the bo
 it will flag the command as an error and ignore it.
 
 \label{escapebytes}If 
-a value greater than 127 needs to be sent, there is an escape mechanism recognized by the Lumos
-controller.  The following two byte values are special:
+a binary value greater than 127 needs to be sent as part of a command packet, 
+the following escape mechanism is used.  Two byte values are special:
 \begin{description}
   \item[\z{0x7E}] The following byte will have its \acronym{MSB} set upon receipt.
   \item[\z{0x7F}] The following byte will be accepted as-is without further interpretation.  This
@@ -2859,7 +2863,7 @@ controller.  The following two byte values are special:
 	\z{0x7F} byte as \z{0x7F} \z{0x7F}.
 \end{description}
 
-In the command descriptions that follow, we will show the bytes sent or received graphically, using the
+In the command descriptions that follow, we will show the bytes sent or received typographically, using the
 following notation:
 \begin{itemize}
 	\item Binary bits are shown in fixed-width type: \z0, \z1.
@@ -2952,7 +2956,8 @@ conform to the overall communications protocol as described at the beginning of
 this chapter (see p.~\pageref{escapebytes} for details about this escape mechanism).
 
 \subsection{\z{0x3}: Bulk Channel Update---deprecated version}
-\strong{The following is obsolete:}
+\strong{The following is obsolete and no longer supported:}
+{\color{gray}
 \begin{BF}
   \bitbox{1}{\z1} & \bitbox{3}{3} & \bitbox{4}{\Var*{addr}}\\
   \bitbox{1}{\z0} & \bitbox{1}{\Var{m}} & \bitbox{6}{\Var*{channel}}\\
@@ -3011,7 +3016,7 @@ mode (\Var{m}=0), all the \Var{h} bits are omitted, and the level range is effec
 handles these edge conditions rather than simply assuming the least significant bit is always 
 set or clear.}  In high-resolution mode (\Var{m}=1), then all bits are specified and the full
 range of values (0--255) is supported.
-
+}
 \subsection{\z{0x4}: Ramp Channel Level}
 \begin{BF}
   \bitbox{1}{\z1} & \bitbox{3}{4} & \bitbox{4}{\Var*{addr}}\\
@@ -3256,8 +3261,8 @@ The information contained in this packet describes several facts about the Lumos
 		Each sensor's trigger information is given by a block of four bytes.  The first
 		contains the field \Var*{sens} which identifies the sensor (0=A, 1=B, 2=C, 3=D).
 		Flag \Var{o} is set if the trigger is set to fire once only each time the sensor
-		activates, \Var{w} it it's set to run while the sensor is active, and \Var{e}
-		indicates if the sensor is active high (\Var{e}=1) or active low (\Var{e}=0).
+		activates, \Var{w} if it's set to run while the sensor is active, and \Var{e}
+		indicates whether the sensor is active high (\Var{e}=1) or active low (\Var{e}=0).
 		The following three bytes, \Var*{pre}, \Var*{run}, and \Var*{post}, specify the
 		sequence number to be executed initially, repeatedly while active, and at the end,
 		respectively.
@@ -3635,8 +3640,47 @@ command prevents the device from re-entering configuration mode from this point 
 until it is reset or power-cycled.
 {\bfseries This command is only recognized if the controller is in configuration mode.}
 
+\subsection{\z{0x775} [config] Update Firmware Image}
+\begin{BF}
+	\bitbox{1}{\z1} & \bitbox{3}{7} & \bitbox{4}{\Var*{addr}} \\
+	\bitbox{1}{\z0} & \bitbox{7}{117} \\
+	\bitbox{1}{\z0} 
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[br]{1}{\z1}\\
+	\bitbox{1}{\z0} 
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[br]{1}{\z0}\\
+	\bitbox{1}{\z0} 
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z1}
+		& \bitbox[b]{1}{\z0}
+		& \bitbox[br]{1}{\z0}
+\end{BF}
+Initiates firmware update mode on the Lumos controller.  From this point forward, the controller
+expects to receive the new firmware image using a special protocol.  If the board is reset during
+this process, it remains in firmware update mode, since it may have an unusable firmware image
+at this point.
+See page~\pageref{man:lumosupgrade}
+for full documentation about the \verb+lumosupgrade+ command used to perform this operation.
+
+{\bfseries This command is only recognized if the controller is in configuration mode.}
+
+
 \subsection{Reserved Command Codes}
-Codes \z{0x775}--\z{0x77f} are reserved for future use as configuration-mode commands.
+Codes \z{0x776}--\z{0x77f} are reserved for future use as configuration-mode commands.
 
 \chapter{DMX512 Command Structure}\label{ch:dmx}
 When configured in \acronym{DMX512} mode, all of the Lumos commands documented in Chapter~\ref{ch:proto}
@@ -3992,6 +4036,7 @@ user commands on Unix-like systems.
 \newpage
 \input lumosctl
 \newpage
+\label{man:lumosupgrade}
 \input lumosupgrade
 \chapter{Troubleshooting}
 factory reset

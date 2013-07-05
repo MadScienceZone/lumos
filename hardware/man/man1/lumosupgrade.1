@@ -14,11 +14,19 @@
 lumosupgrade \- Download new firmware image into Lumos controller hardware
 .SH SYNOPSIS
 .B lumosupgrade
-.RB [ \-hv ]
+.RB [ \-fhNnRv ]
 .B \-a
 .I addr
 .RB [ \-b
 .IR speed ]
+.RB [ \-L
+.IR txlvl ]
+.RB [ \-m
+.IR mode ]
+.RB [ \-p
+.IR port ]
+.RB [ \-T
+.RB mode ]
 .I image-file
 .SH DESCRIPTION
 .LP
@@ -70,16 +78,55 @@ Specifies the address of the target controller unit.  The
 value is an integer from 0 to 15, inclusive.  
 Note that downloading a new firmware image must be done when the
 target unit is the
-.I only
+only
 device plugged in to the computer.  Once the download operation is
 underway, the low-level protocol used to transmit the image to the
 device is not necessarily compatible with other units.  This option
 is required because the command to place the device into programming
 mode must be addressed to the unit.
 .TP
+.B \-\-dry\-run
+.RB ( \-n )
+Do everything except actually burn the new firmware into the unit.
+This checks that the 
+.I image-file
+is reasonably sane-looking (not a thorough check of correctness),
+and communicates with the Lumos controller up to the point where
+it would put it into program mode.
+.TP
+.B \-\-force
+.RB ( \-f )
+Force upgrade of the board without asking the user for confirmation.
+.TP
 .B \-\-help
 .RB ( \-h )
 Prints a summary of these options and exits.
+.TP
+.B \-\-null\-device
+.RB ( \-N )
+Don't actually communicate with the serial port, but still carry out the other
+actions including sanity checks on 
+.IR image-file .
+Implies
+.BR \-\-dry\-run .
+.TP
+.BI \-\-port= dev
+.RB ( \-p
+.IR dev )
+Specifies the I/O port the Lumos device is connected to.  This may be a simple integer 0, 1, 2, etc.
+to refer to the first, second, third, etc, standard serial port on the system, or a device name appropriate
+to the system such as 
+.B COM1 
+or 
+.BR ttys1 .
+.TP
+.B \-\-resume
+.RB ( \-R )
+Indicates that the Lumos board was reset prematurely while attempting an upgrade.  Since the
+Lumos board will still be in programming mode, this option tells 
+.B lumosupgrade
+to simply start downloading the image onto it, and not try to put it into programming
+mode first.
 .TP
 .BI \-\-speed= rate
 .RB ( \-b
@@ -87,10 +134,27 @@ Prints a summary of these options and exits.
 Set the serial port to the given
 baud
 .IR rate .
-This is the speed the device is already configured to use, and will be used for the initial
+This is the speed the Lumos board is already configured to use, and will be used for the initial
 command to enter programming mode.  Once in programming mode, however, a fixed speed of 9600
 baud will be used.
 [Default is 19200 baud.]
+.TP
+.BI \-\-txdelay= t
+.RB ( \-m
+.IR ms )
+Delay
+.I ms
+milliseconds after changing the transmitter control line for half-duplex networks.
+.TP
+.BR \-\-txlevel= { 0 | 1 }
+.RB ( \-L
+.RB { 0 | 1 })
+Specifies the logic level used to signal transmit mode for half-duplex networks.
+.TP
+.BR \-\-txmode= { dtr | rts }
+.RB ( \-T
+.RB { dtr | rts })
+Specifies which I/O line is used to signal transmit mode on half-duplex networks.
 .TP
 .B \-\-verbose
 .RB ( \-v )

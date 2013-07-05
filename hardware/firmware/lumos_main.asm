@@ -375,7 +375,8 @@
 ;*! CF_BAUD  7+114 1111aaaa 01110010 0bbbbbbb 00100110            Set baud rate to <b>   ||||||
 ;*! CF_RESET 7+115 1111aaaa 01110011 00100100 01110010            Reset factory defaults ||||||
 ;*  CF_XPRIV 7+116 1111aaaa 01110100                              Forbid priviliged mode ||||||
-;*           7+117 1111aaaa 01110101                     Reserved for future config cmd  ||||||
+;*  CF_FLROM 7+117 1111aaaa 01110101 00110011 01001100 00011100   Begin ROM update cycle ||||||
+;*           7+118 1111aaaa 01110110                     Reserved for future config cmd  ||||||
 ;*                     :        :                            :     :     :      :    :   ||||||
 ;*           7+127 1111aaaa 01111111                     Reserved for future config cmd__||||||
 ;
