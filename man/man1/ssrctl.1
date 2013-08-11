@@ -1,0 +1,255 @@
+'\"************************************************************************
+'\"************************************************************************
+'\"************************************************************************
+'\"
+'\" This file has been processed by automated scripts.  DO NOT EDIT this
+'\" file directly or your edits will be lost!  
+'\"
+'\" Edit the corresponding <entry>.<section>.in file instead.
+'\"
+'\"************************************************************************
+'\"************************************************************************
+'\"************************************************************************
+.TH SSRCTL 1 "Lumos" "Software Alchemy" "User Commands"
+'\"
+'\" LUMOS DOCUMENTATION: SSRCTL(1)
+'\"
+'\" Lumos Light Orchestration System
+'\" Copyright (c) 2005-2009, 2011 by Steven L. Willoughy, Aloha, OR, USA.
+'\" All Rights Reserved.  Licensed under the terms and conditions of the
+'\" Open Software License version 3.0.
+'\"
+'\" This product is provided for educational, experimental or personal
+'\" interest use, in accordance with the terms and conditions of the
+'\" aforementioned license agreement, ON AN "AS IS" BASIS AND WITHOUT
+'\" WARRANTY, EITHER EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION,
+'\" THE WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A
+'\" PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY OF THE ORIGINAL
+'\" WORK IS WITH YOU.  (See the license agreement for full details, 
+'\" including disclaimer of warranty and limitation of liability.)
+'\"
+'\" Under no curcumstances is this product intended to be used where the
+'\" safety of any person, animal, or property depends upon, or is at
+'\" risk of any kind from, the correct operation of this software or
+'\" the hardware devices which it controls.
+'\"
+'\" USE THIS PRODUCT AT YOUR OWN RISK.
+'\" 
+.SH NAME
+ssrctl \- Lumos solid-state relay controller adjustment tool
+.SH SYNOPSIS
+.B ssrctl
+.RB [ \-hfTv ]
+.RB [ \-c
+.IR file ]
+.RI [ commands... ]
+.SH DESCRIPTION
+.LP
+The
+.B ssrctl
+utility is used to manually adjust the outputs of the controllers in a Lumos
+show.  Two modes are supported: batch and interactive.  
+.LP
+In batch mode, a list of one or more
+.I commands
+are given on the command line, and are executed in the order listed.
+The commands available are:
+.TP
+.RI [ target ]\fB=\fP value [\fB/\fP interval ]
+Set the 
+.IR target 's
+channel output(s) to the specified
+.I value
+(as a percentage from 0\-100).
+If the optional
+.I interval
+value is given (separated from 
+.I value
+with a slash), the transition from the
+current output level to the new
+.I value
+will be made gradually over 
+.I interval
+milliseconds.  
+.B N.B.:
+In order for this to work properly, 
+.B ssrctl
+needs to know what the current output level of
+that controller is.  This means the output is
+currently at zero (the starting assumption made
+by
+.BR ssrctl )
+or you must have previously issued a level-setting
+command for it in this invocation of
+.BR ssrctl .
+.TP
+.RI [ target ]\fB:k\fP
+Kill output to the 
+.I target
+channel(s).  This brings the output
+level to zero, regardless of any minimum
+\*(lqwarm\*(rq configuration.
+.TP
+.RI [ target ]\fB:p\fP
+Print the current level for the
+.I target
+channel(s) to the standard output.
+This is the level
+.B ssrctl
+assumes it to be.  There are a number
+of circumstances where the hardware may
+be in a different state and
+.B ssrctl
+has no way to know about that.
+.TP
+.RI [ target ]\fB:x\fP
+Turn the output of the
+.I target
+channel(s) off.  If a channel has a minimum
+\*(lqwarm\*(rq configuration setting, this
+will be the new level used; otherwise it is
+turned down to zero.
+.LP
+In these commands, the
+.I target
+is normally a single output channel of a single
+controller unit (but see below), specified as:
+.TP
+.IB controller . channel
+Specify the controller and channel name as listed
+in the show configuration file.  The command will 
+affect that one channel.
+.TP
+.IB controller .*
+Target all channels of
+.IR controller ,
+affecting them all simultaneously.
+.TP
+.B *.*
+Target all channels of all controllers.
+.TP
+.I channel
+Target the specified
+.I channel
+of the same controller as used for the previous command.
+.LP
+If no
+.I target
+is specified before the command at all, then the same
+target as was used for the previous command is used.
+Thus, the command list
+.RS
+.B "ssr.13=10 =50/1000 =100"
+.RE
+takes channel 13 of the unit \*(lqssr\*(rq to 10%
+immediately, then fades from there to 50% over the 
+period of 1 second (1000 milliseconds), then sets it
+to 100%.
+.LP
+If no
+.IR command s
+are given on the command line, 
+.B ssrctl
+goes into interactive mode, prompting the user to type commands
+one per line on the standard input; terminate by typing an EOF
+at the prompt (^D on Unix/Linux systems, ^Z on Windows/DOS systems).
+.SH OPTIONS
+.LP
+The following options may be given to
+.BR ssrctl .
+They may be specified using either short format, e.g.:
+.LP
+.RS
+.na
+.B "ssrctl \-f \-c show.conf ssr.*:k"
+.ad
+.RE
+.LP
+Or using the longer format, e.g.:
+.LP
+.RS
+.na
+.B "ssrtcl \-\-force \-\-config=show.conf ssr.*:k"
+.ad
+.RE
+.LP
+Or a combination of both.
+.LP
+The following options may be given to
+.BR ssrctl :
+.TP 10
+.BI \-c " file"
+.RB ( \-\-config=\fIfile\fP )
+Get show configuration information from the specified
+.IR file .
+This is necessary for Lumos programs such as
+.B ssrctl
+to know what hardware is part of the show, and how to communicate with it.
+.TP
+.B \-h
+.RB ( \-\-help )
+Print a basic help message and exit.
+.TP
+.B \-f
+.RB ( \-\-force )
+Force output of channel changing commands, even if
+.B ssrctl believes the channel is already at the requested
+level.
+.TP
+.B \-T
+.RB ( \-\-test )
+Run in \*(lqtest mode\*(rq.  This describes what would have
+been sent to the hardware without actually sending output.
+.TP
+.B \-v
+.RB ( \-\-verbose )
+Print informational output which would ordinarily be suppressed.
+.TP
+.B \-\-version
+Prints the version number of the program and exits.
+.SH WARNING
+.LP
+This product is provided for educational, experimental or personal
+interest use, in accordance with the terms and conditions of the
+\*(lqOpen Software License version 3.0\*(rq 
+license agreement, ON AN \*(lqAS IS\*(rq BASIS AND WITHOUT
+WARRANTY, EITHER EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION,
+THE WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A
+PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY OF THE ORIGINAL
+WORK IS WITH YOU.  (See the license agreement for full details, 
+including disclaimer of warranty and limitation of liability.)
+.LP
+Under no curcumstances is this product intended to be used where the
+safety of any person, animal, or property depends upon, or is at
+risk of any kind from, the correct operation of this software or
+the hardware devices which it controls.
+.LP
+USE THIS PRODUCT AT YOUR OWN RISK.
+.SH "SEE ALSO"
+.LP
+.BR lcheck (1),
+.BR lplay (1),
+.BR lumos-config (5),
+.SH VERSION
+.LP
+This document describes Lumos version 0.5a1.
+.SH HISTORY
+.LP
+A version of
+.B ssrctl
+first appeared (undocumented) in Lumos 0.4.  It was documented in the 0.5 release.
+.SH COPYRIGHT
+.LP
+Lumos Light Orchestration System,
+Copyright \(co 2005\-2009, 2011 by Steven L. Willoughy, Aloha, OR, USA.
+All Rights Reserved.  Licensed under the terms and conditions of the
+Open Software License version 3.0.  See the
+.B LICENSE
+file accompanying the Lumos software distribution for full terms and
+conditions of use, disclaimer of warranty, limitation of liability
+and other information, or see:
+.br
+http://www.opensource.org/licenses/osl-3.0.php.
+.SH AUTHOR
+.LP
+Steve Willoughby, support@alchemy.com

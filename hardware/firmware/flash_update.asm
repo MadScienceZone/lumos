@@ -41,7 +41,7 @@
 ;
 ;          ____________________
 ;  $00000 | Restart vector     | Overwritten to boot into update loader
-;  $00007 |____________________| then pointed to FLASH_UPDATE_RST_VECTOR.
+;  $00007 |____________________| then eventually overwritten by final image block
 ;  $00008 |                    | 
 ;         |                    | The flash loader can change this zone.
 ;         | update area        | The addresses shown are typical but 
@@ -95,7 +95,7 @@
 ;                    |OSCFIP|      |//////| EEIP |      |      |      |      |
 ;                    |______|______|//////|______|______|______|______|______|
 ; $F9E PIR1          |      |      |      |      |      |      |      |      |
-;                    |      |      | RXIF | TXIF |      |      |      |      |
+;                    |      |      | RCIF | TXIF |      |      |      |      |
 ;                    |______|______|______|______|______|______|______|______|
 ; $FA1 PIR2          |      |      |//////|      |      |      |      |      |
 ;                    |OSCFIF|      |//////| EEIF |      |      |      |      |
@@ -191,13 +191,14 @@ FL_FL_FIRST 	EQU	0		; -------X  Set if we're looking for the first nybble of an 
 FL_FL_ERROR	EQU	1		; ------X-  Set if last operation failed
 FL_FL_FINAL	EQU	2		; -----X--  Set if this is our last block to update
 FLASH_UPD_INP	EQU	0x046
-IF FLASH_UPD_BUFSZ != .64
-	ERROR "FLASH_UPD_BUFSZ must be 64 bytes (hardware requirement)"
-ENDIF
-IF FLASH_UPD_RC != FLASH_UPD_BUF + FLASH_UPD_BUFSZ
-	ERROR "FLASH_UPD_RC must immediately follow FLASH_UPD_BUF"
-ENDIF
+	IF FLASH_UPD_BUFSZ != .64
+	 ERROR "FLASH_UPD_BUFSZ must be 64 bytes (hardware requirement)"
+	ENDIF
+	IF FLASH_UPD_RC != FLASH_UPD_BUF + FLASH_UPD_BUFSZ
+	 ERROR "FLASH_UPD_RC must immediately follow FLASH_UPD_BUF"
+	ENDIF
 
+_FLASH_UPD	CODE	FLASH_UPDATE_START_ADDR
 FLASH_UPDATE_START:
 ;
 ;	Start the reflashing process by changing the boot vector to point to us
@@ -253,7 +254,7 @@ FLASH_UPD_RB:
 		DECFSZ	FLASH_UPD_I, F, ACCESS
 		BRA	FLASH_UPD_RB
 FLASH_UPD_REWIND:
-		TBLRD-*				; move pointer back into 64-byte block
+		TBLRD*-				; move pointer back into 64-byte block
 		MOVLW	b'11100000'
 		ANDWF	TBLPTRL, F, ACCESS	; and move back to start of that block
 		BCF	FLASH_UPD_FLAG, FL_FL_ERROR, ACCESS
@@ -512,18 +513,18 @@ FLASH_UPD_TRY_BLOCK:
 		; $001  ccccdddd )=> TBLPTRH bbbbcccc     20-bit FLASH ROM address aligned
 		;                )   TBLPTRL dd000000     to 64-byte boundary
 		;
-FLASH_UPD_TBNZ:	SWAPF	0x00, TBLPTRU, ACCESS
-		MOVLW	0x0F
-		ANDWF	TBLPTRU, F, ACCESS		; U=0000aaaa H=XXXXXXXX L=XXXXXXXX
-		SWAPF	0x00, TBLPTRH, ACCESS
-		MOVLW	0xF0
-		ANDWF	TBLPTRH, F, ACCESS		; U=0000aaaa H=bbbb0000 L=XXXXXXXX
-		SWAPF	0x01, WREG, ACCESS
+FLASH_UPD_TBNZ:	SWAPF	0x00, W, ACCESS
+		ANDLW	0x0F
+		MOVWF	TBLPTRU, ACCESS			; U=0000aaaa H=XXXXXXXX L=XXXXXXXX
+		SWAPF	0x00, W, ACCESS
+		ANDLW	0xF0
+		MOVWF	TBLPTRH, ACCESS			; U=0000aaaa H=bbbb0000 L=XXXXXXXX
+		SWAPF	0x01, W, ACCESS
 		ANDLW	0x0F
 		IORWF	TBLPTRH, F, ACCESS		; U=0000aaaa H=bbbbcccc L=XXXXXXXX
-		SWAPF	0x01, TBLPTRL, ACCESS
-		MOVLW	0xC0
-		ANDWF	TBLPTRL, F, ACCESS		; U=0000aaaa H=bbbbcccc L=dd000000
+		SWAPF	0x01, W, ACCESS
+		ANDLW	0xC0
+		MOVWF	TBLPTRL, ACCESS			; U=0000aaaa H=bbbbcccc L=dd000000
 		;
 		; sanity check that they didn't try to assign into a non-aligned block
 		;
@@ -715,9 +716,9 @@ FLASH_UPD_RC1:	BTFSS	RCSTA, OERR, ACCESS
 		BCF	RCSTA, CREN, ACCESS	; reset serial receiver
 		BSF	RCSTA, CREN, ACCESS
 		MOVLW	0x6E
-		RCALL	FLASH_UPD_SEND
+		RCALL	FLASH_UPDATE_SEND
 		BRA	FLASH_UPD_ABORT
-FLASH_UPD_RC2: 	BTFSS	PIR1, RXIF, ACCESS	; wait for charater to arrive
+FLASH_UPD_RC2: 	BTFSS	PIR1, RCIF, ACCESS	; wait for charater to arrive
 		BRA	FLASH_UPDATE_RECV
 		MOVFF	RCREG, FLASH_UPD_INP
 		RETURN
@@ -740,3 +741,5 @@ FLASH_UPD_AB1:	MOVLW	0x3E				; '>' received?
 		CPFSEQ	FLASH_UPD_INP, ACCESS
 		BRA	FLASH_UPD_ABORT			; no, loop back to wait for next char
 		RETURN					; yes, return
+
+		END

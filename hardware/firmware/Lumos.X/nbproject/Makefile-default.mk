@@ -45,11 +45,11 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/_ext/1472/lumos_init.o ${OBJECTDIR}/_ext/1472/lumos_main.o ${OBJECTDIR}/_ext/1472/serial-io.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/_ext/1472/lumos_init.o.d ${OBJECTDIR}/_ext/1472/lumos_main.o.d ${OBJECTDIR}/_ext/1472/serial-io.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/_ext/1472/lumos_init.o ${OBJECTDIR}/_ext/1472/lumos_main.o ${OBJECTDIR}/_ext/1472/serial-io.o ${OBJECTDIR}/_ext/1472/flash_update.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/_ext/1472/lumos_init.o.d ${OBJECTDIR}/_ext/1472/lumos_main.o.d ${OBJECTDIR}/_ext/1472/serial-io.o.d ${OBJECTDIR}/_ext/1472/flash_update.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/_ext/1472/lumos_init.o ${OBJECTDIR}/_ext/1472/lumos_main.o ${OBJECTDIR}/_ext/1472/serial-io.o
+OBJECTFILES=${OBJECTDIR}/_ext/1472/lumos_init.o ${OBJECTDIR}/_ext/1472/lumos_main.o ${OBJECTDIR}/_ext/1472/serial-io.o ${OBJECTDIR}/_ext/1472/flash_update.o
 
 
 CFLAGS=
@@ -91,6 +91,12 @@ ${OBJECTDIR}/_ext/1472/serial-io.o: ../serial-io.asm  nbproject/Makefile-${CND_C
 	@${FIXDEPS} dummy.d -e "${OBJECTDIR}/_ext/1472/serial-io.err" $(SILENT) -rsi ${MP_CC_DIR}  -c ${MP_AS} $(MP_EXTRA_AS_PRE) -d__DEBUG  -q -p$(MP_PROCESSOR_OPTION) -u  -l\\\"${OBJECTDIR}/_ext/1472/serial-io.lst\\\" -e\\\"${OBJECTDIR}/_ext/1472/serial-io.err\\\" $(ASM_OPTIONS)   -o\\\"${OBJECTDIR}/_ext/1472/serial-io.o\\\" \\\"../serial-io.asm\\\" 
 	@${DEP_GEN} -d "${OBJECTDIR}/_ext/1472/serial-io.o"
 	
+${OBJECTDIR}/_ext/1472/flash_update.o: ../flash_update.asm  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} ${OBJECTDIR}/_ext/1472 
+	@${RM} ${OBJECTDIR}/_ext/1472/flash_update.o.d 
+	@${FIXDEPS} dummy.d -e "${OBJECTDIR}/_ext/1472/flash_update.err" $(SILENT) -rsi ${MP_CC_DIR}  -c ${MP_AS} $(MP_EXTRA_AS_PRE) -d__DEBUG  -q -p$(MP_PROCESSOR_OPTION) -u  -l\\\"${OBJECTDIR}/_ext/1472/flash_update.lst\\\" -e\\\"${OBJECTDIR}/_ext/1472/flash_update.err\\\" $(ASM_OPTIONS)   -o\\\"${OBJECTDIR}/_ext/1472/flash_update.o\\\" \\\"../flash_update.asm\\\" 
+	@${DEP_GEN} -d "${OBJECTDIR}/_ext/1472/flash_update.o"
+	
 else
 ${OBJECTDIR}/_ext/1472/lumos_init.o: ../lumos_init.asm  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1472 
@@ -109,6 +115,12 @@ ${OBJECTDIR}/_ext/1472/serial-io.o: ../serial-io.asm  nbproject/Makefile-${CND_C
 	@${RM} ${OBJECTDIR}/_ext/1472/serial-io.o.d 
 	@${FIXDEPS} dummy.d -e "${OBJECTDIR}/_ext/1472/serial-io.err" $(SILENT) -rsi ${MP_CC_DIR}  -c ${MP_AS} $(MP_EXTRA_AS_PRE) -q -p$(MP_PROCESSOR_OPTION) -u  -l\\\"${OBJECTDIR}/_ext/1472/serial-io.lst\\\" -e\\\"${OBJECTDIR}/_ext/1472/serial-io.err\\\" $(ASM_OPTIONS)   -o\\\"${OBJECTDIR}/_ext/1472/serial-io.o\\\" \\\"../serial-io.asm\\\" 
 	@${DEP_GEN} -d "${OBJECTDIR}/_ext/1472/serial-io.o"
+	
+${OBJECTDIR}/_ext/1472/flash_update.o: ../flash_update.asm  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} ${OBJECTDIR}/_ext/1472 
+	@${RM} ${OBJECTDIR}/_ext/1472/flash_update.o.d 
+	@${FIXDEPS} dummy.d -e "${OBJECTDIR}/_ext/1472/flash_update.err" $(SILENT) -rsi ${MP_CC_DIR}  -c ${MP_AS} $(MP_EXTRA_AS_PRE) -q -p$(MP_PROCESSOR_OPTION) -u  -l\\\"${OBJECTDIR}/_ext/1472/flash_update.lst\\\" -e\\\"${OBJECTDIR}/_ext/1472/flash_update.err\\\" $(ASM_OPTIONS)   -o\\\"${OBJECTDIR}/_ext/1472/flash_update.o\\\" \\\"../flash_update.asm\\\" 
+	@${DEP_GEN} -d "${OBJECTDIR}/_ext/1472/flash_update.o"
 	
 endif
 

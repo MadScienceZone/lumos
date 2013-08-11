@@ -1,0 +1,158 @@
+'\"************************************************************************
+'\"************************************************************************
+'\"************************************************************************
+'\"
+'\" This file has been processed by automated scripts.  DO NOT EDIT this
+'\" file directly or your edits will be lost!  
+'\"
+'\" Edit the corresponding <entry>.<section>.in file instead.
+'\"
+'\"************************************************************************
+'\"************************************************************************
+'\"************************************************************************
+.TH LUMOS 1 "Lumos" "Software Alchemy" "User Commands"
+'\"
+'\" LUMOS DOCUMENTATION: LUMOS(1)
+'\" $Header: /tmp/cvsroot/lumos/man/man1/lumos.1,v 1.1 2008-12-30 22:58:02 steve Exp $
+'\"
+'\" Lumos Light Orchestration System
+'\" Copyright (c) 2005-2009, 2011 by Steven L. Willoughy, Aloha, OR, USA.
+'\" All Rights Reserved.  Licensed under the terms and conditions of the
+'\" Open Software License version 3.0.
+'\"
+'\" This product is provided for educational, experimental or personal
+'\" interest use, in accordance with the terms and conditions of the
+'\" aforementioned license agreement, ON AN "AS IS" BASIS AND WITHOUT
+'\" WARRANTY, EITHER EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION,
+'\" THE WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A
+'\" PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY OF THE ORIGINAL
+'\" WORK IS WITH YOU.  (See the license agreement for full details, 
+'\" including disclaimer of warranty and limitation of liability.)
+'\"
+'\" Under no curcumstances is this product intended to be used where the
+'\" safety of any person, animal, or property depends upon, or is at
+'\" risk of any kind from, the correct operation of this software or
+'\" the hardware devices which it controls.
+'\"
+'\" USE THIS PRODUCT AT YOUR OWN RISK.
+'\" 
+.SH NAME
+lumos \- Light Orchestration System (introduction)
+.SH DESCRIPTION
+.LP
+Lumos (an acronym of \*(lqLumen\*(rq, Latin for \*(lqLight\*(rq, and \*(lqOrchestration
+System\*(rq) is an open-source application for controlling light displays from a PC.
+This is often done, for example, to make interesting Christmas light displays, possibly
+synchronized to a sound track.
+.LP
+A \*(lqshow\*(rq is the entire collection of hardware and software components 
+which are put into place for a display.  This includes a PC running the Lumos
+software, one or more hardware \*(lqcontrollers\*(rq which turn individual
+electrical circuits (\*(lqchannels\*(rq) on and off when requested by the PC,
+a set of loads (typically lights) plugged into the controllers' output channels,
+and a set of sequence programs describing what each output channel should be
+doing at any given point in time.
+.LP
+Lumos is the collective name for the set of stand-alone programs which orchestrate
+the operation of all these components in a show.  Lumos is still a work under
+active development.  Eventually, an interactive scene editor and multi-media
+playback tool are planned, as well as easy-to-use GUI configuration and preview
+utilities.  At present, however, show configuration is accomplished by editing
+text files, and a few stand-alone shell commands perform the sequences by sending
+commands to the controller units.
+.SH FILES
+.LP
+A \*(lqshow configuration file\*(rq describes the layout of all the show's hardware
+components to Lumos, including the number and type of hardware controllers, expected
+current load on each channel, power sources available, communication parameters,
+etc.  Its format is designed to be easy to create manually using a normal text
+editor.  This file format is documented in
+.BR lumos-config (5).
+The
+.BR lcheck (1)
+utility should be used to sanity-check a configuration file before attempting to
+use it.
+.LP
+Once Lumos is configured to understand the hardware in the show, it is ready to
+play programmed sequences on that hardware.  Each sequence is written in a text file
+as documented in
+.BR lumos-sequence (5),
+and these sequence files are played by the
+.BR lplay (1)
+program.  
+.LP
+These sequence files may be edited by hand, but this is inconvenient to do for any
+but the simplest of sequences.  An interactive scene editor is being developed to
+make this task much easier.  In the mean time, writing simple sequences manually is
+still possible.  Users of the Vixen* sequence editor may wish to compose their sequences
+in that program and then import those files to Lumos for playback.  See the
+.BR vixen2lumos (1)
+program documentation for details.
+.SH WARNING
+.LP
+This product is provided for educational, experimental or personal
+interest use, in accordance with the terms and conditions of the
+\*(lqOpen Software License version 3.0\*(rq 
+license agreement, ON AN \*(lqAS IS\*(rq BASIS AND WITHOUT
+WARRANTY, EITHER EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION,
+THE WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A
+PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY OF THE ORIGINAL
+WORK IS WITH YOU.  (See the license agreement for full details, 
+including disclaimer of warranty and limitation of liability.)
+.LP
+Under no curcumstances is this product intended to be used where the
+safety of any person, animal, or property depends upon, or is at
+risk of any kind from, the correct operation of this software or
+the hardware devices which it controls.
+.LP
+USE THIS PRODUCT AT YOUR OWN RISK.
+.SH "EXTENDING LUMOS"
+.LP
+Device drivers for other types of hardware controllers may be written by anyone
+familiar with the operation of that hardware, and who understands how to write a
+simple object class definition in the Python programming language.  Details
+about these driver classes may be found in the manual entry
+.BR lumos-controller (4)
+for controller units, and
+.BR lumos-network (4)
+for communication drivers (e.g., parallel or serial port interfaces).  Other 
+notes useful for extending the system may be found in the \*(lqHACKING\*(rq
+document distributed with the Lumos source code.
+.SH "SEE ALSO"
+.LP
+.BR lcheck (1),
+.BR lplay (1),
+.BR lpower (1),
+.BR lumos-config (5),
+.BR lumos-controller (4),
+.BR lumos-network (4),
+.BR lumos-sequence (5),
+.BR ssrctl (1),
+.BR vixen2lumos (1).
+.SH VERSION
+.LP
+This document describes Lumos version 0.5a1. 
+.SH HISTORY
+.LP
+This is the first public release of the Lumos product.  Versions 0.1 and 0.2 were used
+privately by the author for his personal Christmas light displays while Lumos was being
+designed and developed.
+.SH COPYRIGHT
+.LP
+Lumos Light Orchestration System,
+Copyright \(co 2005\-2009, 2011 by Steven L. Willoughy, Aloha, OR, USA.
+All Rights Reserved.  Licensed under the terms and conditions of the
+Open Software License version 3.0.  See the
+.B LICENSE
+file accompanying the Lumos software distribution for full terms and
+conditions of use, disclaimer of warranty, limitation of liability
+and other information, or see:
+.br
+http://www.opensource.org/licenses/osl-3.0.php.
+.SH AUTHOR
+.LP
+Steve Willoughby, support@alchemy.com
+.SH NOTES
+.LP
+*Names of third-party products are the property of, and may be trademarks or registered
+trademarks belonging to, their respective owners.
