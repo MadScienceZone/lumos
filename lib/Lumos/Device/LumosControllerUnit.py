@@ -333,7 +333,7 @@ class LumosControllerUnit (ControllerUnit):
 
         self.network.send(chr(0xF0 | self.address) + self._8_bit_string([
             0x75, 0x33, 0x4C, 0x1C
-        ])
+        ]))
 
     def raw_set_phase(self, value):
         self.network.send(chr(0xF0 | self.address) + self._8_bit_string([
