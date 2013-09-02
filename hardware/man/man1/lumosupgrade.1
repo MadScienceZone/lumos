@@ -26,7 +26,7 @@ lumosupgrade \- Download new firmware image into Lumos controller hardware
 .RB [ \-p
 .IR port ]
 .RB [ \-T
-.RB mode ]
+.IR mode ]
 .I image-file
 .SH DESCRIPTION
 .LP
@@ -35,21 +35,33 @@ This command places the target Lumos controller device into
 onto it.  This is used in order to upgrade the Lumos firmware
 to a new version.
 .LP
-The board must first be connected to the host PC (all by itself,
-not sharing a serial connection with other devices), and that connection
+To upgrade your controller's firmware, perform the following steps:
+.\" <<enumerate>>
+.TP 3
+1.
+Connect your Lumos controller board to the host PC (all by itself,
+not sharing a serial connection with other devices). The connection
 must be bidirectional as the Lumos board needs to be able to acknowledge
 receipt of the new image.
-.LP
-The Lumos board is then placed into configuration mode (sometimes called
-\*(lqprivileged mode\*(rq).  Then the
+.TP
+2.
+Place the Lumos board into configuration mode (sometimes called
+\*(lqprivileged mode\*(rq)
+.TP
+3. 
+Invoke the
 .B lumosupgrade
-program is invoked to load a new firmware image onto it.
+program to load a new firmware image onto it, as explained in
+the remainder of this manual page.
+.\" <</>>
 .LP
 Once started, this process must run to successful completion
 before the Lumos board may be used for normal operations again.
 If anything goes amiss, the Lumos board may be reset and the 
 .B lumosupgrade
-program re-started.  (Upon reset, the Lumos board will stay in
+program restarted using the
+.B \-\-resume
+option.  (Upon reset, the Lumos board will stay in
 program mode until a new image has been loaded into it.  Should the
 board reset/reboot for any reason during the process, the 
 .B lumosupgrade

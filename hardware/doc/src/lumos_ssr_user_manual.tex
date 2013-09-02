@@ -400,7 +400,7 @@ as it does in normal run mode).  The controller will turn off all output channel
 on fully.  
 
 After a one-second delay, channel \#0 will turn off and \#1 will turn on.  This will continue indefinitely,
-each channel turning on it its turn each second.  The panel \acronym{LED}s will display the currently-active
+each channel turning on in its turn each second.  The panel \acronym{LED}s will display the currently-active
 channel number in binary.  Note that 24-channel boards only show the least significant 3 bits, so you
 will see which channel within the block (0--7) is active, but not which block.  48-channel controllers
 show the entire channel number.  See Figure~\ref{fig:testbin} for a reference chart of the output
@@ -554,6 +554,8 @@ If the Option buton is pressed briefly, the pulsing red \acronym{LED} freezes (s
 pauses on the current output channel.  Pressing the Option button again resumes the cycle.
       
 \section{Restoring to Factory Settings}
+{\bfseries This feature is planned for the future but not yet implemented.}
+{\color{gray}
 If the board is unresponsive and cannot be reconfigured via the host PC (for example, if you configured
 it to use a baud rate your host PC can't match), follow these steps to reset the device to its 
 factory default settings:
@@ -577,6 +579,7 @@ Failure to perform each step at the right time will prevent the factory reset fr
 sensor input, one of the other \acronym{LED}s will be used instead.  \emph{If all of the 
 \acronym{LED}s have been replaced with sensor inputs, then channel~\#0 will be turned on
 and off instead, to signal this sequence.  Have a suitable load plugged into that output.}
+}
 
 \chapter{Configuring the Board}
 \LLstart{T}{here}{are a number of settings} which can be made on the Lumos controllers.  Generally,
@@ -1441,7 +1444,7 @@ This would be compiled into the following sequence bytecode:
 ADDR BYTES          LINE SOURCE CODE
 ---- -------------- ---- ------------------------
 0000 4F 02          0002      PUSH   #2
-0002 AA             0003 LP1: LOOP   #1
+0002 AA             0003 L:   LOOP   #1
 0003 6F             0004      PUSH   {0}
 0004 81             0005      ON     $
 0005 6F             0006      PUSH   {0}
@@ -1456,7 +1459,7 @@ ADDR BYTES          LINE SOURCE CODE
 0012 AF             0015      PUSH   [0]
 0013 52 03          0016      MUL    $,#3
 0015 B0             0017      POP    [0]
-0016 6B 02 14       0018      NEXT   LP1,#1,#20
+0016 6B 02 14       0018      NEXT   L,#1,#20
 \end{SourceCode}
 
 When executed, this is the sequence of steps carried out, and the stack's contents
@@ -1725,7 +1728,7 @@ optimizations like that.}
 We then start the next iteration.
 
 \begin{bytefield}{32}
-  \bitbox[]{8}{\z{NEXT LP1,\#1,\#20}} 
+  \bitbox[]{8}{\z{NEXT L,\#1,\#20}} 
   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{x}}
   & \bitbox{8}{6} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{2}
@@ -2456,14 +2459,14 @@ if you want some initialization code to take place at the start of the first ite
 is not repeated on subsequent iterations).
 
 \begin{opdesc}
-  \z{0B} & \Var*{addr}&&\z{NEXT}&\Var*{addr}\z{,\$,\$} & Loop to \Var*{addr} if \z{\{0\}}+=\Var{x}>\Var{y}.\\
-  \z{2B} & \Var*{addr}&&\z{NEXT}&\Var*{addr}\z{,\#1,\$}& Loop to \Var*{addr} if \z{\{0\}}+=1>\Var{x}.\\
-  \z{4B} & \Var*{addr}& \Var*{inc} \Var*{max}&\z{NEXT}&\Var*{addr}\z{,\#}\Var*{inc}\z{,\#}\Var*{max}& Loop to \Var*{addr} if \z{\{0\}}+=\Var*{inc}>\Var*{max}.\\
-  \z{6B} & \Var*{addr}&\Var*{max}&\z{NEXT}&\Var*{addr}\z{,\#1,\#}\Var*{max}& Loop to \Var*{addr} if \z{\{0\}}+=1>\Var*{max}.\\
-  \z{15} & \Var*{addr}&&\z{NEXTDEC}&\Var*{addr}\z{,\$,\$} & Loop to \Var*{addr} if \z{\{0\}}--=\Var{x}<\Var{y}.\\
-  \z{35} & \Var*{addr}&&\z{NEXTDEC}&\Var*{addr}\z{,\#1,\$}& Loop to \Var*{addr} if \z{\{0\}}--=1<\Var{x}.\\
-  \z{55} & \Var*{addr}& \Var*{dec} \Var*{min}&\z{NEXTDEC}&\Var*{addr}\z{,\#}\Var*{dec}\z{,\#}\Var*{min}& Loop to \Var*{addr} if \z{\{0\}}--=\Var*{dec}<\Var*{min}.\\
-  \z{75} & \Var*{addr}&\Var*{min}&\z{NEXTDEC}&\Var*{addr}\z{,\#1,\#}\Var*{min}& Loop to \Var*{addr} if \z{\{0\}}--=1<\Var*{min}.\\
+  \z{0B} & \Var*{addr}&&\z{NEXT}&\Var*{addr}\z{,\$,\$} & Loop to \Var*{addr} if \z{\{0\}}+=\Var{x}$\le$\Var{y}.\\
+  \z{2B} & \Var*{addr}&&\z{NEXT}&\Var*{addr}\z{,\#1,\$}& Loop to \Var*{addr} if \z{\{0\}}+=1$\le$\Var{x}.\\
+  \z{4B} & \Var*{addr}& \Var*{inc} \Var*{max}&\z{NEXT}&\Var*{addr}\z{,\#}\Var*{inc}\z{,\#}\Var*{max}& Loop to \Var*{addr} if \z{\{0\}}+=\Var*{inc}$\le$\Var*{max}.\\
+  \z{6B} & \Var*{addr}&\Var*{max}&\z{NEXT}&\Var*{addr}\z{,\#1,\#}\Var*{max}& Loop to \Var*{addr} if \z{\{0\}}+=1$\le$\Var*{max}.\\
+  \z{15} & \Var*{addr}&&\z{NEXTDEC}&\Var*{addr}\z{,\$,\$} & Loop to \Var*{addr} if \z{\{0\}}--=\Var{x}$\ge$\Var{y}.\\
+  \z{35} & \Var*{addr}&&\z{NEXTDEC}&\Var*{addr}\z{,\#1,\$}& Loop to \Var*{addr} if \z{\{0\}}--=1$\ge$\Var{x}.\\
+  \z{55} & \Var*{addr}& \Var*{dec} \Var*{min}&\z{NEXTDEC}&\Var*{addr}\z{,\#}\Var*{dec}\z{,\#}\Var*{min}& Loop to \Var*{addr} if \z{\{0\}}--=\Var*{dec}$\ge$\Var*{min}.\\
+  \z{75} & \Var*{addr}&\Var*{min}&\z{NEXTDEC}&\Var*{addr}\z{,\#1,\#}\Var*{min}& Loop to \Var*{addr} if \z{\{0\}}--=1$\ge$\Var*{min}.\\
   \z{8B} & \Var*{addr}&&\z{NEXTINF}&\Var*{addr}\z{,\$} & $\infty$ loop to \Var*{addr}, \z{\{0\}}+=\Var{x}.\\
   \z{AB} & \Var*{addr}&&\z{NEXTINF}&\Var*{addr}\z{,\#1}& $\infty$ loop to \Var*{addr}, \z{\{0\}}+=1.\\
   \z{CB} & \Var*{addr}&\Var*{inc}&\z{NEXTINF}&\Var*{addr}\z{,\#}\Var*{inc}& $\infty$ loop to \Var*{addr}, \z{\{0\}}+=\Var*{inc}.\\
@@ -2862,6 +2865,24 @@ the following escape mechanism is used.  Two byte values are special:
 	means a literal \z{0x7E} byte needs to be sent as \z{0x7F} \z{0x7E}, and a literal
 	\z{0x7F} byte as \z{0x7F} \z{0x7F}.
 \end{description}
+See the examples in Figure~\ref{tbl:escapes}.
+\begin{figure}
+ \begin{center}
+  \begin{tabular}{|l|l|}\hline
+	\bfseries Intended Value & \bfseries Transmitted Byte(s)\\\hline\hline
+	\z{0x42} & \z{0x42} \\\hline
+	\z{0x7D} & \z{0x7D} \\\hline
+	\z{0x7E} & \z{0x7F 0x7E} \\\hline
+	\z{0x7F} & \z{0x7F 0x7F} \\\hline
+	\z{0x80} & \z{0x7E 0x00} \\\hline
+	\z{0x81} & \z{0x7E 0x01} \\\hline
+	\z{0xFD} & \z{0x7E 0x7D} \\\hline
+	\z{0xFE} & \z{0x7E 0x7E} \\\hline
+	\z{0xFF} & \z{0x7E 0x7F} \\\hline
+  \end{tabular}
+  \caption{Examples of Escaped 8-bit Data Values\label{tbl:escapes}}
+ \end{center}
+\end{figure}
 
 In the command descriptions that follow, we will show the bytes sent or received typographically, using the
 following notation:
