@@ -2925,7 +2925,7 @@ S6_DATA:
 	GOTO	S6_1_DATA	; too far away for relative branch
 	;
 	; S6.0: Complete BULK_UPD command (from state 5)
-	;
+	; XXX this is obsolete XXX
 	; BULK_UPD:
 	;
 	;   ___7______6______5______4______3______2______1______0__
@@ -4055,6 +4055,53 @@ S6_12_DEF_SEQ:
 	GOTO	ERR_NOT_IMP		; XXX
 	
 S6_13_DATA:
+	DECFSZ	WREG, F, ACCESS
+	BRA	S6_14_DATA
+	;
+	; S6.13: CF_FLROM Command completed:
+	;
+	;   ___7______6______5______4______3______2______1______0__
+	;  |                                  |                    |
+	;  |                0                 |          7         | YY_COMMAND
+	;  |______|______|______|______|______|______|______|______|
+	;  |      |      |      |      |                           |
+	;  |   0  |   1  |   1  |   1  |             5             | (not saved)
+	;  |______|______|______|______|______|______|______|______|
+	;  |      |                                                |
+	;  |   0  |                   $33                          | YY_BUFFER+0
+	;  |______|______|______|______|______|______|______|______|
+	;  |      |                                                |
+	;  |   0  |                   $4C                          | YY_BUFFER+1
+	;  |______|______|______|______|______|______|______|______|
+	;  |      |                                                |
+	;  |   0  |                   $1C                          | YY_DATA
+	;  |______|______|______|______|______|______|______|______|
+	;
+	; Validate inputs
+	;
+	MOVLW	3
+	SUBWF	YY_BUF_IDX, W, ACCESS		; input bytes in packet
+	BZ	S6_13_VALID			; 3 bytes received? good.
+	GOTO	ERR_COMMAND			; otherwise, it's not right.
+	;
+	; next, test sentinel
+	;
+S6_13_VALID:
+	DECF	YY_BUF_IDX, W, ACCESS
+	ADDWF	FSR0L, F, ACCESS
+	MOVLW	0x4C
+	CPFSEQ	INDF0			; sentinel==$4C?
+	GOTO	ERR_COMMAND
+	DECF	FSR0L, F, ACCESS
+	MOVLW	0x33
+	CPFSEQ	INDF0			; sentinel==$33?
+	GOTO	ERR_COMMAND
+	;
+	; ok, start updating the firmware!
+	;
+	GOTO	FLASH_UPDATE_START
+
+S6_14_DATA:
 	ERR_BUG	0x05, ERR_CLASS_OVERRUN
 
 
@@ -4394,6 +4441,15 @@ S9_PRIV_4:
 	GOTO	S9_PRIV_0
 
 S9_PRIV_5:
+	DECFSZ	WREG, W, ACCESS
+	BRA	S9_PRIV_6
+	;
+	; CF_FLROM command recognized.  Expect packet of 3 more bytes...
+	;
+	WAIT_FOR_SENTINEL 3, B'00011100', 13	; -> S6.13 when sentinel found
+	RETURN
+
+S9_PRIV_6:
 	GOTO	ERR_COMMAND
 
 S9_CF_PHASE:
