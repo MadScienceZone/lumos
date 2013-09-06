@@ -1,3 +1,49 @@
+;
+;
+;
+; slow flash = PATTERN(i,255,255,30,FADE_DOWN|FADE_CYCLE|MAX_OFF_TIME)
+; slow fade =  PATTERN(i,0,1,1,FADE_UP|FADE_CYCLE)
+;	SSR_VALUE=0
+;	SSR_STEP=1
+;	SSR_SPEED=1
+;	SSR_COUNTER=1
+;	SSR_FLAGS=UP|CYCLE
+; 
+; --counter >0? stop
+; counter=speed; value += step <max? stop
+; value=max; cancel fade; reverse if cycle
+;
+; --counter >0? stop
+; counter=speed; value -= step >=0? stop 
+; value=0; cancel fade; reverse if cycle
+; if max_off_time, counter=max
+;
+; val stp spd ctr flags
+; 000 001 001 001 up|cycle				256 x 120 per direction (should be 2.1s)
+; 000 001 001 000 up|cycle  <-end of cycle
+; 001 001 001 001 up|cycle
+; 001 001 001 000 up|cycle  <-end of cycle
+; 002 001 001 001 up|cycle
+; 002 001 001 000 up|cycle  <-end of cycle
+; 003 001 001 001 up|cycle
+;  :
+; 253 001 001 000 up|cycle  <-end of cycle
+; 254 001 001 001 up|cycle
+; 254 001 001 000 up|cycle  <-end of cycle
+; 255 001 001 001 up|cycle
+; 255 001 001 000 up|cycle  <-end of cycle
+; 000 001 001 001 up|cycle
+; 255 001 001 001 down|cycle
+;
+; even slower fade would be val=0 step=1 speed=255, ctr=255.  255x256x120 per direction (554s)
+;
+;
+; TMR0=0
+; TMR0: high pri, int en, start   (TMR0IP|TMR0IE|TMR0ON)
+; expire (INTCON<TMR0IF>) -> TMR0=$5D3D -> SSR_STATE<PRECYC>, SSR_STATE2<TEST_UPD>
+; follows system clock with 1:2 prescaler, 16bit
+
+;
 ; vim:set syntax=pic ts=8:
 ; sublw k-W
 ; subwf f-W
@@ -112,7 +158,7 @@
 ;    Both need reset signals.
 ;
 ; Serial control (RS-232 or RS-485) at 19.2kbps by default.
-; Configurable from 300 to 250000.
+; Configurable from 300 to 250000 baud.
 ;
 ;=============================================================================
 ; DIAGNOSTICS
@@ -267,6 +313,10 @@
 ;	a small state machine.  The current state is held in YY_STATE (named
 ;	in honor of the venerable yacc).
 ;
+; FLASH_UPDATE
+;	(flash_update.asm) Loader code to receive new firmware image over the
+;	serial line and write it into the microcontroller's flash memory.
+;
 ;-----------------------------------------------------------------------------
 ; Command Protocol:
 ;                     ___7______6______5______4______3______2______1______0__
@@ -326,7 +376,7 @@
 ; If this ($7F) byte is received, it is ignored but the next byte is accepted
 ; as-is without further interpretation.
 ;
-; Specific Special Cases:
+; Specific Example Cases of interest:
 ; 	Sequence    Resulting byte
 ; 	$7E $7E     $FE
 ; 	$7E $7F     $FF
@@ -382,6 +432,10 @@
 ;
 ; Payloads for many-byte commands
 ;
+; BULK_UPD:  00cccccc 0nnnnnnn v0 v1 v2 ... vn 01010101
+;	Updates <n>+1 channels starting at <c>, giving <v> values for each as per SET_LVL.
+;
+; XXX REPLACES THIS OBSOLETE VERSION XXX
 ; BULK_UPD:  0mcccccc 0nnnnnnn (0vvvvvvv)*<n+1> 01010110 (0hhhhhhh)*[(<n>+6)/7] 01010101
 ;             |                                 \_____________________________/
 ;             |_______________________________________________| if <m>=1
@@ -389,6 +443,7 @@
 ;	Updates <n> channels starting at <c>, giving <v> values for each as per SET_LVL.
 ;	If <m>=1, then the LSBs are given, packed into 7-bit values with bit 6 corresponding
 ;	to the first output channel, bit 5 is the next, and so on.
+; XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX
 ;
 ; RAMP_LVL:  0dcccccc 0sssssss 0ttttttt   Channel <c> up/down in <s>+1 steps every <t>+1/120 sec
 ;
@@ -580,7 +635,7 @@
 ; will slightly lead the zero crossing point and the trailing edge will 
 ; slightly lag behind it.)  So we enter our ISR once every 1/120 sec 
 ; (assuming US-standard 60Hz power).  For reference, this is 0.00833333 sec 
-; or enough time for 41,666.666 instructions to be executed between each 
+; or enough time for 83,333.333 instructions to be executed between each 
 ; interrupt.
 ;
 ; Slices  Time/slice (s)  Instructions/slice
@@ -591,24 +646,12 @@
 ; 132     0.00006313         631.313	128 levels + 2 on each end
 ; 260     0.00003205         320.513	256 levels + 2 on each end
 ;
-; (Revised; earlier versions of this firmware used 64 levels on the dimmers
-; --which are probably too many--and this didn't allow enough time for the 
-; main loop to run, so we backed it off to 32 here.  We will only run into
-; trouble now if all--or most--channels are set to the same level, since 
-; that one slice may run slightly over its allotted time, but the next slice
-; will be shorter as a result and we'll catch back up within a tiny fraction
-; of a cycle.)
-;
-; We divide the half-wave into "slices".  We need a minimum of 32 slices
-; to get 32 levels of dimmer control, but we should add at least one on either
+; We divide the half-wave into "slices".  We need a minimum of 256 slices
+; to get 256 levels of dimmer control, but we should add at least one on either
 ; end in case our timing's slightly off between the ZC points and the free-
 ; running timer.  For good measure, let's throw in a couple more to allow for
 ; pin settling times, minimum turn-on times for the triacs and just to be
-; paranoid.  So let's say 38 slices per half-wave.  This is good, because it
-; means that each dimmer level is 1/38th brightness, with the lowest setting 
-; (other than off) being a minimum of 7/38ths, which means we don't waste
-; several dimmer levels below the threshold for an incandescent filament to
-; even be visibly on at all.
+; paranoid.  So let's say 260 slices per half-wave.  
 ;
 ; At 260 slices per ZC, each slice is 0.00003205128205128205 seconds.
 ; We set TMR2's period register to 159, with a 1:2 postscaler and no prescaler.
@@ -668,7 +711,7 @@ CYCLE_TMR_PERIOD	 EQU	0x5D3D
 ;    INT                          INT
 ;
 ; Since the free-running slice timer isn't exactly in sync with the ZC timing,
-; we'll start our working slices some variable fraction of 1/38th of a half-cycle
+; we'll start our working slices some variable fraction of 1/260th of a half-cycle
 ; each time.  This will cause a "wobble" in brightness level of not more than 
 ; 1/260th brightness level (something less than one brightness increment), which
 ; ought to be difficult or impossible to notice by looking at an incandescent
@@ -677,7 +720,7 @@ CYCLE_TMR_PERIOD	 EQU	0x5D3D
 ;
 ; On ZC interrupt, we set CUR_PRE to PHASE_OFFSET and set <PRECYC>.
 ; On TMR2 interrupt, if SSR_STATE<PRECYC>, decrement CUR_PRE.
-;   if zero, clear SSR_STATE<PRECYC>, set CUR_SLICE to 32, set <INCYC>,<DIM_START>.
+;   if zero, clear SSR_STATE<PRECYC>, set CUR_SLICE to 256, set <INCYC>,<DIM_START>.
 ;   if SSR_STATE<INCYC>, decrement CUR_SLICE; if zero, set DIM_END, clr INCYC; else set SLICE_UPD
 ; 
 ; In main polling loop:
@@ -1820,7 +1863,7 @@ CH	 ++
 	SET_SSR_PATTERN SSR_GREEN, 0, 1, 1, BIT_FADE_UP|BIT_FADE_CYCLE
 	BCF	PLAT_PWR_ON, BIT_PWR_ON, ACCESS	; turn on power supply
 	;	
-	; If we're in DMX mode, change our buad rate to 250,000 bps
+	; If we're in DMX mode, change our baud rate to 250,000 bps
 	;
 	BTFSS	DMX_SLOTH, DMX_EN, ACCESS
 	GOTO	MAIN
@@ -2925,6 +2968,33 @@ S6_DATA:
 	GOTO	S6_1_DATA	; too far away for relative branch
 	;
 	; S6.0: Complete BULK_UPD command (from state 5)
+	;
+	;   ___7______6______5______4______3______2______1______0__
+	;  |                                  |                    |
+	;  |                0                 |          3         | YY_COMMAND
+	;  |______|______|______|______|______|______|______|______|
+	;  |NOT_MY|      |                                         |
+	;  | _SSR |      |   c = Starting Channel ID (0-47)        | TARGET_SSR
+	;  |______|______|______|______|______|______|______|______|
+	;  |      |                                                |
+	;  |   0  |      n = (Number of channels - 1) (0-47)       | YY_BUFFER+0
+	;  |______|______|______|______|______|______|______|______|
+	;  |                                                       |
+	;  |                  Value for SSR #c                     | YY_BUFFER+1
+	;  |______|______|______|______|______|______|______|______|
+	;  |                                                       |
+	;  |                  Value for SSR #c+1                   | YY_BUFFER+2
+	;  |______|______|______|______|______|______|______|______|
+	;				.
+	;				.
+	;              	                .
+	;   _______________________________________________________
+	;  |                                                       |
+	;  |                  Value for SSR #c+n-1                 | YY_BUFFER+n
+	;  |______|______|______|______|______|______|______|______|
+	;                                                       <-- YY_BUF_IDX == n+1
+	;
+	;
 	; XXX this is obsolete XXX
 	; BULK_UPD:
 	;
@@ -2985,7 +3055,7 @@ S6_0_DATA:
 	LFSR	0, YY_BUFFER			
 	MOVF	TARGET_SSR, W, ACCESS		; start
 	ANDLW	0x3F
-	ADDWF	INDF0, W, ACCESS		; start + N-1
+	ADDWF	INDF0, W, ACCESS		; start + N-1      (N=#changed; N=n+1)
 	INCF	WREG, W, ACCESS			; start + N
 	SUBLW	NUM_CHANNELS			; start + N > NUM_CHANNELS? 
 	BC	S6_0_DATA_N_OK			; NO: proceed
@@ -3000,15 +3070,6 @@ S6_0_DATA_N_OK:
 	; XXX Don't do this.
 	;INCF	INDF0, F, ACCESS		; fix it so that YY_BUFFER[0] is N, not N-1
 	;
-	; Do we have the correct packet ending?
-	;
-	BTFSC	TARGET_SSR, 6, ACCESS		; 1=highres, 0=lowres
-	BRA	S6_0_CHK_HR
-	INCF	INDF0, W, ACCESS		; Low-res bounds check:
-	INCF	WREG, W, ACCESS
-	CPFSEQ	YY_BUF_IDX, ACCESS		; Should see IDX == N+1 if the packet is complete
-	GOTO	ERR_COMMAND			; and correctly terminated
-	;
 	; start bulk update of channels
 	;
 	; Remember that since the protocol specifies that we get N-1 in the length field,
@@ -3019,22 +3080,19 @@ S6_0_DATA_N_OK:
 	; range?  If so, just pass the whole command down to it, with starting SSR
 	; number translated down to its range...
 	;
-	CLRF	YY_STATE, ACCESS		; reset state machine now (we have multiple exit points below)
 	BTFSS	TARGET_SSR, NOT_MY_SSR, ACCESS
-	BRA	S6_0_UPDATE_MSB
+	BRA	S6_0_UPDATE_MASTER
 	IF ROLE_MASTER
 	 CLRWDT
-	 SET_SSR_BLINK_FADE SSR_YELLOW	; slave activity indicator
+	 SET_SSR_BLINK_FADE SSR_YELLOW		; slave activity indicator
 	 MOVLW	0xB0				; command code
 	 CALL	SIO_WRITE_W
 	 MOVF	TARGET_SSR, W, ACCESS		; starting channel
 	 SEND_8_BIT_W
-	 ;CALL	SIO_WRITE_W
 	 LFSR	0, YY_BUFFER			; now write YY_BUFFER[0..YY_BUF_IDX-1]
 S6_0_PD_ALL:
 	 MOVF	POSTINC0, W, ACCESS
 	 SEND_8_BIT_W
-	 ;CALL	SIO_WRITE_W
 	 DECFSZ YY_BUF_IDX, F, ACCESS
 	 BRA	S6_0_PD_ALL
 	 MOVLW	0x55				; and finally the trailing sentinel byte $55.
@@ -3044,11 +3102,9 @@ S6_0_PD_ALL:
 	 ERR_BUG 0x03, ERR_CLASS_IN_VALID
 	ENDIF
 
-S6_0_UPDATE_MSB:
+S6_0_UPDATE_MASTER:
 	;
 	; Copy the bytes directly into SSR registers
-	; on entry, W = N+1
-	; on return, K = N+1
 	;
 	CLRWDT
 	LFSR	0, YY_BUFFER			; FSR0 points to each source data byte to copy
@@ -3062,192 +3118,41 @@ S6_0_UPDATE_MSB:
 	 SUBLW	.24
 	 MOVWF	KK, ACCESS			; KK=24-start (max # of channels on OUR chip)
 	ENDIF
-	MOVFF	POSTINC0, I			; K=I=N counter		(I = *FSR0++)
-	INCF	I, F, ACCESS
-	MOVFF	I, K				; (We'll use K for the LSB update later)
-
+	MOVFF	POSTINC0, I			; I=N counter		(I = *FSR0++ + 1)
+	INCF	I, F, ACCESS			;                            \_____/
+						;                               n
 S6_0_UPDATE_NEXT:
-	CLRF	POSTINC2, ACCESS		; clear SSR flags 
-	MOVFF	POSTINC0, INDF1 		; set SSR	(*fsr1++ = *fsr0++ << 1)
-	RLNCF	INDF1, F, ACCESS
-	BZ	S6_0_UPD_NXT_ZERO		; if SSR=0, leave at 0 (skip next)
-	BSF	INDF1, 0, ACCESS		; else, set low bit so 254=255 in low-res mode
-S6_0_UPD_NXT_ZERO:
+	CLRF	POSTINC2, ACCESS		; clear SSR flags 	*fsr2++ = 0
+	MOVFF	POSTINC0, INDF1 		; set SSR		*fsr1++ = *fsr0++
 	INCF	FSR1, F, ACCESS
 	IF ROLE_MASTER				; (high-res mode will correct this if presented)
 	 DCFSNZ	KK, F, ACCESS
-	 BRA	S6_0_PASS_DOWN_MSB		; ran out of KK, send rest to slave chip
+	 BRA	S6_0_PASS_DOWN			; ran out of KK, send rest to slave chip
 	ENDIF
 	DECFSZ	I, F, ACCESS
 	BRA	S6_0_UPDATE_NEXT
 	RETURN
 
 	IF ROLE_MASTER
-S6_0_PASS_DOWN_MSB:
+S6_0_PASS_DOWN:
 	 DCFSNZ	I, F, ACCESS			; we left before I-- happened
 	 RETURN					; already out of data to send; don't bother the slave
-	 SET_SSR_BLINK_FADE SSR_YELLOW	; slave activity indicator
+	 SET_SSR_BLINK_FADE SSR_YELLOW		; slave activity indicator
 	 MOVLW	0xB0				; Start command to slave with I remaining values
 	 CALL	SIO_WRITE_W			
-	 CLRF	WREG, ACCESS 					; target SSR always 0 in this case
-	 BTFSC	TARGET_SSR, 6, ACCESS		; but keep the resolution bit
-	 BSF	WREG, 6, ACCESS
+	 CLRF	WREG, ACCESS 			; target SSR always 0 in this case
 	 SEND_8_BIT_W
-	 ;CALL	SIO_WRITE_W			
-	 DECF	I, W, ACCESS			; I channels left for slave to update, protocol wants I-1
-	 SEND_8_BIT_W
-	 ;CALL 	SIO_WRITE_W
-S6_0_PD_NEXT_MSB:
+	 DECF	I, W, ACCESS			; I channels left for slave to update, 
+	 SEND_8_BIT_W 				;    protocol wants I-1
+S6_0_PD_NEXT:
 	 MOVF	POSTINC0, W, ACCESS
 	 SEND_8_BIT_W
-	 ;CALL	SIO_WRITE_W			; ... write I bytes of values ...
 	 DECFSZ	I, F, ACCESS
-	 BRA	S6_0_PD_NEXT_MSB
+	 BRA	S6_0_PD_NEXT
 	 MOVLW	0x55				; sentinel $55 after bytes
 	 CALL	SIO_WRITE_W
 	 RETURN
 	ENDIF
-
-;
-; given N and starting channel C,
-; if C >= 24 then pass down BULK_UPD C-24 and done.
-; if N+C < 24 then A=N, do update
-; else set A = N-(N+C-24) = -C+24 = 24-C, do update
-; update: decr A,N  when A runs out, switch to pass down mode until N runs out
-;
-S6_0_CHK_HR:					; High-res bounds check:
-	CLRF	I, ACCESS			; I=Number of LSB bytes=int((N+6)/7)
-	CLRF	J, ACCESS			; J=capacity of I bytes
-S6_0_INCR:
-	INCF	I, F, ACCESS			; next byte; I++, J+=7
-	MOVLW	7
-	ADDWF	J, F, ACCESS
-	INCF	INDF0, W, ACCESS		; W=N
-	SUBWF	J, W, ACCESS			; J < N? keep counting
-	BNC	S6_0_INCR
-	;
-	; I is now the number of LSB bytes, INDF0 is N-1 (# channels-1), 
-	; our intermediate sentinel $56 should be at N+1, total data 
-	; length should be N+2+I
-	
-	INCF	INDF0, W, ACCESS		; W = N
-	INCF	WREG, W, ACCESS			; J = W = N+1
-	MOVWF	J, ACCESS			; 
-	INCF	WREG, W, ACCESS			; W = N+2
-	ADDWF	I, W, ACCESS			; W = N + 2 + I
-	SUBWF	YY_BUF_IDX, W, ACCESS		; packetlen = N + 2 + I ?
-	BZ	S6_0_HAVE_ALL_DATA
-	GOTO	S6_KEEP_LOOKING
-
-S6_0_HAVE_ALL_DATA:
-	MOVF	J, W, ACCESS
-	ADDWF	FSR0L, F, ACCESS		; move pointer to YY_BUFFER[N+1]
-	MOVLW	0x56
-	CPFSEQ	INDF0, ACCESS			; sentinel byte correct for high-res block?
-	GOTO	ERR_COMMAND			; NO, abort command
-	MOVF	J, W, ACCESS			; W = N+1 (entry condition for S6_0_UPDATE_MSB)
-	RCALL	S6_0_UPDATE_MSB			; set all the MSBs first
-	;
-	; Update all the LSBs
-	; At this point: K=N, FSR0->sentinel.  Or should...
-	;
-	; Inside this block, we'll use YY_YY as temporary storage for the
-	; LSB collector for sending bulk updates to the slave chip.  Here
-	; it maps like this:
-	;
-	;                     ___7______6______5______4______3______2______1______0__
-	; YY_YY              |S6_NOT|LSB   |LSB   |LSB   |LSB   |LSB   |LSB   |LSB   |
-	;                    |_INIT |#0    |#1    |#2    |#3    |#4    |#5    |#6    |
-	;                    |______|______|______|______|______|______|______|______|
-	;
-	; Flags defined here:
-	;			  76543210
-S6_NOT_INIT	EQU	7	; 1-------  1 if not yet prepared to collect bits
-	;
-	;
-	CLRWDT
-	IF ROLE_MASTER
-	 CLRF	YY_YY, ACCESS			; initial state: not yet handling slave's data
-	 BSF	YY_YY, 7, ACCESS
-	ENDIF
-	IF ROLE_SLAVE
-	 MOVLW	0x55				; the slave will see $55 for BOTH sentinels
-	ELSE
-	 MOVLW	0x56
-	ENDIF
-	CPFSEQ	POSTINC0, ACCESS		; now FSR0->first block of bits
-	GOTO	ERR_COMMAND
-	LFSR	1, SSR_00_VALUE	
-	MOVF	TARGET_SSR, W, ACCESS		; Move FSR1 to first SSR in target range
-	ANDLW	0x3F
-	ADDWF	FSR1L, F, ACCESS		
-	IF ROLE_MASTER
-	 SUBLW	.24				; KK = 24-start (max # of channels on OUR chip)
-	 MOVWF	KK, ACCESS
-	ENDIF
-
-S6_0_UPDATE_LSB:
-X	SET	6
-	WHILE	X >= 0
-	 IF ROLE_MASTER
-	  BTFSC YY_YY, 7, ACCESS		; if we're packing up for the slave:
-	  BRA	S6_0_LSB_A#v(X)			;   (if not, skip down there a bit...)
-	  RRNCF I, F, ACCESS			; shift bit position
-	  BTFSS	I, 7, ACCESS			; if we wrap around to bit 7 again, we filled up the block.
-	  BRA	S6_0_LSB_B#v(X)
-	  MOVF	YY_YY, W, ACCESS		; ship out the completed byte
-	  SEND_8_BIT_W
-	  ;CALL	SIO_WRITE_W
-	  CLRF 	YY_YY, ACCESS
-	  RRNCF	I, F, ACCESS
-S6_0_LSB_B#v(X):
-	  MOVF	I, W, ACCESS
-	  BTFSC	INDF0, #v(X), ACCESS		; set bit in I if source bit is set
-	  IORWF YY_YY, F, ACCESS
-	  BRA	S6_0_LSB_C#v(X)
-	 ENDIF
-S6_0_LSB_A#v(X):				; NOT packing up for the slave, just updating locally
-	 BTFSS	INDF0, #v(X), ACCESS		; If the source bit is zero,
-	 BCF	INDF1, 0, ACCESS		; clear the LSB of the target SSR and move on 
-	 INCF	FSR1, F, ACCESS			; to the next one. (SET_MSB routine already
-						; set them by default.)
-	 IF ROLE_MASTER
-S6_0_LSB_C#v(X):
-	  BTFSS	YY_YY, 7, ACCESS		; If we've already handled this, stop counting KK.
-	  BRA S6_0_LSB_#v(X)
-	  DECFSZ KK, F, ACCESS			; If we've run out of channels for this chip,
-	  BRA	S6_0_LSB_#v(X)
-	  CLRF	YY_YY, ACCESS		 	; Start building up packed bytes to send to the slave.
-	  MOVLW	0x80
-	  MOVWF	I, ACCESS			; I = bitmask to set in packed byte
-S6_0_LSB_#v(X):
-	 ENDIF
-	 DCFSNZ	K, F, ACCESS			; Stop if we've set K bits already
-	 BRA	S6_0_DONE
-X	 --
-	ENDW
-	INCF	FSR0L, F, ACCESS		; advance to next byte full of LSB bits
-	BRA	S6_0_UPDATE_LSB
-	;
-	; if we're packing up a byte for the slave (YY_YY<7> clear),
-	; AND we were in the middle of one of them (I<7> clear),
-	; we need to ship out the last byte in the sequence
-	;
-S6_0_DONE:
-	IF ROLE_MASTER
-	 BTFSC	YY_YY, 7, ACCESS		; packing up for slave
-	 BRA	S6_0_NO_FLUSH
-	 BTFSC	I, 7, ACCESS			; pending output
-	 BRA	S6_0_SENTINEL
-	 MOVF	YY_YY, W, ACCESS
-	 SEND_8_BIT_W
-	 ;CALL	SIO_WRITE_W
-S6_0_SENTINEL:
-	 MOVLW	0x55				; add sentinel to output
-	 CALL	SIO_WRITE_W
-S6_0_NO_FLUSH:
-	ENDIF
-	CLRF	YY_STATE, ACCESS
 	RETURN
 
 
