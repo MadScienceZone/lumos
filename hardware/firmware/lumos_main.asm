@@ -138,6 +138,7 @@
 #include <p18f4685.inc>
 #include "lumos_init.inc"
 #include "serial-io.inc"
+#include "flash_update.inc"
 
 ; Works on Lumos 48-Channel controller boards 48CTL-3-1 with retrofit
 ; and 24SSR-DC-1.0.8 boards.
