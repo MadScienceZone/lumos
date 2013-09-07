@@ -16,7 +16,7 @@
 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ;
 ; This should be located in high memory, out of the way of the other
-; bits of code. It's purpose is to receive a new ROM image from a host PC
+; bits of code. Its purpose is to receive a new ROM image from a host PC
 ; and burn it into the microcontroller's flash.
 ;
 ; To start, call FLASH_UPDATE_START.  This overwrites the $000000 restart
@@ -167,7 +167,16 @@
 ; $046 FLASH_UPD_INP |                                                       |
 ;                    |    Received byte                                      |
 ;                    |______|______|______|______|______|______|______|______|
-; $047               |                                                       |
+; $047 FLASH_UPD_BLKH|                                                       |
+;                    |    Current block ID <19:12>                           |
+;                    |______|______|______|______|______|______|______|______|
+; $048 FLASH_UPD_BLKL|                                         | 11 = undef  |
+;                    |    Current block ID <11:6>              | 00 = block# |
+;                    |______|______|______|______|______|______|______|______|
+; $049 FLASH_UPD_X   |                                                       |
+;                    |    General-purpose temporary variable                 |
+;                    |______|______|______|______|______|______|______|______|
+; $04A               |                                                       |
 ;                    |    Unused RAM                                         |
 ;                                                .
 ;                                                .
@@ -191,6 +200,9 @@ FL_FL_FIRST 	EQU	0		; -------X  Set if we're looking for the first nybble of an 
 FL_FL_ERROR	EQU	1		; ------X-  Set if last operation failed
 FL_FL_FINAL	EQU	2		; -----X--  Set if this is our last block to update
 FLASH_UPD_INP	EQU	0x046
+FLASH_UPD_BLKH	EQU	0x047
+FLASH_UPD_BLKL	EQU	0x048
+FLASH_UPD_X	EQU	0x049
 	IF FLASH_UPD_BUFSZ != .64
 	 ERROR "FLASH_UPD_BUFSZ must be 64 bytes (hardware requirement)"
 	ENDIF
@@ -397,8 +409,10 @@ FLASH_UPDATE_BOOT:
 			; ------0-	; don't wake up on RX
 			; -------0 	; don't detect baud rate
 		MOVWF	BAUDCON, ACCESS
+		SETF	FLASH_UPDATE_BLKH, ACCESS	; set block ID to FFFF (which is not
+		SETF	FLASH_UPDATE_BLKL, ACCESS	; ever a valid ID)
 		MOVLW	0x2A
-		RCALL	FLASH_UPDATE_SEND
+		RCALL	FLASH_UPDATE_SEND		; status OOOO*
 		;
 		;       ||
 		;      _||_
@@ -409,29 +423,28 @@ FLASH_UPDATE_NEXT_BLOCK:
 ;
 ; wait for next block from host.  This is where all the protocol stuff happens.
 ; Upon entering flash mode (including if the board resets in the middle), the
-; board sends 0x2A ('*') to the host.  If this is received, the host should
-; abandon the flash operation (if one was underway) and start over.
+; board sends a 0x2A ('*') status response to the host.  If this is received, 
+; the host should abandon the flash operation (if one was underway) and start over.
+;
+; These status response codes are five-byte sequences: bbbbs where bbbb is the
+; current block ID, encoded the same way they are sent to us from the PC, or
+; "OOOO" (i.e., 0xffff) if no block is currently defined, and s is the one-byte
+; status code (like 0x2A for "ready").
 ;
 ;
 ; The board sends 0x2A ('*') when it boots and is ready for a block of data.
 ;
 ; The PC can send a block start or query command.
 ;	0x51 ('Q')	Query 		->
-;					<-  0x2A ('*')	Ready to start 1st block
-;					<-  0x58 ('X')  Wait, still busy
+;					<-  OOOO*       Ready for 1st block transfer
+;					<-  bbbb*       Ready for next block transfer
 ;
-; At any time, the board can send:
-;					<-  0x79 ('y')	Block received ok, wait...
-;					<-  0x6E ('n')	Block receive error, aborted
-;					<-  0x21 ('!')  Illegal target address, aborted
-;					<- NO 0x45 ('E')  Erased OK, wait...
-;					<- NO 0x65 ('e')  Erase error, aborted
-;					<-  0x42 ('B')	Burned OK, wait...
-;					<-  0x62 ('b')  Burn error, aborted
-;					<-  0x56 ('V')	Verified OK, done.
-;					<-  0x76 ('v')  Verification failed, aborted
-;
-; or maybe just make every error fatal and let the PC retry blocks?
+;       0x3e ('>')      Load block      ->
+;					<-  bbbb*       Block burned successfully
+;					<-  bbbbn       Block receive error
+;					<-  bbbb!       Illegal target address
+;					<-  bbbbb 	Block burn error
+;					<-  bbbbv	Block verification error
 ;
 ; when aborted, ignores silently everything up to the next 'Q' or '>'.
 ;
@@ -679,7 +692,8 @@ FLASH_UPD_ERR:	RCALL	FLASH_UPDATE_SEND
 
 FLASH_UPDATE_SEND:
 ;
-; Send a byte to the serial port
+; Send a status respose to the serial port.  This is the encoded block ID and
+; the byte in W.
 ;
 		CLRWDT
 		IF HAS_T_R
@@ -687,6 +701,33 @@ FLASH_UPDATE_SEND:
 		 BSF 	PLAT_T_R, BIT_T_R, ACCESS
 		 RCALL	FLASH_UPD_PAUSE
 		ENDIF
+		MOVWF	FLASH_UPD_X, ACCESS	; store the status byte until we're ready for it
+		SWAPF	FLASH_UPD_BLKH, W, ACCESS ; send blk id aaaabbbbccccdd000000
+		ANDLW	0x0f			  ;             ^^^^
+		IORLW	0x40
+		RCALL	FLASH_UPD_TX_W
+		MOVF	FLASH_UPD_BLKH, W, ACCESS ; send blk id aaaabbbbccccdd000000
+		ANDLW	0x0f			  ;                 ^^^^
+		IORLW	0x40
+		RCALL	FLASH_UPD_TX_W
+		SWAPF	FLASH_UPD_BLKL, W, ACCESS ; send blk id aaaabbbbccccdd000000
+		ANDLW	0x0f			  ;                     ^^^^
+		IORLW	0x40
+		RCALL	FLASH_UPD_TX_W
+		MOVF	FLASH_UPD_BLKL, W, ACCESS ; send blk id aaaabbbbccccdd000000
+		ANDLW	0x0f			  ;                         ^^^^
+		IORLW	0x40
+		RCALL	FLASH_UPD_TX_W
+		MOVF	FLASH_UPD_X, W, ACCESS	  ; send status byte
+		RCALL	FLASH_UPD_TX_W
+		IF HAS_T_R
+		 RCALL	FLASH_UPD_PAUSE
+		 BCF	PLAT_T_R, BIT_T_R, ACCESS
+		 RCALL	FLASH_UPD_PAUSE
+		ENDIF
+		RETURN
+
+FLASH_UPD_TX_W:
 FLASH_UPD_TXRDY	CLRWDT
 		BTFSS	PIR1, TXIF, ACCESS	; wait for transmitter ready
 		BRA	FLASH_UPD_TXRDY
@@ -697,11 +738,6 @@ FLASH_UPD_RDY2:	CLRWDT
 FLASH_UPD_RDY3: CLRWDT
 		BTFSS	TXSTA, TRMT, ACCESS	; wait for character to fully leave serial port
 		BRA	FLASH_UPD_RDY3
-		IF HAS_T_R
-		 RCALL	FLASH_UPD_PAUSE
-		 BCF	PLAT_T_R, BIT_T_R, ACCESS
-		 RCALL	FLASH_UPD_PAUSE
-		ENDIF
 		RETURN
 
 FLASH_UPDATE_RECV:

@@ -31,6 +31,7 @@ def parse_arguments():
     parser.add_option('-L', '--txlevel', metavar='LVL', type='int', help='Transmitter control logic level (0-1) [%default]')
     parser.add_option('-T', '--txmode', metavar='MODE', action='store', choices=['dtr', 'rts'], help='Transmitter control line [%default]')
     parser.add_option('-v', '--verbose', action='count', help='Increase output level.')
+    parser.add_option('-d', '--duplex', metavar='TYPE', action='store', choices=['full','half'], help="full or half-duplex operation [%default]")
     parser.set_defaults(duplex='full', port=0, speed=19200, txmode='dtr', txlevel=1, txdelay=2)
 
     (options, file_names) = parser.parse_args()
