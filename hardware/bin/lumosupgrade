@@ -16,6 +16,7 @@ from   Lumos.PowerSource                import PowerSource
 
 class NotImplemenetedError (Exception): pass
 class NotSupportedError (Exception): pass
+class HardwareNotReady (Exception): pass
 
 def parse_arguments():
     global options
@@ -85,7 +86,7 @@ def setup_lumos(options):
         txlevel = options.txlevel,
         txdelay = options.txdelay,
         open_device = not options.null_device
-   )
+    )
 
     target = LumosControllerUnit(
         id = 'target',
@@ -360,12 +361,14 @@ def main():
 
     if not options.null_device:
         if not options.resume:
-            target.raw_query_device_status()
-            if target.status.hardware_type != 'lumos24dc':
+            status = target.raw_query_device_status(timeout=5)
+            if status.hardware_type != 'lumos24dc':
                 raise NotSupportedError('Board type {0} is not supported for this version of lumosupgrade.'
-                    .format(target.status.hardware_type))
+                    .format(status.hardware_type))
     
-            report_on(target.status)
+            report_on(status)
+            if not status.in_config_mode:
+                raise HardwareNotReady('Lumos board is not in configuration mode.')
         else:
             trace(0, "* Resuming interrupted upgrade (Lumos board must already be in program mode)")
 
@@ -374,7 +377,7 @@ def main():
 
         if not options.dry_run:
             if not options.resume:
-                target_device.raw_begin_rom_download('CONFIRM','ROM','DOWNLOAD','YES','REALLY','I','MEAN','IT')
+                target.raw_begin_rom_download('CONFIRM','ROM','DOWNLOAD','YES','REALLY','I','MEAN','IT')
                 trace(0, "* Waiting 10 seconds for device to reset *")
                 time.sleep(5)
             else:
@@ -383,15 +386,15 @@ def main():
             change_speed(io, 9600)
             time.sleep(5)
 
-            reflash(firmware_image, target)
+            reflash(firmware_image, io)
 
             trace(0, "** Waiting 10 seconds for device to reset **")
             time.sleep(5)
             change_speed(io, options.speed)
             time.sleep(5)
             trace(0, "Checking current state of device")
-            target.raw_query_device_status()
-            report_on(target.status)
+            status = target.raw_query_device_status(timeout=5)
+            report_on(status)
 
 if __name__ == '__main__':
     try:

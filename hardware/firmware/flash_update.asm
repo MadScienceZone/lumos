@@ -267,7 +267,7 @@ FLASH_UPD_RB:
 		BRA	FLASH_UPD_RB
 FLASH_UPD_REWIND:
 		TBLRD*-				; move pointer back into 64-byte block
-		MOVLW	b'11100000'
+		MOVLW	b'11000000'
 		ANDWF	TBLPTRL, F, ACCESS	; and move back to start of that block
 		BCF	FLASH_UPD_FLAG, FL_FL_ERROR, ACCESS
 		RETURN
@@ -409,10 +409,10 @@ FLASH_UPDATE_BOOT:
 			; ------0-	; don't wake up on RX
 			; -------0 	; don't detect baud rate
 		MOVWF	BAUDCON, ACCESS
-		SETF	FLASH_UPDATE_BLKH, ACCESS	; set block ID to FFFF (which is not
-		SETF	FLASH_UPDATE_BLKL, ACCESS	; ever a valid ID)
-		MOVLW	0x2A
-		RCALL	FLASH_UPDATE_SEND		; status OOOO*
+		SETF	FLASH_UPD_BLKH, ACCESS	; set block ID to FFFF (which is not
+		SETF	FLASH_UPD_BLKL, ACCESS	; ever a valid ID)
+;;;;; REMOVED ;;;;;;	MOVLW	0x2A
+;;;;; REMOVED ;;;;;;	RCALL	FLASH_UPDATE_SEND		; status OOOO*
 		;
 		;       ||
 		;      _||_

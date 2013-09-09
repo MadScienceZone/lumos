@@ -328,8 +328,8 @@ class LumosControllerUnit (ControllerUnit):
             raise ValueError("Unknown raw control command \"{0}\" for Lumos board {1}".format(command, self.address))
 
     def raw_begin_rom_download(self, *args):
-        if args != ['CONFIRM','ROM','DOWNLOAD','YES','REALLY','I','MEAN','IT']:
-            raise ValueError("Invalid arguments to raw_begin_rom_download() method")
+        if args != ('CONFIRM','ROM','DOWNLOAD','YES','REALLY','I','MEAN','IT'):
+            raise ValueError("Invalid arguments to raw_begin_rom_download() method: {0}".format(args))
 
         self.network.send(chr(0xF0 | self.address) + self._8_bit_string([
             0x75, 0x33, 0x4C, 0x1C

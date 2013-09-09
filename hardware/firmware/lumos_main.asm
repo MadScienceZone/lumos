@@ -3985,22 +3985,20 @@ S6_13_DATA:
 	;
 	; Validate inputs
 	;
-	MOVLW	3
+	MOVLW	2
 	SUBWF	YY_BUF_IDX, W, ACCESS		; input bytes in packet
-	BZ	S6_13_VALID			; 3 bytes received? good.
+	BZ	S6_13_VALID			; 2 bytes received (plus final)? good.
 	GOTO	ERR_COMMAND			; otherwise, it's not right.
 	;
 	; next, test sentinel
 	;
 S6_13_VALID:
-	DECF	YY_BUF_IDX, W, ACCESS
-	ADDWF	FSR0L, F, ACCESS
-	MOVLW	0x4C
-	CPFSEQ	INDF0			; sentinel==$4C?
-	GOTO	ERR_COMMAND
-	DECF	FSR0L, F, ACCESS
+	LFSR	0, YY_BUFFER
 	MOVLW	0x33
-	CPFSEQ	INDF0			; sentinel==$33?
+	CPFSEQ	POSTINC0
+	GOTO	ERR_COMMAND
+	MOVLW	0x4C
+	CPFSEQ	INDF0
 	GOTO	ERR_COMMAND
 	;
 	; ok, start updating the firmware!
