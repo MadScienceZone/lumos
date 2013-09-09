@@ -242,12 +242,14 @@ FLASH_UPD_S0:	RCALL	FLASH_UPD_READ_BLOCK
 		MOVLW	UPPER(FLASH_UPDATE_BOOT)
 		IORLW	0xF0
 		MOVWF	0x003, ACCESS	
+		BSF	PLAT_RED, BIT_RED, ACCESS
 FLASH_UPD_S1:	RCALL	FLASH_UPD_BURN_BLOCK
 		BTFSC	FLASH_UPD_FLAG, FL_FL_ERROR, ACCESS
 		BRA	FLASH_UPD_S1
              	RCALL	FLASH_UPD_VERIFY_BLOCK
 		BTFSC	FLASH_UPD_FLAG, FL_FL_ERROR, ACCESS
 		BRA	FLASH_UPD_S1		; repeat until you get it right
+		BSF	PLAT_YELLOW, BIT_YELLOW, ACCESS
 		RESET
 		
 FLASH_UPD_READ_BLOCK:
@@ -360,14 +362,42 @@ FLASH_UPDATE_BOOT:
 		MOVLW	b'00100000'
 		MOVWF	CANSTAT, ACCESS
 		CLRF	INTCON, ACCESS		; just to be sure!
+		; 
+		; I/O Ports
+		;
+		MOVLW	b'00001111'
+		;         ----1111 		; All I/O pins are digital
+		MOVWF	ADCON1, ACCESS
+		MOVLW	b'00000111'
+		;	  -----111		; All comparators OFF
+		MOVWF	CMCON, ACCESS
 		;
 		; set up serial port pins
 		;
+		SETF	TRISA, ACCESS		; Initially set all pins as inputs
+		SETF	TRISB, ACCESS		; Initially set all pins as inputs
+		SETF	TRISC, ACCESS		; Initially set all pins as inputs
+		SETF	TRISD, ACCESS		; Initially set all pins as inputs
+		SETF	TRISE, ACCESS		; Initially set all pins as inputs
+		;
 		BSF	TRISC, 7, ACCESS	; RX pin on PORTC<7> is an input
-		BCF	TRISC, 6, ACCESS	; TX pin on PORTC<6> is an output
+		BSF	TRISC, 6, ACCESS	; TX pin on PORTC<6> is an output
 		IF HAS_T_R
 		 BCF	TRIS_T_R, BIT_T_R, ACCESS; T/R bit is output
 		ENDIF
+
+		;
+		; set up LEDs
+		;
+		BCF	TRIS_RED, BIT_RED, ACCESS
+		BCF	TRIS_GREEN, BIT_GREEN, ACCESS
+		BCF	TRIS_YELLOW, BIT_YELLOW, ACCESS
+		BCF	TRIS_ACTIVE, BIT_ACTIVE, ACCESS
+		BCF	PLAT_RED, BIT_RED, ACCESS
+		BCF	PLAT_GREEN, BIT_GREEN, ACCESS
+		BSF	PLAT_YELLOW, BIT_YELLOW, ACCESS
+		BCF	PLAT_ACTIVE, BIT_ACTIVE, ACCESS
+		BRA	$
 		
 		;
 		; set baud rate generator
@@ -482,6 +512,8 @@ FLASH_UPDATE_NEXT_BLOCK:
 ; 
 		CLRWDT
 		CLRF	FLASH_UPD_CKS, ACCESS
+		BSF	PLAT_GREEN, BIT_GREEN, ACCESS
+		BRA	$
 		RCALL	FLASH_UPDATE_RECV
 FLASH_UPD_GOT_BYTE:
 		CLRF	FLASH_UPD_FLAG, ACCESS	; clear all flags at start: !FINAL, !ERROR, !FIRST
