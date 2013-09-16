@@ -786,6 +786,7 @@ FLASH_UPD_BURN_BLOCK:
 ;	Also moves table pointer back to start of block.
 ;
 		CLRWDT
+		BSF	PLAT_ACTIVE, BIT_ACTIVE, ACCESS	
 		BSF	EECON1, EEPGD, ACCESS	; initiate bulk erase of flash memory block
 		BCF	EECON1, CFGS, ACCESS	; (the write operation can only burn 1s -> 0s
 		BSF	EECON1, WREN, ACCESS	; so we need to start by erasing every byte
@@ -822,6 +823,7 @@ FLASH_UPD_BB:	CLRWDT
 		BCF	FLASH_UPD_FLAG, FL_FL_ERROR, ACCESS
 		BTFSC	EECON1, WRERR, ACCESS	; did we exit normally?
 		BSF	FLASH_UPD_FLAG, FL_FL_ERROR, ACCESS
+		BCF	PLAT_ACTIVE, BIT_ACTIVE, ACCESS
 		RETURN
 		
 
