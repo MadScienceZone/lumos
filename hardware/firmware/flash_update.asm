@@ -176,7 +176,13 @@
 ; $049 FLASH_UPD_X   |                                                       |
 ;                    |    General-purpose temporary variable                 |
 ;                    |______|______|______|______|______|______|______|______|
-; $04A               |                                                       |
+; $04A FLASH_UPD_RES_X                                                       |
+;                    |    First byte of result code data fields              |
+;                    |______|______|______|______|______|______|______|______|
+; $04B FLASH_UPD_RES_Y                                                       |
+;                    |    Second byte of result code data fields             |
+;                    |______|______|______|______|______|______|______|______|
+; $04C               |                                                       |
 ;                    |    Unused RAM                                         |
 ;                                                .
 ;                                                .
@@ -203,6 +209,8 @@ FLASH_UPD_INP	EQU	0x046
 FLASH_UPD_BLKH	EQU	0x047
 FLASH_UPD_BLKL	EQU	0x048
 FLASH_UPD_X	EQU	0x049
+FLASH_UPD_RES_X	EQU	0x04A		; result code X
+FLASH_UPD_RES_Y	EQU	0x04B		; result code Y
 	IF FLASH_UPD_BUFSZ != .64
 	 ERROR "FLASH_UPD_BUFSZ must be 64 bytes (hardware requirement)"
 	ENDIF
@@ -212,7 +220,9 @@ FLASH_UPD_X	EQU	0x049
 
 _FLASH_UPD	CODE	FLASH_UPDATE_START_ADDR
 ;
-; This must be at address FLASH_UPDATE_START_ADDR.
+; This must be at address FLASH_UPDATE_START_ADDR, since we will direct
+; the PIC to boot into FLASH_UPDATE_START_ADDR during the flashing
+; process.
 ;
 FLASH_UPDATE_BOOT:
 ; any time the CPU is reset while we're trying to update the firmware,
@@ -266,7 +276,6 @@ FLASH_UPDATE_BOOT:
 		BCF	PLAT_GREEN, BIT_GREEN, ACCESS
 		BSF	PLAT_YELLOW, BIT_YELLOW, ACCESS
 		BCF	PLAT_ACTIVE, BIT_ACTIVE, ACCESS
-;		BRA	$
 		
 		;
 		; set baud rate generator
@@ -310,8 +319,8 @@ FLASH_UPDATE_BOOT:
 		MOVWF	BAUDCON, ACCESS
 		SETF	FLASH_UPD_BLKH, ACCESS	; set block ID to FFFF (which is not
 		SETF	FLASH_UPD_BLKL, ACCESS	; ever a valid ID)
-;;;;; REMOVED ;;;;;;	MOVLW	0x2A
-;;;;; REMOVED ;;;;;;	RCALL	FLASH_UPDATE_SEND		; status OOOO*
+		CLRF	FLASH_UPD_RES_X, ACCESS
+		CLRF	FLASH_UPD_RES_Y, ACCESS
 		;
 		;       ||
 		;      _||_
@@ -321,29 +330,36 @@ FLASH_UPDATE_BOOT:
 FLASH_UPDATE_NEXT_BLOCK:
 ;
 ; wait for next block from host.  This is where all the protocol stuff happens.
-; Upon entering flash mode (including if the board resets in the middle), the
-; board sends a 0x2A ('*') status response to the host.  If this is received, 
-; the host should abandon the flash operation (if one was underway) and start over.
 ;
-; These status response codes are five-byte sequences: bbbbs where bbbb is the
+; The PC can query the board to get a status response.
+; These status response codes are nine-byte sequences: bbbb@@@@* where bbbb is the
 ; current block ID, encoded the same way they are sent to us from the PC, or
 ; "OOOO" (i.e., 0xffff) if no block is currently defined, and s is the one-byte
-; status code (like 0x2A for "ready").
+; status code (always 0x2A for the query command).
 ;
+; The response codes to the other commands are nine-byte sequences bbbbxxyys
+; where bbbb is the block ID as described above, xx and yy are values meaningful
+; to the status reported, and s is the status code (see below):
 ;
-; The board sends 0x2A ('*') when it boots and is ready for a block of data.
 ;
 ; The PC can send a block start or query command.
 ;	0x51 ('Q')	Query 		->
-;					<-  OOOO*       Ready for 1st block transfer
-;					<-  bbbb*       Ready for next block transfer
+;					<-  OOOO@@@@*   Ready for 1st block transfer
+;					<-  bbbb@@@@*   Ready for next block transfer
 ;
 ;       0x3e ('>')      Load block      ->
-;					<-  bbbb*       Block burned successfully
-;					<-  bbbbn       Block receive error
-;					<-  bbbb!       Illegal target address
-;					<-  bbbbb 	Block burn error
-;					<-  bbbbv	Block verification error
+;					<-  bbbb@@@@k   Block burned successfully
+;					<-  bbbbcceen   Block receive error
+;					<-  bbbb@@@@!   Illegal target address
+;					<-  bbbb@@@@b 	Block burn error
+;					<-  bbbbnn@@v	Block verification error
+;
+; LEDs:
+;  ACT GRN YEL RED
+;   0   0   1   0	In flash mode; idle
+;   1   X   1   X	Actively burning a page
+;   0   1   1   0  	Last burn successful
+;   0   0   1   1	Last burn unsuccessful
 ;
 ; when aborted, ignores silently everything up to the next 'Q' or '>'.
 ;
@@ -381,7 +397,6 @@ FLASH_UPDATE_NEXT_BLOCK:
 ; 
 		CLRWDT
 		CLRF	FLASH_UPD_CKS, ACCESS
-		BSF	PLAT_GREEN, BIT_GREEN, ACCESS
 		RCALL	FLASH_UPDATE_RECV
 FLASH_UPD_GOT_BYTE:
 		CLRF	FLASH_UPD_FLAG, ACCESS	; clear all flags at start: !FINAL, !ERROR, !FIRST
@@ -389,6 +404,8 @@ FLASH_UPD_GOT_BYTE:
 		CPFSEQ	FLASH_UPD_INP, ACCESS
 		BRA	FLASH_UPD_TRY_BLOCK
 		MOVLW	0x2A
+		CLRF	FLASH_UPD_RES_X, ACCESS
+		CLRF	FLASH_UPD_RES_Y, ACCESS
 		RCALL	FLASH_UPDATE_SEND
 		BRA	FLASH_UPDATE_NEXT_BLOCK
 FLASH_UPD_TRY_BLOCK:
@@ -481,36 +498,26 @@ FLASH_UPD_A_OK:	CLRWDT
 		;
 		RCALL	FLASH_UPDATE_RECV
 		MOVLW	'.'			; '.' terminates data
+		CLRF	FLASH_UPD_RES_X, ACCESS	; XX=YY=0: format error
+		CLRF	FLASH_UPD_RES_Y, ACCESS
 		CPFSEQ	FLASH_UPD_INP, ACCESS
 		BRA	FLASH_UPD_INVALID_DATA
 		;
 		; Check computed checksum value (must be zero)
 		;
+		CLRF	FLASH_UPD_RES_Y, ACCESS
+		MOVFF	FLASH_UPD_CKS, FLASH_UPD_RES_X
 		TSTFSZ	FLASH_UPD_CKS, ACCESS
 		BRA	FLASH_UPD_INVALID_DATA
-		;
-		; Acknowledge receipt
-		;
-		MOVLW	'y'
-		RCALL	FLASH_UPDATE_SEND
 		;
 		; Burn it now
 		;
 		RCALL	FLASH_UPD_BURN_BLOCK
 		BTFSC	FLASH_UPD_FLAG, FL_FL_ERROR, ACCESS
 		BRA	FLASH_UPD_EB
-		MOVLW	'B'
-		RCALL	FLASH_UPDATE_SEND
              	RCALL	FLASH_UPD_VERIFY_BLOCK
 		BTFSC	FLASH_UPD_FLAG, FL_FL_ERROR, ACCESS
 		BRA	FLASH_UPD_EV
-		MOVLW	'V'
-		RCALL	FLASH_UPDATE_SEND
-
-FLASH_UPD_EB:	MOVLW	'b'
-		BRA	FLASH_UPD_ERR
-FLASH_UPD_EV:	MOVLW	'v'
-		BRA	FLASH_UPD_ERR
 		BTFSS	FLASH_UPD_FLAG, FL_FL_FINAL, ACCESS
 		BRA	FLASH_UPDATE_NEXT_BLOCK
 		;
@@ -546,11 +553,13 @@ FLASH_UPD_READ_BINARY_BLOCK:
 FLASH_UPD_RBB0:	BSF	FLASH_UPD_FLAG, FL_FL_FIRST, ACCESS	; first nybble
 FLASH_UPD_RBB:	CLRWDT
 		RCALL	FLASH_UPDATE_RECV			; next byte
+		MOVFF	FLASH_UPD_INP, FLASH_UPD_RES_Y
 		; valid data bytes are 0x40~0x4F only
 		MOVLW	0xF0
 		ANDWF	FLASH_UPD_INP, W, ACCESS		; test for 0100xxxx
 		MOVWF	FLASH_UPD_CMP, ACCESS
 		MOVLW	0x40
+		MOVWF	FLASH_UPD_RES_X, ACCESS
 		CPFSEQ	FLASH_UPD_CMP, ACCESS
 		BRA	FLASH_UPD_INVALID_DATA
 		; convert to actual nybble value
@@ -586,9 +595,15 @@ FLASH_UPD_INVALID_ADDRESS:
 		BRA	FLASH_UPD_E_AB
 
 FLASH_UPD_INVALID_CMD:
+		SETF	FLASH_UPD_RES_X, ACCESS
+		SETF	FLASH_UPD_RES_Y, ACCESS
 		MOVLW	0x6E			; n: error
 FLASH_UPD_ERR:	RCALL	FLASH_UPDATE_SEND
 		BRA	FLASH_UPDATE_NEXT_BLOCK
+FLASH_UPD_EB:	MOVLW	'b'
+		BRA	FLASH_UPD_ERR
+FLASH_UPD_EV:	MOVLW	'v'
+		BRA	FLASH_UPD_ERR
 
 FLASH_UPDATE_SEND:
 ;
@@ -618,6 +633,22 @@ FLASH_UPDATE_SEND:
 		ANDLW	0x0f			  ;                         ^^^^
 		IORLW	0x40
 		RCALL	FLASH_UPD_TX_W
+		SWAPF	FLASH_UPD_RES_X, W, ACCESS; send field xxxxxxxxyyyyyyyy
+		ANDLW	0x0f			  ;            ^^^^
+		IORLW	0x40
+		RCALL	FLASH_UPD_TX_W
+		MOVF	FLASH_UPD_RES_X, W, ACCESS; send field xxxxxxxxyyyyyyyy
+		ANDLW	0x0f			  ;                ^^^^
+		IORLW	0x40
+		RCALL	FLASH_UPD_TX_W
+		SWAPF	FLASH_UPD_RES_Y, W, ACCESS; send field xxxxxxxxyyyyyyyy
+		ANDLW	0x0f			  ;                    ^^^^
+		IORLW	0x40
+		RCALL	FLASH_UPD_TX_W
+		MOVF	FLASH_UPD_RES_Y, W, ACCESS; send field xxxxxxxxyyyyyyyy
+		ANDLW	0x0f			  ;                        ^^^^
+		IORLW	0x40
+		RCALL	FLASH_UPD_TX_W
 		MOVF	FLASH_UPD_X, W, ACCESS	  ; send status byte
 		RCALL	FLASH_UPD_TX_W
 		IF HAS_T_R
@@ -625,6 +656,12 @@ FLASH_UPDATE_SEND:
 		 BCF	PLAT_T_R, BIT_T_R, ACCESS
 		 RCALL	FLASH_UPD_PAUSE
 		ENDIF
+		BCF	PLAT_RED, BIT_RED, ACCESS
+		BSF	PLAT_GREEN, BIT_GREEN, ACCESS
+		BTFSS	FLASH_UPD_FLAG, FL_FL_ERROR, ACCESS
+		RETURN
+		BSF	PLAT_RED, BIT_RED, ACCESS
+		BCF	PLAT_GREEN, BIT_GREEN, ACCESS
 		RETURN
 
 FLASH_UPD_TX_W:
@@ -810,6 +847,8 @@ FLASH_UPD_VB:	CLRWDT
 FLASH_UPD_VB_ERROR:
 		RCALL	FLASH_UPD_REWIND
 		BSF	FLASH_UPD_FLAG, FL_FL_ERROR, ACCESS
+		MOVFF	FLASH_UPD_I, FLASH_UPD_RES_X
+		MOVFF	TABLAT, FLASH_UPD_RES_Y
 		RETURN
 		
 		END

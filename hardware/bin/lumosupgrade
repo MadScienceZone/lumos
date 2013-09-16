@@ -245,6 +245,14 @@ class MemoryImage (object):
 # pkt, cksum = encode_data(image_firmware.blocks[block_to_send], cksum)
 # pkt = encode_byte(cksum)
 
+def decode_byte(encval):
+    "decode ASCII encoded byte to binary value"
+    if len(encval) != 2:
+        raise ValueError("argument to decode_byte must be 2-character string")
+    if (((ord(encval[0]) << 8) | ord(encval[1])) & 0xf0f0) != 0x4040:
+        raise ValueError("argument to decode_byte ('{0}') invalid coding".format(encval))
+    return ((ord(encval[0]) & 0x0f) << 4) | (ord(encval[1]) & 0x0f)
+
 def encode_byte(value):
     "encode a byte into simple ASCII encoding scheme, return 2-character encoded string."
     return (chr(0x40 | ((value >> 4) & 0x0f)) + chr(0x40 | (value & 0x0f)))
@@ -295,11 +303,16 @@ def reflash(image_firmware, io):
     #
     # Do not print initial response; wait for query first.  ALL CMDS HAVE 1 RESPONSE
     #
-    # Q -> XXXX*    Ready/OK
-    #   -> XXXXn    Error in download format
-    #   -> XXXX!    Invalid target address
-    #   -> XXXXb    Erase/burn failed
-    #   -> XXXXv    Verify failed
+    # Q -> XXXXxxxx*     Ready/OK (x=don't care)
+    #
+    # > -> XXXXxxxxk     Operation successful for block XXXX (x=don't care)
+    #   -> XXXXCCEEn     Error in download format (checksum CC != expected EE)
+    #          @@@@       -- command format error
+    #          OOOO       -- bad command code
+    #          D@xx       -- bad byte value xx in data block
+    #   -> XXXXxxxx!     Invalid target address (x=don't care)
+    #   -> XXXXxxxxb     Erase/burn failed (x=don't care)
+    #   -> XXXXNNYYv     Verify failed (value YY) with NN left to check
     #   
     #  X=last ID [OOOO if nothing received yet or block unknown]
     # >... -> same results as Q
@@ -312,7 +325,7 @@ def reflash(image_firmware, io):
     if len(response) != 5:
         raise IOError('Failed to get expected response from device (expected 5 bytes, got {0}).'.format(len(response)))
 
-    if response != 'OOOO*':
+    if response != 'OOOO@@@@*':
         raise FlashProgrammingError('Device not in expected starting state. ({0}) Reset and restart!'.format(response))
 
     for block_to_send in image_firmware.blocks:
@@ -332,24 +345,24 @@ def reflash(image_firmware, io):
 
             response = io.input(bytes=5, timeout=10)
 
-            if len(response) != 5 or response[4] not in '*n!bv':
-                raise FlashProgrammingError('Out of sync with device or unexpected response (expected {0}x, received {1})'.format(
+            if len(response) != 9 or response[4] not in 'kn!bv':
+                raise FlashProgrammingError('Out of sync with device or unexpected response (expected {0}xxxxx, received {1})'.format(
                     addr, response))
 
-            if response[4] != '*':
-                raise FlashProgrammingError('Flash update failure for block 0x{0:05X}: {1}'.format(
-                    block_to_send, {
-                        'n': 'Download format or checksum mismatch (communication error?)',
+            if response[8] != 'k':
+                raise FlashProgrammingError('Flash update failure for block 0x{0:05X}/0x{1:05X}: {2}'.format(
+                    block_to_send, decode_address(response[:4]), {
+                        'n': 'Download format or checksum mismatch ({0:02X}, {1:02X}) (communication error?)',
                         '!': 'Invalid target ROM address',
                         'b': 'FLASH burn operation failed',
-                        'v': 'FLASH data verification failed'
-                    }[response[4]]))
+                        'v': 'FLASH data verification failed: {1:02X}@{0:02X}'
+                    }[response[4]].format(decode_byte(response[4:6]), decode_byte(response[6:8]))
             if response[:4] != addr:
-                raise FlashProgrammingError("Out of sync with device: expected {0}*, got {1}".format(addr, response))
+                raise FlashProgrammingError("Out of sync with device: expected {0}xxxxx, got {1}".format(addr, response))
 
         if block_to_send != 0:
             flash_download(block_to_send)
-        flash_download(0)   # block 0 has to exist and has to be last
+    flash_download(0)   # block 0 has to exist and has to be last
 
 def yorn(prompt, defval=True):
     while True:
