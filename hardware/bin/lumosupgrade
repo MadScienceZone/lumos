@@ -241,6 +241,25 @@ class MemoryImage (object):
                 trace(4, "-"*78)
 
 
+
+# pkt, cksum = encode_data(image_firmware.blocks[block_to_send], cksum)
+# pkt = encode_byte(cksum)
+
+def encode_byte(value):
+    "encode a byte into simple ASCII encoding scheme, return 2-character encoded string."
+    return (chr(0x40 | ((value >> 4) & 0x0f)) + chr(0x40 | (value & 0x0f)))
+
+def encode_data(values, cksum):
+    "encode list of bytes into ASCII string, update cksum; -> string, new cksum"
+    pkt = []
+    for v in values:
+        if v is None:
+            v = 0xff
+        pkt.append(chr(0x40 | ((v >> 4) & 0x0f)))
+        pkt.append(chr(0x40 | ( v       & 0x0f)))
+        cksum = (cksum + v) & 0xff
+    return ''.join(pkt), cksum
+
 def encode_address(addr):
     "Convert integer address to four-character block number, return (encoded_string, checksum).  Exception raised if not aligned properly."
     if addr & 0x0003f:
@@ -250,10 +269,7 @@ def encode_address(addr):
            chr(0x40 | ((addr >> 12) & 0x0f)) + 
            chr(0x40 | ((addr >>  8) & 0x0f)) + 
            chr(0x40 | ((addr >>  4) & 0x0c)),
-           ((addr >> 16) & 0x0f) + 
-           ((addr >> 12) & 0x0f) + 
-           ((addr >>  8) & 0x0f) + 
-           ((addr >>  4) & 0x0c))
+           ((addr >> 12) & 0xff) + ((addr >>  4) & 0xfc))
 
 def decode_address(encoded):
     "Convert four-character encoded address to integer start-of-block address"
@@ -271,7 +287,7 @@ def decode_address(encoded):
 
 class FlashProgrammingError (Exception): pass
 
-def reflash(image_filename, io):
+def reflash(image_firmware, io):
     "Flash a new ROM image to the target device"
     #
     # Q -> */X
@@ -312,11 +328,12 @@ def reflash(image_filename, io):
             pkt = encode_byte(cksum)
             trace(3, "--Checksum: {0}".format(pkt))
             io.send(pkt)
+            io.send('.')
 
             response = io.input(bytes=5, timeout=10)
 
-            if len(response) != 5 or response[:4] != addr or response[4] not in '*n!bv':
-                raise FlashProgrammingError('Out of sync with device or unexpected response (expected {0}, received {1})'.format(
+            if len(response) != 5 or response[4] not in '*n!bv':
+                raise FlashProgrammingError('Out of sync with device or unexpected response (expected {0}x, received {1})'.format(
                     addr, response))
 
             if response[4] != '*':
@@ -327,6 +344,8 @@ def reflash(image_filename, io):
                         'b': 'FLASH burn operation failed',
                         'v': 'FLASH data verification failed'
                     }[response[4]]))
+            if response[:4] != addr:
+                raise FlashProgrammingError("Out of sync with device: expected {0}*, got {1}".format(addr, response))
 
         if block_to_send != 0:
             flash_download(block_to_send)
@@ -397,8 +416,8 @@ def main():
             report_on(status)
 
 if __name__ == '__main__':
-    try:
+#    try:
         main()
-    except Exception as e:
-        sys.stderr.write("{0}: fatal error: {1}\n".format(sys.argv[0], e))
-        sys.exit(1)
+#    except Exception as e:
+#        sys.stderr.write("{0}: fatal error: {1}\n".format(sys.argv[0], e))
+#        sys.exit(1)

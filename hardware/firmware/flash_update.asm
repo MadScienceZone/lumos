@@ -211,140 +211,9 @@ FLASH_UPD_X	EQU	0x049
 	ENDIF
 
 _FLASH_UPD	CODE	FLASH_UPDATE_START_ADDR
-FLASH_UPDATE_START:
 ;
-;	Start the reflashing process by changing the boot vector to point to us
-;	and rebooting.
+; This must be at address FLASH_UPDATE_START_ADDR.
 ;
-		CLRWDT
-		BCF	INTCON, GIEH, ACCESS	; shut off ALL interrupts forever until we're done with this.
-		BCF	INTCON, GIEL, ACCESS	
-		CLRF	TBLPTRU		; target flash address $000000
-		CLRF	TBLPTRH
-		CLRF	TBLPTRL
-FLASH_UPD_S0:	RCALL	FLASH_UPD_READ_BLOCK
-		BTFSC	FLASH_UPD_FLAG, FL_FL_ERROR, ACCESS
-		BRA	FLASH_UPD_S0
-		; PIC18 GOTO instruction: 1110 1111 kkkk kkkk 1111 kkkk kkkk kkkk
-		;                                   7.......0      19...........8
-		; LSB is in even addressees, so in memory this is:
-		; $000 kkkkkkkk  address<7:0>
-		; $001 11101111  opcode
-		; $002 kkkkkkkk  address<15:8>
-		; $003 1111kkkk  address<19:16>
-		;
-		MOVLW	LOW(FLASH_UPDATE_BOOT)	; overwrite memory with new jump instruction
-		MOVWF	0x000, ACCESS		; into FLASH ROM addresses $000000-$000003
-		MOVLW	0xEF
-		MOVWF	0x001, ACCESS		
-		MOVLW	HIGH(FLASH_UPDATE_BOOT)
-		MOVWF	0x002, ACCESS		
-		MOVLW	UPPER(FLASH_UPDATE_BOOT)
-		IORLW	0xF0
-		MOVWF	0x003, ACCESS	
-		BSF	PLAT_RED, BIT_RED, ACCESS
-FLASH_UPD_S1:	RCALL	FLASH_UPD_BURN_BLOCK
-		BTFSC	FLASH_UPD_FLAG, FL_FL_ERROR, ACCESS
-		BRA	FLASH_UPD_S1
-             	RCALL	FLASH_UPD_VERIFY_BLOCK
-		BTFSC	FLASH_UPD_FLAG, FL_FL_ERROR, ACCESS
-		BRA	FLASH_UPD_S1		; repeat until you get it right
-		BSF	PLAT_YELLOW, BIT_YELLOW, ACCESS
-		RESET
-		
-FLASH_UPD_READ_BLOCK:
-;	Take 64-byte block at TBLPTR and copy it to RAM at FLASH_UPD_BUF.
-;	FL_FL_ERROR indicates success of the operation.
-;	Also moves table pointer back to start of block.
-;
-		CLRWDT
-		LFSR	FSR0, FLASH_UPD_BUF
-		MOVLW	FLASH_UPD_BUFSZ
-		MOVWF	FLASH_UPD_I, ACCESS
-FLASH_UPD_RB:
-		CLRWDT
-		TBLRD*+
-		MOVFF	TABLAT, POSTINC0
-		DECFSZ	FLASH_UPD_I, F, ACCESS
-		BRA	FLASH_UPD_RB
-FLASH_UPD_REWIND:
-		TBLRD*-				; move pointer back into 64-byte block
-		MOVLW	b'11000000'
-		ANDWF	TBLPTRL, F, ACCESS	; and move back to start of that block
-		BCF	FLASH_UPD_FLAG, FL_FL_ERROR, ACCESS
-		RETURN
-		
-		
-FLASH_UPD_BURN_BLOCK:
-;	Take 64-byte block at FLASH_UPD_BUF and burn it starting at TBLPTR.
-;	FL_FL_ERROR indicates success.
-;	Also moves table pointer back to start of block.
-;
-		CLRWDT
-		BSF	EECON1, EEPGD, ACCESS	; initiate bulk erase of flash memory block
-		BCF	EECON1, CFGS, ACCESS	; (the write operation can only burn 1s -> 0s
-		BSF	EECON1, WREN, ACCESS	; so we need to start by erasing every byte
-		BSF	EECON1, FREE, ACCESS	; to 0xFF first)
-		MOVLW	0x55
-		MOVWF	EECON2, ACCESS
-		MOVLW	0xAA
-		MOVWF	EECON2, ACCESS
-		BSF	EECON1, WR, ACCESS	; CPU stalls here until flash is erased
-
-		CLRWDT
-		MOVLW	FLASH_UPD_BUFSZ		; copy new block into holding registers 
-		MOVWF	FLASH_UPD_I, ACCESS
-		LFSR	FSR0, FLASH_UPD_BUF
-FLASH_UPD_BB:	CLRWDT
-		MOVFF	POSTINC0, TABLAT
-		TBLWT*+				; each byte in RAM -> FLASH holding register
-		DECFSZ	FLASH_UPD_I, F, ACCESS
-		BRA	FLASH_UPD_BB
-		RCALL	FLASH_UPD_REWIND	; move TBLPTR back to start of block
-		
-		BSF	EECON1, EEPGD, ACCESS	; initiate burn into FLASH
-		BCF	EECON1, CFGS, ACCESS
-		BSF	EECON1, WREN, ACCESS
-		BCF	EECON1, FREE, ACCESS
-		MOVLW	0x55
-		MOVWF	EECON2, ACCESS
-		MOVLW	0xAA
-		MOVWF	EECON2, ACCESS		
-		BSF	EECON1, WR, ACCESS	; CPU stalls here until flash is written
-
-		BCF	EECON1, WREN, ACCESS	; disable further write access
-		BCF	PIR2, EEIF, ACCESS
-		BCF	FLASH_UPD_FLAG, FL_FL_ERROR, ACCESS
-		BTFSC	EECON1, WRERR, ACCESS	; did we exit normally?
-		BSF	FLASH_UPD_FLAG, FL_FL_ERROR, ACCESS
-		RETURN
-		
-
-FLASH_UPD_VERIFY_BLOCK:
-;	Compare 64-byte block at TBLPTR against RAM at FLASH_UPD_BUF.
-;	set W=0 if identical, >0 if not
-;	Also rewinds TBLPTR to start of block
-;
-		CLRWDT
-		LFSR	FSR0, FLASH_UPD_BUF
-		MOVLW	FLASH_UPD_BUFSZ
-		MOVWF	FLASH_UPD_I, ACCESS
-FLASH_UPD_VB:	CLRWDT
-		TBLRD*+
-		MOVF	POSTINC0, W, ACCESS
-		CPFSEQ	TABLAT, ACCESS
-		BRA	FLASH_UPD_VB_ERROR
-		DECFSZ	FLASH_UPD_I, F, ACCESS
-		BRA	FLASH_UPD_VB
-		BCF	FLASH_UPD_FLAG, FL_FL_ERROR, ACCESS
-		BRA	FLASH_UPD_REWIND
-
-FLASH_UPD_VB_ERROR:
-		RCALL	FLASH_UPD_REWIND
-		BSF	FLASH_UPD_FLAG, FL_FL_ERROR, ACCESS
-		RETURN
-		
-
 FLASH_UPDATE_BOOT:
 ; any time the CPU is reset while we're trying to update the firmware,
 ; we come here so we can keep trying the update until it's complete.
@@ -397,7 +266,7 @@ FLASH_UPDATE_BOOT:
 		BCF	PLAT_GREEN, BIT_GREEN, ACCESS
 		BSF	PLAT_YELLOW, BIT_YELLOW, ACCESS
 		BCF	PLAT_ACTIVE, BIT_ACTIVE, ACCESS
-		BRA	$
+;		BRA	$
 		
 		;
 		; set baud rate generator
@@ -513,7 +382,6 @@ FLASH_UPDATE_NEXT_BLOCK:
 		CLRWDT
 		CLRF	FLASH_UPD_CKS, ACCESS
 		BSF	PLAT_GREEN, BIT_GREEN, ACCESS
-		BRA	$
 		RCALL	FLASH_UPDATE_RECV
 FLASH_UPD_GOT_BYTE:
 		CLRF	FLASH_UPD_FLAG, ACCESS	; clear all flags at start: !FINAL, !ERROR, !FIRST
@@ -810,4 +678,138 @@ FLASH_UPD_AB1:	MOVLW	0x3E				; '>' received?
 		BRA	FLASH_UPD_ABORT			; no, loop back to wait for next char
 		RETURN					; yes, return
 
+FLASH_UPDATE_START:
+;
+;	Start the reflashing process by changing the boot vector to point to us
+;	and rebooting.
+;
+		CLRWDT
+		BCF	INTCON, GIEH, ACCESS	; shut off ALL interrupts forever until we're done with this.
+		BCF	INTCON, GIEL, ACCESS	
+		CLRF	TBLPTRU		; target flash address $000000
+		CLRF	TBLPTRH
+		CLRF	TBLPTRL
+		BSF	PLAT_RED, BIT_RED, ACCESS
+;		BRA	$
+FLASH_UPD_S0:	RCALL	FLASH_UPD_READ_BLOCK
+		BTFSC	FLASH_UPD_FLAG, FL_FL_ERROR, ACCESS
+		BRA	FLASH_UPD_S0
+		; PIC18 GOTO instruction: 1110 1111 kkkk kkkk 1111 kkkk kkkk kkkk
+		;                                   8.......1      20...........9
+		; LSB is in even addressees, so in memory this is:
+		; $000 kkkkkkkk  address<8:1>
+		; $001 11101111  opcode
+		; $002 kkkkkkkk  address<16:9>
+		; $003 1111kkkk  address<20:17>
+		;
+		MOVLW	((FLASH_UPDATE_START_ADDR >> 1) & 0xFF)	; addr aaaabbbbccccDDDDEEEEf
+		MOVWF	0x000, ACCESS		; into FLASH ROM addresses $000000-$000003
+		MOVLW	0xEF
+		MOVWF	0x001, ACCESS		
+		MOVLW	((FLASH_UPDATE_START_ADDR >> 9) & 0xFF)	; addr aaaaBBBBCCCCddddeeeef
+		MOVWF	0x002, ACCESS		
+		MOVLW	((FLASH_UPDATE_START_ADDR >> 17) & 0x0F) | 0xF0; addr AAAAbbbbccccddddeeeef
+		MOVWF	0x003, ACCESS	
+		BSF	PLAT_RED, BIT_RED, ACCESS
+FLASH_UPD_S1:	RCALL	FLASH_UPD_BURN_BLOCK
+		BTFSC	FLASH_UPD_FLAG, FL_FL_ERROR, ACCESS
+		BRA	FLASH_UPD_S1
+             	RCALL	FLASH_UPD_VERIFY_BLOCK
+		BTFSC	FLASH_UPD_FLAG, FL_FL_ERROR, ACCESS
+		BRA	FLASH_UPD_S1		; repeat until you get it right
+		BSF	PLAT_YELLOW, BIT_YELLOW, ACCESS
+		RESET
+		
+FLASH_UPD_READ_BLOCK:
+;	Take 64-byte block at TBLPTR and copy it to RAM at FLASH_UPD_BUF.
+;	FL_FL_ERROR indicates success of the operation.
+;	Also moves table pointer back to start of block.
+;
+		CLRWDT
+		LFSR	FSR0, FLASH_UPD_BUF
+		MOVLW	FLASH_UPD_BUFSZ
+		MOVWF	FLASH_UPD_I, ACCESS
+FLASH_UPD_RB:
+		CLRWDT
+		TBLRD*+
+		MOVFF	TABLAT, POSTINC0
+		DECFSZ	FLASH_UPD_I, F, ACCESS
+		BRA	FLASH_UPD_RB
+FLASH_UPD_REWIND:
+		TBLRD*-				; move pointer back into 64-byte block
+		MOVLW	b'11000000'
+		ANDWF	TBLPTRL, F, ACCESS	; and move back to start of that block
+		BCF	FLASH_UPD_FLAG, FL_FL_ERROR, ACCESS
+		RETURN
+		
+		
+FLASH_UPD_BURN_BLOCK:
+;	Take 64-byte block at FLASH_UPD_BUF and burn it starting at TBLPTR.
+;	FL_FL_ERROR indicates success.
+;	Also moves table pointer back to start of block.
+;
+		CLRWDT
+		BSF	EECON1, EEPGD, ACCESS	; initiate bulk erase of flash memory block
+		BCF	EECON1, CFGS, ACCESS	; (the write operation can only burn 1s -> 0s
+		BSF	EECON1, WREN, ACCESS	; so we need to start by erasing every byte
+		BSF	EECON1, FREE, ACCESS	; to 0xFF first)
+		MOVLW	0x55
+		MOVWF	EECON2, ACCESS
+		MOVLW	0xAA
+		MOVWF	EECON2, ACCESS
+		BSF	EECON1, WR, ACCESS	; CPU stalls here until flash is erased
+
+		CLRWDT
+		MOVLW	FLASH_UPD_BUFSZ		; copy new block into holding registers 
+		MOVWF	FLASH_UPD_I, ACCESS
+		LFSR	FSR0, FLASH_UPD_BUF
+FLASH_UPD_BB:	CLRWDT
+		MOVFF	POSTINC0, TABLAT
+		TBLWT*+				; each byte in RAM -> FLASH holding register
+		DECFSZ	FLASH_UPD_I, F, ACCESS
+		BRA	FLASH_UPD_BB
+		RCALL	FLASH_UPD_REWIND	; move TBLPTR back to start of block
+		
+		BSF	EECON1, EEPGD, ACCESS	; initiate burn into FLASH
+		BCF	EECON1, CFGS, ACCESS
+		BSF	EECON1, WREN, ACCESS
+		BCF	EECON1, FREE, ACCESS
+		MOVLW	0x55
+		MOVWF	EECON2, ACCESS
+		MOVLW	0xAA
+		MOVWF	EECON2, ACCESS		
+		BSF	EECON1, WR, ACCESS	; CPU stalls here until flash is written
+
+		BCF	EECON1, WREN, ACCESS	; disable further write access
+		BCF	PIR2, EEIF, ACCESS
+		BCF	FLASH_UPD_FLAG, FL_FL_ERROR, ACCESS
+		BTFSC	EECON1, WRERR, ACCESS	; did we exit normally?
+		BSF	FLASH_UPD_FLAG, FL_FL_ERROR, ACCESS
+		RETURN
+		
+
+FLASH_UPD_VERIFY_BLOCK:
+;	Compare 64-byte block at TBLPTR against RAM at FLASH_UPD_BUF.
+;	set W=0 if identical, >0 if not
+;	Also rewinds TBLPTR to start of block
+;
+		CLRWDT
+		LFSR	FSR0, FLASH_UPD_BUF
+		MOVLW	FLASH_UPD_BUFSZ
+		MOVWF	FLASH_UPD_I, ACCESS
+FLASH_UPD_VB:	CLRWDT
+		TBLRD*+
+		MOVF	POSTINC0, W, ACCESS
+		CPFSEQ	TABLAT, ACCESS
+		BRA	FLASH_UPD_VB_ERROR
+		DECFSZ	FLASH_UPD_I, F, ACCESS
+		BRA	FLASH_UPD_VB
+		BCF	FLASH_UPD_FLAG, FL_FL_ERROR, ACCESS
+		BRA	FLASH_UPD_REWIND
+
+FLASH_UPD_VB_ERROR:
+		RCALL	FLASH_UPD_REWIND
+		BSF	FLASH_UPD_FLAG, FL_FL_ERROR, ACCESS
+		RETURN
+		
 		END
