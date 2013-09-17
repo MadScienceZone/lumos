@@ -1,84 +1,14 @@
-;
-;
-;
-; slow flash = PATTERN(i,255,255,30,FADE_DOWN|FADE_CYCLE|MAX_OFF_TIME)
-; slow fade =  PATTERN(i,0,1,1,FADE_UP|FADE_CYCLE)
-;	SSR_VALUE=0
-;	SSR_STEP=1
-;	SSR_SPEED=1
-;	SSR_COUNTER=1
-;	SSR_FLAGS=UP|CYCLE
-; 
-; --counter >0? stop
-; counter=speed; value += step <max? stop
-; value=max; cancel fade; reverse if cycle
-;
-; --counter >0? stop
-; counter=speed; value -= step >=0? stop 
-; value=0; cancel fade; reverse if cycle
-; if max_off_time, counter=max
-;
-; val stp spd ctr flags
-; 000 001 001 001 up|cycle				256 x 120 per direction (should be 2.1s)
-; 000 001 001 000 up|cycle  <-end of cycle
-; 001 001 001 001 up|cycle
-; 001 001 001 000 up|cycle  <-end of cycle
-; 002 001 001 001 up|cycle
-; 002 001 001 000 up|cycle  <-end of cycle
-; 003 001 001 001 up|cycle
-;  :
-; 253 001 001 000 up|cycle  <-end of cycle
-; 254 001 001 001 up|cycle
-; 254 001 001 000 up|cycle  <-end of cycle
-; 255 001 001 001 up|cycle
-; 255 001 001 000 up|cycle  <-end of cycle
-; 000 001 001 001 up|cycle
-; 255 001 001 001 down|cycle
-;
-; even slower fade would be val=0 step=1 speed=255, ctr=255.  255x256x120 per direction (554s)
-;
-;
-; TMR0=0
-; TMR0: high pri, int en, start   (TMR0IP|TMR0IE|TMR0ON)
-; expire (INTCON<TMR0IF>) -> TMR0=$5D3D -> SSR_STATE<PRECYC>, SSR_STATE2<TEST_UPD>
-; follows system clock with 1:2 prescaler, 16bit
-
-;
 ; vim:set syntax=pic ts=8:
 ; sublw k-W
 ; subwf f-W
 ; subfwb W-f-~C
 ;
-; DONE check flow of all commands, especially the clearing of the state machine
-; DONE auto on/off disabled temporarily
 ; XXX  do i need to set RCON bits at power-up?
-; DONE but mostly left intact (hard to get around need due to length of branches)
-;        refactor this:
-;	SUBWF	YY_BUF_IDX, W, ACCESS		; input bytes in packet
-;	BC	$+4
-;	GOTO	S6_KEEP_LOOKING			; input < 2? not done yet
-;	BZ	$+4
-;	GOTO	ERR_COMMAND			; input > 2? too big: reject
-; XXX  XXX XXX ** KILL BROADCAST ADDR IDEA ** it's a dumb idea that has no good use case. XXX XXX XXX
-; DONE double-check all inequality tests
 ; XXX  review logic flow for each chip type
-; DONE check all BRA $+x values after assembly -- changed to use labels
-; DONE add slave phase/error code to query
-; DONE add master error code to query
-; DONE update unit tests to match final protocol
-; DONE auto wake/sleep
-; DONE need a global flag meaning "wait for output queue to drain then shut off T/R"
-; DONE have another look at all the WAIT_FOR_SENTINEL calls... do they handle short packets?
-; DONE for slow flash, have an ssr flag which means to max off-time regardless of on-time
-; DONE kill high/low res setting
-; DONE option button
-; DONE green LED different based on priv mode
-; DONE ERR_COMMAND light should have limited lifetime
 ; XXX  cease transmission if more data received -- study this out more
-; DONE halts after sending QUERY response packet
-; DONE add inhibit privileged mode command
 ; XXX  sleep mode leaves I/O bits on; should tristate first
 ; XXX  sleep mode seems never to get relinquished
+; XXX  first query malformed, sometimes
 ;
 		LIST n=90
 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@

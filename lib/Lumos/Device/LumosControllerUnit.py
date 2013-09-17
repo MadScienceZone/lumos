@@ -434,13 +434,46 @@ class LumosControllerUnit (ControllerUnit):
                 if cb < 0:
                     return 35
                 if ord(d[cb]) == (0xf0 | self.address):
+                    # len(d) - cb  == number of bytes in our packet so far
                     if len(d) - cb <= 1:
                         return 34
                     if ord(d[cb+1]) == 0x1f:
-                        return max(0, 35 - (len(d) - cb))
+                        # reply to this unit's query command
+                        # watch for 0x7e, 0x7f
+                        extra_bytes = 0
+                        skip_next = False
+                        for i in d[cb+2:cb+35]:
+                            if skip_next:
+                                skip_next = False
+                            elif 0x7e <= ord(i) <= 0x7f:
+                                extra_bytes += 1
+                                skip_next = True
+
+                        return max(0, 35 - (len(d) - cb) + extra_bytes)
             
-        reply = self.network.input(packet_scanner, timeout=timeout)
-        reply = [ord(i) for i in reply]
+        reply_buf = self.network.input(packet_scanner, timeout=timeout)
+        reply = []
+        set_msb = False
+        literal_next = False
+        first_byte = True
+        for i in reply_buf:
+            if ord(i) > 0x7f and not first_byte:
+                raise DeviceProtocolError("Query packet response malformed (high bit in data area: {0})".format(
+                    ' '.join(['{0:02X}'.format(x) for x in reply])))
+            first_byte = False
+
+            if set_msb:
+                set_msb = False
+                reply.append(ord(i) | 0x80)
+            elif literal_next:
+                literal_next = False
+                reply.append(ord(i))
+            elif i == '\x7e':
+                set_msb = True
+            elif i == '\x7f':
+                literal_next = True
+            else:
+                reply.append(ord(i))
 
         if len(reply) != 35:
             raise DeviceProtocolError("Query packet response malformed (len={0})".format(len(reply)))
@@ -449,9 +482,6 @@ class LumosControllerUnit (ControllerUnit):
         if reply[2] != 0x30:
             raise DeviceProtocolError("Query packet version unsupported ({0}.{1})".format((reply[2] >> 4) & 0x07, (reply[2] & 0x0f)))
 
-        if any([x & 0x80 for x in reply[1:]]):
-            raise DeviceProtocolError("Query packet response malformed (high bit in data area: {0})".format(
-                ' '.join(['{0:02X}'.format(x) for x in reply])))
 
 
         status = LumosControllerStatus()

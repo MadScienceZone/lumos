@@ -438,12 +438,18 @@ FLASH_UPD_TRY_BLOCK:
 		MOVF	0x01, F, ACCESS
 		BNZ	FLASH_UPD_TBNZ
 		BSF	FLASH_UPD_FLAG, FL_FL_FINAL, ACCESS
+FLASH_UPD_TBNZ:
+		;
+		; save block number
+		;
+		MOVFF	0x000, FLASH_UPD_BLKH
+		MOVFF	0x001, FLASH_UPD_BLKL
 		;
 		; $000  aaaabbbb )   TBLPTRU 0000aaaa	  16-bit block ID translated to
 		; $001  ccccdddd )=> TBLPTRH bbbbcccc     20-bit FLASH ROM address aligned
 		;                )   TBLPTRL dd000000     to 64-byte boundary
 		;
-FLASH_UPD_TBNZ:	SWAPF	0x00, W, ACCESS
+               	SWAPF	0x00, W, ACCESS
 		ANDLW	0x0F
 		MOVWF	TBLPTRU, ACCESS			; U=0000aaaa H=XXXXXXXX L=XXXXXXXX
 		SWAPF	0x00, W, ACCESS
@@ -459,7 +465,7 @@ FLASH_UPD_TBNZ:	SWAPF	0x00, W, ACCESS
 		; sanity check that they didn't try to assign into a non-aligned block
 		;
 		MOVF	0x01, W, ACCESS
-		ANDLW	0x3F
+		ANDLW	0x03
 		BNZ	FLASH_UPD_INVALID_ADDRESS
 		;
 		; or if they want to overwrite the flash loader itself
@@ -518,6 +524,13 @@ FLASH_UPD_A_OK:	CLRWDT
              	RCALL	FLASH_UPD_VERIFY_BLOCK
 		BTFSC	FLASH_UPD_FLAG, FL_FL_ERROR, ACCESS
 		BRA	FLASH_UPD_EV
+		;
+		; Report back
+		;
+		CLRF	FLASH_UPD_RES_X, ACCESS
+		CLRF	FLASH_UPD_RES_Y, ACCESS
+		MOVLW	'k'
+		RCALL	FLASH_UPDATE_SEND
 		BTFSS	FLASH_UPD_FLAG, FL_FL_FINAL, ACCESS
 		BRA	FLASH_UPDATE_NEXT_BLOCK
 		;

@@ -277,7 +277,7 @@ def encode_address(addr):
            chr(0x40 | ((addr >> 12) & 0x0f)) + 
            chr(0x40 | ((addr >>  8) & 0x0f)) + 
            chr(0x40 | ((addr >>  4) & 0x0c)),
-           ((addr >> 12) & 0xff) + ((addr >>  4) & 0xfc))
+           (((addr >> 12) & 0xff) + ((addr >>  4) & 0xfc)) & 0xff)
 
 def decode_address(encoded):
     "Convert four-character encoded address to integer start-of-block address"
@@ -285,13 +285,13 @@ def decode_address(encoded):
     if len(encoded) != 4:
         raise ValueError('encoded address "{0}" is wrong length ({1} but expected 4)'.format(encoded, len(encoded)))
         
-    if any([not 0x40 <= x <= 0x4f for x in encoded]):
+    if any([not 0x40 <= ord(x) <= 0x4f for x in encoded]):
         raise ValueError('encoded address "{0}" has invalid character(s)'.format(encoded))
 
-    return ((ord(encoded[0] & 0x0f) << 16) | 
-            (ord(encoded[1] & 0x0f) << 12) | 
-            (ord(encoded[2] & 0x0f) <<  8) | 
-            (ord(encoded[3] & 0x0f) <<  4))
+    return (((ord(encoded[0]) & 0x0f) << 16) | 
+            ((ord(encoded[1]) & 0x0f) << 12) | 
+            ((ord(encoded[2]) & 0x0f) <<  8) | 
+            ((ord(encoded[3]) & 0x0f) <<  4))
 
 class FlashProgrammingError (Exception): pass
 
@@ -321,9 +321,9 @@ def reflash(image_firmware, io):
     #         ffff ffff ffff ffff 0000
     #
     io.send('Q')
-    response = io.input(bytes=5, timeout=10)
-    if len(response) != 5:
-        raise IOError('Failed to get expected response from device (expected 5 bytes, got {0}).'.format(len(response)))
+    response = io.input(bytes=9, timeout=10)
+    if len(response) != 9:
+        raise IOError('Failed to get expected response from device (expected 9 bytes, got {0}).'.format(len(response)))
 
     if response != 'OOOO@@@@*':
         raise FlashProgrammingError('Device not in expected starting state. ({0}) Reset and restart!'.format(response))
@@ -338,14 +338,14 @@ def reflash(image_firmware, io):
             pkt, cksum = encode_data(image_firmware.blocks[block_to_send], cksum)
             trace(3, "--Data:     {0}".format(pkt))
             io.send(pkt)
-            pkt = encode_byte(cksum)
+            pkt = encode_byte((~cksum) + 1)
             trace(3, "--Checksum: {0}".format(pkt))
             io.send(pkt)
             io.send('.')
 
-            response = io.input(bytes=5, timeout=10)
+            response = io.input(bytes=9, timeout=10)
 
-            if len(response) != 9 or response[4] not in 'kn!bv':
+            if len(response) != 9 or response[8] not in 'kn!bv':
                 raise FlashProgrammingError('Out of sync with device or unexpected response (expected {0}xxxxx, received {1})'.format(
                     addr, response))
 
@@ -356,7 +356,7 @@ def reflash(image_firmware, io):
                         '!': 'Invalid target ROM address',
                         'b': 'FLASH burn operation failed',
                         'v': 'FLASH data verification failed: {1:02X}@{0:02X}'
-                    }[response[4]].format(decode_byte(response[4:6]), decode_byte(response[6:8]))
+                    }[response[8]].format(decode_byte(response[4:6]), decode_byte(response[6:8]))))
             if response[:4] != addr:
                 raise FlashProgrammingError("Out of sync with device: expected {0}xxxxx, got {1}".format(addr, response))
 
