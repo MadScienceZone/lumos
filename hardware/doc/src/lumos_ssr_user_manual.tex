@@ -3457,6 +3457,13 @@ before the Lumos controller is ready to provide that response, it may send this 
 packet to indicate that it's not yet ready to reply.  This keeps the host PC from timing out and
 abandoning the controller's reply.
 
+The PC should assume that the full query response is forthcoming and should 
+continue waiting for it.  No additional poll is required.  Any number of
+\acronym{NAK} packets may be sent by the Lumos controller between the PC's
+query request and the Lumos board's full query response packet.  [Currently
+(\acronym{ROM} version 3.0) the Lumos board never sends \acronym{NAK} packets,
+but may do so in the future.]
+
 
 \section{\z{0x720}--\z{0x73f}: Reserved}
 These codes are reserved for internal use by the Lumos system and may not be used externally.
@@ -3696,14 +3703,184 @@ Initiates firmware update mode on the Lumos controller.  From this point forward
 expects to receive the new firmware image using a special protocol.  If the board is reset during
 this process, it remains in firmware update mode, since it may have an unusable firmware image
 at this point.
+
 See page~\pageref{man:lumosupgrade}
 for full documentation about the \verb+lumosupgrade+ command used to perform this operation.
+
+The protocol used between the \verb+lumosupgrade+ program and the Lumos board
+is documented in section~\ref{sec:flashprogproto} below, starting on 
+page~\pageref{sec:flashprogproto}.
 
 {\bfseries This command is only recognized if the controller is in configuration mode.}
 
 
 \subsection{Reserved Command Codes}
 Codes \z{0x776}--\z{0x77f} are reserved for future use as configuration-mode commands.
+
+\section{Firmware Update Protocol}
+\label{sec:flashprogproto}
+Once the Lumos board has been placed in flash program mode via the 
+\z{0x775} ``Update Firmware Image'' command (see above), all other 
+normal operation of the Lumos board is suspended, including any of its
+command protocols (Lumos native or \acronym{DMX}).  In this mode, the
+board communicates using a simple bidirectional serial protocol at a fixed
+speed of 9600~baud, 8 bits, no parity.  This protocol is designed solely
+for the purpose of uploading a new firmware image into the flash memory.
+
+All communication is 7-bit-clean \acronym{ASCII} which won't be confused
+as Lumos commands by any other listening units, but since the firmware
+update happens at 9600~baud, we recommend disconnecting other units from
+the network that aren't configured to run at that speed normally.
+
+\subsection{Encoded Byte Values}\label{ss:flashbytes}
+Most of the values sent using this protocol are encoded in a modified
+form of hexadecimal---rather than using the characters \z{0123456789ABCDEF}
+as the base-16 digits, the character set \z{@ABCDEFGHIJKLMNO} is used instead.
+The most significant nybble is sent first, as would normally be the case
+with hexadecimal representation of values.
+
+This encoding makes it easier to encode and decode values, since the nybbles
+are simply sent with the constant upper nybble value set to \z{0100}:
+\begin{BF}
+  \bitbox{1}{\z0} 
+	& \bitbox{1}{\z1} 
+	& \bitbox{1}{\z0} 
+	& \bitbox{1}{\z0} 
+	& \bitbox{4}{\Var*{value}}
+\end{BF}
+
+For example, the value \z{0x00} is encoded as \z{@@}, \z{0x12} as \z{AB},
+and \z{0xFF} as \z{OO}.
+
+\subsection{Address Encoding}\label{ss:blockid}
+The firmware image is transmitted to the Lumos board in 64-byte blocks.  Each
+block must be evenly aligned on a 64-byte address boundary, so
+the least significant six bits of the address will always be zeroes.  Because
+of this, the least significant nybble is never transmitted and is implied to
+be zero.  
+
+The 64-byte blocks are specified in the protocol by their ``block \acronym{ID}'' which is simply the more significant 16 bits of the block's address in
+program memory.  Therefore, the block at memory address \z{0x12580}--\z{0x125BF}
+would be known here as block \acronym{ID} \z{0x1258}.
+
+When sent using this protocol, the nybbles of the block \acronym{ID} are 
+sent from most significant nybble to least, encoded as described above.
+For example, block \z{0x1258} would be transmitted as \z{ABEH}.
+
+Valid block \acronym{ID} values may range from \z{0x0000}--\z{0x16FC}.
+
+\subsection{Command Protocol}
+Two commands are recognized in this mode: ``query'' and ``data.''
+
+The ``query'' command is sent by the PC as a single character, `\z Q'.
+This causes the Lumos board to respond with a result packet with status
+code `\z*' (see below).  If the board was just reset and is ready to begin
+the process of receiving a new image, it will respond to the query
+with ``\z{OOOO@@@@*}''.
+
+The ``data'' command sends a 64-byte block of firmware code to the Lumos
+board.  The board will then burn that block into its flash memory and respond
+with a result packet as described in the next section.  The data command
+packet is always 137~bytes and has the form:
+\begin{center}
+\begin{bytefield}[endianness=little,bitwidth=2em]{8}
+ \bitheader{0-7}\\
+  \begin{rightwordgroup}{128 bytes\\for \Var*{data}}
+  \bitbox{1}{\z>} &
+  \bitbox{4}{\Var*{block \acronym{ID}}} &
+  \bitbox{1}{\z|} &
+  \bitbox[lrt]{2}{}\\
+  \wordbox[lr]{1}{\Var*{data}}\\
+  \skippedwords\\
+  \wordbox[lr]{1}{}
+  \end{rightwordgroup}\\
+  \bitbox[lbr]{6}{} & \bitbox{2}{\Var*{check}}\\
+  \bitbox{1}{\z.}
+\end{bytefield}
+\end{center}
+The `\z>', `\z|', and `\z.' bytes are literal \acronym{ASCII} characters.
+The other fields are described individually below:
+\begin{description}
+  \item[\Var*{block \acronym{ID}}] identifies the block being sent, encoded
+	as described in section~\ref{ss:blockid} above.  The blocks may be 
+	sent in any order, except for the requirement that block \z{0x0000}
+	(encoded as \acronym{ID} \z{@@@@}) \emph{must be the very last block
+	to be sent}.  Overwriting this block changes the boot vector for the
+	microcontroller which then enables the device to execute the new
+	firmware image the next time it is reset, so it is important that this
+	be the last block written. 
+
+	The act of successfully sending and burning block \acronym{ID} zero
+	ends flash program mode.  Once that block is written, the device will
+	automatically reset and resume normal Lumos controller board operation.
+  \item[\Var*{data}] is the block of 64 bytes starting at the address implied
+	by the block \acronym{ID}.  Since it's encoded as described in
+	section~\ref{ss:flashbytes} above, it is transmitted as 128 
+	\acronym{ASCII} characters.
+  \item[\Var*{checksum}] is a one-byte checksum, encoded as two
+	\acronym{ASCII} characters per \S\ref{ss:flashbytes}.  The checksum
+	is a running 8-bit total of the two bytes of 
+	\Var*{block \acronym{ID}} and each byte of \Var*{data}.  The two's
+	complement of this total is encoded and sent in this field of the
+	command.  Only the least significant 8~bits of the total are
+	used for any part of this calculation. For example, if the 8-bit total
+	of the block~\acronym{ID} and data bytes comes out to \z{0x47}, then
+	we calculate its two's complement by inverting and adding one:
+	\begin{center}
+ 	  \begin{tabular}{ccl}
+	    \z{0x47} & =             & \z{01000111} \\
+	    invert   & $\rightarrow$ & \z{10111000} \\
+	    +1       & $\rightarrow$ & \z{10111001}
+	  \end{tabular}
+	\end{center}
+	The checksum sent in this example would be \z{0xB9}, encoded into
+	\acronym{ASCII} as ``\z{KI}''.
+\end{description}
+
+\subsection{Response Codes}
+The response to the query or data commands is always a nine-byte packet
+of the form:
+\begin{center}
+  \begin{tabular}{|c|c|c|c|}\hline
+	\Var*{block \acronym{ID}} & 
+	\Var*{x} & \Var*{y} & \Var*{status}\\\hline
+  \end{tabular}
+\end{center}
+where:
+\begin{description}
+  \item[\Var*{block \acronym{ID}}] is the last-known block \acronym{ID}
+	processed by the Lumos board.  If no block has been processed yet,
+	this value will be \z{0xFFFF} (encoded as ``\z{OOOO}'') which is 
+	never a valid block \acronym{ID}.
+  \item[\Var*{x} and \Var*{y}] are extra data bytes 
+	(encoded as two \acronym{ASCII} characters each) which provide
+	additional information relevant to the particular \Var*{status}
+	code being reported.
+  \item[\Var*{status}] is a code indicating the result of the command.
+	The possible status results are summarized in Figure~\ref{fig:flromstat}.
+\end{description}
+\begin{figure}
+  \begin{center}
+    \begin{tabular}{|c|c|c|l|}\hline
+	\bfseries \Var*{status} & \bfseries\Var*{x} & \bfseries\Var*{y} & 
+	\bfseries Description\\\hline\hline
+	\z !& --- & --- & Invalid block \acronym{ID} given\\\hline
+	\z *& --- & --- & Response to query command; board ready\\\hline
+	\z b& --- & --- & Burn error writing to flash memory\\\hline
+	\z k& --- & --- & Data received and burned successfully\\\hline
+	\z n&\z{0x00}&\z{0x00}& Data packet format error\\\hline
+	\z n& $x$    &\z{0x00}& Checksum error, calculated to be $x$\\\hline
+	\z n& $x$    &\z{0x40}& Illegal character $x$ received\\\hline
+	\z n&\z{0xFF}&\z{0xFF}& Unrecognized command packet\\\hline
+	\z v& $x$ & $y$ & Verification error: value $y$ read $x$ bytes from end\\\hline
+    \end{tabular}
+  \end{center}
+  \caption{Firmware Update Protocol Response Codes\label{fig:flromstat}}
+\end{figure}
+
+For example, after successfully burning block \z{0x045C}, the Lumos board
+will send the result ``\z{@DEL@@@@k}''.
+
 
 \chapter{DMX512 Command Structure}\label{ch:dmx}
 When configured in \acronym{DMX512} mode, all of the Lumos commands documented in Chapter~\ref{ch:proto}
