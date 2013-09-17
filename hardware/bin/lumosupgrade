@@ -429,8 +429,8 @@ def main():
             report_on(status)
 
 if __name__ == '__main__':
-#    try:
+    try:
         main()
-#    except Exception as e:
-#        sys.stderr.write("{0}: fatal error: {1}\n".format(sys.argv[0], e))
-#        sys.exit(1)
+    except Exception as e:
+        sys.stderr.write("{0}: fatal error: {1}\n".format(sys.argv[0], e))
+        sys.exit(1)
