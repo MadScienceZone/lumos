@@ -3175,9 +3175,9 @@ the board.
 \end{BF}
 Reports the device status back to the host PC.  On half-duplex networks, the host PC needs to switch
 to listening mode immediately after sending this command, although on full duplex networks, this is not
-necessary.  The response packet is:
-\subsubsection{\z{0x71f} [reply] Query Response from Lumos Controller}
-\label{bb:query-reply}
+necessary.  The response packet is shown in Figure~\ref{bb:query-reply}.
+
+\begin{figure}
 \begin{BF}
   \bitbox{1}{\z1} & \bitbox{3}{7} & \bitbox{4}{\Var*{addr}}\\
   \bitbox{1}{\z0} & \bitbox{7}{31}\\
@@ -3240,6 +3240,9 @@ necessary.  The response packet is:
 	& \bitbox[b]{1}{\z1} 
 	& \bitbox[br]{1}{\z1}
 \end{BF}
+\caption{\z{0x71f} [reply] Query Response from Lumos Controller\label{bb:query-reply}}
+\end{figure}
+
 The information contained in this packet describes several facts about the Lumos unit:
 \begin{description}
 	\item[Device identity:]
@@ -3789,8 +3792,8 @@ packet is always 137~bytes and has the form:
   \bitbox{1}{\z>} &
   \bitbox{4}{\Var*{block \acronym{ID}}} &
   \bitbox{1}{\z|} &
-  \bitbox[lrt]{2}{}\\
-  \wordbox[lr]{1}{\Var*{data}}\\
+  \bitbox[lrt]{2}{\Var*{data}}\\
+  \wordbox[lr]{1}{}\\
   \skippedwords\\
   \wordbox[lr]{1}{}
   \end{rightwordgroup}\\
@@ -3841,10 +3844,13 @@ The other fields are described individually below:
 The response to the query or data commands is always a nine-byte packet
 of the form:
 \begin{center}
-  \begin{tabular}{|c|c|c|c|}\hline
-	\Var*{block \acronym{ID}} & 
-	\Var*{x} & \Var*{y} & \Var*{status}\\\hline
-  \end{tabular}
+  \begin{bytefield}[endianness=little,bitwidth=2em]{8}
+    \bitheader{0-7}\\
+    \bitbox{4}{\Var*{block \acronym{ID}}} &
+    \bitbox{2}{\Var*{x}} &
+    \bitbox{2}{\Var*{y}} \\
+    \bitbox{1}{\Var*{st}}
+  \end{bytefield}
 \end{center}
 where:
 \begin{description}
@@ -3856,13 +3862,13 @@ where:
 	(encoded as two \acronym{ASCII} characters each) which provide
 	additional information relevant to the particular \Var*{status}
 	code being reported.
-  \item[\Var*{status}] is a code indicating the result of the command.
+  \item[\Var*{st}] is a code indicating the result of the command.
 	The possible status results are summarized in Figure~\ref{fig:flromstat}.
 \end{description}
 \begin{figure}
   \begin{center}
     \begin{tabular}{|c|c|c|l|}\hline
-	\bfseries \Var*{status} & \bfseries\Var*{x} & \bfseries\Var*{y} & 
+	\bfseries \Var*{st} & \bfseries\Var*{x} & \bfseries\Var*{y} & 
 	\bfseries Description\\\hline\hline
 	\z !& --- & --- & Invalid block \acronym{ID} given\\\hline
 	\z *& --- & --- & Response to query command; board ready\\\hline
