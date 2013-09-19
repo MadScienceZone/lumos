@@ -25,10 +25,8 @@
 # USE THIS PRODUCT AT YOUR OWN RISK.
 # 
 from Lumos.ControllerUnit import ControllerUnit
-import time
 
 class DeviceProtocolError (Exception): pass
-class InternalDeviceError (Exception): pass
 
 class UltraDMXMicroControllerStatus (object):
     "Internal state of device"
