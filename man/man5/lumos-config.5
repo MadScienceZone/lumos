@@ -694,10 +694,10 @@ The controller address for this particular unit.  Must be
 a number in the range
 .RI 1<= address <=4.
 .TP
-.BI channels= int
+.BI num_channels= int
 The number of output circuits provided by this controller.  If
 no
-.B channels
+.B num_channels
 attribute is provided here, this will default to 32.
 .RE
 .TP
@@ -717,10 +717,32 @@ network at a time, so no unit addressing is used.
 These units require the following additional field:
 .RS
 .TP
-.BI channels= int
+.BI num_channels= int
 The number of output channels supplied by the controller.
 This is an optional field; if not specified, it defaults to
 64.
+.RE
+.TP
+.B udmx
+A USB DMX interface such as the Ultra DMX Micro from DMX King (or any similar
+device based on the ENT TEC widget protocol).  This sends
+a stream of DMX frames to a universe of up to 512 device
+channels.  In order to use this, install an FTDI virtual
+serial port driver for it, and create a SerialNetwork in
+Lumos configured to the parameters of the virtual serial
+port.  This controller requires the following additional
+fields:
+.RS
+.TP
+.BI num_channels= int
+The number of output channels in this controller's universe.
+This is an optional field; if not specified, it defaults to 512.
+.LP
+Note that the channel numbers range from 
+.B 1
+to
+.B 512
+for this device.
 .RE
 .TP
 .B renard
@@ -738,7 +760,7 @@ These units require the following additional fields:
 The address of this controller.  This must be a number in the range
 .RI 0<= address <=127.
 .TP
-.BI channels= int
+.BI num_channels= int
 The number of output channels supplied by the controller.
 This is an optional field; if not specified, it defaults to
 64.  There are known Renard controllers for 8, 16, 24, 32,
