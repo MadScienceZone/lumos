@@ -337,7 +337,8 @@
 ;   DEF_SENS 7+6   1111aaaa 00000110 ...                Define sensor trigger
 ;   MSK_SENS 7+7   1111aaaa 00000111 0000ABCD           Mask inputs (1=enable, 0=disable)
 ; ! CLR_SEQ  7+8   1111aaaa 00001000 01000011 01000001  Erase all stored sequences
-;            7+9   1111aaaa 00001001                    Reserved for future use
+;   XPRIV    7+9   1111aaaa 00001001                    Forbid priviliged mode
+;            7+10  1111aaaa 00001010                    Reserved for future use
 ;             :        :        :                           :     :     :    : 
 ;            7+29  1111aaaa 00011101                    Reserved for future use                 
 ;   OUT_NAK  7+30  1111aaaa 00011110                    QUERY NAK                               
@@ -4102,9 +4103,24 @@ S9_X7_MSK_SENS:
 	RETURN
 S9_X8_CLR_SEQ:
 	DECFSZ	WREG, W, ACCESS
-	GOTO	ERR_COMMAND
+	BRA	S9_X9_XPRIV
 	WAIT_FOR_SENTINEL 2, B'01000001', .11	; -> S6.11 when sentinel found
 	RETURN
+S9_X9_XPRIV:
+	DECFSZ	WREG, W, ACCESS			
+	GOTO	ERR_COMMAND
+	;
+	; XPRIV:
+	;
+	;   ___7______6______5______4______3______2______1______0__
+	;  |                                  |                    |
+	;  |                0                 |          7         | YY_COMMAND
+	;  |______|______|______|______|______|______|______|______|
+	;  |      |      |      |                                  |
+	;  |   0  |   0  |   0  |   0  |             9             | YY_DATA
+	;  |______|______|______|______|______|______|______|______|
+	;
+	GOTO	CMD_XPRIV
 
 S9_INTERNAL_CMD:
 	;
@@ -4271,6 +4287,7 @@ S9_PRIV_4:
 	;  |______|______|______|______|______|______|______|______|
 	;
 	;
+CMD_XPRIV:
 	BSF	SSR_STATE2, PRIV_FORBID, ACCESS
 	GOTO	S9_PRIV_0
 

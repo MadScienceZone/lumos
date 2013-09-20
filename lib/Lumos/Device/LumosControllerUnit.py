@@ -191,17 +191,15 @@ class LumosControllerUnit (ControllerUnit):
                 if n >= (10 if self.num_channels <= 24 else 18):
                     # bulk transfer B0|a ch n-1 v*n 55
                     n_1 = self._max_change - self._min_change
-                    packet = [
+                    packet = ''.join([
                         chr(0xb0 | self.address),
                         chr(self._min_change & 0x3f),
                         chr(n_1 & 0x3f)
-                    ] + self._8_bit_packet([
+                    ]) + self._8_bit_string([
                         ((self.channels[vi].level or 0) if vi in self.channels else 0)
                             for vi in range(self._min_change, self._max_change + 1)
-                    ]) + [
-                        chr(0x55)
-                    ]
-                    self.network.send(''.join(packet))
+                    ]) + "\x55"
+                    self.network.send(packet)
                     byte_count += len(packet)
                 else:
                     # individual channel updates A0|a ch v
@@ -276,7 +274,7 @@ class LumosControllerUnit (ControllerUnit):
         self.flush(force)
 
     def initialize_device(self):
-        self.network.send(chr(0xf0 | self.address) + chr(0x74))     # turn off config mode
+        self.network.send(chr(0xf0 | self.address) + chr(0x09))     # turn off config mode
         self.kill_all_channels(False)
         self.all_channels_off(False)
 
@@ -307,6 +305,8 @@ class LumosControllerUnit (ControllerUnit):
         'masksens': '\x07{1}',
         'clearmem': '\x08CA',
         'noconfig': '\x70',
+        'xconfig':  '\x74',
+        'forbid':   '\x09',
         '__reset__':'\x71$r',
         '__baud__': '\x72{0}&',
     }
@@ -320,10 +320,10 @@ class LumosControllerUnit (ControllerUnit):
         # A collection of device-level operations which Lumos ordinarily doesn't use
         if command in self._device_commands:
             self.network.send(chr(0xF0 | self.address) + self._8_bit_string(
-                self._device_commands[command].format(
+                [ord(i) for i in self._device_commands[command].format(
                 ''.join([chr(i & 0x7f) for i in args if isinstance(i, int)]),
                 chr(0x7f & reduce((lambda x,y: x|y), [self._dev_bitmasks.get(k, 0) for k in args], 0)),
-            )))
+            )]))
         else:
             raise ValueError("Unknown raw control command \"{0}\" for Lumos board {1}".format(command, self.address))
 
@@ -353,8 +353,9 @@ class LumosControllerUnit (ControllerUnit):
     def raw_download_sequence(self, id, bits):
         "Download a compiled sequence <id> consisting of <bits> (a sequence of integers)"
 
-        self.network.send(chr(0xF0 | self.address) + self._8_bit_string([0x04, id, len(bits)-1] 
-            + bits) + 'Ds')
+        if bits:
+            self.network.send(chr(0xF0 | self.address) + self._8_bit_string([0x04, id, len(bits)-1] 
+                + bits) + 'Ds')
 
     def raw_sensor_trigger(self, sens_id, seq_id, inverse=False, execf=False):
         # inverse is "active high"

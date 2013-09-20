@@ -3445,8 +3445,23 @@ If the mask is 0, it is responded to normally.
 \end{BF}
 All stored sequences are erased.
 
+\subsection{\z{0x709} Forbid Configuration Mode}\label{cmd:xpriv}
+\begin{BF}
+	\bitbox{1}{\z1} & \bitbox{3}{7} & \bitbox{4}{\Var*{addr}} \\
+	\bitbox{1}{\z0} & \bitbox{7}{9}
+\end{BF}
+Turns off configuration mode (if the board was in that mode at the time), and
+prevents the board from going into configuration mode in the future.  Once the board is
+reset or power-cycled, it may again be placed into configuration mode.  
+
+This command is intended to replace command \z{0x774} (see p.~\pageref{cmd:xprivold}), since it can be
+used regardless of whether the Lumos board is already in configuration mode at the time.  This makes
+it a better choice than \z{0x774} as a general-purpose initialization step to ensure boards stay in
+normal run mode during a performance.  Command \z{0x774} is therefore deprecated and may disappear
+in the future.
+
 \subsection{Reserved Command Codes}
-Codes \z{0x709}--\z{0x71d} are reserved for future commands.  \z{0x71e}--\z{0x71f} are currently used
+Codes \z{0x70a}--\z{0x71d} are reserved for future commands.  \z{0x71e}--\z{0x71f} are currently used
 for response packets from the Lumos controller.
 
 \subsection{\z{0x71e} [reply] Query \acronym{NAK}}
@@ -3589,7 +3604,7 @@ with +5\,V to turn on the corresponding \acronym{LED}s and 0\,V to turn them off
 If flag \Var{d} is set (\Var{d}=1), the Lumos controller will operate in \acronym{DMX512} mode 
 (however,
 note that anytime it is in configuration mode, \acronym{DMX512} command reception is disabled and the
-Lumos commands described here are recognized.  When \Var{d}=1, the first \acronym{DMX512} channel
+Lumos commands described here are recognized).  When \Var{d}=1, the first \acronym{DMX512} channel
 claimed by this controller is channel \Var*{C}+1, which is a 9-bit value in the range 1--512:
 		\begin{center}\begin{bytefield}{9}
 			\bitheader{0,6,7,8}\\
@@ -3663,7 +3678,7 @@ Restores the device to its original factory settings.  Note that, among other th
 will change the device's address to 0 and its speed to 19,200\,bps.
 {\bfseries This command is only recognized if the controller is in configuration mode.}
 
-\subsection{\z{0x774} [config] Forbid Configuration Mode}
+\subsection{\z{0x774} [config] Forbid Configuration Mode}\label{cmd:xprivold}
 \begin{BF}
 	\bitbox{1}{\z1} & \bitbox{3}{7} & \bitbox{4}{\Var*{addr}} \\
 	\bitbox{1}{\z0} & \bitbox{7}{116}
@@ -3671,7 +3686,12 @@ will change the device's address to 0 and its speed to 19,200\,bps.
 Cancels configuration mode, returning to normal operating mode.  Additionally, this
 command prevents the device from re-entering configuration mode from this point forward
 until it is reset or power-cycled.
-{\bfseries This command is only recognized if the controller is in configuration mode.}
+{\bfseries This command is only recognized if the controller is in configuration mode,}
+but see command \z{0x709} on page~\pageref{cmd:xpriv}.
+
+{\bfseries This command is deprecated in favor of command \z{0x709}, which is generally preferred since it can be used
+in either run mode or configuration mode.  This command is retained for compatibility with older software, but
+may be removed in the future.}
 
 \subsection{\z{0x775} [config] Update Firmware Image}
 \begin{BF}
@@ -3805,7 +3825,8 @@ The `\z>', `\z|', and `\z.' bytes are literal \acronym{ASCII} characters.
 The other fields are described individually below:
 \begin{description}
   \item[\Var*{block \acronym{ID}}] identifies the block being sent, encoded
-	as described in section~\ref{ss:blockid} above.  The blocks may be 
+	as described %in section~\ref{ss:blockid} 
+	above.  The blocks may be 
 	sent in any order, except for the requirement that block \z{0x0000}
 	(encoded as \acronym{ID} \z{@@@@}) \emph{must be the very last block
 	to be sent}.  Overwriting this block changes the boot vector for the
@@ -3817,11 +3838,12 @@ The other fields are described individually below:
 	ends flash program mode.  Once that block is written, the device will
 	automatically reset and resume normal Lumos controller board operation.
   \item[\Var*{data}] is the block of 64 bytes starting at the address implied
-	by the block \acronym{ID}.  Since it's encoded as described in
-	section~\ref{ss:flashbytes} above, it is transmitted as 128 
+	by the block \acronym{ID}.  Since it's encoded as described %in section~\ref{ss:flashbytes} 
+	above, it is transmitted as 128 
 	\acronym{ASCII} characters.
   \item[\Var*{checksum}] is a one-byte checksum, encoded as two
-	\acronym{ASCII} characters per \S\ref{ss:flashbytes}.  The checksum
+	\acronym{ASCII} characters. %per \S\ref{ss:flashbytes}.  
+	The checksum
 	is a running 8-bit total of the two bytes of 
 	\Var*{block \acronym{ID}} and each byte of \Var*{data}.  The two's
 	complement of this total is encoded and sent in this field of the
@@ -3889,8 +3911,8 @@ will send the result ``\z{@DEL@@@@k}''.
 
 
 \chapter{DMX512 Command Structure}\label{ch:dmx}
-When configured in \acronym{DMX512} mode, all of the Lumos commands documented in Chapter~\ref{ch:proto}
-are not recognized. The Lumos controller will be only looking for \acronym{DMX512} command packets.
+When configured in \acronym{DMX512} mode, none of the Lumos commands documented in Chapter~\ref{ch:proto}
+are recognized. The Lumos controller will be only looking for \acronym{DMX512} command packets.
 To use the Lumos commands for configuration of the board (e.g., to turn off \acronym{DMX512} mode or change
 the starting channel number), activate configuration mode using the Option button.  That will disable \acronym{DMX512} mode for the time the device is in configuration mode.
 
@@ -3900,7 +3922,7 @@ recognized by a Lumos controller.  All other packets are silently ignored.
 A packet begins with a ``break'' condition on the line.  Immediately following the break is a sequence
 of one or more bytes of data.  The first byte must be a zero (other values for this initial byte are used
 to send other kinds of \acronym{DMX512} packets, but we're not interested in those so they are simply
-ignored.
+ignored).
 
 After the zero byte there will be up to 512 channel value bytes.  (It is permissible for the packet to end
 before all 512 channel values have been sent.)  The Lumos controller is configured to have a starting address
