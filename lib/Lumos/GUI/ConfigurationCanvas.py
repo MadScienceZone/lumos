@@ -882,7 +882,7 @@ If you continue, you will lose those changes!
                 initialdir=f_dir,
                 initialfile=f_name,
                 parent=self,
-                title="Save Configuraiton Profile As"
+                title="Save Configuration Profile As"
             )
             if file_name is not None and file_name.strip() != '':
                 self.file_name = file_name.strip()

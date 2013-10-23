@@ -1787,13 +1787,67 @@ CH	 ++
 	BSF	INTCON, GIEH, ACCESS	; Enable high-priority interrupts
 	BSF	INTCON, GIEL, ACCESS	; Enable low-priority interrupts
 	;
+	; Check for factory reset jumper
+	;  (short J11 pins 4 and 5, then power up device [or press reset].  When 
+	;  all lights flash, pull the jumper away. device will restore factory 
+	;  settings.)
+	;                                                            ______
+	; With the jumper in place, the OPTION input will follow the PWRCTL output.
+	; If they start off unequal, we skip this check and don't disturb the power
+	; supply logic at all.  Otherwise, we will flip our output a couple of times
+	; and see that OPTION keeps pace, which indicates that the jumper is there.
+	; we'll wait for the jumper to be pulled to avoid an infinite loop of resets,
+	; and also to provide a way out (power off first and no reset will have happened).
+	;
+	CLRWDT
+	BCF	PLAT_PWR_ON, BIT_PWR_ON, ACCESS	; turn on power supply
+FACTORY_RESET_JUMPER_CHECK:
+	IF HAS_OPTION
+	 RCALL	DELAY_1_12_SEC
+	 BTFSC	PORT_OPTION, BIT_OPTION, ACCESS
+	 BRA	END_RFJC			; OPTION button not jumpered, boot normally
+
+	 CLRWDT					
+	 BSF	PORT_OPTION, BIT_OPTION, ACCESS ; try flipping the output bit
+	 RCALL	DELAY_1_12_SEC
+	 BTFSS	PORT_OPTION, BIT_OPTION, ACCESS	; OPTION was down, but not because of the 
+	 BRA	END_RFJC			; jumper--boot normally
+
+	 BCF	PORT_OPTION, BIT_OPTION, ACCESS ; try flipping back
+	 RCALL	DELAY_1_12_SEC
+	 BTFSC	PORT_OPTION, BIT_OPTION, ACCESS	
+	 BRA	END_RFJC			
+
+	 BSF	PORT_OPTION, BIT_OPTION, ACCESS ; try flipping back last time
+	 RCALL	DELAY_1_12_SEC
+	 BTFSS	PORT_OPTION, BIT_OPTION, ACCESS	
+	 BRA	END_RFJC			
+
+	;
+	; After perhaps a bit too much caution, we're convinced there's a jumper there.
+	; wait for it to go away now, then do the reset.
+	;                                         ______                ______
+	 BCF	PORT_OPTION, BIT_OPTION, ACCESS ; PWRCTL low, watch for OPTION->1
+FRJC_LOOP:
+	 CLRWDT
+	 BTF	PLAT_YELLOW, BIT_YELLOW, ACCESS
+	 BTF 	PLAT_GREEN, BIT_GREEN, ACCESS
+	 BTF	PLAT_RED, BIT_RED, ACCESS	
+	 BTF	PLAT_PWR_ON, BIT_PWR_ON, ACCESS	
+	 RCALL	DELAY_1_12_SEC
+	 BTFSS	PORT_OPTION, BIT_OPTION, ACCESS
+	 BRA	FRJC_LOOP
+	 GOTO	FACTORY_RESET
+	ENDIF
+	
+END_FRJC:
+	;
 	; Launch mainline code
 	;
 	BCF	PLAT_RED, BIT_RED, ACCESS	; Panel: () G () ()
 	BANKSEL	SSR_DATA_BANK
 	CLRF	SSR_00_VALUE+SSR_GREEN, BANKED	; Green light cycles ~ 1/4 Hz
 	SET_SSR_PATTERN SSR_GREEN, 0, 1, 1, BIT_FADE_UP|BIT_FADE_CYCLE
-	BCF	PLAT_PWR_ON, BIT_PWR_ON, ACCESS	; turn on power supply
 	;	
 	; If we're in DMX mode, change our baud rate to 250,000 bps
 	;
