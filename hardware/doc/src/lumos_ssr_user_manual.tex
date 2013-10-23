@@ -556,32 +556,26 @@ If the Option buton is pressed briefly, the pulsing red \acronym{LED} freezes (s
 pauses on the current output channel.  Pressing the Option button again resumes the cycle.
       
 \section{Restoring to Factory Settings}
-{\bfseries This feature is planned for the future but not yet implemented.}
-{\color{gray}
 If the board is unresponsive and cannot be reconfigured via the host PC (for example, if you configured
 it to use a baud rate your host PC can't match), follow these steps to reset the device to its 
 factory default settings:
 \begin{enumerate}
-	\item	Press and hold the Reset button.
-	\item	While holding Reset, press and hold Option.
-	\item	While continuing to hold Option, release Reset.
-	\item	When the red \acronym{LED} lights, release the Option button.
-	\item	When the red \acronym{LED} turns off, press and hold the Option button again.
-	\item	When the red \acronym{LED} turns on, release the Option button.
+	\item	Turn off the Lumos controller.
+	\item	Disconnect any input sensors and power supply control wire from the Lumos
+		controller.
+	\item	Install a jumper to short pins 4 and 5 of J11 (labeled ``\acronym{ICSP}''
+		on the board).
+	\item	Power on the Lumos controller.
+	\item	When the red, green, and yellow \acronym{LED}s flash rapidly, pull the
+		jumper out.
 \end{enumerate}
 
-If those steps were carried out exactly as described, the \acronym{LED}s will all flash rapidly 
-and the controller will reboot with the factory settings in place.  This means, among other things,
+If those steps were carried out exactly as described, %the \acronym{LED}s will all flash rapidly and 
+the controller will reboot with the factory settings in place.  This means, among other things,
 it will be at address 0, set to use Lumos commands only (not \acronym{DMX512}), and will communicate
 at 19,200~baud.
 
 Failure to perform each step at the right time will prevent the factory reset from occurring.
-
-\strong{Note:} If the red \acronym{LED} (the top one for 48-channel boards) is configured as a
-sensor input, one of the other \acronym{LED}s will be used instead.  \emph{If all of the 
-\acronym{LED}s have been replaced with sensor inputs, then channel~\#0 will be turned on
-and off instead, to signal this sequence.  Have a suitable load plugged into that output.}
-}
 
 \chapter{Configuring the Board}
 \LLstart{T}{here}{are a number of settings} which can be made on the Lumos controllers.  Generally,
