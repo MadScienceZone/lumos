@@ -235,7 +235,7 @@ LUMOS_INIT:
 	CLRF	PORTE, ACCESS	; PORTE: LEDs LOW (off)
 
 				;    bit 7 6 5 4 3 2 1 0
-	MOVLW	b'11000000' 	; PORTA  X X O O O O O O  all outputs
+	MOVLW	b'11100000' 	; PORTA  X X I O O O O O  all outputs except LEDs (may be sensors)
 	MOVWF	TRISA, ACCESS
  IF LUMOS_CHIP_TYPE==LUMOS_CHIP_MASTER
 	MOVLW	b'01000001'	; PORTB  O I O O O O O I  <6> option, <0> INT; rest outputs
@@ -256,7 +256,8 @@ LUMOS_INIT:
 	MOVLW	b'11000000'	; <7:6> is serial; rest are output
 	MOVWF	TRISC, ACCESS
 	CLRF 	TRISD, ACCESS	; PORTD  O O O O O O O O  all outputs
-	CLRF	TRISE, ACCESS	; PORTE  X X X X X O O O  all outputs
+	MOVLW	b'00000111'
+	MOVWF	TRISE, ACCESS	; PORTE  X X X X X 1 1 1  all inputs (for now, may be sensors)
 ;
 ; Timers
 ;

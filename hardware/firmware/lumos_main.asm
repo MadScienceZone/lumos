@@ -332,11 +332,11 @@
 ; @ WAKE     7+1   1111aaaa 00000001 01011010 01011010  Take unit out of sleep mode
 ;   SHUTDOWN 7+2   1111aaaa 00000010 01011000 01011001  Take unit completely offline
 ; < QUERY    7+3   1111aaaa 00000011 00100100 01010100  Report device status
-; ! DEF_SEQ  7+4   1111aaaa 00000100 0iiiiiii ...       Define sequence <i>
-;   EXEC_SEQ 7+5   1111aaaa 00000101 0iiiiiii           Execute sequence <i> (0=stop)
-;   DEF_SENS 7+6   1111aaaa 00000110 ...                Define sensor trigger
-;   MSK_SENS 7+7   1111aaaa 00000111 0000ABCD           Mask inputs (1=enable, 0=disable)
-; ! CLR_SEQ  7+8   1111aaaa 00001000 01000011 01000001  Erase all stored sequences
+;X! DEF_SEQ  7+4   1111aaaa 00000100 0iiiiiii ...       Define sequence <i>
+;X  EXEC_SEQ 7+5   1111aaaa 00000101 0iiiiiii           Execute sequence <i> (0=stop)
+;X  DEF_SENS 7+6   1111aaaa 00000110 ...                Define sensor trigger
+;X  MSK_SENS 7+7   1111aaaa 00000111 0000ABCD           Mask inputs (1=enable, 0=disable)
+;X! CLR_SEQ  7+8   1111aaaa 00001000 01000011 01000001  Erase all stored sequences
 ;   XPRIV    7+9   1111aaaa 00001001                    Forbid priviliged mode
 ;            7+10  1111aaaa 00001010                    Reserved for future use
 ;             :        :        :                           :     :     :    : 
@@ -361,6 +361,22 @@
 ;*           7+118 1111aaaa 01110110                     Reserved for future config cmd  ||||||
 ;*                     :        :                            :     :     :      :    :   ||||||
 ;*           7+127 1111aaaa 01111111                     Reserved for future config cmd__||||||
+;
+; Legend:
+;   X Not yet implemented; planned for future; subject to change
+;   @ Unit may automatically take this action
+;   * Privileged configuration-mode command
+;   ! Permanent effect (written to EEPROM)
+;   < Command generates response data (back to host)
+;   a Device address (0-15)
+;   b Baud rate code (0-127), but units may only define a small subset of those values
+;   c Output channel (0-63, but unit may only support a lesser number)
+;   d Direction: up (<d>=1) or down (<d>=0).
+;   h High-res level bit (LSB of 8-bit value when in high-res mode)
+;   m Mode (1=high-res, 0=low-res)
+;   n Number of items affected
+;   s Output state: 0=off, 1=on
+;   v Value of dimmer (0-127) (most significant 7 bits of dimmer value)
 ;
 ; Payloads for many-byte commands
 ;
@@ -464,20 +480,6 @@
 ;
 ; This version of the Lumos ROM does not send OUT_NAK packets.
 ;
-; Legend:
-;   @ Unit may automatically take this action
-;   * Privileged configuration-mode command
-;   ! Permanent effect (written to EEPROM)
-;   < Command generates response data (back to host)
-;   a Device address (0-15)
-;   b Baud rate code (0-127), but units may only define a small subset of those values
-;   c Output channel (0-63, but unit may only support a lesser number)
-;   d Direction: up (<d>=1) or down (<d>=0).
-;   h High-res level bit (LSB of 8-bit value when in high-res mode)
-;   m Mode (1=high-res, 0=low-res)
-;   n Number of items affected
-;   s Output state: 0=off, 1=on
-;   v Value of dimmer (0-127) (most significant 7 bits of dimmer value)
 ; 
 ;
 ;
@@ -892,7 +894,7 @@ _MAIN_EEPROM_TBL	EQU	0x14000
 ; $004 |_Offset____LSB|     $014 |       |      |
 ; $005 |_DMX_Slot__MSB|     $015 |       |      |
 ; $006 |_DMX_Slot__LSB|       .          .
-; $007 |______________|       .          .
+; $007 |_Sensor_cfg___|       .          .
 ; $008 |______________|       .          .
 ; $009 |______________|     $3F9 |       |      |
 ; $00A |______________|     $3FA |       |      |
@@ -909,7 +911,8 @@ _EEPROM	CODE_PACK	0xF00000
 	DE	0x03    	; 002: default device ID
 	DE	0x00, 0x02	; 003: default phase offset
 	DE	0x00, 0x00      ; 005: default DMX=0 (disabled, ch=1)
-	DE	0x00, 0x00, 0x00; 007: reserved
+	DE	0x00, 		; 007: default sensors (disabled)
+	DE	0x00, 0x00	; 008: reserved
 	DE	0x00, 0x00, 0x00; 00A: reserved
 	DE	0x00, 0x00      ; 00D: reserved
 	DE	0x42		; 00F: sentinel
@@ -921,7 +924,7 @@ EE_PHASE_H	EQU	0x003
 EE_PHASE_L	EQU	0x004
 EE_DMX_H	EQU	0x005
 EE_DMX_L	EQU	0x006
-EE_RESERVED_7	EQU	0x007
+EE_SENSOR_CFG	EQU	0x007
 EE_RESERVED_8	EQU	0x008
 EE_RESERVED_9	EQU	0x009
 EE_RESERVED_A	EQU	0x00A
@@ -938,7 +941,8 @@ DEFAULT_TBL:
 	DB	0x00			; $002: device ID=0
 	DB	0x00, 0x02		; $003: phase offset=2
 	DB	0x00, 0x00            	; $005: DMX slot=0 (disabled, ch=1)
-	DB	0x00, 0x00, 0x00, 0x00	; $007-$00A
+	DB	0x00, 			; $007: no sensors configured
+	DB 	0x00, 0x00, 0x00	; $008-$00A
 	DB 	0x00, 0x00, 0x00, 0x00	; $00B-$00E
 	DB	0x42			; $00F: constant $42
 
@@ -1209,8 +1213,12 @@ TARGET_SSR_MSK	EQU	0x3F
 
 		IF LUMOS_CHIP_TYPE==LUMOS_CHIP_MASTER || LUMOS_CHIP_TYPE==LUMOS_CHIP_STANDALONE
 HAS_ACTIVE	 EQU	1
+HAS_SENSORS	 EQU	1
+TRIS_SENS_C	 EQU	TRISA	; Sensor C == ACTIVE LED
+PORT_SENS_C	 EQU	PORTA	; Sensor C == ACTIVE LED
 PLAT_ACTIVE	 EQU	LATA
 BIT_ACTIVE	 EQU	5
+BIT_SENS_C	 EQU	5	; Sensor C == ACTIVE LED
 
 HAS_OPTION	 EQU	1
 PORT_OPTION	 EQU	PORTB
@@ -1230,6 +1238,7 @@ HAS_T_R		  EQU	0
  		 IF LUMOS_CHIP_TYPE==LUMOS_CHIP_SLAVE
 HAS_T_R		  EQU	1
 HAS_ACTIVE	  EQU	0
+HAS_SENSORS	  EQU	0
 HAS_OPTION	  EQU	0
 PLAT_T_R	  EQU	LATA
 PORT_T_R	  EQU	PORTA
@@ -1243,9 +1252,21 @@ BIT_T_R		  EQU	5
 PLAT_PWR_ON	EQU	LATB
 BIT_PWR_ON	EQU	7
 
+		IF LUMOS_CHIP_TYPE==LUMOS_CHIP_MASTER || LUMOS_CHIP_TYPE==LUMOS_CHIP_STANDALONE
+TRIS_SENS_A	 EQU	TRISE	; Sensor A == RED LED
+PORT_SENS_A	 EQU	PORTE	; Sensor A == RED LED
+TRIS_SENS_B	 EQU	TRISE	; Sensor B == GREEN LED
+PORT_SENS_B	 EQU	PORTE	; Sensor B == GREEN LED
+TRIS_SENS_D	 EQU	TRISE	; Sensor D == YELLOW LED
+PORT_SENS_D	 EQU	PORTE	; Sensor D == YELLOW LED
+BIT_SENS_A	 EQU	2	; Sensor A == RED LED
+BIT_SENS_B	 EQU	0	; Sensor B == GREEN LED
+BIT_SENS_D	 EQU	1	; Sensor D == YELLOW LED
+		ENDIF
 PLAT_RED	EQU	LATE
 PLAT_YELLOW	EQU	LATE
 PLAT_GREEN	EQU	LATE
+
 BIT_RED		EQU	2
 BIT_YELLOW	EQU	1
 BIT_GREEN	EQU	0
@@ -1636,6 +1657,12 @@ START:
 	CLRWDT
 	CLRF	STKPTR, ACCESS		; clear stack error bits, set SP=0
 	CALL	LUMOS_INIT
+	IF NOT HAS_SENSORS
+	 BCF	TRIS_SENS_A, BIT_SENS_A, ACCESS		; If this device can't possibly
+	 BCF	TRIS_SENS_B, BIT_SENS_B, ACCESS		; support sensor inputs, enable outputs
+	 BCF	TRIS_SENS_C, BIT_SENS_C, ACCESS		; on those pins early to let the LEDs
+	 BCF	TRIS_SENS_D, BIT_SENS_D, ACCESS		; work ASAP.
+	ENDIF
 	IF 0
 	;
 	; Extra start-up delay to investigate boot bug
@@ -1716,6 +1743,19 @@ SSS_SSS:
 	BSF	EECON1, RD, ACCESS
 	MOVFF	EEDATA, DMX_SLOTL
 	BCF	DMX_SLOTH, DMX_SPEED, ACCESS	; clear flag (we're not running at DMX speed yet)
+	;
+	INCF	EEADR, F, ACCESS	; EEPROM location 0x007: Sensor Configuration
+	IF HAS_SENSORS
+	 BSF	EECON1, RD, ACCESS
+	 BTFSS	EEDATA, 3, ACCESS
+	 BCF	TRIS_SENS_A, BIT_SENS_A, ACCESS
+	 BTFSS	EEDATA, 2, ACCESS
+	 BCF	TRIS_SENS_B, BIT_SENS_B, ACCESS
+	 BTFSS	EEDATA, 1, ACCESS
+	 BCF	TRIS_SENS_C, BIT_SENS_C, ACCESS
+	 BTFSS	EEDATA, 0, ACCESS
+	 BCF	TRIS_SENS_D, BIT_SENS_D, ACCESS
+ 	ENDIF
 	;
 	CLRF	EEADR, ACCESS	; Leave pointer at 0x000
 	;
@@ -1805,23 +1845,23 @@ FACTORY_RESET_JUMPER_CHECK:
 	IF HAS_OPTION
 	 RCALL	DELAY_1_12_SEC
 	 BTFSC	PORT_OPTION, BIT_OPTION, ACCESS
-	 BRA	END_RFJC			; OPTION button not jumpered, boot normally
+	 BRA	END_FRJC			; OPTION button not jumpered, boot normally
 
 	 CLRWDT					
 	 BSF	PORT_OPTION, BIT_OPTION, ACCESS ; try flipping the output bit
 	 RCALL	DELAY_1_12_SEC
 	 BTFSS	PORT_OPTION, BIT_OPTION, ACCESS	; OPTION was down, but not because of the 
-	 BRA	END_RFJC			; jumper--boot normally
+	 BRA	END_FRJC			; jumper--boot normally
 
 	 BCF	PORT_OPTION, BIT_OPTION, ACCESS ; try flipping back
 	 RCALL	DELAY_1_12_SEC
 	 BTFSC	PORT_OPTION, BIT_OPTION, ACCESS	
-	 BRA	END_RFJC			
+	 BRA	END_FRJC			
 
 	 BSF	PORT_OPTION, BIT_OPTION, ACCESS ; try flipping back last time
 	 RCALL	DELAY_1_12_SEC
 	 BTFSS	PORT_OPTION, BIT_OPTION, ACCESS	
-	 BRA	END_RFJC			
+	 BRA	END_FRJC			
 
 	;
 	; After perhaps a bit too much caution, we're convinced there's a jumper there.
@@ -3206,7 +3246,35 @@ S6_1_CONFIGURE:
 	MOVFF	DMX_SLOTL, EEDATA
 	WRITE_EEPROM_DATA
 	END_EEPROM_WRITE
-	; XXX configure sensors
+	;
+	; Configure sensors
+	;
+	IF HAS_SENSORS
+	 BSF	TRIS_SENS_A, BIT_SENS_A, ACCESS
+	 BSF	TRIS_SENS_B, BIT_SENS_B, ACCESS
+	 BSF	TRIS_SENS_C, BIT_SENS_C, ACCESS
+	 BSF	TRIS_SENS_D, BIT_SENS_D, ACCESS
+	 BTFSS	INDF0, 6, ACCESS			; A 
+	 BCF	TRIS_SENS_A, BIT_SENS_A, ACCESS
+	 BTFSS	INDF0, 5, ACCESS			; B 
+	 BCF	TRIS_SENS_B, BIT_SENS_B, ACCESS
+	 BTFSS	INDF0, 4, ACCESS			; C 
+	 BCF	TRIS_SENS_C, BIT_SENS_C, ACCESS
+	 BTFSS	INDF0, 3, ACCESS			; D 
+	 BCF	TRIS_SENS_D, BIT_SENS_D, ACCESS
+	 ;
+	 ; Save these settings to EEPROM
+	 ;
+	 RRNCF	INDF0, W, ACCESS
+	 RRNCF	WREG, W, ACCESS
+	 RRNCF	WREG, W, ACCESS
+	 ANDLW	0x0f
+	 BEGIN_EEPROM_WRITE EE_SENSOR_CFG
+	 MOVFF	WREG, EEDATA
+	 WRITE_EEPROM_DATA
+	 END_EEPROM_WRITE
+	ENDIF
+
 	CLRF	YY_STATE, ACCESS
 	RETURN
 
@@ -3678,23 +3746,38 @@ S6_9_QUERY:
 	IF ROLE_MASTER
 	 BCF	WREG, 7, ACCESS
 	ENDIF
-	CALL	SIO_WRITE_W			; 00 start byte 			<1111aaaa>
+	;CALL	SIO_WRITE_W			; 00 start byte 			<1111aaaa>
+	SEND_8_BIT_W
 	MOVLW	0x1F
-	CALL	SIO_WRITE_W			; 01 "reply to query" packet type 	<00011111>
+	SEND_8_BIT_W				; 01 "reply to query" packet type 	<00011111>
 	MOVLW	0x30
-	CALL	SIO_WRITE_W			; 02 ROM/format version 3.0		<00110000>
+	SEND_8_BIT_W				; 02 ROM/format version 3.0		<00110000>
 	CLRF	WREG, ACCESS
-						;    0XXXX---  XXX sensors NOT IMPLEMENTED
+	IF HAS_SENSORS
+	 MOVLW	0x78				; Initially set all sensors to 1
+	 BTFSC	TRIS_SENS_A, BIT_SENS_A, ACCESS	; If that line is not a sensor... 
+	 BTFSC	PORT_SENS_A, BIT_SENS_A, ACCESS ; Or the sensor is not pulled low...
+	 BCF	WREG, 6, ACCESS			; Then clear the reported flag.
+	 BTFSC	TRIS_SENS_B, BIT_SENS_B, ACCESS	
+	 BTFSC	PORT_SENS_B, BIT_SENS_B, ACCESS 
+	 BCF	WREG, 5, ACCESS			
+	 BTFSC	TRIS_SENS_C, BIT_SENS_C, ACCESS	
+	 BTFSC	PORT_SENS_C, BIT_SENS_C, ACCESS 
+	 BCF	WREG, 4, ACCESS			
+	 BTFSC	TRIS_SENS_D, BIT_SENS_D, ACCESS	
+	 BTFSC	PORT_SENS_D, BIT_SENS_D, ACCESS 
+	 BCF	WREG, 3, ACCESS			;    0ABCD---  1=sensor active (low) 0=inactive (high)
+	ENDIF
 	BTFSC	DMX_SLOTH, DMX_EN, ACCESS
 	BSF	WREG, 2, ACCESS			;    0----d--  DMX enable bit
 	BTFSC	DMX_SLOTH, DMX_BIT8, ACCESS
 	BSF	WREG, 1, ACCESS			;    0-----c-  DMX channel bit 8
 	BTFSC	DMX_SLOTL, 7, ACCESS		; 
 	BSF	WREG, 0, ACCESS			;    0------c  DMX channel bit 7
-	CALL	SIO_WRITE_W			; 03 sensor, DMX status            	<0ABCDdcc> XXX NOT IMPLEMENTED
+	SEND_8_BIT_W				; 03 sensor, DMX status            	<0ABCDdcc> 
 	MOVF	DMX_SLOTL, W, ACCESS		;    0ccccccc  DMX channel bits 6:0
 	ANDLW	0x7F
-	CALL	SIO_WRITE_W			; 04 DMX status
+	SEND_8_BIT_W				; 04 DMX status
 
 	BTFSC	SSR_STATE, PRIV_MODE, ACCESS
 	BSF	WREG, 2, ACCESS
