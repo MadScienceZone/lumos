@@ -144,24 +144,24 @@ else:
                 raise ValueError('{0} is not a valid transmit mode line name'.format(txmode))
 
             if txdelay < 0:
-                raise ValueError("Negative values for txdelay don't make sense")
+                raise ValueError("Negative values for txdelay don't make sense unless you have a time machine.")
 
             if self.parity not in ('none', 'even', 'odd'):
-                raise ValueError, "'%s' is not a valid parity type" % parity
+                raise ValueError("'{0}' is not a valid parity type".format(parity))
             # conform to PySerial values
             self._parity = self.parity.upper()[0]
 
             if self._parity not in serial.Serial.PARITIES:
-                raise ValueError, "IMPLEMENTATION BUG: parity %s (%s) does not match serial parity label" % (parity, self._parity)
+                raise ValueError("IMPLEMENTATION BUG: parity %s (%s) does not match serial parity label" % (parity, self._parity))
 
             if self.bits not in serial.Serial.BYTESIZES:
-                raise ValueError, "%d is not a valid number of bits per byte" % self.bits
+                raise ValueError("%d is not a valid number of bits per byte" % self.bits)
 
             if self.stop not in serial.Serial.STOPBITS:
-                raise ValueError, "%d is not a valid number of stop bits" % self.stop
+                raise ValueError("%d is not a valid number of stop bits" % self.stop)
 
             if self.baudrate not in serial.Serial.BAUDRATES:
-                raise ValueError, "%d is not a valid baud rate" % self.baudrate
+                raise ValueError("{0} is not a valid baud rate (must be one of {1})".format(self.baudrate, serial.Serial.BAUDRATES))
 
             # If the port can be a simple integer, make it so.
             try:
@@ -203,10 +203,18 @@ else:
                 self.verbose.write(time.ctime()+" Opened serial port {0} for {8} ({1} baud, {2} bits, {3}, {4} stop, xonxoff {5}, rtscts {6}) -> {7}\n".format(
                     self.port, self.baudrate, self.bits, self._parity, self.stop, self.xonxoff, self.rtscts, self.dev, self.description))
 
+        def diagnostic_output(self, message):
+            if self.verbose:
+                self.verbose.write(time.ctime()+" "+message+"\n")
+                
         def set_baud_rate(self, new_speed):
             "Change the baud rate of an operating device."
             if self.dev:
+                self.dev.flushInput()
+                self.dev.flushOutput()
                 self.dev.baudrate = new_speed
+                self.dev.flushOutput()
+                self.dev.flushInput()
 
         def hexdump(self, data, addr=0, outdev=None):
             if outdev is None:

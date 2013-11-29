@@ -31,6 +31,7 @@ import time
 
 class DeviceProtocolError (Exception): pass
 class InternalDeviceError (Exception): pass
+class InternalError (Exception): pass
 
 class LumosControllerUnit (ControllerUnit):
     """
@@ -380,12 +381,12 @@ class LumosControllerUnit (ControllerUnit):
         ]))
             
 
-# Response packet from QUERY command (35 bytes):
-# note the rom version byte also serves to indicate the format of the response
+# Response packet from QUERY command (37 bytes):
+# note the ROM version byte also serves to indicate the format of the response
 # bytes which follow.  If the query packet format changes, the ROM version byte
 # MUST also change.
-#        0       1         2        3        4        5        6        7
-#    1111aaaa 00011111 VVVVvvvv 0ABCDd0c cccccccc 0ABCDqsf 0ABCDX0p pppppppp 
+#
+#    1111aaaa 00011111 00110000 0ABCDdcc 0ccccccc 0ABCDqsf 0ABCDXpp 0ppppppp 
 #        \__/           \_/\__/  \__/|\_________/  \__/|||  \__/|\_________/  
 #          |             maj |     | |   |           | |||   |  |      `--phase
 #          `--reporting    minor   | |   `--DMX      | |||   |  `--config locked?
@@ -394,26 +395,26 @@ class LumosControllerUnit (ControllerUnit):
 #                                  | `--DMX mode?    | |`--sleeping?
 #                                  `--configured     | `--config mode?
 #                                                    `--masks
-#        8        9       10       11       12       13
-#    eeeeeeee eeeeeeee MMMMMMMM MMMMMMMM 0Q0iiiii 0xxxxxxx 
+#
+#    0eeeeeee 0eeeeeee 0MMMMMMM 0MMMMMMM 0X0iiiii 0xxxxxxx 
 #     \______________/  \______________/  | \___/  \_____/
 #        `--EEPROM free    `--RAM free    |   |       `--executing seq.
 #                                         |   `--device model
 #                                         `--seq running?
-#       14        15       
-#    00eE0000 0IIIIIII                  	Sensor trigger info for A
-#    0owE0001 0IIIIIII                  	Sensor trigger info for B
-#    0owE0010 0IIIIIII                  	Sensor trigger info for C
-#    0owE0011 0IIIIIII                  	Sensor trigger info for D
-#       22       23       24       25       26       27       28
-#    ffffffff ffffffff 0000000p pppppppp ssssssss ssssssss 00110011
-#    \______/ \______/       \_________/ \_______________/
-#        |        |               |              `--serial number
+#
+#    0owE0000 0IIIIIII 0iiiiiii 0PPPPPPP	Sensor trigger info for A
+#    0owE0001 0IIIIIII 0iiiiiii 0PPPPPPP	Sensor trigger info for B
+#    0owE0010 0IIIIIII 0iiiiiii 0PPPPPPP	Sensor trigger info for C
+#    0owE0011 0IIIIIII 0iiiiiii 0PPPPPPP	Sensor trigger info for D
+#
+#    0fffffff 0fffffff 000000pp 0ppppppp 0sssssss 0sssssss 00110011
+#    \______/ \______/       \_________/ \______S/N______/
 #        |        |               `--phase (channels 24-47)
 #        |        `--fault code (channels 24-47)
 #        `--fault code (channels 0-23)
 #
-# XXX need to recode for new query packet
+# Note that the number of bytes actually received may be greater due to the
+# encoding used to guard 8-bit values.
 
     def raw_query_device_status(self, timeout=0):
         self.network.send(chr(0xf0 | self.address) + "\3$T")
@@ -433,11 +434,11 @@ class LumosControllerUnit (ControllerUnit):
                 cb = find_command_byte(d, start)
                 start = cb+1
                 if cb < 0:
-                    return 35
+                    return 37
                 if ord(d[cb]) == (0xf0 | self.address):
                     # len(d) - cb  == number of bytes in our packet so far
                     if len(d) - cb <= 1:
-                        return 34
+                        return 36
                     if ord(d[cb+1]) == 0x1f:
                         # reply to this unit's query command
                         # watch for 0x7e, 0x7f
@@ -450,35 +451,64 @@ class LumosControllerUnit (ControllerUnit):
                                 extra_bytes += 1
                                 skip_next = True
 
-                        return max(0, 35 - (len(d) - cb) + extra_bytes)
+                        return max(0, 37 - (len(d) - cb) + extra_bytes)
             
         reply_buf = self.network.input(packet_scanner, timeout=timeout)
         reply = []
         set_msb = False
         literal_next = False
         first_byte = True
+        #
+        # skip over possible junk ahead of our reply packet
+        #
+        skipped_data = []
+        state=0
         for i in reply_buf:
-            if ord(i) > 0x7f and not first_byte:
-                raise DeviceProtocolError("Query packet response malformed (high bit in data area: {0})".format(
-                    ' '.join(['{0:02X}'.format(x) for x in reply])))
-            first_byte = False
+            #print "state {0}, i {1:02X}".format(state, ord(i))
+            if state == 0:      # wait for command byte addressed to us
+                if ord(i) == (0xf0 | self.address):
+                    state=1
+                else:
+                    skipped_data.append(i)
 
-            if set_msb:
-                set_msb = False
-                reply.append(ord(i) | 0x80)
-            elif literal_next:
-                literal_next = False
-                reply.append(ord(i))
-            elif i == '\x7e':
-                set_msb = True
-            elif i == '\x7f':
-                literal_next = True
+            elif state == 1:    # this byte must be 0x1f
+                if ord(i) == 0x1f:
+                    state=2
+                    reply=[0xf0|self.address, 0x31]
+                    if skipped_data:
+                        self.network.diagnostic_output('LumosControllerUnit.raw_query_device_status: Skipped over {0} superfluous byte{1} before finding reply packet: {2}'.format(
+                            len(skipped_data),
+                            's' if len(skipped_data)==1 else '',
+                            ' '.join(['{0:02X}'.format(ord(c)) for c in skipped_data])
+                        ))
+                else:
+                    skipped_data.append(i)
+                    state=0
+
+            elif state == 2:    # we're in the response packet, interpret it!
+                if ord(i) > 0x7f and not first_byte:
+                    raise DeviceProtocolError("Query packet response malformed (high bit in data area: {0})".format(
+                        ' '.join(['{0:02X}'.format(x) for x in reply])))
+                first_byte = False
+
+                if set_msb:
+                    set_msb = False
+                    reply.append(ord(i) | 0x80)
+                elif literal_next:
+                    literal_next = False
+                    reply.append(ord(i))
+                elif i == '\x7e':
+                    set_msb = True
+                elif i == '\x7f':
+                    literal_next = True
+                else:
+                    reply.append(ord(i))
             else:
-                reply.append(ord(i))
+                raise InternalError('Undefined state {0} in packet scanner'.format(state))
 
-        if len(reply) != 35:
+        if len(reply) != 37:
             raise DeviceProtocolError("Query packet response malformed (len={0})".format(len(reply)))
-        if reply[34] != 0x33:
+        if reply[36] != 0x33:
             raise DeviceProtocolError("Query packet response malformed (end={0:02X})".format(reply[34]))
         if reply[2] != 0x30:
             raise DeviceProtocolError("Query packet version unsupported ({0}.{1})".format((reply[2] >> 4) & 0x07, (reply[2] & 0x0f)))
@@ -492,6 +522,8 @@ class LumosControllerUnit (ControllerUnit):
                 status.sensors[sensor_id].configured = True
 
             if reply[5] & bitmask:
+                status.sensors[sensor_id].enabled = False
+            else:
                 status.sensors[sensor_id].enabled = True
 
             if reply[6] & bitmask:
@@ -539,6 +571,10 @@ class LumosControllerUnit (ControllerUnit):
         status.last_error = reply[30]
         status.last_error2 = reply[31]
         status.phase_offset2 = ((reply[32] & 0x03) << 7) | (reply[33] & 0x7f)
+        status.serial_number = ((reply[34] << 8) | reply[35])
+        #print "33={0:02X} 34={1:02X}".format(reply[34], reply[35])
+        if status.serial_number == 0 or status.serial_number == 0xffff:
+            status.serial_number = None
 
         if status.channels <= 24:
             if status.last_error2 != 0 or status.phase_offset2 != 0:
@@ -555,6 +591,12 @@ class LumosControllerConfiguration (object):
     def __init__(self):
         self.configured_sensors = []    # list of 'A'..'D'
         self.dmx_start = None           # None or 1..512
+
+    def __str__(self):
+        return "LumosControllerConfiguration<configured_sensors={0},dmx_start={1}>".format(
+            self.configured_sensors,
+            self.dmx_start
+        )
 
 class LumosControllerSensor (object):
     def __init__(self, id):
@@ -596,41 +638,10 @@ class LumosControllerStatus (object):
         self.ram_memory_free = 0
         self.current_sequence = None
         self.hardware_type = None
+        self.serial_number = None
         self.sensors = {
             'A': LumosControllerSensor('A'),
             'B': LumosControllerSensor('B'),
             'C': LumosControllerSensor('C'),
             'D': LumosControllerSensor('D'),
         }
-
-#
-# $Log: not supported by cvs2svn $
-# Revision 1.5  2008/12/30 22:58:02  steve
-# General cleanup and updating before 0.3 alpha release.
-#
-#
-#
-# LUMOS CHANNEL MAP HANDLER CLASS
-# $Header: /tmp/cvsroot/lumos/lib/Lumos/Device/SSR48ControllerUnit.py,v 1.6 2008-12-31 00:25:19 steve Exp $
-#
-# Lumos Light Orchestration System
-# Copyright (c) 2005, 2006, 2007, 2008 by Steven L. Willoughby, Aloha,
-# Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
-# License version 3.0.
-#
-# This product is provided for educational, experimental or personal
-# interest use, in accordance with the terms and conditions of the
-# aforementioned license agreement, ON AN "AS IS" BASIS AND WITHOUT
-# WARRANTY, EITHER EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION,
-# THE WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A
-# PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY OF THE ORIGINAL
-# WORK IS WITH YOU.  (See the license agreement for full details, 
-# including disclaimer of warranty and limitation of liability.)
-#
-# Under no curcumstances is this product intended to be used where the
-# safety of any person, animal, or property depends upon, or is at
-# risk of any kind from, the correct operation of this software or
-# the hardware devices which it controls.
-#
-# USE THIS PRODUCT AT YOUR OWN RISK.
-# 

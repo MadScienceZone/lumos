@@ -1,0 +1,220 @@
+#!/bin/sh
+#
+# Test new Lumos boards 
+#
+PROG="pk2cmd"
+DATA="trunk/hardware/Test/boardtestdata"
+BIN="trunk/hardware/bin"
+PYTHONPATH="trunk/lib"
+LUMOSOPTS="--port /dev/tty.usbserial --txdelay 2 --txlevel 1 --txmode dtr --verbose -vvvvv --duplex full"
+
+export PYTHONPATH
+
+function yorn(){
+	while true; do
+		read -p "$1 [y/n]? " ans
+		case "$ans" in
+			[Yy]*)
+				return 1;;
+			[Nn]*)
+				return 0;;
+			*)
+				echo "Please answer 'y' or 'n'."
+		esac
+	done
+}
+
+cat <<EOF
+==============================================================================
+Lumos controller board validator 1.0
+------------------------------------------------------------------------------
+Run this script to test a new board after building it.  The test harness we 
+use is:
+  Channel  Color        Channel  Color          Channel  Color
+    00     red   )        08     red   )  5V      16     red   )
+    01     green ) 18V    09     green )  #1      17	 green )  12V
+    02     blue  ) #1     10     blue  )______    18	 blue  )  #1
+    03     white )_____   11     red   )  5V      19	 white )_______
+    04     red   )        12     green )  #2      20	 red   )
+    05     green ) 18V    13     blue  )______    21	 green )  12V
+    06     blue  ) #2     14     red   )  5V      22	 blue  )  #2
+    07     white )        15     green )  #3      23	 white )
+
+Additionally, be ready to test logic output terminals with a logic probe,
+and have a wire to short sensor inputs to ground (if the board is configured
+for sensor inputs).
+------------------------------------------------------------------------------
+EOF
+yorn "Proceed"
+if [ $? = 0 ]; then
+	echo "Terminated by user request."
+	exit 0
+fi
+
+function pause(){
+	while true; do
+		yorn "Ready to proceed"
+		if [ $? = 0 ]; then
+			yorn "Abort test script"
+			if [ $? = 0 ]; then
+				echo "Ok, I'll wait..."
+			else
+				echo "Aborting by user request."
+				exit 1
+			fi
+		else
+			break
+		fi
+	done
+}
+
+function check(){
+	if [ $? != 0 ]; then
+		yorn "Unexpected status returned from last command. Abort"
+		if [ $? = 1 ]; then
+			echo "TEST FAILED.  Bailing out."
+			exit 1
+		fi
+		echo "Ok, proceeding despite error status..."
+	fi
+}
+
+function test_upgrade(){
+	cat <<EOF
+
+==============================================================================
+FIRMWARE UPGRADE TESTS
+------------------------------------------------------------------------------
+(1) Programming test-pattern image to device.  Be sure the programmer is
+    connected to the ICSP header and then confirm you're ready.
+------------------------------------------------------------------------------
+EOF
+	pause
+	echo "Burning test image to device..."
+	$PROG -PPIC18F4685 -F"$DATA/Lumos.X.test-pattern.hex" -M
+	check
+	echo "Verifying test image..."
+	$PROG -PPIC18F4685 -F"$DATA/Lumos.X.test-pattern.hex" -Y
+	check
+	echo "Uploading firmware image..."
+	$PROG -PPIC18F4685 -GF"Lumos.X.capture1.hex"
+	check
+	echo "Verifying captured image..."
+	cmp Lumos.X.capture1.hex "$DATA/Lumos.X.capture1.expected"
+	check
+	cat <<EOF
+------------------------------------------------------------------------------
+(2) Remove the ICSP programmer connector from the board, then
+(3) Place the Lumos board into configuration mode.
+------------------------------------------------------------------------------
+EOF
+	pause
+	echo "Updating firmware image to test pattern #2..."
+	# lumosupgrade [-fhNnRv] -a ADDR -b SPD [-L txlevel] [-m txdelay] [-p port] [-T txmode] image
+	$BIN/lumosupgrade $LUMOSOPTS --address 0 --force "$DATA/Lumos.X.patch1.hex"
+	check
+	cat <<EOF
+------------------------------------------------------------------------------
+(4) Reconnect ICSP programmer connector.
+------------------------------------------------------------------------------
+EOF
+	pause
+	echo "Comparing new image..."
+	$PROG -PPIC18F4685 -GF"Lumos.X.capture2.hex"
+	check
+	cmp Lumos.X.capture2.hex "$DATA/Lumos.X.capture2.expected"
+	check
+	cat <<EOF
+------------------------------------------------------------------------------
+(5) Remove the ICSP programmer connector from the board, then
+(6) Place the Lumos board into configuration mode.
+------------------------------------------------------------------------------
+EOF
+	pause
+	
+	echo "Updating firmware to production image..."
+	$BIN/lumosupgrade $LUMOSOPTS --address 0 --force "$DATA/Lumos.X.production.hex"
+	check
+	cat <<EOF
+------------------------------------------------------------------------------
+(7) Reconnect ICSP programmer connector.
+------------------------------------------------------------------------------
+EOF
+	pause
+	echo "Comparing new image..."
+	$PROG -PPIC18F4685 -GF"Lumos.X.capture3.hex"
+	check
+	cmp Lumos.X.capture3.hex "$DATA/Lumos.X.capture3.expected"
+	check
+	cat <<EOF
+------------------------------------------------------------------------------
+(8) Remove the ICSP programmer connector from the board.
+------------------------------------------------------------------------------
+EOF
+	pause
+}
+
+function test_(){
+	cat <<EOF
+==============================================================================
+SENSOR TESTS           
+------------------------------------------------------------------------------
+(1) Configuring the board for four sensor inputs.  Ensure the programmer is
+    connected to the ICSP header and then confirm you're ready.
+------------------------------------------------------------------------------
+EOF
+	pause
+	echo "Sending configuration..."
+	$BIN/lumosctl
+}
+
+function test_channels(){
+	cat <<EOF
+==============================================================================
+CHANNEL TESTS
+------------------------------------------------------------------------------
+(1) Attach loads to board
+------------------------------------------------------------------------------
+EOF
+	pause
+	echo "Bulk Load test"
+	echo "level=40"
+	$BIN/lumosctl $LUMOSOPTS "0@40,40,40,40,40,40,40,40,40,40,40,40,40,40,40,40,40,40,40,40,40,40,40,40"
+	sleep 1
+	echo "level=128"
+	$BIN/lumosctl $LUMOSOPTS "0@128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128,128"
+	sleep 1
+	echo "level=255"
+	$BIN/lumosctl $LUMOSOPTS "0@255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255"
+	sleep 1
+	echo "level=various"
+	$BIN/lumosctl $LUMOSOPTS "0@10,20,30,40,50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,200,210,220,230,240"
+	sleep 1
+	$BIN/lumosctl $LUMOSOPTS -k
+	echo "Sequential ON/OFF test"
+	FULL_LIST="0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23"
+	for channel in $FULL_LIST; do
+		echo "Setting $channel"
+		$BIN/lumosctl $LUMOSOPTS ${channel}u
+		sleep 1
+		$BIN/lumosctl $LUMOSOPTS ${channel}d
+	done
+}
+		
+
+
+
+#test_upgrade
+false
+while [ $? = 1 ]; do
+	test_channels
+	yorn "Again"
+done
+	
+
+
+cat <<EOF
+==============================================================================
+End of test suite.
+------------------------------------------------------------------------------
+EOF

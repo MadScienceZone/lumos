@@ -431,7 +431,7 @@
 ;	00001010 ($0A)  250,000
 ;
 ;
-; Response packet from QUERY command (35 bytes):
+; Response packet from QUERY command (37 bytes):
 ; note the ROM version byte also serves to indicate the format of the response
 ; bytes which follow.  If the query packet format changes, the ROM version byte
 ; MUST also change.
@@ -457,8 +457,8 @@
 ;    0owE0010 0IIIIIII 0iiiiiii 0PPPPPPP	Sensor trigger info for C
 ;    0owE0011 0IIIIIII 0iiiiiii 0PPPPPPP	Sensor trigger info for D
 ;
-;    0fffffff 0fffffff 000000pp 0ppppppp 00110011
-;    \______/ \______/       \_________/
+;    0fffffff 0fffffff 000000pp 0ppppppp ssssssss ssssssss 00110011
+;    \______/ \______/       \_________/ \______S/N______/
 ;        |        |               `--phase (channels 24-47)
 ;        |        `--fault code (channels 24-47)
 ;        `--fault code (channels 0-23)
@@ -800,31 +800,14 @@ CYCLE_TMR_PERIOD	 EQU	0x5D3D
 ;        |/////////////////|
 ;        |/////////////////|___
 ; $14000 | EEPROM defaults | _MAIN_EEPROM_TBL
-;
-;; $14000 |CMD state machine| _MAIN_LOOKUPS
-;;        |transition tables|
-;;        |.................|___
-;; $14100 |Command dispatch | _MAIN_DISPATCH
-;;        |table (lower 1/2)|   
-;;        |.................|___
-;; $14200 |(upper 1/2)      | _MAIN_DIS2
-;;        |.................|___
-;; $14300 |Glyph bitmaps    | _RBRD_GLYPHS
-;;        |                 |   
-;;        |                 |   
-;;        |                 |   
-;; $146FF |                 |   
-;;        |.................|___
-;;    ??? |String constants | _MAIN_STRINGS
-;;        |_________________|
-;;        |/////////////////|
-;;        |/////////////////|
-;;        |/////////////////|___
+; $14FFF |_________________|___
 ; $15000 |Serial I/O Mod   | _SIO_LOOKUP_TABLES
 ;        |lookup tables    |
 ; $150FF |_________________|___
 ; $15100 |                 |
 ;        |                 |
+; $16FEF |_________________|___
+; $16FF0 |System Mfg Data  | _SYSTEM_MFG_DATA
 ; $16FFF |_________________|___
 ; $17000 |Flash Loader Code| _FLASH_UPDATE_LOADER
 ; $17FFF |_________________|___
@@ -833,6 +816,7 @@ CYCLE_TMR_PERIOD	 EQU	0x5D3D
 ;$1FFFFF |/////////////////|___
 ;
 _MAIN_EEPROM_TBL	EQU	0x14000
+_SYSTEM_MFG_DATA	EQU	0x16FF0
 ;
 ;
 ; ========================================================================
@@ -905,13 +889,17 @@ _MAIN_EEPROM_TBL	EQU	0x14000
 ; $00F |_0x42_________|     $3FF |_______V______|
 ;
 ;
+__SYS__	CODE_PACK	_SYSTEM_MFG_DATA
+SYS_SNH	DE	0xA4	; Device serial number
+SYS_SNL DE	0x1A	
+
 _EEPROM	CODE_PACK	0xF00000
 	DE	0xFF		; 000: 0xFF constant
 	DE	SIO_19200	; 001: baud rate default
-	DE	0x03    	; 002: default device ID
+	DE	0x00    	; 002: default device ID
 	DE	0x00, 0x02	; 003: default phase offset
 	DE	0x00, 0x00      ; 005: default DMX=0 (disabled, ch=1)
-	DE	0x00, 		; 007: default sensors (disabled)
+	DE	0x00  		; 007: default sensors (disabled)
 	DE	0x00, 0x00	; 008: reserved
 	DE	0x00, 0x00, 0x00; 00A: reserved
 	DE	0x00, 0x00      ; 00D: reserved
@@ -941,7 +929,7 @@ DEFAULT_TBL:
 	DB	0x00			; $002: device ID=0
 	DB	0x00, 0x02		; $003: phase offset=2
 	DB	0x00, 0x00            	; $005: DMX slot=0 (disabled, ch=1)
-	DB	0x00, 			; $007: no sensors configured
+	DB	0x00  			; $007: no sensors configured
 	DB 	0x00, 0x00, 0x00	; $008-$00A
 	DB 	0x00, 0x00, 0x00, 0x00	; $00B-$00E
 	DB	0x42			; $00F: constant $42
@@ -1096,6 +1084,9 @@ EEPROM_USER_END		EQU	0x3FF
 ;                    |______|______|______|______|______|______|______|______|
 ; KK                 |                                                       |
 ;                    |      General-purpose local counter variable           |
+;                    |______|______|______|______|______|______|______|______|
+; TR_I               |                                                       |
+;                    |      T/R delay timer delay counter                    |
 ;                    |______|______|______|______|______|______|______|______|
 ;
 ;
@@ -1657,7 +1648,7 @@ START:
 	CLRWDT
 	CLRF	STKPTR, ACCESS		; clear stack error bits, set SP=0
 	CALL	LUMOS_INIT
-	IF NOT HAS_SENSORS
+	IF ! HAS_SENSORS
 	 BCF	TRIS_SENS_A, BIT_SENS_A, ACCESS		; If this device can't possibly
 	 BCF	TRIS_SENS_B, BIT_SENS_B, ACCESS		; support sensor inputs, enable outputs
 	 BCF	TRIS_SENS_C, BIT_SENS_C, ACCESS		; on those pins early to let the LEDs
@@ -1848,17 +1839,17 @@ FACTORY_RESET_JUMPER_CHECK:
 	 BRA	END_FRJC			; OPTION button not jumpered, boot normally
 
 	 CLRWDT					
-	 BSF	PORT_OPTION, BIT_OPTION, ACCESS ; try flipping the output bit
+	 BSF	PLAT_PWR_ON, BIT_PWR_ON, ACCESS ; try flipping the output bit
 	 RCALL	DELAY_1_12_SEC
 	 BTFSS	PORT_OPTION, BIT_OPTION, ACCESS	; OPTION was down, but not because of the 
 	 BRA	END_FRJC			; jumper--boot normally
 
-	 BCF	PORT_OPTION, BIT_OPTION, ACCESS ; try flipping back
+	 BCF	PLAT_PWR_ON, BIT_PWR_ON, ACCESS ; try flipping back
 	 RCALL	DELAY_1_12_SEC
 	 BTFSC	PORT_OPTION, BIT_OPTION, ACCESS	
 	 BRA	END_FRJC			
 
-	 BSF	PORT_OPTION, BIT_OPTION, ACCESS ; try flipping back last time
+	 BSF	PLAT_PWR_ON, BIT_PWR_ON, ACCESS ; try flipping back last time
 	 RCALL	DELAY_1_12_SEC
 	 BTFSS	PORT_OPTION, BIT_OPTION, ACCESS	
 	 BRA	END_FRJC			
@@ -1867,13 +1858,15 @@ FACTORY_RESET_JUMPER_CHECK:
 	; After perhaps a bit too much caution, we're convinced there's a jumper there.
 	; wait for it to go away now, then do the reset.
 	;                                         ______                ______
-	 BCF	PORT_OPTION, BIT_OPTION, ACCESS ; PWRCTL low, watch for OPTION->1
+	 BCF	PLAT_PWR_ON, BIT_PWR_ON, ACCESS ; PWRCTL low, watch for PWR_ON->1
 FRJC_LOOP:
 	 CLRWDT
-	 BTF	PLAT_YELLOW, BIT_YELLOW, ACCESS
-	 BTF 	PLAT_GREEN, BIT_GREEN, ACCESS
-	 BTF	PLAT_RED, BIT_RED, ACCESS	
-	 BTF	PLAT_PWR_ON, BIT_PWR_ON, ACCESS	
+	 BTG	PLAT_YELLOW, BIT_YELLOW, ACCESS
+	 BTG 	PLAT_GREEN, BIT_GREEN, ACCESS
+	 BTG	PLAT_RED, BIT_RED, ACCESS	
+	 IF HAS_ACTIVE
+	  BTG	PLAT_ACTIVE, BIT_ACTIVE, ACCESS	
+	 ENDIF
 	 RCALL	DELAY_1_12_SEC
 	 BTFSS	PORT_OPTION, BIT_OPTION, ACCESS
 	 BRA	FRJC_LOOP
@@ -1954,6 +1947,11 @@ WRITE_EEPROM_LOOP#v(EE_LL_XX):
 EE_LL_XX    ++
 	ENDM
 
+WRITE_EEPROM_DATA_INC MACRO
+	WRITE_EEPROM_DATA
+	INCF	EEADR, F, ACCESS
+	ENDM
+
 WRITE_EEPROM_DATA_W MACRO
 	MOVWF	EEDATA, ACCESS
 	WRITE_EEPROM_DATA
@@ -2003,7 +2001,7 @@ FACTORY_RESET_LOOP:
 	TBLRD	*+			; byte -> TABLAT
 	MOVFF	TABLAT, EEDATA
 	BSF	PLAT_YELLOW, BIT_YELLOW, ACCESS	; Panel: () () Y R
-	WRITE_EEPROM_DATA
+	WRITE_EEPROM_DATA_INC
 	BCF	PLAT_YELLOW, BIT_YELLOW, ACCESS	; Panel: () () () R
 
 	DECFSZ	I, F, ACCESS
@@ -2234,6 +2232,7 @@ I               RES	1
 J               RES	1
 K               RES	1
 KK              RES	1
+TR_I		RES	1
 
 ;==============================================================================
 ; DATA BANK 4
@@ -2414,6 +2413,7 @@ DRAIN_TRANSMITTER:
 	 BTFSS	TXSTA, TRMT, ACCESS			; data being shifted out now?
 	 RETURN
 	 BCF	SSR_STATE, DRAIN_TR, ACCESS		; none of the above--shut down transmitter now
+	 CALL	TR_OFF_DELAY
 	 BCF	PLAT_T_R, BIT_T_R, ACCESS		
 	 RETURN
 	ELSE
@@ -2941,8 +2941,8 @@ S4_DATA:
 	CALL	XLATE_SSR_ID
 	BTFSC	TARGET_SSR, INVALID_SSR, ACCESS
 	GOTO	ERR_COMMAND
-	BTFSC	YY_DATA, 6, ACCESS	; preserve bit 7 (resolution flag)
-	BSF	TARGET_SSR, 6, ACCESS	; (reusing the INVALID_SSR bit)
+	;BTFSC	YY_DATA, 6, ACCESS	; preserve bit 7 (resolution flag)
+	;BSF	TARGET_SSR, 6, ACCESS	; (reusing the INVALID_SSR bit)
 	WAIT_FOR_SENTINEL .57, B'01010101', 0	; -> S6.0 when sentinel found
 	RETURN
 
@@ -3150,8 +3150,8 @@ S6_0_UPDATE_MASTER:
 S6_0_UPDATE_NEXT:
 	CLRF	POSTINC2, ACCESS		; clear SSR flags 	*fsr2++ = 0
 	MOVFF	POSTINC0, INDF1 		; set SSR		*fsr1++ = *fsr0++
-	INCF	FSR1, F, ACCESS
-	IF ROLE_MASTER				; (high-res mode will correct this if presented)
+	INCF	FSR1L, F, ACCESS
+	IF ROLE_MASTER				;
 	 DCFSNZ	KK, F, ACCESS
 	 BRA	S6_0_PASS_DOWN			; ran out of KK, send rest to slave chip
 	ENDIF
@@ -3241,8 +3241,7 @@ S6_1_CONFIGURE:
 	;
 	BEGIN_EEPROM_WRITE EE_DMX_H
 	MOVFF	DMX_SLOTH, EEDATA
-	WRITE_EEPROM_DATA
-	INCF	EEADR, F, ACCESS
+	WRITE_EEPROM_DATA_INC
 	MOVFF	DMX_SLOTL, EEDATA
 	WRITE_EEPROM_DATA
 	END_EEPROM_WRITE
@@ -3265,11 +3264,11 @@ S6_1_CONFIGURE:
 	 ;
 	 ; Save these settings to EEPROM
 	 ;
+	 BEGIN_EEPROM_WRITE EE_SENSOR_CFG
 	 RRNCF	INDF0, W, ACCESS
 	 RRNCF	WREG, W, ACCESS
 	 RRNCF	WREG, W, ACCESS
 	 ANDLW	0x0f
-	 BEGIN_EEPROM_WRITE EE_SENSOR_CFG
 	 MOVFF	WREG, EEDATA
 	 WRITE_EEPROM_DATA
 	 END_EEPROM_WRITE
@@ -3735,6 +3734,7 @@ S6_9_QUERY:
 	 CALL	SIO_WRITE_W
 	ELSE
 	 IF ROLE_STANDALONE
+	  CALL	TR_ON_DELAY
 	  BSF	PORT_T_R, BIT_T_R, ACCESS		; Fire up our transmitter now
 	  BCF	SSR_STATE2, INHIBIT_OUTPUT, ACCESS	; Allow sending output
 	 ELSE
@@ -3746,12 +3746,39 @@ S6_9_QUERY:
 	IF ROLE_MASTER
 	 BCF	WREG, 7, ACCESS
 	ENDIF
-	;CALL	SIO_WRITE_W			; 00 start byte 			<1111aaaa>
-	SEND_8_BIT_W
+	CALL	SIO_WRITE_W			; 00 start byte 			<1111aaaa>
 	MOVLW	0x1F
 	SEND_8_BIT_W				; 01 "reply to query" packet type 	<00011111>
 	MOVLW	0x30
 	SEND_8_BIT_W				; 02 ROM/format version 3.0		<00110000>
+	CLRF	WREG, ACCESS
+	IF HAS_SENSORS
+	 BTFSC	TRIS_SENS_A, BIT_SENS_A, ACCESS	; If sensor A is enabled on this board,
+	 BSF	WREG, 6, ACCESS			; set the Sc bit for that sensor.
+	 BTFSC	TRIS_SENS_B, BIT_SENS_B, ACCESS	; and for sensor B
+	 BSF	WREG, 5, ACCESS			; 
+	 BTFSC	TRIS_SENS_C, BIT_SENS_C, ACCESS	; and for sensor C
+	 BSF	WREG, 4, ACCESS			; 
+	 BTFSC	TRIS_SENS_D, BIT_SENS_D, ACCESS	; and for sensor D
+	 BSF	WREG, 3, ACCESS			; 
+	ENDIF               			; W=0ABCD---  1=sensor configured; 0=LED
+	BTFSC	DMX_SLOTH, DMX_EN, ACCESS
+	BSF	WREG, 2, ACCESS			;   0----d--  DMX enable bit
+	BTFSC	DMX_SLOTH, DMX_BIT8, ACCESS
+	BSF	WREG, 1, ACCESS			;   0-----c-  DMX channel bit 8
+	BTFSC	DMX_SLOTL, 7, ACCESS		; 
+	BSF	WREG, 0, ACCESS			;   0------c  DMX channel bit 7
+	SEND_8_BIT_W				; 03 sensor, DMX status            	<0ABCDdcc> 
+	MOVF	DMX_SLOTL, W, ACCESS		;   0ccccccc  DMX channel bits 6:0
+	ANDLW	0x7F
+	SEND_8_BIT_W				; 04 DMX status
+	CLRF	WREG, ACCESS
+	BTFSC	SSR_STATE, PRIV_MODE, ACCESS	; W=00000qs0
+	BSF	WREG, 2, ACCESS
+	BTFSC	SSR_STATE, SLEEP_MODE, ACCESS
+	BSF	WREG, 1, ACCESS
+	SEND_8_BIT_W
+	;CALL	SIO_WRITE_W			; 05 masks, priv, sleep, mem full	<0ABCDqsf> XXX NOT ALL IMPLEMENTED
 	CLRF	WREG, ACCESS
 	IF HAS_SENSORS
 	 MOVLW	0x78				; Initially set all sensors to 1
@@ -3766,26 +3793,8 @@ S6_9_QUERY:
 	 BCF	WREG, 4, ACCESS			
 	 BTFSC	TRIS_SENS_D, BIT_SENS_D, ACCESS	
 	 BTFSC	PORT_SENS_D, BIT_SENS_D, ACCESS 
-	 BCF	WREG, 3, ACCESS			;    0ABCD---  1=sensor active (low) 0=inactive (high)
+	 BCF	WREG, 3, ACCESS			; W=0ABCD---  1=sensor active (low) 0=inactive (high)
 	ENDIF
-	BTFSC	DMX_SLOTH, DMX_EN, ACCESS
-	BSF	WREG, 2, ACCESS			;    0----d--  DMX enable bit
-	BTFSC	DMX_SLOTH, DMX_BIT8, ACCESS
-	BSF	WREG, 1, ACCESS			;    0-----c-  DMX channel bit 8
-	BTFSC	DMX_SLOTL, 7, ACCESS		; 
-	BSF	WREG, 0, ACCESS			;    0------c  DMX channel bit 7
-	SEND_8_BIT_W				; 03 sensor, DMX status            	<0ABCDdcc> 
-	MOVF	DMX_SLOTL, W, ACCESS		;    0ccccccc  DMX channel bits 6:0
-	ANDLW	0x7F
-	SEND_8_BIT_W				; 04 DMX status
-
-	BTFSC	SSR_STATE, PRIV_MODE, ACCESS
-	BSF	WREG, 2, ACCESS
-	BTFSC	SSR_STATE, SLEEP_MODE, ACCESS
-	BSF	WREG, 1, ACCESS
-	SEND_8_BIT_W
-	;CALL	SIO_WRITE_W			; 05 masks, priv, sleep, mem full	<0ABCDqsf> XXX NOT ALL IMPLEMENTED
-	CLRF	WREG, ACCESS	
 	BTFSC	SSR_STATE2, PRIV_FORBID, ACCESS
 	BSF	WREG, 2, ACCESS			
 	BTFSC	PHASE_OFFSETH, 0, ACCESS
@@ -3870,8 +3879,20 @@ S6_9_QUERY:
 	 CALL	SIO_WRITE_W			; 32 (nil) slave phase offset <8:7>
 	 CLRF	WREG, ACCESS	
 	 CALL	SIO_WRITE_W			; 33 (nil) slave phase offset <6:0>
+	 MOVLW	UPPER(SYS_SNH)
+	 MOVWF	TBLPTRU, ACCESS
+	 MOVLW	HIGH(SYS_SNH)
+	 MOVWF	TBLPTRH, ACCESS
+	 MOVLW	LOW(SYS_SNH)
+	 MOVWF	TBLPTRL, ACCESS
+	 TBLRD*+
+	 MOVF	TABLAT, W, ACCESS
+	 SEND_8_BIT_W				; 34 Serial Number (MSB)
+	 TBLRD*+
+	 MOVF	TABLAT, W, ACCESS
+	 SEND_8_BIT_W				; 35 Serial Number (LSB)
 	 MOVLW	0x33
-	 CALL	SIO_WRITE_W			; 34 sentinel at end of packet
+	 CALL	SIO_WRITE_W			; 36 sentinel at end of packet
 	 BSF	SSR_STATE, DRAIN_TR, ACCESS	; schedule transmitter shut-down
 	ENDIF
 	CLRF	YY_STATE, ACCESS
@@ -4486,6 +4507,7 @@ S10_DATA:
 	 INCF	YY_STATE, F, ACCESS	; -> S11
 	 MOVFF	YY_DATA, YY_YY		; Byte counter (N-1)
 	 INCF	YY_YY, F, ACCESS	; Adjust to true byte count
+	 CALL	TR_ON_DELAY
 	 BSF	PLAT_T_R, BIT_T_R, ACCESS ; Assert bus master role by firing up the transmitter
 	 RETURN
 	ELSE
@@ -4509,7 +4531,7 @@ S11_DATA:
 	 CPFSEQ	YY_DATA, ACCESS			;			///////	
 	 BRA	S11_BAD_SENTINEL		;			///////	
 	 ;								///////
-	 ; If we are processing IC_TXSTA, add our own four status bytes	///////
+	 ; If we are processing IC_TXSTA, add our own six status bytes	///////
 	 ; to the end of the output stream:				///////
 	 ;								///////
 	 ;								///////
@@ -4523,6 +4545,12 @@ S11_DATA:
 	 ;  |      |                                                |
 	 ;  |   0  |           phase offset <6:0>                   | PHASE_OFFSETL
 	 ;  |______|______|______|______|______|______|______|______|
+	 ;  |      |                                                |
+	 ;  |   0  |           serial number <13:7>                 | SYS_SNH
+	 ;  |______|______|______|______|______|______|______|______|
+	 ;  |      |                                                |
+	 ;  |   0  |           serial number <6:0>                  | SYS_SNL      
+	 ;  |______|______|______|______|______|______|______|______|
 	 ;  |      |                                                |	///////
 	 ;  |   0  |                   $33                          | 	///////
 	 ;  |______|______|______|______|______|______|______|______|	///////
@@ -4531,20 +4559,32 @@ S11_DATA:
 	 BTFSS	YY_COMMAND, 0, ACCESS		; doing IC_TXSTA?	///////
 	 BRA	S11_END_TRANSMIT		; no, skip to end	///////
 	 MOVF	LAST_ERROR, W, ACCESS		; yes, send our private	///////
-	 SEND_8_BIT_W
+	 SEND_8_BIT_W				;			///////
 	 ;CALL	SIO_WRITE_W			; at the end of the     ///////
 	 CLRF	LAST_ERROR, ACCESS		; stream 		///////
-	 CLRF	WREG, ACCESS					;			///////
+	 CLRF	WREG, ACCESS			;			///////
 	 BTFSC	PHASE_OFFSETH, 0, ACCESS	;			///////
 	 BSF	WREG, 1, ACCESS			;			///////
 	 BTFSC	PHASE_OFFSETL, 7, ACCESS	;			///////
 	 BSF	WREG, 0, ACCESS			;			///////
-	 SEND_8_BIT_W
+	 SEND_8_BIT_W				;			///////
 	 ;CALL	SIO_WRITE_W			;			///////
 	 MOVF	PHASE_OFFSETL, W, ACCESS	;			///////
 	 BCF	WREG, 7, ACCESS			;			///////
-	 SEND_8_BIT_W
+	 SEND_8_BIT_W				;			///////
 	 ;CALL	SIO_WRITE_W			;			///////
+	 MOVLW	UPPER(SYS_SNH)			;			///////
+	 MOVWF	TBLPTRU, ACCESS			;			///////
+	 MOVLW	HIGH(SYS_SNH)			;			///////
+	 MOVWF	TBLPTRH, ACCESS			;			///////
+	 MOVLW	LOW(SYS_SNH)			;			///////
+	 MOVWF	TBLPTRL, ACCESS			;			///////
+	 TBLRD*+				;			///////
+	 MOVF	TABLAT, W, ACCESS		;			///////
+	 SEND_8_BIT_W				;			///////
+	 TBLRD*+				;			///////
+	 MOVF	TABLAT, W, ACCESS		;			///////
+	 SEND_8_BIT_W				;			///////
 	 MOVLW	0x33				;			///////
 	 CALL	SIO_WRITE_W			;			///////
 S11_END_TRANSMIT:				;			///////
@@ -5118,7 +5158,17 @@ HALT_SLEEP:
 	CALL	DELAY_1_6_SEC			; 1/6 sec
 	BCF	PLAT_RED, BIT_RED, ACCESS
 	BRA	HALT_SLEEP
-	
+
+
+TR_ON_DELAY:
+	SETF	TR_I, ACCESS
+TR_ON_L CLRWDT
+	DECFSZ	TR_I, F, ACCESS
+	BRA	TR_ON_L
+	RETURN
+
+TR_OFF_DELAY:
+	BRA	TR_ON_DELAY
 	END
 
 

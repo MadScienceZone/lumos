@@ -3199,19 +3199,24 @@ necessary.  The response packet is shown in Figure~\ref{bb:query-reply}.
 	&\bitbox{1}{\Var{Q}}
 	&\bitbox{1}{\z0}
 	&\bitbox{5}{\Var*{model}}\\
-  \bitbox{1}{\z0} & \bitbox{7}{\Var*{exec}} \\
+%  \bitbox{1}{\z0} & \bitbox{7}{\Var*{exec}} \\
+  \bitbox{8}{\textit{reserved}}\\
   \begin{rightwordgroup}{each sensor A--D}
-  \bitbox{1}{\z0} 
-	& \bitbox{1}{\Var{o}} 
-	& \bitbox{1}{\Var{w}} 
-	& \bitbox{1}{\Var{e}} 
-	& \bitbox{4}{\Var*{sens}}\\
-  \bitbox{1}{\z0} 
-	& \bitbox{7}{\Var*{pre}}\\
-  \bitbox{1}{\z0} 
-	& \bitbox{7}{\Var*{run}}\\
-  \bitbox{1}{\z0} 
-	& \bitbox{7}{\Var*{post}}\\
+%  \bitbox{1}{\z0} 
+%	& \bitbox{1}{\Var{o}} 
+%	& \bitbox{1}{\Var{w}} 
+%	& \bitbox{1}{\Var{e}} 
+%	& \bitbox{4}{\Var*{sens}}\\
+%  \bitbox{1}{\z0} 
+%	& \bitbox{7}{\Var*{pre}}\\
+%  \bitbox{1}{\z0} 
+%	& \bitbox{7}{\Var*{run}}\\
+%  \bitbox{1}{\z0} 
+%	& \bitbox{7}{\Var*{post}}\\
+   \bitbox{8}{\textit{reserved}}\\
+   \bitbox{8}{\textit{reserved}}\\
+   \bitbox{8}{\textit{reserved}}\\
+   \bitbox{8}{\textit{reserved}}\\
   \wordbox[]{1}{$\vdots$ \\[1ex]} 
   \end{rightwordgroup}\\
   \bitbox{1}{\z0} 
@@ -3223,8 +3228,8 @@ necessary.  The response packet is shown in Figure~\ref{bb:query-reply}.
 	& \bitbox{2}{\Var*{P$'_1$}}\\
   \bitbox{1}{\z0} 
 	& \bitbox{7}{\Var*{P$'_0$}}\\
-  \bitbox{1}{\z0} & \bitbox{7}{\Var*{serial$_1$}}\\
-  \bitbox{1}{\z0} & \bitbox{7}{\Var*{serial$_0$}}\\
+  \bitbox{8}{\Var*{serial$_1$}}\\
+  \bitbox{8}{\Var*{serial$_0$}}\\
   \bitbox{1}{\z0} 
 	& \bitbox[b]{1}{\z0} 
 	& \bitbox[b]{1}{\z1} 
@@ -3242,8 +3247,13 @@ The information contained in this packet describes several facts about the Lumos
 	\item[Device identity:]
 		The reporting device's current address \Var*{addr} on the network;
 		the \acronym{ROM} version (major revision \Var*{R$_1$}, minor \Var*{R$_0$});
-		the device's \Var*{serial} number, or 0 if no number was assigned (i.e., a \acronym{ROM}
-		image downloaded and loaded by a hobbyist working on their own); The device model
+		the device's \Var*{serial} number.
+		Serial numbers consisting of all 0 or all 1 bits (i.e., \z{0x0000} or \z{0xFFFF})
+		are undefined (meaning that no serial number was assigned to this unit, probably 
+		because it was built by a hobbyist for their own use).  Serial numbers $\ge42000$
+		are reserved for boards created by the author.  Numbers below 42000 are available
+		for others to assign.
+		The device model
 		code is in the \Var*{model} field.  The following values are currently defined
 		for \Var*{model}: 0=48-channel controller, 1=24-channel DC controller.
 	\item[General Status:]
@@ -3253,6 +3263,7 @@ The information contained in this packet describes several facts about the Lumos
 		locked out.  If a sequence is currently running, the \Var{Q} flag will be set and the
 		sequence number is in field \Var*{exec}.  The fault code from the last failed command
 		is contained in field \Var*{fault}, which is a value in the range 0--16,383:
+		(Executing sequences are a future feature not available at this time.)
 
 		\begin{center}\begin{bytefield}{14}
 			\bitheader{0,6,7,13}\\
@@ -3278,14 +3289,16 @@ The information contained in this packet describes several facts about the Lumos
 				& \bitbox{3}{}
 		\end{bytefield}\end{center}
 
-		Each sensor's trigger information is given by a block of four bytes.  The first
-		contains the field \Var*{sens} which identifies the sensor (0=A, 1=B, 2=C, 3=D).
-		Flag \Var{o} is set if the trigger is set to fire once only each time the sensor
-		activates, \Var{w} if it's set to run while the sensor is active, and \Var{e}
-		indicates whether the sensor is active high (\Var{e}=1) or active low (\Var{e}=0).
-		The following three bytes, \Var*{pre}, \Var*{run}, and \Var*{post}, specify the
-		sequence number to be executed initially, repeatedly while active, and at the end,
-		respectively.
+%		Each sensor's trigger information is given by a block of four bytes.  The first
+%		contains the field \Var*{sens} which identifies the sensor (0=A, 1=B, 2=C, 3=D).
+%		Flag \Var{o} is set if the trigger is set to fire once only each time the sensor
+%		activates, \Var{w} if it's set to run while the sensor is active, and \Var{e}
+%		indicates whether the sensor is active high (\Var{e}=1) or active low (\Var{e}=0).
+%		The following three bytes, \Var*{pre}, \Var*{run}, and \Var*{post}, specify the
+%		sequence number to be executed initially, repeatedly while active, and at the end,
+%		respectively.
+		At this time, the only sensor information available is \Var*{S$_c$} and \Var*{S$_a$}.
+		The others are anticipated for a future release of the \acronym{ROM}.
 	\item[\acronym{DMX512} configuration:]
 		The bit \Var{d} indicates that the board is in normal Lumos mode (\Var{d}=0) or
 		\acronym{DMX512} mode (\Var{d}=1).  If in \acronym{DMX512} mode, its starting

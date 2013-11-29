@@ -1,0 +1,5 @@
+[lumos_device_settings]
+phase = 2
+baud = 19200
+sensors = abcd
+

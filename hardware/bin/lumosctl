@@ -1,4 +1,4 @@
-#!/usr/local/bin/python
+#!/usr/bin/env python
 # vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # Directly control a Lumos ssr controller via the command line.
@@ -86,7 +86,6 @@ def parse_arguments():
             if any([c not in 'ABCD*' for c in sensor_opt]):
                 parser.error('Sensor names are A, B, C, or D; or * for "all sensors".')
 
-    trace(0,'c')
     sensor_triggers = []
     if options.sensor is not None:
       for trigger in options.sensor:
@@ -143,7 +142,7 @@ def setup_lumos(options):
         power_source = ps,
         network = io,
         address = options.address,
-        resolution = 256,
+        #resolution = 256,
         num_channels = 48,
     )
 
@@ -179,18 +178,23 @@ def trace(level, msg, stream=sys.stderr, eol=True):
 
 
 def report_on(device):
+    if not device:
+        print "No device information to report."
+        return
+
     print "Device Type:              {0} ({1} channels)".format(device.hardware_type, device.channels)
+    print "Serial Number:            {0}".format(device.serial_number or 'N/A')
     print "Config (privileged) mode: {0}".format('ON' if device.in_config_mode else 'OFF')
     print "Sleep mode:               {0}".format('ON' if device.in_sleep_mode else 'OFF')
     print "Currently Executing:      {0}".format(device.current_sequence or 'Nothing')
     #print "Dimmer Resolution:        {0:4d} steps".format(device.config.resolution)
-    print "EEPROM memory free:       {0:4d} bytes".format(device.eeprom_memory_free)
-    print "RAM memory free:          {0:4d} bytes".format(device.ram_memory_free)
+    print "EEPROM memory free:       {0:04d} bytes".format(device.eeprom_memory_free)
+    print "RAM memory free:          {0:04d} bytes".format(device.ram_memory_free)
     print "Last memory write:        {0}".format('*ERROR* MEMORY FULL' if device.err_memory_full else 'Successful')
-    print "Phase offset:             {0:4d}".format(device.phase_offset)
-    print "Last fault condition:     {0:2X}".format(device.last_error)
+    print "Phase offset:             {0:04d}".format(device.phase_offset)
+    print "Last fault condition:     0x{0:02X}".format(device.last_error)
     if device.last_error2 is not None:
-        print "Last fault (2nd CPU):     {0:2X}".format(device.last_error2)
+        print "Last fault (2nd CPU):     0x{0:02X}".format(device.last_error2)
 
     if not device.config.dmx_start:
         print "DMX Mode:                 OFF"
@@ -215,9 +219,11 @@ def report_on(device):
             print "   {0}     {1:3s}     {2:4s}  {3:3s}    {4:6s} {5:3d} {6:3d} {7:3d}".format(
                 sensor,
                 'Yes' if device.sensors[sensor].enabled else 'No',
-                'Low' if device.sensors[sensor].active_low else 'High',
+                '----',
+#                'Low' if device.sensors[sensor].active_low else 'High',
                 'Yes' if device.sensors[sensor].on else 'No',
-                device.sensors[sensor].trigger_mode,
+#                device.sensors[sensor].trigger_mode,
+                '------',
                 device.sensors[sensor].pre_trigger,
                 device.sensors[sensor].trigger,
                 device.sensors[sensor].post_trigger,
@@ -294,25 +300,25 @@ def dump_configuration(target, filename, stat):
     config = getstatus(target)
     writer.add_section('lumos_device_settings')
     for field, opt in (
-        (config.dmx_start, 'dmxchannel'),
+        (config.config.dmx_start, 'dmxchannel'),
 #        (config.resolution, 'resolution'),
         (config.phase_offset, 'phase'),
         (options.speed, 'baud'),
         (''.join(config.config.configured_sensors), 'sensors'),
     ):
         if field is not None:
-            writer.add_option('lumos_device_settings', opt, field)
+            writer.set('lumos_device_settings', opt, str(field))
     
     for s in config.config.configured_sensors:
         k = 'lumos_device_sensor_' + s
         d = config.sensors[s]
         writer.add_section(k)
-        writer.add_option(k, 'active_low', 'yes' if d.active_low else 'no')
-        writer.add_option(k, 'enabled',    'yes' if d.enabled    else 'no')
-        writer.add_option(k, 'setup',      d.pre_trigger)
-        writer.add_option(k, 'sequence',   d.trigger)
-        writer.add_option(k, 'terminate',  d.post_trigger)
-        writer.add_option(k, 'mode',       d.trigger_mode)
+        writer.set(k, 'active_low', 'yes' if d.active_low else 'no')
+        writer.set(k, 'enabled',    'yes' if d.enabled    else 'no')
+        writer.set(k, 'setup',      str(d.pre_trigger))
+        writer.set(k, 'sequence',   str(d.trigger))
+        writer.set(k, 'terminate',  str(d.post_trigger))
+        writer.set(k, 'mode',       str(d.trigger_mode))
 
     with open(filename, 'w') as outfile:
         writer.write(outfile)
@@ -336,13 +342,13 @@ def load_configuration(target, filename):
     parser.read(filename)
 
     if parser.has_option('lumos_device_settings', 'dmxchannel'):
-        config.dmx_start = getint(parser, 'dmxchannel', 1, 512)
+        config.config.dmx_start = getint(parser, 'dmxchannel', 1, 512)
     else:
-        config.dmx_start = None
+        config.config.dmx_start = None
 
-    config.resolution = getint(parser, 'resolution')
-    if config.resolution not in (128, 256):
-        raise ValueError('Lumos configuration value "resolution" must be 128 or 256.')
+    #config.resolution = getint(parser, 'resolution')
+    #if config.resolution not in (128, 256):
+        #raise ValueError('Lumos configuration value "resolution" must be 128 or 256.')
 
     config.phase_offset = getint(parser, 'phase', 0, 511)
     baud_rate = getint(parser, 'baud', 300)
@@ -374,6 +380,7 @@ def load_configuration(target, filename):
                 raise ValueError('Lumos configuration value "["+k+"] mode must be "once", "while", or "repeat".')
 
     target.raw_configure_device(config.config)
+    time.sleep(2)
     verifystatus(target, {'config': config.config})
 
     if config.phase_offset != status_cache.phase_offset:
@@ -396,6 +403,8 @@ def main():
 
     if options.probe:
         devices = probe(target)
+    elif options.read_only:
+        devices = [(options.address, None)]
     else:
         devices = [(options.address, getstatus(target))]
 
@@ -404,13 +413,14 @@ def main():
         sys.exit(1)
 
     for address, devstat in devices:
-        print "Address {0:02d}: {1}".format(address, devstat.hardware_type)
+        print "Address {0:02d}: {1}".format(address, devstat.hardware_type if devstat else 'N/A')
         if options.report:
             report_on(devstat)
     #
     # Prime the device status cache
     #
-    verifystatus(target, {})
+    if not options.read_only:
+        verifystatus(target, {})
     #
     # Apply device changes
     #
@@ -445,14 +455,14 @@ def main():
     #
     if options.load_configuration_file:
         assert_priv('--load-configuration-file')
-        new_config = load_configuration(options.load_configuration_file)
+        new_config = load_configuration(target, options.load_configuration_file)
         trace(1, "Configuring the device")
         trace(1, "Verifying configuration change")
 
     if options.dump_configuration_file:
         trace(1, "Loading device configuration")
         trace(1, "Writing configuration file to {0}".format(options.dump_configuration_file))
-        dump_configuration(options.dump_configuration_file, status_cache)
+        dump_configuration(target, options.dump_configuration_file, status_cache)
 
     #
     # All operations requiring privileges are done now,
@@ -589,7 +599,7 @@ def main():
                     parser.error("{0}: channel number {1} does not exist for this controller model (valid range is [0,{2}])".format(
                         action, start_chan + idx, status_cache.channels - 1))
                 target.set_channel(start_chan + idx, level)
-                target.flush()
+            target.flush()
 
         else:
             m = re.match(r'^\d+$', action)
