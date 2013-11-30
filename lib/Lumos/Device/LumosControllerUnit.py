@@ -530,7 +530,7 @@ class LumosControllerUnit (ControllerUnit):
                 status.sensors[sensor_id].on = True
 
         if reply[3] & 0x04:
-            status.config.dmx_start = ((reply[3] & 0x03) << 7) | (reply[4] & 0x7f)
+            status.config.dmx_start = (((reply[3] & 0x03) << 7) | (reply[4] & 0x7f)) + 1
         else:
             status.config.dmx_start = None
 

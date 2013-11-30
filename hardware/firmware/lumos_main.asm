@@ -890,8 +890,8 @@ _SYSTEM_MFG_DATA	EQU	0x16FF0
 ;
 ;
 __SYS__	CODE_PACK	_SYSTEM_MFG_DATA
-SYS_SNH	DE	0xA4	; Device serial number
-SYS_SNL DE	0x1A	
+SYS_SNH	DE	0xff ;0xA4	; Device serial number
+SYS_SNL DE	0xff ;0x10	
 
 _EEPROM	CODE_PACK	0xF00000
 	DE	0xFF		; 000: 0xFF constant
@@ -944,7 +944,7 @@ EEPROM_USER_END		EQU	0x3FF
 ; TMR0    120 Hz interrupt source (for boards without zero-crossing detector)
 ; TMR1
 ; TMR2    Dimmer slice timer (1/260 of a 120 Hz half-cycle)
-; TMR3
+; TMR3	  Break detector for DMX reception
 ; UART	  SIO module
 ;=============================================================================
 ;
@@ -1201,6 +1201,9 @@ NOT_MY_SSR	EQU	7
 INVALID_SSR	EQU	6		; MUST be bit 6
 TARGET_SSR_MSK	EQU	0x3F
 
+
+PORT_RX		EQU	PORTC
+BIT_RX		EQU	7
 
 		IF LUMOS_CHIP_TYPE==LUMOS_CHIP_MASTER || LUMOS_CHIP_TYPE==LUMOS_CHIP_STANDALONE
 HAS_ACTIVE	 EQU	1
@@ -2274,8 +2277,83 @@ MAIN:
 	BTFSC	SSR_STATE, SLICE_UPD, ACCESS
 	CALL	UPDATE_SSR_OUTPUTS
 
+	; DMX mode: poll for framing error to start DMX frame reception
+	BTFSS	DMX_SLOTH, DMX_EN, ACCESS
+	BRA	NOT_DMX
+	BANKSEL	SIO_DATA_START
+	BTFSS	SIO_STATUS, SIO_FERR, BANKED	; Did SIO code find a framing error first?
+	BRA	BRK_DET2			; No, check ourselves then
+ SET_SSR_BLINK_FADE SSR_ACTIVE
+	CALL	SIO_GETCHAR			; Yes, then read the byte we received
+	TSTFSZ	SIO_INPUT, BANKED		; ...  is the received byte all zeroes?
+	BRA	NOT_DMX				; No, must not really be a break then
+	BANKSEL	SIO_DATA_START
+	BCF	SIO_STATUS, SIO_FERR, BANKED	; Yes: clear the status and proceed
+	BRA	BRK_DET
+BRK_DET2:
+	BTFSS	RCSTA, FERR, ACCESS
+	BRA	NOT_DMX
+	; found framing error -- is it a break?
+ SET_SSR_BLINK_FADE SSR_ACTIVE
+	MOVF	RCREG, W, ACCESS	; read byte, clear FERR, see if data all zeroes
+	BNZ	NOT_DMX			; no, must be line noise, carry on...
+BRK_DET:
+	;
+	; BREAK DETECTED
+	;
+	; Now we start counting while we watch the RxD line for the 0->1 transition
+	; If it took <56uS, we'll interpret it as noise.  Otherwise, it's a break and
+	; the start of our DMX frame.  As a safety measure, if the break lasts longer
+	; than ~8,000uS, we abandon the frame.
+	; 
+ SET_SSR_BLINK_FADE SSR_YELLOW
+	BCF	PIE1, RCIE, ACCESS	; Disable RxD interrupts for now
+	MOVLW	0xE0
+	MOVWF	TMR3H, ACCESS
+	MOVLW	0xC7
+	MOVWF	TMR3L, ACCESS		; $E0C7 is 7,992 away from overflowing and 56 away
+					; from overflowing the LSB
+	BCF	PIR2, TMR3IF, ACCESS	; Clear overflow status bit
+	BCF	PIE2, TMR3IE, ACCESS	; Don't use as interrupt
+	BSF	T3CON, TMR3ON, ACCESS	; Start Timer 3 Running
+	;
+	; Watch the RxD line for a transition away from the break
+	;
+WATCH_BREAK:
+	CLRWDT
+	BTFSC	PORT_RX, BIT_RX, ACCESS	; Is the line 0?
+	BRA	BREAK_CONFIRMED
+	BTFSS	PIR2, TMR3IF, ACCESS	; Did we exceed our limit?
+	BRA	WATCH_BREAK
+	;
+	; We've been holding too long, give up on the break signal.
+	; 
+	BCF	T3CON, TMR3ON, ACCESS	; Shut down Timer 3
+	BSF	PIE1, RCIE, ACCESS	; Enable RxD interrupts again
+	BRA	BAD_BREAK
+
+BREAK_CONFIRMED:
+	;
+	; Break over, reset UART and interpret frame
+	;
+ SET_SSR_BLINK_FADE SSR_RED
+	BCF	T3CON, TMR3ON, ACCESS	; Shut down Timer 3
+	BSF	PIE1, RCIE, ACCESS	; Enable RxD interrupts again
+	BCF	RCSTA, CREN, ACCESS
+	BSF	RCSTA, CREN, ACCESS
+	MOVLW	0xE0
+	CPFSEQ	TMR3H, ACCESS		; If MSB of Timer3 advanced, it was >56uS
+	BRA	START_DMX_FRAME		; and therefore the start of the frame
+	;				; If not, it's noise and we interpret as "NOT_DMX"
+	;	 | |
+	;       _| |_
+	;       \   /
+	;        \ /
+	;         V
+NOT_DMX:
 	BANKSEL	SIO_DATA_START
 	BTFSC	SIO_STATUS, SIO_FERR, BANKED
+BAD_BREAK:
 	RCALL	ERR_SERIAL_FRAMING
 
 	BANKSEL	SIO_DATA_START
@@ -2557,8 +2635,8 @@ TEST_MODE_1:
 ERR_SERIAL_FRAMING:
 	BANKSEL	SIO_DATA_START
 	BCF	SIO_STATUS, SIO_FERR, BANKED
-	BTFSC	DMX_SLOTH, DMX_EN, ACCESS
-	BRA	START_DMX_FRAME
+;	BTFSC	DMX_SLOTH, DMX_EN, ACCESS
+;	BRA	START_DMX_FRAME
 	SET_SSR_RAPID_FLASH SSR_RED
 	SET_SSR_STEADY SSR_YELLOW
 	RETURN
@@ -2568,6 +2646,7 @@ START_DMX_FRAME:
 	; not an error, but the start of our data frame!
 	;
 	BSF	DMX_SLOTH, DMX_FRAME, ACCESS
+	SET_SSR_RAPID_FLASH SSR_YELLOW
 	RETURN
 	
 ERR_SERIAL_OVERRUN:
@@ -5052,6 +5131,7 @@ DMX_RECEIVED_BYTE:
 	RETURN
 
 DMX_WEIRD_FRAME:
+	SET_SSR_BLINK_FADE SSR_RED
 	CLRF	YY_STATE, ACCESS		; stay at state 0, wait for next frame.
 	RETURN
 
@@ -5063,6 +5143,7 @@ DMX_NOT_FIRST:
 	;
 	; State 17: waiting for our slot to come up
 	;
+	SET_SSR_BLINK_FADE SSR_YELLOW
 	TSTFSZ	YY_YY, ACCESS			; count off another slot...
 	BRA	DMX_ST_LSB
 	BTFSS	YY_COMMAND, 0, ACCESS
@@ -5080,6 +5161,7 @@ DMX_SLOT_REACHED:
 
 DMX_18:
 	CLRWDT
+	SET_SSR_BLINK_FADE SSR_ACTIVE
 	MOVLW	0x18
 	CPFSEQ	YY_STATE, ACCESS
 	BRA	DMX_19

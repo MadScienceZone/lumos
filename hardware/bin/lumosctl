@@ -196,10 +196,10 @@ def report_on(device):
     if device.last_error2 is not None:
         print "Last fault (2nd CPU):     0x{0:02X}".format(device.last_error2)
 
-    if not device.config.dmx_start:
+    if device.config.dmx_start is None:
         print "DMX Mode:                 OFF"
     else:
-        print "DMX Mode:                 Channel #0-{0} is DMX #{1}-{2}, Control DMX #{3}".format(
+        print "DMX Mode:                 Channel #0-{0} is DMX #{1}-{2}".format(
                 device.channels - 1,
                 device.config.dmx_start,
                 device.config.dmx_start + device.channels - 1,
@@ -278,6 +278,12 @@ def verifystatus(target, fields=None, baseline=None):
 
 def assert_priv(operation):
     global status_cache
+    global options
+
+    if options.read_only:
+        print "**WARNING: In Read-only mode, can't verify board is in configuration mode."
+        return
+
     if not status_cache.in_config_mode:
         print "**WARNING: The Lumos board is not in the privileged mode required by {0}.".format(operation)
 
@@ -285,11 +291,27 @@ def change_speed(target, io, new_speed):
     global options
 
     trace(1, "Changing baud rate to {0}".format(new_speed))
-    target.raw_control('__baud__', new_speed)
+    supported_speeds = {
+           300:  0,
+           600:  1,
+          1200:  2,
+          2400:  3,
+          4800:  4,
+          9600:  5,
+         19200:  6,
+         38400:  7,
+         57600:  8,
+        115200:  9,
+        250000: 10,
+    }
+    if new_speed not in supported_speeds:
+        raise ValueError("New baud rate must be one of {0}".format(', '.join(supported_speeds.keys())))
+    target.raw_control('__baud__', supported_speeds[new_speed])
     time.sleep(1)
     io.set_baud_rate(new_speed)
     time.sleep(1)
-    getstatus(target)   # try talking to it at the new speed
+    if not options.read_only:
+        getstatus(target)   # try talking to it at the new speed
     options.speed = options.set_baud_rate
 
 def dump_configuration(target, filename, stat):
@@ -595,7 +617,7 @@ def main():
             levels = [int(x) for x in m.group(2).split(',')]
 
             for idx, level in enumerate(levels):
-                if status_cache.channels and not 0 <= start_chan + idx < status_cache.channels:
+                if not options.read_only and status_cache.channels and not 0 <= start_chan + idx < status_cache.channels:
                     parser.error("{0}: channel number {1} does not exist for this controller model (valid range is [0,{2}])".format(
                         action, start_chan + idx, status_cache.channels - 1))
                 target.set_channel(start_chan + idx, level)
@@ -606,7 +628,7 @@ def main():
             # <channel>
             if m:
                 channel = int(action)
-                if status_cache.channels and not 0 <= channel < status_cache.channels:
+                if not options.read_only and status_cache.channels and not 0 <= channel < status_cache.channels:
                     parser.error("{0}: channel number {1} does not exist for this controller model (valid range is [0,{2}])".format(
                         action, channel, status_cache.channels - 1))
                 target.set_channel(channel, 255)
@@ -629,7 +651,7 @@ def main():
                     if not 1 <= delay <= 128:
                         parser.error("{0}: delay value of {1} not in required range [1,128]".format(action, delay))
 
-                    if status_cache.channels and not 0 <= channel < status_cache.channels:
+                    if not options.read_only and status_cache.channels and not 0 <= channel < status_cache.channels:
                         parser.error("{0}: channel number {1} does not exist for this controller model (valid range is [0,{2}])".format(
                             action, channel, status_cache.channels - 1))
 
