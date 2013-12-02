@@ -1,3 +1,7 @@
+% XXX RS-XXX acronym
+% index
+% troubleshooting
+
 \documentclass[letterpaper,twoside,onecolumn,openright,final]{memoir}
 %    vs.       others...   oneside twocolumn openleft  draft showtrims
 %                          twoside onecolumn openany   ms
@@ -121,13 +125,13 @@ Please begin by reviewing the safety information in Chapter~\ref{ch:safety}.
 When you are ready to begin assembling your Lumos controller, gather the required tools and materials
 as explained in Chapter~\ref{ch:materials}.  
 
-Then read carefully the \emph{entire} set of instructions in the following chapters
+Then read carefully the \emph{entire} set of instructions in the following chapters before
 beginning any actual work.  Begin assembly \emph{only} if you understand all the steps you will need
 to carry out.
 
 Once your controller is complete and ready to use, refer to the separate manual,
 \emph{Using Lumos SSR Controllers} for full instructions on how to program
-and use your controller with your computer or in stand-alone operation.
+and use your controller.
 
 \section{The Name of the Game}
 The name ``Lumos'' is a combination of \emph{lumen}, the Latin word for ``light,''
@@ -290,6 +294,10 @@ interference which can disrupt communications.
 Sensor inputs \index{sensors} may be added to an intelligent Lumos board to allow for external
 sensors to trigger pre-programmed relay actions.  The host PC may also monitor the
 sensors.
+
+{\bfseries At the present time, pre-programmed actions are not implemented.  The host PC
+may query the Lumos board to see the status of its sensors, then command the board to do
+something in response.}
 
 A Lumos board may accommodate up to four such sensor inputs.  These are \acronym{TTL}-level inputs
 which may be active low or high (although the Lumos board provides 10\,K pull-up resistors on the
@@ -467,7 +475,6 @@ and~\ref{fig:bom2}.
 
 Note that all resistors and capacitors are miniature-size.  Check the dimensions of the parts
 you order to ensure they will fit properly on the board and will go through the holes.
-XXX details XXX
 
 IC sockets XU0--XU5 need to be open-frame type so they don't interfere with the pins of
 resistor arrays R0--R5.
@@ -993,7 +1000,7 @@ This completes the installation of the RS-232 serial option.
 \chapter{Assembling the Sensor Input Option}\label{ch:sensor-in}
 \LLstart{L}{UMOS}{boards support the option} of attaching up to four simple \acronym{TTL}-level
 logic inputs.  The host PC can query the Lumos board to find out the current state of these
-inputs.  The Lumos board may also be programmed to react on its own to a change in the input states.
+inputs.  %The Lumos board may also be programmed to react on its own to a change in the input states.
 
 These inputs may come from sensors (e.g., light sensors or motion sensors) which produce a compatible
 output signal.  They may even come from the logic outputs of another Lumos board.

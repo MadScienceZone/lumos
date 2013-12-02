@@ -82,12 +82,9 @@
 \begin{center}
 {\fontfamily{ppl}\fontseries{b}\fontsize{48}{50}\selectfont
 Using the\\Lumos\TM\\SSR\\Controllers\\\strut
-}
-
-**DRAFT** (Subject to change before release)
 
 \vfill
-
+}
 \end{center}
 
 \newpage
@@ -259,7 +256,7 @@ incandescent lights.  They are not appropriate for all kinds of loads.  Some ind
 (for example, electromagnetic relays and motors) may require a protective ``snubber'' circuit
 between the Lumos output and the load to avoid damage to the Lumos board and/or the attached load.
 
-Do not plug any load into a lumos board which cannot be dimmed.
+Do not plug any load into a Lumos board which cannot be dimmed.
 
 \chapter{Overview of the Lumos Controller Models}
 \LLstart{T}{here}{are currently} four different hardware projects which are part of the Lumos
@@ -367,8 +364,9 @@ As long as the button is pressed, the \acronym{CPU} will be halted.  No operatio
 will be active at this time.  
 
 When the button is released, the \acronym{CPU} will reboot as if powered up.  This restores the ability
-to enter configuration mode, resets all output channels to be fully off, clears sequences stored in
-normal \acronym{RAM} memory, clears all faults and error conditions, and re-initializes all the hardware
+to enter configuration mode, resets all output channels to be fully off, 
+% XXX FUTURE clears sequences stored in normal \acronym{RAM} memory, 
+clears all faults and error conditions, and re-initializes all the hardware
 and software components.
 
 \section{Entering Configuration Mode}\label{sec:configmode}
@@ -395,7 +393,8 @@ output channels as a test that everything is connected and working properly.
 
 To do this, first place the board in configuration mode as described in Section~\ref{sec:configmode}.
 After the green light is flashing rapidly and the others are off, press and hold the Option button
-again until the lights go off, then release.
+again %until the lights go off
+for another 2 seconds, then release.
 
 The red \acronym{LED} will now be slowly fading up and down (instead of the green \acronym{LED} doing that
 as it does in normal run mode).  The controller will turn off all output channels, and turn channel \#0
@@ -627,6 +626,17 @@ they were not specified.  For the sake of simplicity, we'll assume from here on 
 accept these defaults or are specifying them to have the values you need; we won't explicitly
 show them in the examples that follow.
 
+\section{Read-Only Mode}
+Sometimes you will use the Lumos board in situations where you can't receive a reply from the device.
+This may, for example, happen if you use an \acronym{RS-485} converter which only transmits data, but
+doesn't receive any back, or if there is a problem with your PC trying to control the data direction
+on a half-duplex network.
+
+In this case, use the \z{----read--only} option to \z{lumosctl}.  This suppresses the features of
+\z{lumosctl} which monitor the Lumos board's configuration and current state.  Normally, this helps
+confirm that the requested changes took effect, but if your PC is unable to receive information back
+from the Lumos board, \z{lumosctl} won't be able to work without the \z{----read-only} option.
+
 \section{Setting the Device Address}
 Set a new address by giving \z{----set--address=}\Var*{newaddr}.  Don't forget to include the
 device's current address with \z{----address=}\Var*{oldaddr}.  For example, to change a board
@@ -678,6 +688,7 @@ sensors=ac
 
 Leave the other fields alone, just as they are.
 
+\begin{NotImplemented}
 For each sensor, we can arrange for an action to take place every time one of them activates.
 The actions taken are set up as ``Programmed Sequences'' (see Chapter~\ref{ch:sequences}).
 Assuming that the actions we want to carry out are already programmed and loaded as described in
@@ -731,8 +742,12 @@ configuration file.
 See Chapter~\ref{ch:sequences} for complete details on how to create sequences and store them
 into a Lumos controller.  Full details on the operation of \z{lumosctl} in this and other
 areas begins on page~\pageref{ch:lumosctl} in the appendices.
+\end{NotImplemented}
 
 \section{Setting a Lumos Controller to Use \acronym{DMX512}}
+\begin{NotImplemented*}{The \acronym{DMX512} support in Lumos is experimental and not expected
+to work yet.  If you wish to experiment further to refine this feature for a future release of 
+the Lumos firmware, contact the author with your findings and recommendations.}
 Setting up the controller to be a \acronym{DMX512} device is another task performed via
 the configuration file (see Section~\ref{sec:sensors} for instructions about how to dump
 and load a configuration file).
@@ -760,12 +775,13 @@ $ lumosctl --load-configuration=lumos_board.cfg
 If you want to change the board to be a Lumos-protocol board instead of \acronym{DMX512},
 just follow the same process, but \emph{delete} the \z{dmxchannel=}\Var*{c} line completely
 before loading the configuration onto the Lumos board.
+\end{NotImplemented*}
 
 \section{Canceling Configuration Mode}
 When you're finished configuring the controller board, you may use either of these options:
 \begin{SourceCode}
-$ lumosctl --disable-privileged-mode
-$ lumosctl --forbid-privileged-mode
+$ lumosctl --disable-configuration-mode
+$ lumosctl --forbid-configuration-mode
 \end{SourceCode}
 
 Either of these returns the board to normal run mode.  The second goes a step further, forbidding
@@ -773,2034 +789,2037 @@ the board from going back into configuration mode again, until the next time the
 power cycled.
 
 \chapter{Creating Programmed Sequences}\label{ch:sequences}
-\LLstart{T}{he}{normal operating mode} for a Lumos controller is to receive a stream
-of real-time commands from the host PC, acting on them as they arrive.  However, it is 
-also possible to program a number of complex actions into the controller's memory.  The
-host PC can then send a much smaller command to tell the controller to execute a stored
-sequence of actions.  If sensor inputs are enabled, the board may be set up to trigger the
-execution of a stored sequence when sensor activity is detected.
-
-\strong{N.B.: The following information assumes a high-level (if somewhat simple) language
-to describe sequences, which gets compiled into a more compact bytecode which is loaded onto the
-device itself.  This language compiler has not yet been written.  Section~\ref{sec:bytecode}
-below describes the bytecode actually understood by the device.  At the time of this writing,
-it is necessary to create this bytecode manually and load it into the device as described
-in that section.  To emphasize that this is speculative documentation about a future feature,
-the text appears in a lighter type color.}
-
-{\color{gray}
-These sequences are written using a small, simple programming language.  It is intended to
-make it possible to describe some basic operations supported by the device, not to create a
-fully general-purpose programming system.  This, plus the need to design the sequence data
-to be as compact as possible, drove the design of this language to be optimized toward efficiency
-and to enable a certain set of common operations.  This optimization means, however, that some
-other functions are limited or omitted.  We'll point out the major caveats along the way as we
-describe this system in this chapter.
-
-\section{Basic Sequence Syntax and Structure}
-Each sequence is numbered with an ID from 0--127.  The sequence begins with a declaration of this
-ID in the form ``\z{SEQUENCE} \Var*{id}\z{:}'' followed by all the lines of instructions, and ends
-with the word ``\z{END}'' on the final line.
-
-When writing a sequence of instructions to be stored into the controller, each individual instruction
-is placed on a line by itself.  For example, if we define sequence~\#1 to set 
-channel~\#0 on, \#1 to half brightness, and \#2 off,
-the sequence code would be:
-\begin{SourceCode}
-sequence 1:
-  channel 0 on
-  channel 1 50%
-  channel 2 off
-end
-\end{SourceCode}
-% on #0			C1 00
-% dimmer #1,127		42 01 7F
-% off #2                41 02
-
-The indentation is simply a convention to make the code more readable; the Lumos system ignores it.
-Similarly, Lumos sequences are case-insensitive.  The previous sequence could just as well have been
-written:
-\begin{SourceCode}
-SEQUENCE 1:
-  Channel 0 ON
-  Channel 1 50%
-  CHANNEL 2 Off
-END
-\end{SourceCode}
-
-\section{Expressions}
-Anywhere a number is expected, a complex math expression may be used.  Standard algebraic order of
-operations is enforced on the expression, so parentheses force the enclosed sub-expression to be
-evaluated first, then multiplication and division, then addition and subtraction.  All of the following
-instructions turn channel 10 to 1/3 brightness:
-\begin{SourceCode}
-channel 10 33.3333333333%
-channel 2*(2+3) 255/3
-channel 10 255.0/3.0
-\end{SourceCode}
-
-\strong{Note:} If the expression is able to be fully interpreted using known values at the time 
-the source code is compiled on the host PC, it is evaluated with all the precision of floating-point
-math operations to the extent supported by the PC.  The final result of the calculation, however, 
-needs to be reduced to (in most cases) an unsigned 8-bit integer value (0--255) for storage on the 
-Lumos controller.  If the expression must be interpreted at run-time on the Lumos device itself,
-there's a much more limited expression evaluation system available at that point.  Only addition,
-subtraction, and multiplication of unsigned 8-bit values is possible there.  The compiler may reject
-your expression if it can't be handled within those constraints.
-
-The math operators supported are summarized in Figure~\ref{fig:mathop}.
-\begin{figure}
-  \begin{center}
-    \begin{tabular}{|c|l|}\hline
-	Expression & Meaning\\\hline\hline
-	\Var{x}  \z{+}  \Var{y} & add $x+y$ \\\hline
-	\Var{x}  \z{-}  \Var{y} & subtract $x-y$ \\\hline
-	\Var{x}  \z{*}  \Var{y} & multiply $x\times y$ \\\hline
-	\Var{x}  \z{/}  \Var{y} & divide $x/y$ \\\hline
-	\Var{x}  \z{//} \Var{y}& divide $x/y$ using integer division\\\hline
-	\Var{x}  \z{\%}  \Var{y}& the remainder when dividing $x/y$ \\\hline
-    \end{tabular}
-  \end{center}
-  \caption{Supported Math Operations\label{fig:mathop}}
-\end{figure}
-
-\section{Variable Assignment}
-To a rather limited extent, variables may be defined values and then used in sequences in place
-of numeric values, like so:
-\begin{SourceCode}
-x = 42
-channel x on
-channel x+1 on
-channel x+2 on
-\end{SourceCode}
-%
-% optimized a bit:
-%
-% push #42	4F 2A
-% dup		32
-% on		81
-% add		23
-% dup		32
-% on		81
-% add		23
-% on		81
-% 
-% not optimized
-%
-% push #42	4F 2A		; SFB+0
-% push	0	CF 00
-% on		81
-% push 	0	CF 00
-% add		23
-% on		81
-% push 	0	CF 00
-% add	#2	43 02
-% on		23
-
-\section{Controlling Output Channels}
-We already saw the \z{CHANNEL} command which can be used to turn a designated channel \z{ON}, 
-\z{OFF}, or to a given percentage.  It may also be given a raw value from 0--255.  All of the following
-set channel~\#4 to full brightness:
-\begin{SourceCode}
-channel 4 100%
-channel 4 255
-cahnnel 4 on
-\end{SourceCode}
-
-We may also start a channel smoothly fading up or down from its current brightness to either fully
-on or fully off.  The following instructions cause channel~\#12 to fade to black by reducing its 
-output value by 2 every .2 seconds.  Simultaneously, channel~\#13 will increase in brightness by 1 step
-every 1/120\,second.
-\begin{SourceCode}
-ramp down 12 by 2 per .2 seconds
-ramp up 13
-\end{SourceCode}
-
-There is also a single command for turning all output channels off at once:
-\begin{SourceCode}
-blackout
-\end{SourceCode}
-
-\section{Device State Changes}
-There are commands \z{SLEEP} and \z{WAKE} to turn on and off sleep mode if desired.
-These control power-saving features but don't disrupt the interpretation or execution of
-incoming commands.
-
-There are also \z{SUSPEND} and \z{RESUME} commands.  \z{SUSPEND} causes the controller
-to ignore any further input, on the premise that the sequence wants to take priority over
-whatever the host PC wanted the controller to do.  \z{RESUME} allows the board to resume
-normal operation (acting on received commands from the host PC).
-
-If the command \z{SUSPEND WITH UPDATE} is given, then the device will track changes to
-channel outputs made by the host PC, but still will not act on them until a \z{RESUME}
-command (at which point, the output channels will simply change to what would be the
-final result of all the changes received---it does not ``replay'' all of the changes
-that were delayed at that point).  
-
-The \z{RESUME WITH FADE} is just like \z{RESUME}, except it will fade all channels to black
-first, then fade up the channels to their reume values.
-
-For example, if you have a light sensor configured to run sequence 1 once when it senses daylight,
-and then run sequence 2 when it senses darkness, and you want to inhibit outputs during the daytime
-but still allow the host PC to set a pattern of channel values which will be displayed immediately
-upon dusk, the sequences could be coded:
-\begin{SourceCode}
-sequence 1:
-  suspend with update
-  blackout
-end
-
-sequence 2:
-  resume with fade
-end
-\end{SourceCode}
-
-\section{Flow Control}
-In addition to the linear sequence of instructions to change channel outputs, there are
-a number of instructions which alter the flow of execution itself.  This includes the usual
-collection including conditionals, loops, and so forth.  
-
-If you want to have sequence 123 turn on channel \#4 if sensor B is active at that moment,
-or turn it off otherwise, the following code will suffice:
-\begin{SourceCode}
-sequence 123:
-  if sensor b:
-    channel 4 on
-  else:
-    channel 4 off
-  end
-end
-\end{SourceCode}
-
-We can turn on every even numbered channel from \#0--\#10, with a half-second delay up through \#6
-and then instantly for the rest:
-\begin{SourceCode}
-sequence 47:
-  for ch=0 to 10 by 2:
-    channel ch on
-    if channel <= 6:
-      wait 0.5 seconds
-    end
-  end
-end
-\end{SourceCode}
-
-We can flash channels \#1 and \#3 repeatedly until our sequence is forced to stop:
-\begin{SourceCode}
-sequence 9:
-  repeat:
-    channel 1 on
-    channel 3 on
-    wait 1 second
-    channel 1 off
-    channel 3 off
-    wait 1 second
-  end
-end
-\end{SourceCode}
-
-Loops can be interrupted using \z{BREAK}, \z{CONTINUE}, and \z{EXIT}.
-See the \z{lumosctl} documentation (page~\pageref{sh:lumosctl}) for full details.
-
-\section{Subroutines and Sequence Chains}
-One sequence can invoke another sequence, either as a subroutine (so that the execution
-temporarily detours into the called sequence, and then the calling sequence resumes where
-it left off), or as a ``chain'' from one sequence to another (where the calling sequence 
-stops as the called sequence starts, so there is no returning from that point).
-
-Here we have sequence 12 which calls sequence 13 in a loop:
-\begin{SourceCode}
-sequence 12:
-  repeat 10 times as i:
-    call 13
-    wait i seconds
-  end
-  execute 14
-end
-
-sequence 13:
-  channel 0 on
-  wait 2
-  channel 0 off
-end
-
-sequence 14:
-  blackout
-end
-\end{SourceCode}
-Note that the \z{EXECUTE} instruction terminated sequence 12 and started
-sequence 14.  When sequence 14 finishes, nothing further is done.
-
-Sometimes it's valuable to be able to pass parameters to subroutines.  Sequences support
-up to four parameters which must be declared in both the definition of the sequence and
-the \z{EXECUTE} or \z{CALL} which invokes it.  Here's a program which turns on each channel
-from 0--24 repeatedly.
-\begin{SourceCode}
-sequence 1:
-  repeat:
-    for c=0 to 24:
-      call 2(c)
-    end
-  end
-end
-
-sequence 2(chan):
-  channel chan on
-  wait 1 second
-  channel chan off
-end
-\end{SourceCode}
-%
-% 0 loop	0	2A
-% 1 loop	0	2A
-% 2 pctr		36
-% 3 call	$C,#1	48 0C 01
-% 6 next	1,#24	2B 01 18
-% 9 next	0	AB 00
-% b exit		00
-% c push	0	8F 00
-% e on			81
-% f wait	#nn	49 nn
-%11 push	0	0F 00
-%13 off			01
-%14 exit		00
-
-\section{Temporary vs.\ Permanent Sequences}
-Sequences numbered from 0--63 are stored into non-volatile \acronym{EEPROM} memory and will remain
-in place until explicitly erased or replaced.  Sequences numbered 64-127 are stored in temporary 
-\acronym{RAM} and will be lost at the next device reset.  This enables the host PC to download
-sequences for short-term temporary use.
-
-\section{Storing Sequences into Device Memory}
-The device files are stored into the Lumos controller using the \z{lumosctl} command:
-\begin{SourceCode}
-$ lumosctl --clear-sequences
-$ lumosctl --load-sequence=my_program_file
-\end{SourceCode}
-
-The initial \z{----clear--sequences} option is not always needed.  It erases all sequences
-from memory.  Then each subsequent \z{----load--sequence} option loads a file containing one
-or more sequences into the device.
-
-If a sequence is loaded which already exists on the device, the old one is replaced with the
-new one.  Note, however, that Lumos controllers have a very na\"\i ve memory management capability.
-They are really designed to simply have a set of sequences loaded on them, later erased
-\emph{en masse} and replaced by a new set.
-
-If replacement sequences are written on top of old ones, it is quite likely that the memory
-will get fragmented quickly and you'll run out of available memory too early.
-Simply adding new sequences shouldn't be a problem, however.
-
-You can see how much memory is available by running \z{lumosctl} with the \z{----report} 
-option.
-\begin{SourceCode}
-$ lumosctl --report --address=2
-...
-XXX
-$ _
-\end{SourceCode}
-
-\section{Bytecode Reference}\label{sec:bytecode}
-\emph{This is an advanced reference section most users will never have any reason to 
-read.}  For the curious, however, we note that when you load a sequence source file
-into \z{lumosctl}, it compiles the source into bytecode which is what actually gets 
-sent to the controller, and is what is stored in its memory.  The following reference
-details the format of that bytecode.
-
-\subsection{Execution Model}
-The execution model is a small stack-based 
-\footnote{Several other
-models were experimented with, but this provided better flexibility with a minimal
-number of bytes required for the sequence instruction bytes themselves, which need to
-be stored in a limited space on the controller.} 
-machine environment, in which
-each sequence is an independent program which begins at
-address 0 in its own memory area.  
-
-All memory locations, including program and stacks, are 8~bits wide.  Unless otherwise
-indicated, data values are unsigned 8-bit integers.
-
-\subsection{Stacks}
-There are actually three independent stacks used: a call-return stack, data stack, and loop
-counter stack.
-
-The call-return stack (not illustrated here since it's not directly accessible from your programs) 
-receives three bytes every time a sequence calls another sequence: the return address, sequence number,
-and stack frame boundary pointer.
-%\begin{BF}
-%  \begin{rightwordgroup}{previous calling sequence}
-%  \wordbox{1}{return address}\\
-%  \wordbox{1}{return sequence}\\
-%  \wordbox{1}{stack frame ptr}
-%  \end{rightwordgroup}\\
-%  \begin{rightwordgroup}{calling sequence}
-%  \wordbox{1}{return address}\\
-%  \wordbox{1}{return sequence}\\
-%  \wordbox{1}{stack frame ptr}
-%  \end{rightwordgroup}\\
-%  \wordbox[]{1}{$\downarrow$ \\[1ex]}\\
-%  \wordbox[]{1}{(increasing addresses)}
-%\end{BF}
-
-We can conceptually picture the stacks as ``piles'' of data values, with the most
-recently-placed value set on top of the previous ones.  If we ``push'' three values
-1, 2, and 3 onto a stack, it would look like this:
-\begin{center}
-\begin{bytefield}{8}
-  \begin{rightwordgroup}{$\leftarrow$Top of Stack}
-  \wordbox{1}{3}
-  \end{rightwordgroup}\\
-  \wordbox{1}{2}\\
-  \wordbox{1}{1}\\
-\end{bytefield}
-\end{center}
-As we ``pop'' values off the stack, we pull them from the top of the stack, so
-they are retrieved in the reverse order in which they were pushed onto the
-stack.
-
-\subsubsection{Loop Counter Stack}
-The loop counter stack holds all the loop counter values.  %At any given time,
-%the top of the stack is the counter for the innermost executing loop.  This
-%value is always referred to as ``\z{\{0\}}'' in the bytecode assembly listings.
-If the code is executing a nested loop such as:
-\begin{SourceCode}
-repeat as outer:
-  for middle=1 to 10:
-    repeat 10 as inner:
-      ...
-    end
-  end
-end
-\end{SourceCode}
-
-Then the loop stack would look like:
-\begin{center}
-\begin{bytefield}[leftcurlyspace=0pt, rightcurlyspace=0pt, leftcurly=., rightcurly=.]{10}
-  \bitbox[]{2}{} & \bitbox[]{8}{(direction of growth)}\\
-  \bitbox[]{2}{} & \bitbox[]{8}{$\uparrow$}\\
-  \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{\z{inner}}\\
-  \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{\z{middle}}\\
-  \bitbox[]{2}{\z{\{2\}}} & \bitbox{8}{\z{outer}}\\
-\end{bytefield}
-\end{center}
-
-At any given time, \z{\{0\}} refers to the top of the loop stack, which is the
-innermost loop level currently running.  Likewise, \z{\{1\}} is the 
-counter for the next loop out from there, and so on.
-
-Note that a counter variable is allocated for \emph{every} loop entered,
-even if the source code didn't associate it with a variable name
-(e.g., if the innermost was ``\z{REPEAT 10:}'' without the 
-``\z{AS INNER}'' part).
-
-\subsubsection{Data Stack}
-The data stack contains the parameters passed to the current
-sequence, if any, followed by local variables for the sequence.
-The remaining room is for working stack space for calculations
-and values consumed by the opcodes.
-
-At each call, parameters are pushed onto the stack and then the
-stack frame boundary (\acronym{SFB}) pointer is moved to 
-point to the first parameter.
-This way, parameters and local variables are referenced within the
-sequence as offsets from the frame pointer, while working values
-are obtained by pushing and popping values from the top of the stack.
-
-\begin{center}
-\begin{bytefield}{15}%[leftcurlyspace=0pt, rightcurlyspace=0pt, leftcurly=., rightcurly=.]{10}
-  \begin{leftwordgroup}{Stack Frame}
-  \begin{rightwordgroup}{working stack}
-  \bitbox[]{5}{} & \bitbox[]{8}{(increasing addresses)}\\
-  \bitbox[]{5}{} & \bitbox[]{8}{$\uparrow$}\\
-  \bitbox[]{5}{\Var{x}} & \bitbox{8}{\Var{d}}\\
-  \bitbox[]{5}{\Var{y}} & \bitbox{8}{\Var{c}}\\
-  \bitbox[]{5}{\Var{z}} & \bitbox{8}{\Var{b}}\\
-  \bitbox[]{5}{}        & \bitbox{8}{\Var{a}}
-  \end{rightwordgroup}\\
-  \begin{rightwordgroup}{local variables}
-  \bitbox[]{5}{\z{[}\Var{n}+\Var{m}--1\z{]}} & \bitbox{8}{\Var{v$_{m-1}$}}\\
-  \bitbox[]{5}{}        & \bitbox[]{8}{$\vdots$ \\[1ex]}\\
-  \bitbox[]{5}{\z{[}\Var{n}+1\z{]}} & \bitbox{8}{\Var{v$_1$}}\\
-  \bitbox[]{5}{\z{[}\Var{n}+0\z{]}} & \bitbox{8}{\Var{v$_0$}}
-  \end{rightwordgroup}\\
-  \begin{rightwordgroup}{parameters passed \\ to this sequence}
-  \bitbox[]{5}{\z{[}\Var{n}--1\z{]}} & \bitbox{8}{\Var{p$_{n-1}$}}\\
-  \bitbox[]{5}{       } & \bitbox[]{8}{$\vdots$ \\[1ex]}\\
-  \bitbox[]{5}{\z{[1]}} & \bitbox{8}{\Var{p$_1$}}\\
-  \bitbox[]{5}{\z{[0]}} & \bitbox{8}{\Var{p$_0$}} & \bitbox[]{2}{$\leftarrow$\acronym{SFB}}
-  \end{rightwordgroup}
-  \end{leftwordgroup}\\
-  %\begin{leftwordgroup}{previous frame}
-  %\bitbox[]{5}{} &\bitbox{8}{\dots}\\
-  \bitbox[]{5}{} &\bitbox[]{8}{$\vdots$ \\[1ex]}
-  %\end{leftwordgroup}\\
-\end{bytefield}
-\end{center}
-
-For convenience in our description of the bytecode below, we'll refer to the value on the top of the
-data stack as \Var{x}, the second value as \Var{y}, and the third as \Var{z}.  In the assembly code,
-the notation \z{[}\Var{n}\z{]} directly addresses the value \Var{n} bytes from the stack frame boundary
-(\acronym{SFB}), so the first parameter passed (if any) would be at \z{[0]}, and so on.
- 
-\subsection{Instruction Format}
-
-Each instruction is at least one byte long. The first byte is the opcode which always
-has the general format:
-%\newcommand\zh{\bitheader{0-7}}
-\begin{BF}
-  \bitbox{1}{\Var{f}} & \bitbox{1}{\Var{i}} & \bitbox{1}{\Var{d}} & \bitbox{5}{\Var*{cmd}}
-\end{BF}
-Where:
-\begin{itemize}
-	\item[\Var{f}=] Instruction-specific flag.
-	\item[\Var{i}=] Data values are given as immediate bytes (\Var{i}=1) instead of being popped
-		from the stack (\Var{i}=0).
-	\item[\Var{d}=] Take default values for some or all of the arguments (\Var{d}=1).
-\end{itemize}
-Note that these are generalizations; individual command opcode patterns vary.
-
-Following the opcode byte are any direct addressing bytes (generally, addresses of locations
-on the stack for data values, or addresses to jump to) which must be constants at runtime.
-
-After that are zero or more data bytes providing the values needed by the instruction, if the immediate
-addressing mode is used (bit \Var{i}=1).  Otherwise they will be popped from the data stack as needed.
-
-\subsection{Addressing Modes}
-The following addressing modes are supported:
-\begin{itemize}
-	\item[--] \emph{Default addressing} means that some or all data values are omitted, 
-		(which may be omitted depends on the instruction), so
-		the instruction should assume
-		a useful default value instead.  Denoted below as either the lack of argument, or
-		an explicit mention of the default value (in which case the assembler would convert
-		the instruction to the default form and avoid the argument.
-	\item[\Var{a}] \emph{Direct addressing} specifies a memory location as a constant value following
-		the opcode.  Examples include jump and loop instructions which directly name an
-		instruction address within the sequence, and operations which specify a local
-		variable or parameter as a constant offset from the stack frame pointer.  Note
-		that some instructions mandate a direct argument even if others are pulled from
-		the stack, memory, or take defaults.  Denoted below as a number (or name
-		defined as a number) without other punctuation.
-	\item[\z\#\Var{v}] \emph{Immediate addressing} mode means that the values needed by the instruciton are
-		provided as constant bytes following the opcode, rather than being taken from the
-		stack.  Denoted below as a value prefixed by a pound sign (\z\#).
-	\item[{\z[\Var{a}\z]}] \emph{Indirect addressing} is used when a data value needed by an operation is
-		specified, but that value specifies an address in memory (specifically, the value
-		is an unsigned integer added to the stack frame pointer).  
-		Denoted by square brackets around the argument value.
-	\item[{\z{[\$]}}] \emph{Indirect Stack} values are obtained by popping an address from the stack and
-		then using it as the location for the value to use.  Noted by square brackets
-		and dollar sign together (\z{[\$]}).
-	\item[--] \emph{Inherent} means that the instruction simply needs no further values to perform
-		its operation; the data is inerent in the instruction itself.
-	\item[\z\$] \emph{Stack addressing} means that the data values are popped from the stack.  These are
-		popped in the order they would appear if given as immediate bytes, so they would
-		need to be pushed in opposite order to that.  Denoted by a dollar sign (\z\$) as
-		the argument to the instruction.
-	\item[\z\{\Var{v}\z\}] \emph{Loop addressing} accesses loop counter values.  \z{\{0\}} is the
-		innermost loop counter (the top of the loop stack), \z{\{1\}} is the next loop out from
-		there, etc.  This can be combined with some other modes.  For example, \z{\{\$\}}
-		pops a value from the stack, uses that as the loop depth number, and fetches the
-		loop counter at that level.
-\end{itemize}
-
-The addressing mode is selected by various bits in the opcode byte.
-
-For example, the instruction to set the dimmer output level for a channel (mnemonic ``\z{dimmer}'', 
-base hex opcode \z{0x02}) may have the following forms:
-
-% dimmer #1,16	42 01 10
-% dimmer 	02
-% push	 #9	4F 09
-% push	9	8F 09
-% push  #0	2F
-% pctr	2	66 02
-
-\begin{center}
-\begin{bytefield}[leftcurlyspace=0pt, rightcurlyspace=0pt, leftcurly=., rightcurly=.]{24}
-	\bitbox[]{8}{\footnotesize byte 0} &
-	\bitbox[]{8}{\footnotesize byte 1} &
-	\bitbox[]{8}{\footnotesize byte 2} \\
-
-	\begin{leftwordgroup}{immed.}
-	\begin{rightwordgroup}{\z{dimmer \#1,\#16}}
-	\bitbox{1}{\z0} & \bitbox{1}{\z1} & \bitbox{1}{\z0} & \bitbox{5}{\z{0x02}} &
-	\bitbox{8}{\z{0x01}} & \bitbox{8}{\z{0x10}}
-	\end{leftwordgroup}
-	\end{rightwordgroup} \\
-
-	\begin{leftwordgroup}{stack}
-	\begin{rightwordgroup}{\z{dimmer \$,\$}}
-	\bitbox{1}{\z0} & \bitbox{1}{\z0} & \bitbox{1}{\z0} & \bitbox{5}{\z{0x02}} &
-	\bitbox[]{8}{} & \bitbox[]{8}{}
-	\end{leftwordgroup}
-	\end{rightwordgroup} \\
-\end{bytefield}
-\end{center}
-
-In the first case, the \z{dimmer} command takes the channel number (1) and level (16) as 
-immediate values in the sequence program itself.  In the second case, it pops two values
-off the stack, the first number popped being the channel number and the second one being
-the value.
-
-Consider the \z{push} command as well:
-
-\begin{center}
-\begin{bytefield}[leftcurlyspace=0pt, rightcurlyspace=0pt, leftcurly=., rightcurly=.]{16}
-	\bitbox[]{8}{\footnotesize byte 0} &
-	\bitbox[]{8}{\footnotesize byte 1} \\
-%0F
-	\begin{leftwordgroup}{inherent}
-	\begin{rightwordgroup}{\z{dup}}
-	\bitbox{1}{\z0} & \bitbox{1}{\z0} & \bitbox{1}{\z0} & \bitbox{5}{\z{0x0F}} &
-	\bitbox[]{8}{}
-	\end{leftwordgroup}
-	\end{rightwordgroup}\\
-%2F
-	\begin{leftwordgroup}{default}
-	\begin{rightwordgroup}{\z{push \#0}}
-	\bitbox{1}{\z0} & \bitbox{1}{\z0} & \bitbox{1}{\z1} & \bitbox{5}{\z{0x0F}} &
-	\bitbox[]{8}{}
-	\end{leftwordgroup}
-	\end{rightwordgroup}\\
-%4F
-	\begin{leftwordgroup}{immediate}
-	\begin{rightwordgroup}{\z{push \#9}}
-	\bitbox{1}{\z0} & \bitbox{1}{\z1} & \bitbox{1}{\z0} & \bitbox{5}{\z{0x0F}} &
-	\bitbox{8}{\z{0x09}}
-	\end{leftwordgroup}
-	\end{rightwordgroup} \\
-%6F
-	\begin{leftwordgroup}{loop default}
-	\begin{rightwordgroup}{\z{push \{0\}}}
-	\bitbox{1}{\z0} & \bitbox{1}{\z1} & \bitbox{1}{\z1} & \bitbox{5}{\z{0x0F}} &
-	\bitbox[]{8}{}
-	\end{leftwordgroup}
-	\end{rightwordgroup}\\
-%8F
-	\begin{leftwordgroup}{indirect stack}
-	\begin{rightwordgroup}{\z{push [\$]}}
-	\bitbox{1}{\z1} & \bitbox{1}{\z0} & \bitbox{1}{\z0} & \bitbox{5}{\z{0x0F}} &
-	\bitbox[]{8}{}
-	\end{leftwordgroup}
-	\end{rightwordgroup}\\
-%AF
-	\begin{leftwordgroup}{indirect default}
-	\begin{rightwordgroup}{\z{push [0]}}
-	\bitbox{1}{\z1} & \bitbox{1}{\z0} & \bitbox{1}{\z1} & \bitbox{5}{\z{0x0F}} &
-	\bitbox[]{8}{}
-	\end{leftwordgroup}
-	\end{rightwordgroup}\\
-%CF
-	\begin{leftwordgroup}{indirect}
-	\begin{rightwordgroup}{\z{push [9]}}
-	\bitbox{1}{\z1} & \bitbox{1}{\z1} & \bitbox{1}{\z0} & \bitbox{5}{\z{0x0F}} &
-	\bitbox{8}{\z{0x09}}
-	\end{leftwordgroup}
-	\end{rightwordgroup} \\
-%EF
-	\begin{leftwordgroup}{loop stack}
-	\begin{rightwordgroup}{\z{push \{\$\}}}
-	\bitbox{1}{\z1} & \bitbox{1}{\z1} & \bitbox{1}{\z1} & \bitbox{5}{\z{0x0F}} &
-	\bitbox[]{8}{}
-	\end{leftwordgroup}
-	\end{rightwordgroup}\\
-\end{bytefield}
-\end{center}
-Some of these combinations are special only for the \z{PUSH} and \z{POP} commands.
-%, which is the only command
-%to have eight modes.
-The first mode is somewhat special as well.  Since ``\z{PUSH \$}'' would
-not do anything particularly useful---pop a value from the stack and then put it right back 
-again---this opcode was reassigned to a similar but more useful operation.  Renamed \z{DUP},
-it takes the value on the top of the stack and pushes another copy of it.
-
-\subsection{Using the Value Stack}
-The operation of the loop stack and call stack take place behind the scenes where you don't
-really need to be too concerned about them.  The data stack, on the other hand, is important
-to understand if you'll be writing sequences at the low level of the bytecodes described here.
-
-The stack has a maximum depth of 256 bytes.  Values are pushed onto it (usually via the \z{PUSH}
-instruction) and those values are consumed by other instructions as needed.  A \z\$ appearing in
-an instruction's argument list means to pop a value off the stack for that parameter.
-
-Consider the following sequence of instructions:
-\begin{SourceCode}
-base=2
-for x=1 to 20:
-  on x
-  dimmer x+10+base 6*x+12
-  wait 100
-  base *= 3
-end
-\end{SourceCode}
-
-This would be compiled into the following sequence bytecode:
-\begin{SourceCode}
-ADDR BYTES          LINE SOURCE CODE
----- -------------- ---- ------------------------
-0000 4F 02          0002      PUSH   #2
-0002 AA             0003 L:   LOOP   #1
-0003 6F             0004      PUSH   {0}
-0004 81             0005      ON     $
-0005 6F             0006      PUSH   {0}
-0006 52 06          0007      MUL    $,#6
-0008 53 0C          0008      ADD    $,#12
-000A 6F             0009      PUSH   {0}
-000B 53 0A          0010      ADD    $,#10
-000D AF             0011      PUSH   [0]
-000E 13             0012      ADD    $,$
-000F 02             0013      DIMMER $,$
-0010 49 64          0014      WAIT   #100
-0012 AF             0015      PUSH   [0]
-0013 52 03          0016      MUL    $,#3
-0015 B0             0017      POP    [0]
-0016 6B 02 14       0018      NEXT   L,#1,#20
-\end{SourceCode}
-
-When executed, this is the sequence of steps carried out, and the stack's contents
-at each step.  Here's the initial state:
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{Instruction:} 
-  & \bitbox[]{2}{} & \bitbox[]{2}{} 
-  & \bitbox[]{8}{Value Stack:} & \bitbox[]{4}{} 
-  & \bitbox[]{2}{}
-  & \bitbox[]{8}{Loop Stack:}\\
-  \bitbox[]{8}{} 
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{(empty)} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{(empty)}
-\\
-\end{bytefield}
-
-Now we begin execution.  First, we create a local variable ``\z{base}'' by pushing
-its initial value (2) onto the stack.  This will be at address zero (relative to the
-base stack frame pointer), so ``\z{[0]}'' will directly reference this storage location.
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{\z{PUSH \#2}} 
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{2} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{(empty)}
-\\
-\end{bytefield}
-
-A new loop context is created with an initial counter value of 1 (now the top of the loop
-stack).
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{\z{LOOP \#1}} 
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{2} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{1}
-\\
-\end{bytefield}
-
-Next we turn on the channel specified by the value of the loop counter, which is on the 
-loop stack at \z{\{0\}}.  We push that counter onto the data stack then use that as the
-argument to the \z{ON} instruction.
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{} 
-  & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{1} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{\z{PUSH \{0\}}} 
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{y}}
-  & \bitbox{8}{2} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{1}
-\\
-\end{bytefield}
-
-Since the value at the top of the stack (\Var{x}) is~1, the
-instruction \z{ON \$} pops that value and turns on channel~1.
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{\z{ON \$}} 
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{2} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{1}
-\\
-\end{bytefield}
-
-Now we need to evaluate \z{6*x+12}.
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{} 
-  & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{1} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{\z{PUSH \{0\}}} 
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{y}}
-  & \bitbox{8}{2} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{1}
-\\
-\end{bytefield}
-
-The 1 on the top of the stack is popped off, multiplied by 6, and the
-product pushed back onto the stack:
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{} 
-  & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{6} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{\z{MUL \$,\#6}} 
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{y}}
-  & \bitbox{8}{2} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{1}
-\\
-\end{bytefield}
-  
-The product is popped, added to 12 and the sum pushed back:
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{} 
-  & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{18} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{\z{ADD \$,\#12}} 
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{y}}
-  & \bitbox{8}{2} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{1}
-\\
-\end{bytefield}
-
-Now that we have the value to be set on the channel (18),
-we calculate the channel number as \z{x+10+base}:
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{} 
-  & \bitbox[]{2}{\z{[2]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{1} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{} 
-  & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{y}}
-  & \bitbox{8}{18} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{\z{PUSH \{0\}}} 
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{z}}
-  & \bitbox{8}{2} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{1}
-\\
-\end{bytefield}
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{} 
-  & \bitbox[]{2}{\z{[2]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{11} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{} 
-  & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{y}}
-  & \bitbox{8}{18} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{\z{ADD \$,\#10}} 
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{z}}
-  & \bitbox{8}{2} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{1}
-\\
-\end{bytefield}
-
-The value of the local variable \z{base} is at local address
-0 (i.e., \acronym{SFB}+0, also known as ``\z{[0]}''), so we push that onto
-the stack then add it to our sum.
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{} 
-  & \bitbox[]{2}{\z{[3]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{2} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{} 
-  & \bitbox[]{2}{\z{[2]}} & \bitbox[]{2}{\Var{y}}
-  & \bitbox{8}{11} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{} 
-  & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{z}}
-  & \bitbox{8}{18} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{\z{PUSH [0]}} 
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{}
-  & \bitbox{8}{2} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{1}
-\\
-\end{bytefield}
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{} 
-  & \bitbox[]{2}{\z{[2]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{13} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{} 
-  & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{y}}
-  & \bitbox{8}{18} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{\z{ADD \$,\$}} 
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{z}}
-  & \bitbox{8}{2} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{1}
-\\
-\end{bytefield}
-
-Now we pop the channel number and level off the stack
-so channel~13 is set to dimmer level~18.
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{\z{DIMMER \$,\$}} 
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{2} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{1}
-\\
-\end{bytefield}
-
-Now we wait, which doesn't affect the stack.
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{\z{WAIT \#100}} 
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{2} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{1}
-\\
-\end{bytefield}
-
-To update the value of the variable \z{base}, we push its
-current value from memory location \z{[0]}, multiply it by 3
-to get the new value, and the pop that result back into 
-memory location \z{[0]} again.\footnote{``Wait a moment,'' you may be asking yourself
-at this point, ``The value of \z{base} is sitting \emph{right there} on the stack,
-why not just execute the single instruction \z{MUL \#3} and accomplish the same
-thing in one step?'' The answer is that you can, in this particular case.  In some sequences,
-though, there may be other variables in the way, so the approach outlined here will
-work in the general case.  If you're hand-compiling your own bytecode, you can make
-optimizations like that.}
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{} 
-  & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{2} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{\z{PUSH [0]}} 
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{y}}
-  & \bitbox{8}{2} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{1}
-\\
-\end{bytefield}
-  
-\begin{bytefield}{32}
-  \bitbox[]{8}{} 
-  & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{6} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{\z{MUL \$,\#3}} 
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{y}}
-  & \bitbox{8}{2} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{1}
-\\
-\end{bytefield}
-  
-\begin{bytefield}{32}
-  \bitbox[]{8}{\z{POP [0]}} 
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{6} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{1}
-\\
-\end{bytefield}
-  
-We then start the next iteration.
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{\z{NEXT L,\#1,\#20}} 
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{6} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{2}
-\\
-\end{bytefield}
-
-\dots\ and so on, until we reach the end of the final iteration:
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{\z{}}
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{34} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
-\\
-\end{bytefield}
-
-(Note that the value in \z{[0]}---the local variable ``\z{base}''---is multiplied
-by 3$\times$ every iteration, so although the value in the 8-bit memory location is
-currently 34, it's overflowed 13~times already.  Remember that you are working with
-only 8-bit values on the Lumos device.)
-
-When the \z{NEXT} instruction is executed, it determines that the loop exit
-condition has been met, and destroys the loop context, does \emph{not} jump to
-the top of the loop, and execution will continue on past the loop now.
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{\z{NEXT 2,\#1,\#20}} 
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{34} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{(empty)}
-\\
-\end{bytefield}
-
-\subsection{Subroutine Calls and Parameter Passing}
-The basic unit of execution is a sequence itself, so when we speak of calling a ``subroutine''
-we really mean one sequence is calling another sequence (or recursively calling itself).
-
-A number of parameters may be passed to the called sequence, which will appear as local
-variables to it.  This is done by pushing their values onto the stack before making the
-call.  Part of the call itself moves the stack frame boundary so that location \z{[0]}
-refers to the first parameter.  The other parameters, if any, follow.  If the called
-sequence sets up local variables, they'll be pushed after the parameters (which means
-it is important that the sequences all agree about how many parameters are being passed
-and received).
-
-To illustrate this, consider the following pair of sequences:
-
-\begin{SourceCode}
-sequence 1:
-  delay=10
-  for i=0 to 255 by 4:
-    for j=20 to 10 by -1:
-      call 5(i,j)
-      wait delay
-    end
-    delay += 10
-  end
-end
- 
-sequence 5(val,ch):
-  foo=0x42
-  dimmer ch, val
-  on ch+20
-  off ch+20
-end
-\end{SourceCode}
-
-This compiles into the following bytecode:
-
-\label{src:2seq}
-\begin{SourceCode}
-SEQUENCE #1 ASSEMBLY LISTING
-ADDR BYTES          LINE SOURCE CODE
----- -------------- ---- -----------------------------
-0000 4F 0A          0002 	PUSH    #10
-0002 2A             0003 I_LOOP: LOOP    #0
-0003 4A 14          0004 J_LOOP:	LOOP    #20
-0005 4F 01          0005 	PUSH    #1
-0007 EF             0006 	PUSH    {$}
-0008 6F             0007 	PUSH    {0}
-0009 48 05 02       0008 	CALL    #5,#2
-000C AF             0009 	PUSH    [0]
-000D 09             0010 	WAIT    $
-000E 75 03 0A       0011 	NEXTDEC J_LOOP,#1,#10
-0011 AF             0012 	PUSH    [0]
-0012 53 0A          0013 	ADD     $,#10
-0014 B0             0014 	POP     [0]
-0015 4B 02 04 FF    0015 	NEXT    I_LOOP,#4,#255
-0019 00             0016 	EXIT
-
-SEQUENCE #5 ASSEMBLY LISTING
-ADDR BYTES          LINE SOURCE CODE
----- -------------- ---- -----------------------------
-0000 40 02          0019 	SSFB    #2
-0002 4F 42          0020 	PUSH    #0x42
-0004 AF             0021 	PUSH    [0]
-0005 CF 01          0022 	PUSH    [1]
-0007 02             0023 	DIMMER  $,$
-0008 CF 01          0024 	PUSH    [1]
-000A 53 14          0025 	ADD     $,#20
-000C 0F             0026 	DUP
-000D 81             0027 	ON      $
-000E 01             0028 	OFF     $
-000F 00             0029 	EXIT
-\end{SourceCode}
-
-We'll step through the execution of these routines to show how the stack frames
-look between calls.
-
-First, sequence~1 starts running, pushes its local variable to the stack, and enters
-its loops:
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{\z{PUSH \#10}} 
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{10} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{(empty)}
-\\
-\end{bytefield}
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{\z{LOOP \#0}} 
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{10} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{0}
-\\
-\end{bytefield}
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{} & \bitbox[]{2}{}
-  & \bitbox[]{8}{} & \bitbox[]{4}{}
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
-\\
-  \bitbox[]{8}{\z{LOOP \#20}} 
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{10} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
-  & \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{0}
-\\
-\end{bytefield}
-
-We push the two parameters onto the stack in the order shown in the source code
-(i.e., the deepest value will be the first parameter).  Since the call is
-``\z{CALL 5(x,y)}'' we need to push the outer loop counter \z{x} (which is 
-at position \z{\{1\}} on the loop stack), then the inner loop counter \z{y}
-(which is at position \z{\{0\}}).
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{1} & \bitbox[]{4}{}
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
-\\
-  \bitbox[]{8}{\z{PUSH \#1}}
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{y}}
-  & \bitbox{8}{10} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
-  & \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{0}
-\\
-\end{bytefield}
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{0} & \bitbox[]{4}{}
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
-\\
-  \bitbox[]{8}{\z{PUSH \{\$\}}}
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{y}}
-  & \bitbox{8}{10} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
-  & \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{0}
-\\
-\end{bytefield}
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[2]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{20} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{y}}
-  & \bitbox{8}{0} & \bitbox[]{4}{}
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
-\\
-  \bitbox[]{8}{\z{PUSH \{0\}}}
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{z}}
-  & \bitbox{8}{10} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
-  & \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{0}
-\\
-\end{bytefield}
-
-Now we make the call.  The first parameter to \z{CALL} is the sequence number
-we're calling, and the second is the number of parameters being passed (2 in this
-case).
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{20} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{y}}
-  & \bitbox{8}{0} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}}
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
-\\
-  \bitbox[]{8}{\z{CALL \#5,\#2}}
-  & \bitbox[]{2}{} & \bitbox[]{2}{}
-  & \colorbitbox{lightgray}{8}{10} & \bitbox[]{4}{} 
-  & \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{0}
-\\
-\end{bytefield}
-
-At this point, control transfers into sequence~5.  Note that the stack frame boundary
-moved up until the frame includes only the top 2 items (the two parameters passed into 
-this sequence).  This means the parameters are directly accessible as \z{[0]}
-and \z{[1]}, and the local variable sequence~5 is about to create will be \z{[2]}.  The
-local variable from the calling sequence (the value 10 on the stack) is not directly
-accessible for now.\footnote{Yes, if you're clever or careless enough, you can destroy
-the integrity of the stack(s) to retrieve or alter the values below \acronym{SFB}, but
-we're not recommending that.}
-
-The first thing sequence~5 does is to ensure the stack frame is as expected.  
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{20} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{y}}
-  & \bitbox{8}{0} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}}
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
-\\
-  \bitbox[]{8}{\z{SSFB \#2}}
-  & \bitbox[]{2}{} & \bitbox[]{2}{}
-  & \colorbitbox{lightgray}{8}{10} & \bitbox[]{4}{} 
-  & \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{0}
-\\
-\end{bytefield}
-
-Next, it will
-push the initial value of the local variable
-\z{foo}, so we can get to it at location \z{[2]}.
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[2]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{0x42} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{y}}
-  & \bitbox{8}{20} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{z}}
-  & \bitbox{8}{0} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}}
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
-\\
-  \bitbox[]{8}{\z{PUSH \#0x42}}
-  & \bitbox[]{2}{} & \bitbox[]{2}{}
-  & \colorbitbox{lightgray}{8}{10} & \bitbox[]{4}{} 
-  & \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{0}
-\\
-\end{bytefield}
-
-Now we set the dimmer value of channel \z{[1]} to level \z{[0]}.
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[3]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{0} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[2]}} & \bitbox[]{2}{\Var{y}}
-  & \bitbox{8}{0x42} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{z}}
-  & \bitbox{8}{20} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{}
-  & \bitbox{8}{0} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}}
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
-\\
-  \bitbox[]{8}{\z{PUSH [0]}}
-  & \bitbox[]{2}{} & \bitbox[]{2}{}
-  & \colorbitbox{lightgray}{8}{10} & \bitbox[]{4}{} 
-  & \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{0}
-\\
-\end{bytefield}
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[4]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{20} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[3]}} & \bitbox[]{2}{\Var{y}}
-  & \bitbox{8}{0} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[2]}} & \bitbox[]{2}{\Var{z}}
-  & \bitbox{8}{0x42} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{}
-  & \bitbox{8}{20} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{}
-  & \bitbox{8}{0} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}}
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
-\\
-  \bitbox[]{8}{\z{PUSH [1]}}
-  & \bitbox[]{2}{} & \bitbox[]{2}{}
-  & \colorbitbox{lightgray}{8}{10} & \bitbox[]{4}{} 
-  & \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{0}
-\\
-\end{bytefield}
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[2]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{0x42} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{y}}
-  & \bitbox{8}{20} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{z}}
-  & \bitbox{8}{0} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}}
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
-\\
-  \bitbox[]{8}{\z{DIMMER \$,\$}}
-  & \bitbox[]{2}{} & \bitbox[]{2}{}
-  & \colorbitbox{lightgray}{8}{10} & \bitbox[]{4}{} 
-  & \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{0}
-\\
-\end{bytefield}
-
-Now we calculate the value of \z{[1]}+20 which will 
-be used for both the \z{ON} and \z{OFF} commands.
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[3]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{0} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[2]}} & \bitbox[]{2}{\Var{y}}
-  & \bitbox{8}{0x42} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{z}}
-  & \bitbox{8}{20} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{}
-  & \bitbox{8}{0} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}}
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
-\\
-  \bitbox[]{8}{\z{PUSH [1]}}
-  & \bitbox[]{2}{} & \bitbox[]{2}{}
-  & \colorbitbox{lightgray}{8}{10} & \bitbox[]{4}{} 
-  & \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{0}
-\\
-\end{bytefield}
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[3]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{20} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[2]}} & \bitbox[]{2}{\Var{y}}
-  & \bitbox{8}{0x42} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{z}}
-  & \bitbox{8}{20} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{}
-  & \bitbox{8}{0} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}}
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
-\\
-  \bitbox[]{8}{\z{ADD \#20}}
-  & \bitbox[]{2}{} & \bitbox[]{2}{}
-  & \colorbitbox{lightgray}{8}{10} & \bitbox[]{4}{} 
-  & \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{0}
-\\
-\end{bytefield}
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[4]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{20} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[3]}} & \bitbox[]{2}{\Var{y}}
-  & \bitbox{8}{20} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[2]}} & \bitbox[]{2}{\Var{z}}
-  & \bitbox{8}{0x42} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{}
-  & \bitbox{8}{20} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{}
-  & \bitbox{8}{0} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}}
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
-\\
-  \bitbox[]{8}{\z{DUP}}
-  & \bitbox[]{2}{} & \bitbox[]{2}{}
-  & \colorbitbox{lightgray}{8}{10} & \bitbox[]{4}{} 
-  & \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{0}
-\\
-\end{bytefield}
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[3]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{20} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[2]}} & \bitbox[]{2}{\Var{y}}
-  & \bitbox{8}{0x42} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{z}}
-  & \bitbox{8}{20} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{}
-  & \bitbox{8}{0} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}}
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
-\\
-  \bitbox[]{8}{\z{ON \$}}
-  & \bitbox[]{2}{} & \bitbox[]{2}{}
-  & \colorbitbox{lightgray}{8}{10} & \bitbox[]{4}{} 
-  & \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{0}
-\\
-\end{bytefield}
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[2]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{0x42} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{y}}
-  & \bitbox{8}{20} & \bitbox[]{4}{}
-  & \bitbox[]{2}{} & \bitbox[]{8}{}
-\\
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{z}}
-  & \bitbox{8}{0} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}}
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
-\\
-  \bitbox[]{8}{\z{OFF \$}}
-  & \bitbox[]{2}{} & \bitbox[]{2}{}
-  & \colorbitbox{lightgray}{8}{10} & \bitbox[]{4}{} 
-  & \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{0}
-\\
-\end{bytefield}
-
-Now sequence~5 is done.  As it exits, the calling sequence resumes
-where it left off, and the stack frame is destroyed, restoring the
-\acronym{SFB} to its previous location.
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{} & \bitbox[]{2}{}
-  & \bitbox[]{8}{} & \bitbox[]{4}{}
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
-\\
-  \bitbox[]{8}{\z{EXIT}}
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{10} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
-  & \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{0}
-\\
-\end{bytefield}
-
-Execution of sequence~1 continues\dots.
-
-\begin{bytefield}{32}
-  \bitbox[]{8}{}
-  & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{x}}
-  & \bitbox{8}{10} & \bitbox[]{4}{}
-  & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
-\\
-  \bitbox[]{8}{\z{PUSH [0]}}
-  & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{y}}
-  & \bitbox{8}{10} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
-  & \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{0}
-\\
-\end{bytefield}
-\subsection{Instruction Set}
-\newenvironment{opdesc}{\medskip\noindent\begin{tabular}{lll|ll|l}
-  \multicolumn{3}{l|}{Bytes} & \multicolumn{2}{l|}{Instruction} & Description\\\hline}{\end{tabular}}
-\subsubsection{\z{ADD/INCR}: Add Two Numbers}
-Adds the top two numbers on the stack (or the top number and another value), 
-and pushes their sum back onto the 
-stack.  Note that both operands, and the sum, are unsigned 8-bit values (0--255).
-If the result exceeded this range, the result will be inaccurate (it will be the least
-significant 8 bits of the value) and the overflow flag will be raised which you can test
-using conditional branch instructions such as \z{IFANY}.
-
-As a special case, the operation of adding 1 to a value is named \z{INCR} to reflect that it
-is simply incrementing that value by one.
-
-\begin{opdesc}
-  \z{13} &            &&\z{ADD}&\z{\$,\$}& \Var{y} $+$ \Var{x} $\rightarrow$ \Var{x}.\\
-  \z{53} & \Var*{v}   &&\z{ADD}&\z{\$,\#}\Var*{v}& \Var{x} $+$ \Var*{v} $\rightarrow$ \Var{x}.\\
-  \z{33} &            &&\z{INCR}&\z{\$}& \Var{x} $+$ 1 $\rightarrow$ \Var{x}.\\
-\end{opdesc}
-
-\subsubsection{\z{BLACKOUT}: Turn Off All Channels at Once}
-All channels are immediately turned off, or in the case of \z{FADEOUT}, all channels are smoothly
-faded down to off.
-
-\begin{opdesc}
-  \z{0D} &&&\z{BLACKOUT}&&Turn off all channels.\\
-  \z{8D} &&&\z{FADEOUT}&&Fade all channels to zero.\\
-\end{opdesc}
-
-\subsubsection{\z{BREAK}: Escape From Loop}
-This is a special form of \z{JUMP} which is designed to branch out of a loop body.
-In addition to jumping to the destination address, it destroys one or more loop contexts.  You must
-ensure that the correct number of loops is specified when using \z{BREAK} to escape out
-of one or more loop bodies.
-
-\begin{opdesc}
-  \z{83} & \Var*{addr} &&\z{BREAK}&\Var*{addr}\z{,\$} &  break out of \Var{x} loops\\
-  \z{A3} & \Var*{addr} &&\z{BREAK}&\Var*{addr}        & break out of innermost loop\\
-  \z{C3} & \Var*{addr} & \Var*{n} & \z{BREAK}&\Var*{addr}\z{,\#}\Var*{n} & break out of \Var*{n} loops\\
-\end{opdesc}
-
-\subsubsection{\z{CALL}: Invoke Sequence as a Subroutine}
-Begins excuting a new sequence, possibly with parameters passed into it.
-When that sequence completes, the current one will resume where it left off.
-
-\begin{opdesc}
-  \z{08} &            &           &\z{CALL}&\z{\$,\$} & Call \Var{x} with \Var{y} params.\\
-  \z{28} &            &           &\z{CALL}&\z{\$}    & Call \Var{x} with no params.\\
-  \z{48} & \Var*{seq} & \Var*{np} &\z{CALL}&\z{\#}\Var*{seq}\z{,\#}\Var*{np} & Call \Var*{seq} with \Var*{np} params.\\
-  \z{68} & \Var*{seq} &           &\z{CALL}&\z{\#}\Var*{seq} & Call \Var*{seq} with no params.\\
-\end{opdesc}
-
-
-\subsubsection{\z{DIMMER}: Set a Channel Dimmer To a Value}
-The specified channel \Var*{ch} is set to dimmer level \Var*{lvl} (0--255).
-
-\begin{opdesc}
-  \z{02} &            &           &\z{DIMMER}&\z{\$,\$} & Set channel \Var{x} to level \Var{y}.\\
-  \z{42} & \Var*{ch} & \Var*{lvl} &\z{DIMMER}&\z\#\Var*{ch}\z{,\#}\Var*{lvl} & Set \Var*{ch} to \Var*{lvl}.\\
-\end{opdesc}
-
-\subsubsection{\z{EXCH}: Exchange Data Stack Values}
-Swaps the top two values on the data stack (\Var{x} $\leftrightarrow$ \Var{y}).
-
-\begin{opdesc}
-  \z{11} &            &           &\z{EXCH}&& Swap \Var{x} and \Var{y}.\\
-\end{opdesc}
-
-\subsubsection{\z{EXEC}: Start New Sequence}
-Begins excuting a new sequence, possibly with parameters passed into it.
-This sequence replaces the current one.  When the called sequence \Var*{seq} exits,
-execution returns to the caller of the current sequence (if any).
-
-\begin{opdesc}
-  \z{88} &            &           &\z{EXEC}&\z{\$,\$} & Run \Var{x} with \Var{y} params.\\
-  \z{A8} &            &           &\z{EXEC}&\z{\$}    & Run \Var{x} with no params.\\
-  \z{C8} & \Var*{seq} & \Var*{np} &\z{EXEC}&\z{\#}\Var*{seq}\z{,\#}\Var*{np} & Run \Var*{seq} with \Var*{np} params.\\
-  \z{E8} & \Var*{seq} &           &\z{EXEC}&\z{\#}\Var*{seq} & Run \Var*{seq} with no params.\\
-\end{opdesc}
-
-\subsubsection{\z{EXIT}: Stop Execution of a Sequence}
-The current sequence is terminated.  This will return to the previous sequence context
-(resuming the previous sequence if we arrived here from a \z{CALL} instruction).  If this
-was the outermost executing sequence, then no sequence will be running anymore.
-
-\begin{opdesc}
-  \z{00} &&&\z{EXIT}&& Terminate sequence.
-\end{opdesc}
-
-\subsubsection{\z{FADE}: Fade a Channel Down to Off}
-Incrementally decrease the dimmer level of channel \Var*{ch} by subtracting \Var*{step}, with a delay
-of \Var*{t}/120\,sec between each step, until it reaches the minimum level of 0.
-
-\begin{opdesc}
-  \z{04} &&&\z{FADE}&\z{\$,\$,\$}& Fade \Var{x} by \Var{y} per \Var{z}.\\
-  \z{44} &\multicolumn{2}{l|}{\Var*{ch} \Var*{step} \Var*{t}}&\z{FADE}&\z\#\Var*{ch}\z{,\#}\Var*{step}\z{,\#}\Var*{t}& Fade \Var*{ch} by \Var*{step} per \Var*{t}.\\
-\end{opdesc}
-
-\subsubsection{\z{IF*}: Conditional Jumps}
-The \z{JUMP} instruction always transfers control to the specified address.  The following
-alternatives evaluate some condition, and if that condition is currently true, transfers
-the flow of the sequence execution to the specified address \Var*{addr}.
-
-Most of these compare two values for equality or inequality:
-
-\begin{opdesc}
-  \z{0C00} & \Var*{addr} &&\z{IFEQ}&\Var*{addr}\z{,\$,\$}& Jump to \Var*{addr} if \Var{y} $=$ \Var{x}.\\
-  \z{4C00} & \Var*{addr} &\Var*{v}&\z{IFEQ}&\Var*{addr}\z{,\$,\#}\Var*{v}& Jump to \Var*{addr} if \Var{x} $=$ \Var*{v}.\\
-  \z{0C40} & \Var*{addr} &&\z{IFLT}&\Var*{addr}\z{,\$,\$}& Jump to \Var*{addr} if \Var{y} $<$ \Var{x}.\\
-  \z{4C40} & \Var*{addr} &\Var*{v}&\z{IFLT}&\Var*{addr}\z{,\$,\#}\Var*{v}& Jump to \Var*{addr} if \Var{x} $<$ \Var*{v}.\\
-  \z{0C80} & \Var*{addr} &&\z{IFGT}&\Var*{addr}\z{,\$,\$}& Jump to \Var*{addr} if \Var{y} $>$ \Var{x}.\\
-  \z{4C80} & \Var*{addr} &\Var*{v}&\z{IFGT}&\Var*{addr}\z{,\$,\#}\Var*{v}& Jump to \Var*{addr} if \Var{x} $>$ \Var*{v}.\\
-  \z{8C00} & \Var*{addr} &&\z{IFNE}&\Var*{addr}\z{,\$,\$}& Jump to \Var*{addr} if \Var{y} $\ne$ \Var{x}.\\
-  \z{CC00} & \Var*{addr} &\Var*{v}&\z{IFNE}&\Var*{addr}\z{,\$,\#}\Var*{v}& Jump to \Var*{addr} if \Var{x} $\ne$ \Var*{v}.\\
-  \z{8C40} & \Var*{addr} &&\z{IFGE}&\Var*{addr}\z{,\$,\$}& Jump to \Var*{addr} if \Var{y} $\ge$ \Var{x}.\\
-  \z{CC40} & \Var*{addr} &\Var*{v}&\z{IFGE}&\Var*{addr}\z{,\$,\#}\Var*{v}& Jump to \Var*{addr} if \Var{x} $\ge$ \Var*{v}.\\
-  \z{8C80} & \Var*{addr} &&\z{IFLE}&\Var*{addr}\z{,\$,\$}& Jump to \Var*{addr} if \Var{y} $\le$ \Var{x}.\\
-  \z{CC80} & \Var*{addr} &\Var*{v}&\z{IFLE}&\Var*{addr}\z{,\$,\#}\Var*{v}& Jump to \Var*{addr} if \Var{x} $\le$ \Var*{v}.\\
-\end{opdesc}
-
-The following forms test the status of a number of boolean flags in the system:
-
-\begin{opdesc}
-  \z{0CC}\Var{q} & \Var*{addr} &&\z{IFANY}&\Var*{addr}\z{,}\Var*{flags}& Jump to \Var*{addr} if any of \Var*{flags} true.\\
-  \z{4CC}\Var{q} & \Var*{addr} &&\z{IFALL}&\Var*{addr}\z{,}\Var*{flags}& Jump to \Var*{addr} if all of \Var*{flags} true.\\
-  \z{8CC}\Var{q} & \Var*{addr} &&\z{IFNONE}&\Var*{addr}\z{,}\Var*{flags}& Jump to \Var*{addr} if none of \Var*{flags} true.\\
-  \z{CCC}\Var{q} & \Var*{addr} &&\z{IFNALL}&\Var*{addr}\z{,}\Var*{flags}& Jump to \Var*{addr} if not all of \Var*{flags} true.\\
-\end{opdesc}
-
-\medskip
-
-In other words, these correspond to the combination of the specified bits using logical 
-\acronym{OR}, \acronym{AND}, \acronym{NOR}, and \acronym{NAND} operations, respectively.
-
-The actual flag bits are specified by \acronym{OR}-ing together the following bits to get
-the final opcode value (second byte).  Flags not
-included will not be part of the test.
-
-\medskip\noindent\begin{tabular}{l|l|l}
-Bits & Flag Name & Description \\\hline
-\z{0020} & \z{Z} & Last \z{ADD}/\z{MUL}/\z{NEXT}/\z{SUB} result was zero.\\
-\z{0010} & \z{V} & Last \z{ADD}/\z{MUL}/\z{NEXT}/\z{SUB} result overflowed.\\
-\z{0008} & \z{A} & Sensor A input is low (0\,V).\\
-\z{0004} & \z{B} & Sensor B input is low (0\,V).\\
-\z{0002} & \z{C} & Sensor C input is low (0\,V).\\
-\z{0001} & \z{D} & Sensor D input is low (0\,V).\\
-\end{tabular}
-
-\medskip
-
-Watch for the fact that the sensors are ``true'' if they are at ground potential, regardless of
-whether any triggers configured for them are set to activate when the sensor reads high or low.
-\subsubsection{\z{JUMP}: Go to New Address}
-Jump to the specified \Var*{address}.
-
-\begin{opdesc}
-  \z{03} &\Var*{addr}&&\z{JUMP}&\Var*{addr}\z{,\$}& Jump to \Var*{addr}+\Var{x}\\
-  \z{23} &\Var*{addr}&&\z{JUMP}&\Var*{addr}       & Jump to \Var*{addr}\\
-  \z{43} &\Var*{addr}&\Var*{offset}&\z{JUMP}&\Var*{addr}\z{,\#}\Var*{offset}& Jump to \Var*{addr}+\Var*{offset}\\
-\end{opdesc}
-
-\subsubsection{\z{LOOP}: Start New Loop Context}
-Begins a new loop context, initializing the loop counter to a specified value.  This pushes the value
-onto the loop stack.  This will henceforth be accessible as ``\z{\{0\}}'' for instructions which can
-see loop counters, and the previous \z{\{0\}} is now \z{\{1\}} (i.e., \z{\{0\}} always refers to the innermost loop, \z{\{1\}} is the next level of loop context counting outward, etc.).
-
-This loop context is destroyed (and the counter popped off the loop stack) by a corresponding
-\z{BREAK}, \z{NEXT}, or \z{NEXTDEC}.
-
-\begin{opdesc}
-  \z{0A} &            &&\z{LOOP}&\z{\$} & Start loop with initial value \Var{x}.\\
-  \z{2A} &            &&\z{LOOP}&\z{\#0}& Start loop with initial value 0.\\
-  \z{4A} & \Var*{n}   &&\z{LOOP}&\z{\#}\Var*{n} & Start loop with initial value \Var*{n}.\\
-  \z{AA} &            &&\z{LOOP}&\z{\#1}& Start loop with initial value 1.\\
-\end{opdesc}
-
-\subsubsection{\z{MUL}: Multiply Two Numbers}
-Multiplies the top two numbers on the stack (or the top number and another value), 
-and pushes their product back onto the 
-stack.  Note that both operands, and the product, are unsigned 8-bit values (0--255).
-If the result exceeded this range, the result will be inaccurate (it will be the least
-significant 8 bits of the value) and the overflow flag will be raised which you can test
-using conditional branch instructions such as \z{IFANY}.
-
-\begin{opdesc}
-  \z{12} &            &&\z{MUL}&\z{\$,\$}& \Var{y} $\times$ \Var{x} $\rightarrow$ \Var{x}.\\
-  \z{52} & \Var*{v}   &&\z{MUL}&\z{\$,\#}\Var*{v}& \Var{x} $\times$ \Var*{v} $\rightarrow$ \Var{x}.\\
-\end{opdesc}
-
-\subsubsection{\z{NEXT}: End Loop Body (Start Next Iteration)}
-This instruction (including a few variant forms as described below) marks the end of the loop
-body began with a \z{LOOP} instruction.  It specifies an increment or decrement value to be
-applied to the innermost loop counter, and a maximum value (or minimum, if decrementing).
-If the loop counter is greater than the maximum or less than the minimum after updating it,
-the loop context is destroyed and execution continues with the following instruction.
-Otherwise, execution jumps to the address specified in the \z{NEXT} instruction, which should
-be the address of the first instruction after the matching \z{LOOP} (although it need not be,
-if you want some initialization code to take place at the start of the first iteration which
-is not repeated on subsequent iterations).
-
-\begin{opdesc}
-  \z{0B} & \Var*{addr}&&\z{NEXT}&\Var*{addr}\z{,\$,\$} & Loop to \Var*{addr} if \z{\{0\}}+=\Var{x}$\le$\Var{y}.\\
-  \z{2B} & \Var*{addr}&&\z{NEXT}&\Var*{addr}\z{,\#1,\$}& Loop to \Var*{addr} if \z{\{0\}}+=1$\le$\Var{x}.\\
-  \z{4B} & \Var*{addr}& \Var*{inc} \Var*{max}&\z{NEXT}&\Var*{addr}\z{,\#}\Var*{inc}\z{,\#}\Var*{max}& Loop to \Var*{addr} if \z{\{0\}}+=\Var*{inc}$\le$\Var*{max}.\\
-  \z{6B} & \Var*{addr}&\Var*{max}&\z{NEXT}&\Var*{addr}\z{,\#1,\#}\Var*{max}& Loop to \Var*{addr} if \z{\{0\}}+=1$\le$\Var*{max}.\\
-  \z{15} & \Var*{addr}&&\z{NEXTDEC}&\Var*{addr}\z{,\$,\$} & Loop to \Var*{addr} if \z{\{0\}}--=\Var{x}$\ge$\Var{y}.\\
-  \z{35} & \Var*{addr}&&\z{NEXTDEC}&\Var*{addr}\z{,\#1,\$}& Loop to \Var*{addr} if \z{\{0\}}--=1$\ge$\Var{x}.\\
-  \z{55} & \Var*{addr}& \Var*{dec} \Var*{min}&\z{NEXTDEC}&\Var*{addr}\z{,\#}\Var*{dec}\z{,\#}\Var*{min}& Loop to \Var*{addr} if \z{\{0\}}--=\Var*{dec}$\ge$\Var*{min}.\\
-  \z{75} & \Var*{addr}&\Var*{min}&\z{NEXTDEC}&\Var*{addr}\z{,\#1,\#}\Var*{min}& Loop to \Var*{addr} if \z{\{0\}}--=1$\ge$\Var*{min}.\\
-  \z{8B} & \Var*{addr}&&\z{NEXTINF}&\Var*{addr}\z{,\$} & $\infty$ loop to \Var*{addr}, \z{\{0\}}+=\Var{x}.\\
-  \z{AB} & \Var*{addr}&&\z{NEXTINF}&\Var*{addr}\z{,\#1}& $\infty$ loop to \Var*{addr}, \z{\{0\}}+=1.\\
-  \z{CB} & \Var*{addr}&\Var*{inc}&\z{NEXTINF}&\Var*{addr}\z{,\#}\Var*{inc}& $\infty$ loop to \Var*{addr}, \z{\{0\}}+=\Var*{inc}.\\
-  \z{95} & \Var*{addr}&&\z{NXDCINF}&\Var*{addr}\z{,\$} & $\infty$ loop to \Var*{addr}, \z{\{0\}}--=\Var{x}.\\
-  \z{B5} & \Var*{addr}&&\z{NXDCINF}&\Var*{addr}\z{,\#1}& $\infty$ loop to \Var*{addr}, \z{\{0\}}--=1.\\
-  \z{D5} & \Var*{addr}&\Var*{dec}&\z{NXDCINF}&\Var*{addr}\z{,\#}\Var*{dec}& $\infty$ loop to \Var*{addr}, \z{\{0\}}--=\Var*{dec}.\\
-\end{opdesc}
-
-\subsubsection{\z{NOP}: No Operation}
-When this instruction is executed, nothing happens.
-
-\begin{opdesc}
-  \z{0E}&&&\z{NOP}&&No operation.\\
-\end{opdesc}
-
-\subsubsection{\z{OFF}: Turn a Channel Off}
-The specified channel is turned fully off.
-
-\begin{opdesc}
-  \z{01} &           &&\z{OFF}&\z{\$}& Turn off channel \Var{x}.\\
-  \z{41} &\Var*{chan}&&\z{OFF}&\z\#\Var*{chan}& Turn off \Var*{chan}.\\
-\end{opdesc}
-
-\subsubsection{\z{ON}: Turn a Channel On}
-The specified channel is turned fully on.
-
-\begin{opdesc}
-  \z{81} &           &&\z{ON}&\z{\$}& Turn on channel \Var{x}.\\
-  \z{C1} &\Var*{chan}&&\z{ON}&\z\#\Var*{chan}& Turn on \Var*{chan}.\\
-\end{opdesc}
-
-\subsubsection{\z{DROP/POP}: Remove a Value From the Stack}
-The \z{DROP} instructions remove values from the stack and discard them. 
-The \z{POP} instructions remove values and store them elsewhere in memory
-(loop counters and direct memory locations).
-
-For example, \z{DROP \$} pops the top value off the data stack (\Var{x}),
-and then pops \Var{x} more values off and discards them.
-
-\z{POP [\$]} removes the top value \Var{x}, which is used as the address
-within memory (i.e., \z{[}\Var{x}\z{]}) into which to store the next value
-\Var{y} on the stack.  This will remove both values from the stack.
-
-\begin{opdesc}
-  \z{10}&&&\z{DROP}&\z{\$}&Drop \Var{x} values, plus \Var{x} itself.\\
-  \z{30}&&&\z{DROP}&&Drop the top value (\Var{x}).\\
-  \z{50}&\Var*{n}&&\z{DROP}&\z{\#}\Var*{n}&Drop the top \Var*{n} values.\\
-  \z{70}&&&\z{POP}&\z{\{0\}}&Store \Var{x} into loop counter \z{\{0\}}.\\
-  \z{90}&&&\z{POP}&\z{[\$]}&Store \Var{y} into memory address in \Var{x}.\\
-  \z{B0}&&&\z{POP}&\z{[0]}&Store \Var{x} into memory address 0.\\
-  \z{D0}&\Var*{a}&&\z{POP}&\z{[}\Var*{a}\z{]}&Store \Var{x} into address \Var*{a}.\\
-  \z{F0}&&&\z{POP}&\z{\{\$\}}&Store \Var{y} into loop counter for level \Var{x}.\\
-\end{opdesc}
-
-\subsubsection{\z{PUSH/DUP}: Push a Value Onto the Stack}
-Adds a value to the data stack from various sources.  As a special case, \z{DUP} duplicates
-the top value on the stack (i.e., pushes another copy of the top value).
-
-The values pushed onto the data stack are consumed by most other commands, or removed from
-the stack by \z{DROP} and \z{POP} instructions.
-
-\begin{opdesc}
-  \z{0F}&&&\z{DUP}&&Duplicate \Var{x}.\\
-  \z{2F}&&&\z{PUSH}&\z{\#0}&Push a 0 constant value.\\
-  \z{4F}&\Var*{v}&&\z{PUSH}&\z{\#}\Var*{v}&Push value \Var*{v}.\\
-  \z{6F}&&&\z{PUSH}&\z{\{0\}}&Push loop counter \z{\{0\}}.\\
-  \z{8F}&&&\z{PUSH}&\z{[\$]}&Push contents of address in \Var{x}.\\
-  \z{AF}&&&\z{PUSH}&\z{[0]}&Push contents of address 0.\\
-  \z{CF}&\Var*{a}&&\z{PUSH}&\z{[}\Var*{a}\z{]}&Push contents of address \Var*{a}.\\
-  \z{EF}&&&\z{PUSH}&\z{\{\$\}}&Push loop counter for level \Var{x}.\\
-\end{opdesc}
-
-\subsubsection{\z{RAMP}: Fade a Channel Up to Full Brightness}
-Incrementally increase the dimmer level of channel \Var*{ch} in increments of \Var*{step}, with a delay
-of \Var*{t}/120\,sec between each step, until it reaches the maximum level of 255.
-
-\begin{opdesc}
-  \z{84} &&&\z{RAMP}&\z{\$,\$,\$}& Ramp \Var{x} by \Var{y} per \Var{z}.\\
-  \z{C4} &\multicolumn{2}{l|}{\Var*{ch} \Var*{step} \Var*{t}}&\z{RAMP}&\z\#\Var*{ch}\z{,\#}\Var*{step}\z{,\#}\Var*{t}& Ramp \Var*{ch} by \Var*{step} per \Var*{t}.\\
-\end{opdesc}
-
-\subsubsection{\z{RESUME}: Resume From \z{SUSPEND}}
-Resume acting on incoming instructions from the host PC.
-If the \z{RESFADE} version is used, all channels are smoothly faded to
-black then faded up to their last-known intended values (either the levels
-they had when \z{SUSPEND} was invoked, or the result of the subsequent
-PC commands if \z{SUSPUPD} was used).
-
-\begin{opdesc}
-  \z{06} &&&\z{RESUME}&& Resume command interpretation.\\
-  \z{86} &&&\z{RESFADE}&& Fade through black and resume.
-\end{opdesc}
-
-\subsubsection{\z{SLEEP}: Shut Down Load Power}
-Tell the load power supply it can shut down.  Requires a properly-configured
-compatible power supply.
-
-\begin{opdesc}
-  \z{07} &&&\z{SLEEP}&& Turn off load power supply.
-\end{opdesc}
-
-\subsubsection{\z{SSFB}: Set Stack Frame Boundary}
-The first instruction of a sequence which expects parameters to be passed into it
-should be \z{SSFB} with the number of parameters expected (\Var*{np}).  This will reserve enough
-space on the stack and initialze it with zero values.
-
-Ideally, if another sequence called this one, it will have already pushed parameters
-and moved the stack frame boundary (\acronym{SFB}) so that those parameters are the only
-items in the current stack frame.  When the called sequence executes \z{SSFB}, if this
-is the case, and the number of values in the stack frame equals \Var*{np},
-nothing further is done.  If the number of values is less than \Var*{np}, additional zero bytes
-will be pushed onto the stack to make the stack have exactly \Var*{np} values from \acronym{SFB}
-upward.  If the number of values in the stack frame exceeds \Var*{np}, a fatal error is flagged
-and the sequence terminates immediately.  (This latter condition means that too many values
-are there, which will cause the sequence to confuse them with where it expects its own
-local variables to be addressed within the stack frame).
-
-\begin{opdesc}
-  \z{40} & \Var*{np}&&\z{SSFB}&\z{\#}\Var*{np}& Ensure stack frame has \Var*{np} values.\\
-\end{opdesc}
-
-\subsubsection{\z{SUB/DECR}: Subtract Two Numbers}
-Subtracts the top value on the stack from the next value (or another value from the top value),
-and pushes their difference back onto the 
-stack.  Note that both operands, and the result, are unsigned 8-bit values (0--255).
-If the result exceeded this range (including by dropping below zero), 
-the result will be inaccurate (it will be the least
-significant 8 bits of the value) and the overflow flag will be raised which you can test
-using conditional branch instructions such as \z{IFANY}.
-
-As a special case, the operation of subtracting 1 from a value is named \z{DECR} to reflect that it
-is simply decrementing that value by one.
-
-\begin{opdesc}
-  \z{14} &            &&\z{SUB}&\z{\$,\$}& \Var{y} $-$ \Var{x} $\rightarrow$ \Var{x}.\\
-  \z{54} & \Var*{v}   &&\z{SUB}&\z{\$,\#}\Var*{v}& \Var{x} $-$ \Var*{v} $\rightarrow$ \Var{x}.\\
-  \z{34} &            &&\z{DECR}&\z{\$}& \Var{x} $-$ 1 $\rightarrow$ \Var{x}.\\
-\end{opdesc}
-
-
-\subsubsection{\z{SUSPEND}: Stop Accepting Commands}
-Stop acting on incoming instructions from the host PC until a \z{RESUME} instruction is executed.
-If the \z{SUSPEND UPDATE} version is used, the effects of the commands are still remembered but
-channel outputs are not actually affected.
-
-\begin{opdesc}
-  \z{05} &&&\z{SUSPEND}&& Suspend command interpretation.\\
-  \z{85} &&&\z{SUSPUPD}&& Suspend tracking updates.
-\end{opdesc}
-
-\subsubsection{\z{WAIT}: Delay}
-Pauses execution for \Var*{time}/120 seconds.
-
-\begin{opdesc}
-  \z{09} &&&\z{WAIT}&\z{\$}& Wait \Var{x}/120\,s.\\
-  \z{49} &\Var*{time}&&\z{WAIT}&\z{\#}\Var*{time}& Wait \Var*{time}/120\,s.\\
-\end{opdesc}
-
-\subsubsection{\z{WAKE}: Turn On Load Power}
-Tell the load power supply it can start up.  Requires a properly-configured
-compatible power supply.
-
-\begin{opdesc}
-  \z{87} &&&\z{WAKE}&& Turn on load power supply.
-\end{opdesc}
-
-
-
-\begin{table}
-  \begin{center}
-    \begin{tabular}{llll|llll}
-	Opcode & Args & Mode & Instruction & 		Opcode & Args & Mode & Instruction\\
-	\z{00} &      & inh  & exit   			\\
-	\z{01} &      & stk  & off \$ 			& \z{81} &      & stk  & on \$ \\
-	\z{02} &      & stk  & dimmer \$,\$ 		\\
-	\z{03} & a    & stk  & jump a,\$		& \z{83} & a    & stk  & break a,\$ \\
-	\z{04} &      & stk  & fade \$,\$,\$		& \z{84} &      & stk  & ramp \$,\$,\$\\
-	\z{05} &      & inh  & suspend			& \z{85} &      & inh  & suspupd\\
-	\z{06} &      & inh  & resume			& \z{86} &      & inh  & resfade\\
-	\z{07} &      & inh  & sleep			& \z{87} &      & inh  & wake\\
-	\z{08} &      & stk  & call \$,\$		& \z{88} &      & stk  & exec \$,\$\\
-	\z{09} &      & stk  & wait \$ 			\\
-	\z{0A} &      & stk  & loop \$			\\
-	\z{0B} & a    & stk  & next a,\$,\$		& \z{8B} & a    & stk  & nextinf a,\$\\
-%	\z{0C} &      &      & see conditionals		& \z{8C} &      &      & see conditionals\\
-	\z{0D} &      & inh  & blackout                 & \z{8D} &      & inh  & fadeout\\
-	\z{0E} &      & inh  & nop 			\\
-	\z{0F} &      & inh  & dup         		& \z{8F} &      & i/s  & push [\$]\\
-	\z{10} &      & inh  & drop \$ 			& \z{90} &      & i/s  & pop [\$]\\
-	\z{11} &      & stk  & exch 			\\
-	\z{12} &      & stk  & mul \$,\$		\\
-	\z{13} &      & stk  & add \$,\$		\\
-	\z{14} &      & stk  & sub \$,\$		\\
-	\z{15} & a    & stk  & nextdec a,\$,\$		& \z{95} & a    & stk  & nxdcinf a,\$\\
-	%\z{21} &      & def  & exch 			\\
-	\z{23} & a    & def  & jump a			& \z{A3} & a    & def  & break a\\
-	\z{28} &      & d/s  & call \$			& \z{A8} & i    & d/s  & exec \$\\
-	\z{2A} &      & def  & loop \#0			& \z{AA} &      & def  & loop \#1\\
-	\z{2B} & a    & d/s  & next a,\#1,\$		& \z{AB} & a    & d/s  & nextinf a,\#1\\
-%	\z{2C} &      &      & see conditionals		& \z{AC} &      &      & see conditionals\\
-	\z{2F} &      & def  & push \#0    		& \z{AF} &      & i/d  & push [0]\\
-	\z{30} &      & def  & drop			& \z{B0} &      & i/d  & pop [0]\\
-	\z{33} &      & def  & incr \$ 			\\
-	\z{34} &      & def  & decr \$ 	 		\\
-	\z{35} & a    & d/s  & nextdec a,\#1,\$		& \z{B5} & a    & d/s  & nxdcinf a,\#1\\
-	\z{40} & n    & imm  & ssfb \#n 		\\
-	\z{41} & c    & imm  & off \#c			& \z{C1} & c    & imm  & on  \#c \\
-	\z{42} & c v  & imm  & dimmer \#c,\#v 		\\
-	\z{43} & a o  & imm  & jump a,\#o		& \z{C3} & a n  & imm  & break a,\#n\\
-	\z{44} & c s t& imm  & fade \#c,\#s,\#t		& \z{C4} & c s t& imm  & ramp \#c,\#s,\#t\\
-	\z{48} & i n  & imm  & call \#i,\#n		& \z{C8} & i n  & imm  & exec \#i,\#n\\
-	\z{49} & t    & imm  & wait \#t 		\\
-	\z{4A} & v    & imm  & loop \#v			\\
-	\z{4B} & a i x& imm  & next a,\#i,\#x		& \z{CB} & a i  & imm  & nextinf a,\#i\\
-%	\z{4C} &      &      & see conditionals		& \z{CC} &      &      & see conditionals\\
-	\z{4F} & v    & imm  & push \#v    		& \z{CF} & a    & ind  & push [a]\\
-	\z{50} & n    & imm  & drop \#n  		& \z{D0} & a    & ind  & pop [a]\\
-	%\z{51} & n    & imm  & exch \#n		\\
-	\z{52} & x    & imm  & mul \$,\#x		\\
-	\z{53} & x    & imm  & add \$,\#x		\\
-	\z{54} & x    & imm  & sub \$,\#x		\\
-	\z{55} & a i x& imm  & nextdec a,\#i,\#x 	& \z{D5} & a i  & imm  & nxdcinf a,\#i\\
-	\z{68} & i    & i/d  & call \#i			& \z{E8} & i    & i/d  & fexec \#i\\
-	\z{6B} & a x  & i/d  & next a,\#1,\#x		\\%& \z{EB} & a    & i/d  & nextinf a,\#1\\
-%	\z{6C} &      &      & see conditionals		& \z{EC} &      &      & see conditionals\\
-	\z{6F} &      & d/l  & push \{0\}    		& \z{EF} &      & s/l  & push \{\$\}\\
-	\z{70} &      & d/l  & pop \{0\}    		& \z{F0} &      & s/l  & pop \{\$\}\\
-	\z{75} & a x  & i/d  & nextdec a,\#1,\#x	\\%& \z{F5} & a    & i/d  & nxdcinf a,\#1\\
-    \end{tabular}
-  \end{center}
-  \caption{Summary of Sequence Instructions by Opcode Value\label{tbl:opcodes}}
-\end{table}
-
-
-\begin{table}
-  \begin{center}
-    \begin{tabular}{llll|llll}
-	Opcode & Args & Mode & Instruction & 		Opcode & Args & Mode & Instruction\\
-	\z{0C00}&a    & stk  & ifeq a,\$		& \z{8C00}&a    & stk  & ifne a,\$\\
-	\z{0C40}&a    & stk  & iflt a,\$		& \z{8C40}&a    & stk  & ifge a,\$\\
-	\z{0C80}&a    & stk  & ifgt a,\$		& \z{8C80}&a    & stk  & ifle a,\$\\
-	\z{0CCx}&a    & inh  & ifany a,f		& \z{8CCx}&a    & inh  & ifnone a,f\\   % or nor
-	\z{4C00}&a x  & imm  & ifeq a,\#x		& \z{CC00}&a x  & imm  & ifne a,\#x\\
-	\z{4C40}&a x  & imm  & iflt a,\#x		& \z{CC40}&a x  & imm  & ifge a,\#x\\
-	\z{4C80}&a x  & imm  & ifgt a,\#x		& \z{CC80}&a x  & imm  & ifle a,\#x\\
-	\z{4CCx}&a    & inh  & ifall a,f		& \z{CCCx}&a    & inh  & ifnall a,f\\   %and nand
-    \end{tabular}
-  \end{center}
-  \caption{Summary of Conditional Jump Instructions by Opcode Value\label{tbl:conditionals}}
-\end{table}
-
-\begin{table}
-  \begin{center}
-    \begin{tabular}{rcl}
-	Bits & Flag & Description \\
-	\z{0020}& \z{Z} & Last \z{NEXT*}/\z{MUL}/\z{ADD}/\z{SUB} result was zero \\
-	\z{0010}& \z{V} & Last \z{NEXT*}/\z{MUL}/\z{ADD}/\z{SUB} result overflowed byte \\
-	\z{0008}& \z{A} & Sensor A input is true (low) \\
-	\z{0004}& \z{B} & Sensor B input is true (low)\\
-	\z{0002}& \z{C} & Sensor C input is true (low)\\
-	\z{0001}& \z{D} & Sensor D input is true (low)\\
-    \end{tabular}
-  \end{center}
-  \caption{Conditional Jump Condition Code Bits\label{tbl:condcodes}}
-\end{table}
-
-\section{Loading Binary Sequences Onto Lumos Boards}
-The binary sequences are stored in the Intel Hex Format, where memory addresses
-are effectively assumed to be 24 bits long, with the upper eight bits representing
-the sequence number and the lower 16 bits forming the address within that sequence,
-allowing for 65,536 bytes per instruction, which is far more than the current Lumos
-boards can actually accommodate.
-
-Each sequence begins with a line of the form:
-\begin{Coding}
-|:0200000400|\Var{ss}\Var{kk}
-\end{Coding}
-where \Var{ss} is the two-hex-digit sequence number and \Var{kk} is the checksum obtained
-by adding all the bytes together and taking the 8-bit two's compliment of that sum.
-
-Each line after that provides a number of data bytes in the sequence, and is of the form:
-\begin{Coding}
-|:|\Var{nn}\Var{aaaa}|00|\Var*{\Var{n} data bytes (2\Var{n} hex digits)\dots}\Var{kk}
-\end{Coding}
-where:
-\begin{itemize}
-	\item[\Var{n}] is the number of data bytes on this line.  This is typically 16 or 32
-	but may be any number from 0--255.
-	\item[\Var{a}] is the address within the sequence where these data bytes reside.
-	\item[\Var*{data}] bytes are the instruction data being recorded at this address.
-	\item[\Var{k}] is the two-hex-digit checksum calculated as described above.
-\end{itemize}
-
-Finally, the last line of the hex file is always:
-\begin{Coding}
-|:00000001FF|
-\end{Coding}
-
-For example, the sequence pair 
-shown on page~\pageref{src:2seq} would be encoded
-in the hex file as follows:
-\begin{SourceCode}
-:020000040001F9
-:100000004F0A2A4A144F01EF6F480502AF097503E2
-:0A0010000AAF530AB04B0204FF00D0
-:020000040005F5
-:1000000040024F42AFCF0102CF0153140F810100D4
-:00000001FF
-\end{SourceCode}
-
-To assemble the sequence mnemonics into binary format, use the \z{lumosasm} \acronym{CLI}
-command (documented fully on page~\pageref{man:lumosasm}):
-\begin{SourceCode}
-$ lumosasm --output=sequences.hex sequences.lasm
-Lumos Sequence Assembler version 1.0
-SEQUENCES: 002
-ERRORS:    000
-\end{SourceCode}
-This binary file may then be downloaded into the Lumos controller using the \z{lumosctl}
-command:
-\begin{SourceCode}
-$ lumosctl --port=COM1 --speed=19200 --address=2 \
-    --load-hex-sequences=sequences.hex
-\end{SourceCode}
-} % end of grayed-out text
-
+\begin{NotImplemented*}{Stored programmed sequences are a planned feature for the Lumos boards but is not
+yet implemented.  This chapter will fully describe the programming environment when that feature is
+ready for use.}
+%% XXX \LLstart{T}{he}{normal operating mode} for a Lumos controller is to receive a stream
+%% XXX of real-time commands from the host PC, acting on them as they arrive.  However, it is 
+%% XXX also possible to program a number of complex actions into the controller's memory.  The
+%% XXX host PC can then send a much smaller command to tell the controller to execute a stored
+%% XXX sequence of actions.  If sensor inputs are enabled, the board may be set up to trigger the
+%% XXX execution of a stored sequence when sensor activity is detected.
+%% XXX 
+%% XXX \strong{N.B.: The following information assumes a high-level (if somewhat simple) language
+%% XXX to describe sequences, which gets compiled into a more compact bytecode which is loaded onto the
+%% XXX device itself.  This language compiler has not yet been written.  Section~\ref{sec:bytecode}
+%% XXX below describes the bytecode actually understood by the device.  At the time of this writing,
+%% XXX it is necessary to create this bytecode manually and load it into the device as described
+%% XXX in that section.  To emphasize that this is speculative documentation about a future feature,
+%% XXX the text appears in a lighter type color.}
+%% XXX 
+%% XXX {\color{gray}
+%% XXX These sequences are written using a small, simple programming language.  It is intended to
+%% XXX make it possible to describe some basic operations supported by the device, not to create a
+%% XXX fully general-purpose programming system.  This, plus the need to design the sequence data
+%% XXX to be as compact as possible, drove the design of this language to be optimized toward efficiency
+%% XXX and to enable a certain set of common operations.  This optimization means, however, that some
+%% XXX other functions are limited or omitted.  We'll point out the major caveats along the way as we
+%% XXX describe this system in this chapter.
+%% XXX 
+%% XXX \section{Basic Sequence Syntax and Structure}
+%% XXX Each sequence is numbered with an ID from 0--127.  The sequence begins with a declaration of this
+%% XXX ID in the form ``\z{SEQUENCE} \Var*{id}\z{:}'' followed by all the lines of instructions, and ends
+%% XXX with the word ``\z{END}'' on the final line.
+%% XXX 
+%% XXX When writing a sequence of instructions to be stored into the controller, each individual instruction
+%% XXX is placed on a line by itself.  For example, if we define sequence~\#1 to set 
+%% XXX channel~\#0 on, \#1 to half brightness, and \#2 off,
+%% XXX the sequence code would be:
+%% XXX \begin{SourceCode}
+%% XXX sequence 1:
+%% XXX   channel 0 on
+%% XXX   channel 1 50%
+%% XXX   channel 2 off
+%% XXX end
+%% XXX \end{SourceCode}
+%% XXX % on #0			C1 00
+%% XXX % dimmer #1,127		42 01 7F
+%% XXX % off #2                41 02
+%% XXX 
+%% XXX The indentation is simply a convention to make the code more readable; the Lumos system ignores it.
+%% XXX Similarly, Lumos sequences are case-insensitive.  The previous sequence could just as well have been
+%% XXX written:
+%% XXX \begin{SourceCode}
+%% XXX SEQUENCE 1:
+%% XXX   Channel 0 ON
+%% XXX   Channel 1 50%
+%% XXX   CHANNEL 2 Off
+%% XXX END
+%% XXX \end{SourceCode}
+%% XXX 
+%% XXX \section{Expressions}
+%% XXX Anywhere a number is expected, a complex math expression may be used.  Standard algebraic order of
+%% XXX operations is enforced on the expression, so parentheses force the enclosed sub-expression to be
+%% XXX evaluated first, then multiplication and division, then addition and subtraction.  All of the following
+%% XXX instructions turn channel 10 to 1/3 brightness:
+%% XXX \begin{SourceCode}
+%% XXX channel 10 33.3333333333%
+%% XXX channel 2*(2+3) 255/3
+%% XXX channel 10 255.0/3.0
+%% XXX \end{SourceCode}
+%% XXX 
+%% XXX \strong{Note:} If the expression is able to be fully interpreted using known values at the time 
+%% XXX the source code is compiled on the host PC, it is evaluated with all the precision of floating-point
+%% XXX math operations to the extent supported by the PC.  The final result of the calculation, however, 
+%% XXX needs to be reduced to (in most cases) an unsigned 8-bit integer value (0--255) for storage on the 
+%% XXX Lumos controller.  If the expression must be interpreted at run-time on the Lumos device itself,
+%% XXX there's a much more limited expression evaluation system available at that point.  Only addition,
+%% XXX subtraction, and multiplication of unsigned 8-bit values is possible there.  The compiler may reject
+%% XXX your expression if it can't be handled within those constraints.
+%% XXX 
+%% XXX The math operators supported are summarized in Figure~\ref{fig:mathop}.
+%% XXX \begin{figure}
+%% XXX   \begin{center}
+%% XXX     \begin{tabular}{|c|l|}\hline
+%% XXX 	Expression & Meaning\\\hline\hline
+%% XXX 	\Var{x}  \z{+}  \Var{y} & add $x+y$ \\\hline
+%% XXX 	\Var{x}  \z{-}  \Var{y} & subtract $x-y$ \\\hline
+%% XXX 	\Var{x}  \z{*}  \Var{y} & multiply $x\times y$ \\\hline
+%% XXX 	\Var{x}  \z{/}  \Var{y} & divide $x/y$ \\\hline
+%% XXX 	\Var{x}  \z{//} \Var{y}& divide $x/y$ using integer division\\\hline
+%% XXX 	\Var{x}  \z{\%}  \Var{y}& the remainder when dividing $x/y$ \\\hline
+%% XXX     \end{tabular}
+%% XXX   \end{center}
+%% XXX   \caption{Supported Math Operations\label{fig:mathop}}
+%% XXX \end{figure}
+%% XXX 
+%% XXX \section{Variable Assignment}
+%% XXX To a rather limited extent, variables may be defined values and then used in sequences in place
+%% XXX of numeric values, like so:
+%% XXX \begin{SourceCode}
+%% XXX x = 42
+%% XXX channel x on
+%% XXX channel x+1 on
+%% XXX channel x+2 on
+%% XXX \end{SourceCode}
+%% XXX %
+%% XXX % optimized a bit:
+%% XXX %
+%% XXX % push #42	4F 2A
+%% XXX % dup		32
+%% XXX % on		81
+%% XXX % add		23
+%% XXX % dup		32
+%% XXX % on		81
+%% XXX % add		23
+%% XXX % on		81
+%% XXX % 
+%% XXX % not optimized
+%% XXX %
+%% XXX % push #42	4F 2A		; SFB+0
+%% XXX % push	0	CF 00
+%% XXX % on		81
+%% XXX % push 	0	CF 00
+%% XXX % add		23
+%% XXX % on		81
+%% XXX % push 	0	CF 00
+%% XXX % add	#2	43 02
+%% XXX % on		23
+%% XXX 
+%% XXX \section{Controlling Output Channels}
+%% XXX We already saw the \z{CHANNEL} command which can be used to turn a designated channel \z{ON}, 
+%% XXX \z{OFF}, or to a given percentage.  It may also be given a raw value from 0--255.  All of the following
+%% XXX set channel~\#4 to full brightness:
+%% XXX \begin{SourceCode}
+%% XXX channel 4 100%
+%% XXX channel 4 255
+%% XXX cahnnel 4 on
+%% XXX \end{SourceCode}
+%% XXX 
+%% XXX We may also start a channel smoothly fading up or down from its current brightness to either fully
+%% XXX on or fully off.  The following instructions cause channel~\#12 to fade to black by reducing its 
+%% XXX output value by 2 every .2 seconds.  Simultaneously, channel~\#13 will increase in brightness by 1 step
+%% XXX every 1/120\,second.
+%% XXX \begin{SourceCode}
+%% XXX ramp down 12 by 2 per .2 seconds
+%% XXX ramp up 13
+%% XXX \end{SourceCode}
+%% XXX 
+%% XXX There is also a single command for turning all output channels off at once:
+%% XXX \begin{SourceCode}
+%% XXX blackout
+%% XXX \end{SourceCode}
+%% XXX 
+%% XXX \section{Device State Changes}
+%% XXX There are commands \z{SLEEP} and \z{WAKE} to turn on and off sleep mode if desired.
+%% XXX These control power-saving features but don't disrupt the interpretation or execution of
+%% XXX incoming commands.
+%% XXX 
+%% XXX There are also \z{SUSPEND} and \z{RESUME} commands.  \z{SUSPEND} causes the controller
+%% XXX to ignore any further input, on the premise that the sequence wants to take priority over
+%% XXX whatever the host PC wanted the controller to do.  \z{RESUME} allows the board to resume
+%% XXX normal operation (acting on received commands from the host PC).
+%% XXX 
+%% XXX If the command \z{SUSPEND WITH UPDATE} is given, then the device will track changes to
+%% XXX channel outputs made by the host PC, but still will not act on them until a \z{RESUME}
+%% XXX command (at which point, the output channels will simply change to what would be the
+%% XXX final result of all the changes received---it does not ``replay'' all of the changes
+%% XXX that were delayed at that point).  
+%% XXX 
+%% XXX The \z{RESUME WITH FADE} is just like \z{RESUME}, except it will fade all channels to black
+%% XXX first, then fade up the channels to their reume values.
+%% XXX 
+%% XXX For example, if you have a light sensor configured to run sequence 1 once when it senses daylight,
+%% XXX and then run sequence 2 when it senses darkness, and you want to inhibit outputs during the daytime
+%% XXX but still allow the host PC to set a pattern of channel values which will be displayed immediately
+%% XXX upon dusk, the sequences could be coded:
+%% XXX \begin{SourceCode}
+%% XXX sequence 1:
+%% XXX   suspend with update
+%% XXX   blackout
+%% XXX end
+%% XXX 
+%% XXX sequence 2:
+%% XXX   resume with fade
+%% XXX end
+%% XXX \end{SourceCode}
+%% XXX 
+%% XXX \section{Flow Control}
+%% XXX In addition to the linear sequence of instructions to change channel outputs, there are
+%% XXX a number of instructions which alter the flow of execution itself.  This includes the usual
+%% XXX collection including conditionals, loops, and so forth.  
+%% XXX 
+%% XXX If you want to have sequence 123 turn on channel \#4 if sensor B is active at that moment,
+%% XXX or turn it off otherwise, the following code will suffice:
+%% XXX \begin{SourceCode}
+%% XXX sequence 123:
+%% XXX   if sensor b:
+%% XXX     channel 4 on
+%% XXX   else:
+%% XXX     channel 4 off
+%% XXX   end
+%% XXX end
+%% XXX \end{SourceCode}
+%% XXX 
+%% XXX We can turn on every even numbered channel from \#0--\#10, with a half-second delay up through \#6
+%% XXX and then instantly for the rest:
+%% XXX \begin{SourceCode}
+%% XXX sequence 47:
+%% XXX   for ch=0 to 10 by 2:
+%% XXX     channel ch on
+%% XXX     if channel <= 6:
+%% XXX       wait 0.5 seconds
+%% XXX     end
+%% XXX   end
+%% XXX end
+%% XXX \end{SourceCode}
+%% XXX 
+%% XXX We can flash channels \#1 and \#3 repeatedly until our sequence is forced to stop:
+%% XXX \begin{SourceCode}
+%% XXX sequence 9:
+%% XXX   repeat:
+%% XXX     channel 1 on
+%% XXX     channel 3 on
+%% XXX     wait 1 second
+%% XXX     channel 1 off
+%% XXX     channel 3 off
+%% XXX     wait 1 second
+%% XXX   end
+%% XXX end
+%% XXX \end{SourceCode}
+%% XXX 
+%% XXX Loops can be interrupted using \z{BREAK}, \z{CONTINUE}, and \z{EXIT}.
+%% XXX See the \z{lumosctl} documentation (page~\pageref{sh:lumosctl}) for full details.
+%% XXX 
+%% XXX \section{Subroutines and Sequence Chains}
+%% XXX One sequence can invoke another sequence, either as a subroutine (so that the execution
+%% XXX temporarily detours into the called sequence, and then the calling sequence resumes where
+%% XXX it left off), or as a ``chain'' from one sequence to another (where the calling sequence 
+%% XXX stops as the called sequence starts, so there is no returning from that point).
+%% XXX 
+%% XXX Here we have sequence 12 which calls sequence 13 in a loop:
+%% XXX \begin{SourceCode}
+%% XXX sequence 12:
+%% XXX   repeat 10 times as i:
+%% XXX     call 13
+%% XXX     wait i seconds
+%% XXX   end
+%% XXX   execute 14
+%% XXX end
+%% XXX 
+%% XXX sequence 13:
+%% XXX   channel 0 on
+%% XXX   wait 2
+%% XXX   channel 0 off
+%% XXX end
+%% XXX 
+%% XXX sequence 14:
+%% XXX   blackout
+%% XXX end
+%% XXX \end{SourceCode}
+%% XXX Note that the \z{EXECUTE} instruction terminated sequence 12 and started
+%% XXX sequence 14.  When sequence 14 finishes, nothing further is done.
+%% XXX 
+%% XXX Sometimes it's valuable to be able to pass parameters to subroutines.  Sequences support
+%% XXX up to four parameters which must be declared in both the definition of the sequence and
+%% XXX the \z{EXECUTE} or \z{CALL} which invokes it.  Here's a program which turns on each channel
+%% XXX from 0--24 repeatedly.
+%% XXX \begin{SourceCode}
+%% XXX sequence 1:
+%% XXX   repeat:
+%% XXX     for c=0 to 24:
+%% XXX       call 2(c)
+%% XXX     end
+%% XXX   end
+%% XXX end
+%% XXX 
+%% XXX sequence 2(chan):
+%% XXX   channel chan on
+%% XXX   wait 1 second
+%% XXX   channel chan off
+%% XXX end
+%% XXX \end{SourceCode}
+%% XXX %
+%% XXX % 0 loop	0	2A
+%% XXX % 1 loop	0	2A
+%% XXX % 2 pctr		36
+%% XXX % 3 call	$C,#1	48 0C 01
+%% XXX % 6 next	1,#24	2B 01 18
+%% XXX % 9 next	0	AB 00
+%% XXX % b exit		00
+%% XXX % c push	0	8F 00
+%% XXX % e on			81
+%% XXX % f wait	#nn	49 nn
+%% XXX %11 push	0	0F 00
+%% XXX %13 off			01
+%% XXX %14 exit		00
+%% XXX 
+%% XXX \section{Temporary vs.\ Permanent Sequences}
+%% XXX Sequences numbered from 0--63 are stored into non-volatile \acronym{EEPROM} memory and will remain
+%% XXX in place until explicitly erased or replaced.  Sequences numbered 64-127 are stored in temporary 
+%% XXX \acronym{RAM} and will be lost at the next device reset.  This enables the host PC to download
+%% XXX sequences for short-term temporary use.
+%% XXX 
+%% XXX \section{Storing Sequences into Device Memory}
+%% XXX The device files are stored into the Lumos controller using the \z{lumosctl} command:
+%% XXX \begin{SourceCode}
+%% XXX $ lumosctl --clear-sequences
+%% XXX $ lumosctl --load-sequence=my_program_file
+%% XXX \end{SourceCode}
+%% XXX 
+%% XXX The initial \z{----clear--sequences} option is not always needed.  It erases all sequences
+%% XXX from memory.  Then each subsequent \z{----load--sequence} option loads a file containing one
+%% XXX or more sequences into the device.
+%% XXX 
+%% XXX If a sequence is loaded which already exists on the device, the old one is replaced with the
+%% XXX new one.  Note, however, that Lumos controllers have a very na\"\i ve memory management capability.
+%% XXX They are really designed to simply have a set of sequences loaded on them, later erased
+%% XXX \emph{en masse} and replaced by a new set.
+%% XXX 
+%% XXX If replacement sequences are written on top of old ones, it is quite likely that the memory
+%% XXX will get fragmented quickly and you'll run out of available memory too early.
+%% XXX Simply adding new sequences shouldn't be a problem, however.
+%% XXX 
+%% XXX You can see how much memory is available by running \z{lumosctl} with the \z{----report} 
+%% XXX option.
+%% XXX \begin{SourceCode}
+%% XXX $ lumosctl --report --address=2
+%% XXX ...
+%% XXX XXX
+%% XXX $ _
+%% XXX \end{SourceCode}
+%% XXX 
+%% XXX \section{Bytecode Reference}\label{sec:bytecode}
+%% XXX \emph{This is an advanced reference section most users will never have any reason to 
+%% XXX read.}  For the curious, however, we note that when you load a sequence source file
+%% XXX into \z{lumosctl}, it compiles the source into bytecode which is what actually gets 
+%% XXX sent to the controller, and is what is stored in its memory.  The following reference
+%% XXX details the format of that bytecode.
+%% XXX 
+%% XXX \subsection{Execution Model}
+%% XXX The execution model is a small stack-based 
+%% XXX \footnote{Several other
+%% XXX models were experimented with, but this provided better flexibility with a minimal
+%% XXX number of bytes required for the sequence instruction bytes themselves, which need to
+%% XXX be stored in a limited space on the controller.} 
+%% XXX machine environment, in which
+%% XXX each sequence is an independent program which begins at
+%% XXX address 0 in its own memory area.  
+%% XXX 
+%% XXX All memory locations, including program and stacks, are 8~bits wide.  Unless otherwise
+%% XXX indicated, data values are unsigned 8-bit integers.
+%% XXX 
+%% XXX \subsection{Stacks}
+%% XXX There are actually three independent stacks used: a call-return stack, data stack, and loop
+%% XXX counter stack.
+%% XXX 
+%% XXX The call-return stack (not illustrated here since it's not directly accessible from your programs) 
+%% XXX receives three bytes every time a sequence calls another sequence: the return address, sequence number,
+%% XXX and stack frame boundary pointer.
+%% XXX %\begin{BF}
+%% XXX %  \begin{rightwordgroup}{previous calling sequence}
+%% XXX %  \wordbox{1}{return address}\\
+%% XXX %  \wordbox{1}{return sequence}\\
+%% XXX %  \wordbox{1}{stack frame ptr}
+%% XXX %  \end{rightwordgroup}\\
+%% XXX %  \begin{rightwordgroup}{calling sequence}
+%% XXX %  \wordbox{1}{return address}\\
+%% XXX %  \wordbox{1}{return sequence}\\
+%% XXX %  \wordbox{1}{stack frame ptr}
+%% XXX %  \end{rightwordgroup}\\
+%% XXX %  \wordbox[]{1}{$\downarrow$ \\[1ex]}\\
+%% XXX %  \wordbox[]{1}{(increasing addresses)}
+%% XXX %\end{BF}
+%% XXX 
+%% XXX We can conceptually picture the stacks as ``piles'' of data values, with the most
+%% XXX recently-placed value set on top of the previous ones.  If we ``push'' three values
+%% XXX 1, 2, and 3 onto a stack, it would look like this:
+%% XXX \begin{center}
+%% XXX \begin{bytefield}{8}
+%% XXX   \begin{rightwordgroup}{$\leftarrow$Top of Stack}
+%% XXX   \wordbox{1}{3}
+%% XXX   \end{rightwordgroup}\\
+%% XXX   \wordbox{1}{2}\\
+%% XXX   \wordbox{1}{1}\\
+%% XXX \end{bytefield}
+%% XXX \end{center}
+%% XXX As we ``pop'' values off the stack, we pull them from the top of the stack, so
+%% XXX they are retrieved in the reverse order in which they were pushed onto the
+%% XXX stack.
+%% XXX 
+%% XXX \subsubsection{Loop Counter Stack}
+%% XXX The loop counter stack holds all the loop counter values.  %At any given time,
+%% XXX %the top of the stack is the counter for the innermost executing loop.  This
+%% XXX %value is always referred to as ``\z{\{0\}}'' in the bytecode assembly listings.
+%% XXX If the code is executing a nested loop such as:
+%% XXX \begin{SourceCode}
+%% XXX repeat as outer:
+%% XXX   for middle=1 to 10:
+%% XXX     repeat 10 as inner:
+%% XXX       ...
+%% XXX     end
+%% XXX   end
+%% XXX end
+%% XXX \end{SourceCode}
+%% XXX 
+%% XXX Then the loop stack would look like:
+%% XXX \begin{center}
+%% XXX \begin{bytefield}[leftcurlyspace=0pt, rightcurlyspace=0pt, leftcurly=., rightcurly=.]{10}
+%% XXX   \bitbox[]{2}{} & \bitbox[]{8}{(direction of growth)}\\
+%% XXX   \bitbox[]{2}{} & \bitbox[]{8}{$\uparrow$}\\
+%% XXX   \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{\z{inner}}\\
+%% XXX   \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{\z{middle}}\\
+%% XXX   \bitbox[]{2}{\z{\{2\}}} & \bitbox{8}{\z{outer}}\\
+%% XXX \end{bytefield}
+%% XXX \end{center}
+%% XXX 
+%% XXX At any given time, \z{\{0\}} refers to the top of the loop stack, which is the
+%% XXX innermost loop level currently running.  Likewise, \z{\{1\}} is the 
+%% XXX counter for the next loop out from there, and so on.
+%% XXX 
+%% XXX Note that a counter variable is allocated for \emph{every} loop entered,
+%% XXX even if the source code didn't associate it with a variable name
+%% XXX (e.g., if the innermost was ``\z{REPEAT 10:}'' without the 
+%% XXX ``\z{AS INNER}'' part).
+%% XXX 
+%% XXX \subsubsection{Data Stack}
+%% XXX The data stack contains the parameters passed to the current
+%% XXX sequence, if any, followed by local variables for the sequence.
+%% XXX The remaining room is for working stack space for calculations
+%% XXX and values consumed by the opcodes.
+%% XXX 
+%% XXX At each call, parameters are pushed onto the stack and then the
+%% XXX stack frame boundary (\acronym{SFB}) pointer is moved to 
+%% XXX point to the first parameter.
+%% XXX This way, parameters and local variables are referenced within the
+%% XXX sequence as offsets from the frame pointer, while working values
+%% XXX are obtained by pushing and popping values from the top of the stack.
+%% XXX 
+%% XXX \begin{center}
+%% XXX \begin{bytefield}{15}%[leftcurlyspace=0pt, rightcurlyspace=0pt, leftcurly=., rightcurly=.]{10}
+%% XXX   \begin{leftwordgroup}{Stack Frame}
+%% XXX   \begin{rightwordgroup}{working stack}
+%% XXX   \bitbox[]{5}{} & \bitbox[]{8}{(increasing addresses)}\\
+%% XXX   \bitbox[]{5}{} & \bitbox[]{8}{$\uparrow$}\\
+%% XXX   \bitbox[]{5}{\Var{x}} & \bitbox{8}{\Var{d}}\\
+%% XXX   \bitbox[]{5}{\Var{y}} & \bitbox{8}{\Var{c}}\\
+%% XXX   \bitbox[]{5}{\Var{z}} & \bitbox{8}{\Var{b}}\\
+%% XXX   \bitbox[]{5}{}        & \bitbox{8}{\Var{a}}
+%% XXX   \end{rightwordgroup}\\
+%% XXX   \begin{rightwordgroup}{local variables}
+%% XXX   \bitbox[]{5}{\z{[}\Var{n}+\Var{m}--1\z{]}} & \bitbox{8}{\Var{v$_{m-1}$}}\\
+%% XXX   \bitbox[]{5}{}        & \bitbox[]{8}{$\vdots$ \\[1ex]}\\
+%% XXX   \bitbox[]{5}{\z{[}\Var{n}+1\z{]}} & \bitbox{8}{\Var{v$_1$}}\\
+%% XXX   \bitbox[]{5}{\z{[}\Var{n}+0\z{]}} & \bitbox{8}{\Var{v$_0$}}
+%% XXX   \end{rightwordgroup}\\
+%% XXX   \begin{rightwordgroup}{parameters passed \\ to this sequence}
+%% XXX   \bitbox[]{5}{\z{[}\Var{n}--1\z{]}} & \bitbox{8}{\Var{p$_{n-1}$}}\\
+%% XXX   \bitbox[]{5}{       } & \bitbox[]{8}{$\vdots$ \\[1ex]}\\
+%% XXX   \bitbox[]{5}{\z{[1]}} & \bitbox{8}{\Var{p$_1$}}\\
+%% XXX   \bitbox[]{5}{\z{[0]}} & \bitbox{8}{\Var{p$_0$}} & \bitbox[]{2}{$\leftarrow$\acronym{SFB}}
+%% XXX   \end{rightwordgroup}
+%% XXX   \end{leftwordgroup}\\
+%% XXX   %\begin{leftwordgroup}{previous frame}
+%% XXX   %\bitbox[]{5}{} &\bitbox{8}{\dots}\\
+%% XXX   \bitbox[]{5}{} &\bitbox[]{8}{$\vdots$ \\[1ex]}
+%% XXX   %\end{leftwordgroup}\\
+%% XXX \end{bytefield}
+%% XXX \end{center}
+%% XXX 
+%% XXX For convenience in our description of the bytecode below, we'll refer to the value on the top of the
+%% XXX data stack as \Var{x}, the second value as \Var{y}, and the third as \Var{z}.  In the assembly code,
+%% XXX the notation \z{[}\Var{n}\z{]} directly addresses the value \Var{n} bytes from the stack frame boundary
+%% XXX (\acronym{SFB}), so the first parameter passed (if any) would be at \z{[0]}, and so on.
+%% XXX  
+%% XXX \subsection{Instruction Format}
+%% XXX 
+%% XXX Each instruction is at least one byte long. The first byte is the opcode which always
+%% XXX has the general format:
+%% XXX %\newcommand\zh{\bitheader{0-7}}
+%% XXX \begin{BF}
+%% XXX   \bitbox{1}{\Var{f}} & \bitbox{1}{\Var{i}} & \bitbox{1}{\Var{d}} & \bitbox{5}{\Var*{cmd}}
+%% XXX \end{BF}
+%% XXX Where:
+%% XXX \begin{itemize}
+%% XXX 	\item[\Var{f}=] Instruction-specific flag.
+%% XXX 	\item[\Var{i}=] Data values are given as immediate bytes (\Var{i}=1) instead of being popped
+%% XXX 		from the stack (\Var{i}=0).
+%% XXX 	\item[\Var{d}=] Take default values for some or all of the arguments (\Var{d}=1).
+%% XXX \end{itemize}
+%% XXX Note that these are generalizations; individual command opcode patterns vary.
+%% XXX 
+%% XXX Following the opcode byte are any direct addressing bytes (generally, addresses of locations
+%% XXX on the stack for data values, or addresses to jump to) which must be constants at runtime.
+%% XXX 
+%% XXX After that are zero or more data bytes providing the values needed by the instruction, if the immediate
+%% XXX addressing mode is used (bit \Var{i}=1).  Otherwise they will be popped from the data stack as needed.
+%% XXX 
+%% XXX \subsection{Addressing Modes}
+%% XXX The following addressing modes are supported:
+%% XXX \begin{itemize}
+%% XXX 	\item[--] \emph{Default addressing} means that some or all data values are omitted, 
+%% XXX 		(which may be omitted depends on the instruction), so
+%% XXX 		the instruction should assume
+%% XXX 		a useful default value instead.  Denoted below as either the lack of argument, or
+%% XXX 		an explicit mention of the default value (in which case the assembler would convert
+%% XXX 		the instruction to the default form and avoid the argument.
+%% XXX 	\item[\Var{a}] \emph{Direct addressing} specifies a memory location as a constant value following
+%% XXX 		the opcode.  Examples include jump and loop instructions which directly name an
+%% XXX 		instruction address within the sequence, and operations which specify a local
+%% XXX 		variable or parameter as a constant offset from the stack frame pointer.  Note
+%% XXX 		that some instructions mandate a direct argument even if others are pulled from
+%% XXX 		the stack, memory, or take defaults.  Denoted below as a number (or name
+%% XXX 		defined as a number) without other punctuation.
+%% XXX 	\item[\z\#\Var{v}] \emph{Immediate addressing} mode means that the values needed by the instruciton are
+%% XXX 		provided as constant bytes following the opcode, rather than being taken from the
+%% XXX 		stack.  Denoted below as a value prefixed by a pound sign (\z\#).
+%% XXX 	\item[{\z[\Var{a}\z]}] \emph{Indirect addressing} is used when a data value needed by an operation is
+%% XXX 		specified, but that value specifies an address in memory (specifically, the value
+%% XXX 		is an unsigned integer added to the stack frame pointer).  
+%% XXX 		Denoted by square brackets around the argument value.
+%% XXX 	\item[{\z{[\$]}}] \emph{Indirect Stack} values are obtained by popping an address from the stack and
+%% XXX 		then using it as the location for the value to use.  Noted by square brackets
+%% XXX 		and dollar sign together (\z{[\$]}).
+%% XXX 	\item[--] \emph{Inherent} means that the instruction simply needs no further values to perform
+%% XXX 		its operation; the data is inerent in the instruction itself.
+%% XXX 	\item[\z\$] \emph{Stack addressing} means that the data values are popped from the stack.  These are
+%% XXX 		popped in the order they would appear if given as immediate bytes, so they would
+%% XXX 		need to be pushed in opposite order to that.  Denoted by a dollar sign (\z\$) as
+%% XXX 		the argument to the instruction.
+%% XXX 	\item[\z\{\Var{v}\z\}] \emph{Loop addressing} accesses loop counter values.  \z{\{0\}} is the
+%% XXX 		innermost loop counter (the top of the loop stack), \z{\{1\}} is the next loop out from
+%% XXX 		there, etc.  This can be combined with some other modes.  For example, \z{\{\$\}}
+%% XXX 		pops a value from the stack, uses that as the loop depth number, and fetches the
+%% XXX 		loop counter at that level.
+%% XXX \end{itemize}
+%% XXX 
+%% XXX The addressing mode is selected by various bits in the opcode byte.
+%% XXX 
+%% XXX For example, the instruction to set the dimmer output level for a channel (mnemonic ``\z{dimmer}'', 
+%% XXX base hex opcode \z{0x02}) may have the following forms:
+%% XXX 
+%% XXX % dimmer #1,16	42 01 10
+%% XXX % dimmer 	02
+%% XXX % push	 #9	4F 09
+%% XXX % push	9	8F 09
+%% XXX % push  #0	2F
+%% XXX % pctr	2	66 02
+%% XXX 
+%% XXX \begin{center}
+%% XXX \begin{bytefield}[leftcurlyspace=0pt, rightcurlyspace=0pt, leftcurly=., rightcurly=.]{24}
+%% XXX 	\bitbox[]{8}{\footnotesize byte 0} &
+%% XXX 	\bitbox[]{8}{\footnotesize byte 1} &
+%% XXX 	\bitbox[]{8}{\footnotesize byte 2} \\
+%% XXX 
+%% XXX 	\begin{leftwordgroup}{immed.}
+%% XXX 	\begin{rightwordgroup}{\z{dimmer \#1,\#16}}
+%% XXX 	\bitbox{1}{\z0} & \bitbox{1}{\z1} & \bitbox{1}{\z0} & \bitbox{5}{\z{0x02}} &
+%% XXX 	\bitbox{8}{\z{0x01}} & \bitbox{8}{\z{0x10}}
+%% XXX 	\end{leftwordgroup}
+%% XXX 	\end{rightwordgroup} \\
+%% XXX 
+%% XXX 	\begin{leftwordgroup}{stack}
+%% XXX 	\begin{rightwordgroup}{\z{dimmer \$,\$}}
+%% XXX 	\bitbox{1}{\z0} & \bitbox{1}{\z0} & \bitbox{1}{\z0} & \bitbox{5}{\z{0x02}} &
+%% XXX 	\bitbox[]{8}{} & \bitbox[]{8}{}
+%% XXX 	\end{leftwordgroup}
+%% XXX 	\end{rightwordgroup} \\
+%% XXX \end{bytefield}
+%% XXX \end{center}
+%% XXX 
+%% XXX In the first case, the \z{dimmer} command takes the channel number (1) and level (16) as 
+%% XXX immediate values in the sequence program itself.  In the second case, it pops two values
+%% XXX off the stack, the first number popped being the channel number and the second one being
+%% XXX the value.
+%% XXX 
+%% XXX Consider the \z{push} command as well:
+%% XXX 
+%% XXX \begin{center}
+%% XXX \begin{bytefield}[leftcurlyspace=0pt, rightcurlyspace=0pt, leftcurly=., rightcurly=.]{16}
+%% XXX 	\bitbox[]{8}{\footnotesize byte 0} &
+%% XXX 	\bitbox[]{8}{\footnotesize byte 1} \\
+%% XXX %0F
+%% XXX 	\begin{leftwordgroup}{inherent}
+%% XXX 	\begin{rightwordgroup}{\z{dup}}
+%% XXX 	\bitbox{1}{\z0} & \bitbox{1}{\z0} & \bitbox{1}{\z0} & \bitbox{5}{\z{0x0F}} &
+%% XXX 	\bitbox[]{8}{}
+%% XXX 	\end{leftwordgroup}
+%% XXX 	\end{rightwordgroup}\\
+%% XXX %2F
+%% XXX 	\begin{leftwordgroup}{default}
+%% XXX 	\begin{rightwordgroup}{\z{push \#0}}
+%% XXX 	\bitbox{1}{\z0} & \bitbox{1}{\z0} & \bitbox{1}{\z1} & \bitbox{5}{\z{0x0F}} &
+%% XXX 	\bitbox[]{8}{}
+%% XXX 	\end{leftwordgroup}
+%% XXX 	\end{rightwordgroup}\\
+%% XXX %4F
+%% XXX 	\begin{leftwordgroup}{immediate}
+%% XXX 	\begin{rightwordgroup}{\z{push \#9}}
+%% XXX 	\bitbox{1}{\z0} & \bitbox{1}{\z1} & \bitbox{1}{\z0} & \bitbox{5}{\z{0x0F}} &
+%% XXX 	\bitbox{8}{\z{0x09}}
+%% XXX 	\end{leftwordgroup}
+%% XXX 	\end{rightwordgroup} \\
+%% XXX %6F
+%% XXX 	\begin{leftwordgroup}{loop default}
+%% XXX 	\begin{rightwordgroup}{\z{push \{0\}}}
+%% XXX 	\bitbox{1}{\z0} & \bitbox{1}{\z1} & \bitbox{1}{\z1} & \bitbox{5}{\z{0x0F}} &
+%% XXX 	\bitbox[]{8}{}
+%% XXX 	\end{leftwordgroup}
+%% XXX 	\end{rightwordgroup}\\
+%% XXX %8F
+%% XXX 	\begin{leftwordgroup}{indirect stack}
+%% XXX 	\begin{rightwordgroup}{\z{push [\$]}}
+%% XXX 	\bitbox{1}{\z1} & \bitbox{1}{\z0} & \bitbox{1}{\z0} & \bitbox{5}{\z{0x0F}} &
+%% XXX 	\bitbox[]{8}{}
+%% XXX 	\end{leftwordgroup}
+%% XXX 	\end{rightwordgroup}\\
+%% XXX %AF
+%% XXX 	\begin{leftwordgroup}{indirect default}
+%% XXX 	\begin{rightwordgroup}{\z{push [0]}}
+%% XXX 	\bitbox{1}{\z1} & \bitbox{1}{\z0} & \bitbox{1}{\z1} & \bitbox{5}{\z{0x0F}} &
+%% XXX 	\bitbox[]{8}{}
+%% XXX 	\end{leftwordgroup}
+%% XXX 	\end{rightwordgroup}\\
+%% XXX %CF
+%% XXX 	\begin{leftwordgroup}{indirect}
+%% XXX 	\begin{rightwordgroup}{\z{push [9]}}
+%% XXX 	\bitbox{1}{\z1} & \bitbox{1}{\z1} & \bitbox{1}{\z0} & \bitbox{5}{\z{0x0F}} &
+%% XXX 	\bitbox{8}{\z{0x09}}
+%% XXX 	\end{leftwordgroup}
+%% XXX 	\end{rightwordgroup} \\
+%% XXX %EF
+%% XXX 	\begin{leftwordgroup}{loop stack}
+%% XXX 	\begin{rightwordgroup}{\z{push \{\$\}}}
+%% XXX 	\bitbox{1}{\z1} & \bitbox{1}{\z1} & \bitbox{1}{\z1} & \bitbox{5}{\z{0x0F}} &
+%% XXX 	\bitbox[]{8}{}
+%% XXX 	\end{leftwordgroup}
+%% XXX 	\end{rightwordgroup}\\
+%% XXX \end{bytefield}
+%% XXX \end{center}
+%% XXX Some of these combinations are special only for the \z{PUSH} and \z{POP} commands.
+%% XXX %, which is the only command
+%% XXX %to have eight modes.
+%% XXX The first mode is somewhat special as well.  Since ``\z{PUSH \$}'' would
+%% XXX not do anything particularly useful---pop a value from the stack and then put it right back 
+%% XXX again---this opcode was reassigned to a similar but more useful operation.  Renamed \z{DUP},
+%% XXX it takes the value on the top of the stack and pushes another copy of it.
+%% XXX 
+%% XXX \subsection{Using the Value Stack}
+%% XXX The operation of the loop stack and call stack take place behind the scenes where you don't
+%% XXX really need to be too concerned about them.  The data stack, on the other hand, is important
+%% XXX to understand if you'll be writing sequences at the low level of the bytecodes described here.
+%% XXX 
+%% XXX The stack has a maximum depth of 256 bytes.  Values are pushed onto it (usually via the \z{PUSH}
+%% XXX instruction) and those values are consumed by other instructions as needed.  A \z\$ appearing in
+%% XXX an instruction's argument list means to pop a value off the stack for that parameter.
+%% XXX 
+%% XXX Consider the following sequence of instructions:
+%% XXX \begin{SourceCode}
+%% XXX base=2
+%% XXX for x=1 to 20:
+%% XXX   on x
+%% XXX   dimmer x+10+base 6*x+12
+%% XXX   wait 100
+%% XXX   base *= 3
+%% XXX end
+%% XXX \end{SourceCode}
+%% XXX 
+%% XXX This would be compiled into the following sequence bytecode:
+%% XXX \begin{SourceCode}
+%% XXX ADDR BYTES          LINE SOURCE CODE
+%% XXX ---- -------------- ---- ------------------------
+%% XXX 0000 4F 02          0002      PUSH   #2
+%% XXX 0002 AA             0003 L:   LOOP   #1
+%% XXX 0003 6F             0004      PUSH   {0}
+%% XXX 0004 81             0005      ON     $
+%% XXX 0005 6F             0006      PUSH   {0}
+%% XXX 0006 52 06          0007      MUL    $,#6
+%% XXX 0008 53 0C          0008      ADD    $,#12
+%% XXX 000A 6F             0009      PUSH   {0}
+%% XXX 000B 53 0A          0010      ADD    $,#10
+%% XXX 000D AF             0011      PUSH   [0]
+%% XXX 000E 13             0012      ADD    $,$
+%% XXX 000F 02             0013      DIMMER $,$
+%% XXX 0010 49 64          0014      WAIT   #100
+%% XXX 0012 AF             0015      PUSH   [0]
+%% XXX 0013 52 03          0016      MUL    $,#3
+%% XXX 0015 B0             0017      POP    [0]
+%% XXX 0016 6B 02 14       0018      NEXT   L,#1,#20
+%% XXX \end{SourceCode}
+%% XXX 
+%% XXX When executed, this is the sequence of steps carried out, and the stack's contents
+%% XXX at each step.  Here's the initial state:
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{Instruction:} 
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{2}{} 
+%% XXX   & \bitbox[]{8}{Value Stack:} & \bitbox[]{4}{} 
+%% XXX   & \bitbox[]{2}{}
+%% XXX   & \bitbox[]{8}{Loop Stack:}\\
+%% XXX   \bitbox[]{8}{} 
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{(empty)} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{(empty)}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX 
+%% XXX Now we begin execution.  First, we create a local variable ``\z{base}'' by pushing
+%% XXX its initial value (2) onto the stack.  This will be at address zero (relative to the
+%% XXX base stack frame pointer), so ``\z{[0]}'' will directly reference this storage location.
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{\z{PUSH \#2}} 
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{2} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{(empty)}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX 
+%% XXX A new loop context is created with an initial counter value of 1 (now the top of the loop
+%% XXX stack).
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{\z{LOOP \#1}} 
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{2} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{1}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX 
+%% XXX Next we turn on the channel specified by the value of the loop counter, which is on the 
+%% XXX loop stack at \z{\{0\}}.  We push that counter onto the data stack then use that as the
+%% XXX argument to the \z{ON} instruction.
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{} 
+%% XXX   & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{1} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{\z{PUSH \{0\}}} 
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{y}}
+%% XXX   & \bitbox{8}{2} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{1}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX 
+%% XXX Since the value at the top of the stack (\Var{x}) is~1, the
+%% XXX instruction \z{ON \$} pops that value and turns on channel~1.
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{\z{ON \$}} 
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{2} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{1}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX 
+%% XXX Now we need to evaluate \z{6*x+12}.
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{} 
+%% XXX   & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{1} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{\z{PUSH \{0\}}} 
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{y}}
+%% XXX   & \bitbox{8}{2} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{1}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX 
+%% XXX The 1 on the top of the stack is popped off, multiplied by 6, and the
+%% XXX product pushed back onto the stack:
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{} 
+%% XXX   & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{6} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{\z{MUL \$,\#6}} 
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{y}}
+%% XXX   & \bitbox{8}{2} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{1}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX   
+%% XXX The product is popped, added to 12 and the sum pushed back:
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{} 
+%% XXX   & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{18} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{\z{ADD \$,\#12}} 
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{y}}
+%% XXX   & \bitbox{8}{2} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{1}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX 
+%% XXX Now that we have the value to be set on the channel (18),
+%% XXX we calculate the channel number as \z{x+10+base}:
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{} 
+%% XXX   & \bitbox[]{2}{\z{[2]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{1} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{} 
+%% XXX   & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{y}}
+%% XXX   & \bitbox{8}{18} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{\z{PUSH \{0\}}} 
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{z}}
+%% XXX   & \bitbox{8}{2} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{1}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{} 
+%% XXX   & \bitbox[]{2}{\z{[2]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{11} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{} 
+%% XXX   & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{y}}
+%% XXX   & \bitbox{8}{18} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{\z{ADD \$,\#10}} 
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{z}}
+%% XXX   & \bitbox{8}{2} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{1}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX 
+%% XXX The value of the local variable \z{base} is at local address
+%% XXX 0 (i.e., \acronym{SFB}+0, also known as ``\z{[0]}''), so we push that onto
+%% XXX the stack then add it to our sum.
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{} 
+%% XXX   & \bitbox[]{2}{\z{[3]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{2} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{} 
+%% XXX   & \bitbox[]{2}{\z{[2]}} & \bitbox[]{2}{\Var{y}}
+%% XXX   & \bitbox{8}{11} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{} 
+%% XXX   & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{z}}
+%% XXX   & \bitbox{8}{18} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{\z{PUSH [0]}} 
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{}
+%% XXX   & \bitbox{8}{2} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{1}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{} 
+%% XXX   & \bitbox[]{2}{\z{[2]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{13} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{} 
+%% XXX   & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{y}}
+%% XXX   & \bitbox{8}{18} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{\z{ADD \$,\$}} 
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{z}}
+%% XXX   & \bitbox{8}{2} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{1}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX 
+%% XXX Now we pop the channel number and level off the stack
+%% XXX so channel~13 is set to dimmer level~18.
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{\z{DIMMER \$,\$}} 
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{2} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{1}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX 
+%% XXX Now we wait, which doesn't affect the stack.
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{\z{WAIT \#100}} 
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{2} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{1}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX 
+%% XXX To update the value of the variable \z{base}, we push its
+%% XXX current value from memory location \z{[0]}, multiply it by 3
+%% XXX to get the new value, and the pop that result back into 
+%% XXX memory location \z{[0]} again.\footnote{``Wait a moment,'' you may be asking yourself
+%% XXX at this point, ``The value of \z{base} is sitting \emph{right there} on the stack,
+%% XXX why not just execute the single instruction \z{MUL \#3} and accomplish the same
+%% XXX thing in one step?'' The answer is that you can, in this particular case.  In some sequences,
+%% XXX though, there may be other variables in the way, so the approach outlined here will
+%% XXX work in the general case.  If you're hand-compiling your own bytecode, you can make
+%% XXX optimizations like that.}
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{} 
+%% XXX   & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{2} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{\z{PUSH [0]}} 
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{y}}
+%% XXX   & \bitbox{8}{2} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{1}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX   
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{} 
+%% XXX   & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{6} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{\z{MUL \$,\#3}} 
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{y}}
+%% XXX   & \bitbox{8}{2} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{1}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX   
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{\z{POP [0]}} 
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{6} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{1}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX   
+%% XXX We then start the next iteration.
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{\z{NEXT L,\#1,\#20}} 
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{6} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{2}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX 
+%% XXX \dots\ and so on, until we reach the end of the final iteration:
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{\z{}}
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{34} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX 
+%% XXX (Note that the value in \z{[0]}---the local variable ``\z{base}''---is multiplied
+%% XXX by 3$\times$ every iteration, so although the value in the 8-bit memory location is
+%% XXX currently 34, it's overflowed 13~times already.  Remember that you are working with
+%% XXX only 8-bit values on the Lumos device.)
+%% XXX 
+%% XXX When the \z{NEXT} instruction is executed, it determines that the loop exit
+%% XXX condition has been met, and destroys the loop context, does \emph{not} jump to
+%% XXX the top of the loop, and execution will continue on past the loop now.
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{\z{NEXT 2,\#1,\#20}} 
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{34} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{(empty)}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX 
+%% XXX \subsection{Subroutine Calls and Parameter Passing}
+%% XXX The basic unit of execution is a sequence itself, so when we speak of calling a ``subroutine''
+%% XXX we really mean one sequence is calling another sequence (or recursively calling itself).
+%% XXX 
+%% XXX A number of parameters may be passed to the called sequence, which will appear as local
+%% XXX variables to it.  This is done by pushing their values onto the stack before making the
+%% XXX call.  Part of the call itself moves the stack frame boundary so that location \z{[0]}
+%% XXX refers to the first parameter.  The other parameters, if any, follow.  If the called
+%% XXX sequence sets up local variables, they'll be pushed after the parameters (which means
+%% XXX it is important that the sequences all agree about how many parameters are being passed
+%% XXX and received).
+%% XXX 
+%% XXX To illustrate this, consider the following pair of sequences:
+%% XXX 
+%% XXX \begin{SourceCode}
+%% XXX sequence 1:
+%% XXX   delay=10
+%% XXX   for i=0 to 255 by 4:
+%% XXX     for j=20 to 10 by -1:
+%% XXX       call 5(i,j)
+%% XXX       wait delay
+%% XXX     end
+%% XXX     delay += 10
+%% XXX   end
+%% XXX end
+%% XXX  
+%% XXX sequence 5(val,ch):
+%% XXX   foo=0x42
+%% XXX   dimmer ch, val
+%% XXX   on ch+20
+%% XXX   off ch+20
+%% XXX end
+%% XXX \end{SourceCode}
+%% XXX 
+%% XXX This compiles into the following bytecode:
+%% XXX 
+%% XXX \label{src:2seq}
+%% XXX \begin{SourceCode}
+%% XXX SEQUENCE #1 ASSEMBLY LISTING
+%% XXX ADDR BYTES          LINE SOURCE CODE
+%% XXX ---- -------------- ---- -----------------------------
+%% XXX 0000 4F 0A          0002 	PUSH    #10
+%% XXX 0002 2A             0003 I_LOOP: LOOP    #0
+%% XXX 0003 4A 14          0004 J_LOOP:	LOOP    #20
+%% XXX 0005 4F 01          0005 	PUSH    #1
+%% XXX 0007 EF             0006 	PUSH    {$}
+%% XXX 0008 6F             0007 	PUSH    {0}
+%% XXX 0009 48 05 02       0008 	CALL    #5,#2
+%% XXX 000C AF             0009 	PUSH    [0]
+%% XXX 000D 09             0010 	WAIT    $
+%% XXX 000E 75 03 0A       0011 	NEXTDEC J_LOOP,#1,#10
+%% XXX 0011 AF             0012 	PUSH    [0]
+%% XXX 0012 53 0A          0013 	ADD     $,#10
+%% XXX 0014 B0             0014 	POP     [0]
+%% XXX 0015 4B 02 04 FF    0015 	NEXT    I_LOOP,#4,#255
+%% XXX 0019 00             0016 	EXIT
+%% XXX 
+%% XXX SEQUENCE #5 ASSEMBLY LISTING
+%% XXX ADDR BYTES          LINE SOURCE CODE
+%% XXX ---- -------------- ---- -----------------------------
+%% XXX 0000 40 02          0019 	SSFB    #2
+%% XXX 0002 4F 42          0020 	PUSH    #0x42
+%% XXX 0004 AF             0021 	PUSH    [0]
+%% XXX 0005 CF 01          0022 	PUSH    [1]
+%% XXX 0007 02             0023 	DIMMER  $,$
+%% XXX 0008 CF 01          0024 	PUSH    [1]
+%% XXX 000A 53 14          0025 	ADD     $,#20
+%% XXX 000C 0F             0026 	DUP
+%% XXX 000D 81             0027 	ON      $
+%% XXX 000E 01             0028 	OFF     $
+%% XXX 000F 00             0029 	EXIT
+%% XXX \end{SourceCode}
+%% XXX 
+%% XXX We'll step through the execution of these routines to show how the stack frames
+%% XXX look between calls.
+%% XXX 
+%% XXX First, sequence~1 starts running, pushes its local variable to the stack, and enters
+%% XXX its loops:
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{\z{PUSH \#10}} 
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{10} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{(empty)}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{\z{LOOP \#0}} 
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{10} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{0}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{2}{}
+%% XXX   & \bitbox[]{8}{} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
+%% XXX \\
+%% XXX   \bitbox[]{8}{\z{LOOP \#20}} 
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{10} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
+%% XXX   & \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{0}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX 
+%% XXX We push the two parameters onto the stack in the order shown in the source code
+%% XXX (i.e., the deepest value will be the first parameter).  Since the call is
+%% XXX ``\z{CALL 5(x,y)}'' we need to push the outer loop counter \z{x} (which is 
+%% XXX at position \z{\{1\}} on the loop stack), then the inner loop counter \z{y}
+%% XXX (which is at position \z{\{0\}}).
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{1} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
+%% XXX \\
+%% XXX   \bitbox[]{8}{\z{PUSH \#1}}
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{y}}
+%% XXX   & \bitbox{8}{10} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
+%% XXX   & \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{0}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{0} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
+%% XXX \\
+%% XXX   \bitbox[]{8}{\z{PUSH \{\$\}}}
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{y}}
+%% XXX   & \bitbox{8}{10} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
+%% XXX   & \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{0}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[2]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{20} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{y}}
+%% XXX   & \bitbox{8}{0} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
+%% XXX \\
+%% XXX   \bitbox[]{8}{\z{PUSH \{0\}}}
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{z}}
+%% XXX   & \bitbox{8}{10} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
+%% XXX   & \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{0}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX 
+%% XXX Now we make the call.  The first parameter to \z{CALL} is the sequence number
+%% XXX we're calling, and the second is the number of parameters being passed (2 in this
+%% XXX case).
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{20} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{y}}
+%% XXX   & \bitbox{8}{0} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}}
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
+%% XXX \\
+%% XXX   \bitbox[]{8}{\z{CALL \#5,\#2}}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{2}{}
+%% XXX   & \colorbitbox{lightgray}{8}{10} & \bitbox[]{4}{} 
+%% XXX   & \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{0}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX 
+%% XXX At this point, control transfers into sequence~5.  Note that the stack frame boundary
+%% XXX moved up until the frame includes only the top 2 items (the two parameters passed into 
+%% XXX this sequence).  This means the parameters are directly accessible as \z{[0]}
+%% XXX and \z{[1]}, and the local variable sequence~5 is about to create will be \z{[2]}.  The
+%% XXX local variable from the calling sequence (the value 10 on the stack) is not directly
+%% XXX accessible for now.\footnote{Yes, if you're clever or careless enough, you can destroy
+%% XXX the integrity of the stack(s) to retrieve or alter the values below \acronym{SFB}, but
+%% XXX we're not recommending that.}
+%% XXX 
+%% XXX The first thing sequence~5 does is to ensure the stack frame is as expected.  
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{20} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{y}}
+%% XXX   & \bitbox{8}{0} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}}
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
+%% XXX \\
+%% XXX   \bitbox[]{8}{\z{SSFB \#2}}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{2}{}
+%% XXX   & \colorbitbox{lightgray}{8}{10} & \bitbox[]{4}{} 
+%% XXX   & \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{0}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX 
+%% XXX Next, it will
+%% XXX push the initial value of the local variable
+%% XXX \z{foo}, so we can get to it at location \z{[2]}.
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[2]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{0x42} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{y}}
+%% XXX   & \bitbox{8}{20} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{z}}
+%% XXX   & \bitbox{8}{0} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}}
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
+%% XXX \\
+%% XXX   \bitbox[]{8}{\z{PUSH \#0x42}}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{2}{}
+%% XXX   & \colorbitbox{lightgray}{8}{10} & \bitbox[]{4}{} 
+%% XXX   & \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{0}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX 
+%% XXX Now we set the dimmer value of channel \z{[1]} to level \z{[0]}.
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[3]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{0} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[2]}} & \bitbox[]{2}{\Var{y}}
+%% XXX   & \bitbox{8}{0x42} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{z}}
+%% XXX   & \bitbox{8}{20} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{}
+%% XXX   & \bitbox{8}{0} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}}
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
+%% XXX \\
+%% XXX   \bitbox[]{8}{\z{PUSH [0]}}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{2}{}
+%% XXX   & \colorbitbox{lightgray}{8}{10} & \bitbox[]{4}{} 
+%% XXX   & \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{0}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[4]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{20} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[3]}} & \bitbox[]{2}{\Var{y}}
+%% XXX   & \bitbox{8}{0} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[2]}} & \bitbox[]{2}{\Var{z}}
+%% XXX   & \bitbox{8}{0x42} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{}
+%% XXX   & \bitbox{8}{20} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{}
+%% XXX   & \bitbox{8}{0} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}}
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
+%% XXX \\
+%% XXX   \bitbox[]{8}{\z{PUSH [1]}}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{2}{}
+%% XXX   & \colorbitbox{lightgray}{8}{10} & \bitbox[]{4}{} 
+%% XXX   & \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{0}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[2]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{0x42} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{y}}
+%% XXX   & \bitbox{8}{20} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{z}}
+%% XXX   & \bitbox{8}{0} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}}
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
+%% XXX \\
+%% XXX   \bitbox[]{8}{\z{DIMMER \$,\$}}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{2}{}
+%% XXX   & \colorbitbox{lightgray}{8}{10} & \bitbox[]{4}{} 
+%% XXX   & \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{0}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX 
+%% XXX Now we calculate the value of \z{[1]}+20 which will 
+%% XXX be used for both the \z{ON} and \z{OFF} commands.
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[3]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{0} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[2]}} & \bitbox[]{2}{\Var{y}}
+%% XXX   & \bitbox{8}{0x42} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{z}}
+%% XXX   & \bitbox{8}{20} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{}
+%% XXX   & \bitbox{8}{0} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}}
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
+%% XXX \\
+%% XXX   \bitbox[]{8}{\z{PUSH [1]}}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{2}{}
+%% XXX   & \colorbitbox{lightgray}{8}{10} & \bitbox[]{4}{} 
+%% XXX   & \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{0}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[3]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{20} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[2]}} & \bitbox[]{2}{\Var{y}}
+%% XXX   & \bitbox{8}{0x42} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{z}}
+%% XXX   & \bitbox{8}{20} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{}
+%% XXX   & \bitbox{8}{0} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}}
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
+%% XXX \\
+%% XXX   \bitbox[]{8}{\z{ADD \#20}}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{2}{}
+%% XXX   & \colorbitbox{lightgray}{8}{10} & \bitbox[]{4}{} 
+%% XXX   & \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{0}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[4]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{20} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[3]}} & \bitbox[]{2}{\Var{y}}
+%% XXX   & \bitbox{8}{20} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[2]}} & \bitbox[]{2}{\Var{z}}
+%% XXX   & \bitbox{8}{0x42} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{}
+%% XXX   & \bitbox{8}{20} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{}
+%% XXX   & \bitbox{8}{0} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}}
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
+%% XXX \\
+%% XXX   \bitbox[]{8}{\z{DUP}}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{2}{}
+%% XXX   & \colorbitbox{lightgray}{8}{10} & \bitbox[]{4}{} 
+%% XXX   & \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{0}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[3]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{20} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[2]}} & \bitbox[]{2}{\Var{y}}
+%% XXX   & \bitbox{8}{0x42} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{z}}
+%% XXX   & \bitbox{8}{20} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{}
+%% XXX   & \bitbox{8}{0} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}}
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
+%% XXX \\
+%% XXX   \bitbox[]{8}{\z{ON \$}}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{2}{}
+%% XXX   & \colorbitbox{lightgray}{8}{10} & \bitbox[]{4}{} 
+%% XXX   & \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{0}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[2]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{0x42} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{y}}
+%% XXX   & \bitbox{8}{20} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{8}{}
+%% XXX \\
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{z}}
+%% XXX   & \bitbox{8}{0} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}}
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
+%% XXX \\
+%% XXX   \bitbox[]{8}{\z{OFF \$}}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{2}{}
+%% XXX   & \colorbitbox{lightgray}{8}{10} & \bitbox[]{4}{} 
+%% XXX   & \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{0}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX 
+%% XXX Now sequence~5 is done.  As it exits, the calling sequence resumes
+%% XXX where it left off, and the stack frame is destroyed, restoring the
+%% XXX \acronym{SFB} to its previous location.
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{} & \bitbox[]{2}{}
+%% XXX   & \bitbox[]{8}{} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
+%% XXX \\
+%% XXX   \bitbox[]{8}{\z{EXIT}}
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{10} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
+%% XXX   & \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{0}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX 
+%% XXX Execution of sequence~1 continues\dots.
+%% XXX 
+%% XXX \begin{bytefield}{32}
+%% XXX   \bitbox[]{8}{}
+%% XXX   & \bitbox[]{2}{\z{[1]}} & \bitbox[]{2}{\Var{x}}
+%% XXX   & \bitbox{8}{10} & \bitbox[]{4}{}
+%% XXX   & \bitbox[]{2}{\z{\{0\}}} & \bitbox{8}{20}
+%% XXX \\
+%% XXX   \bitbox[]{8}{\z{PUSH [0]}}
+%% XXX   & \bitbox[]{2}{\z{[0]}} & \bitbox[]{2}{\Var{y}}
+%% XXX   & \bitbox{8}{10} & \bitbox[]{4}{$\leftarrow$\acronym{SFB}} 
+%% XXX   & \bitbox[]{2}{\z{\{1\}}} & \bitbox{8}{0}
+%% XXX \\
+%% XXX \end{bytefield}
+%% XXX \subsection{Instruction Set}
+%% XXX \newenvironment{opdesc}{\medskip\noindent\begin{tabular}{lll|ll|l}
+%% XXX   \multicolumn{3}{l|}{Bytes} & \multicolumn{2}{l|}{Instruction} & Description\\\hline}{\end{tabular}}
+%% XXX \subsubsection{\z{ADD/INCR}: Add Two Numbers}
+%% XXX Adds the top two numbers on the stack (or the top number and another value), 
+%% XXX and pushes their sum back onto the 
+%% XXX stack.  Note that both operands, and the sum, are unsigned 8-bit values (0--255).
+%% XXX If the result exceeded this range, the result will be inaccurate (it will be the least
+%% XXX significant 8 bits of the value) and the overflow flag will be raised which you can test
+%% XXX using conditional branch instructions such as \z{IFANY}.
+%% XXX 
+%% XXX As a special case, the operation of adding 1 to a value is named \z{INCR} to reflect that it
+%% XXX is simply incrementing that value by one.
+%% XXX 
+%% XXX \begin{opdesc}
+%% XXX   \z{13} &            &&\z{ADD}&\z{\$,\$}& \Var{y} $+$ \Var{x} $\rightarrow$ \Var{x}.\\
+%% XXX   \z{53} & \Var*{v}   &&\z{ADD}&\z{\$,\#}\Var*{v}& \Var{x} $+$ \Var*{v} $\rightarrow$ \Var{x}.\\
+%% XXX   \z{33} &            &&\z{INCR}&\z{\$}& \Var{x} $+$ 1 $\rightarrow$ \Var{x}.\\
+%% XXX \end{opdesc}
+%% XXX 
+%% XXX \subsubsection{\z{BLACKOUT}: Turn Off All Channels at Once}
+%% XXX All channels are immediately turned off, or in the case of \z{FADEOUT}, all channels are smoothly
+%% XXX faded down to off.
+%% XXX 
+%% XXX \begin{opdesc}
+%% XXX   \z{0D} &&&\z{BLACKOUT}&&Turn off all channels.\\
+%% XXX   \z{8D} &&&\z{FADEOUT}&&Fade all channels to zero.\\
+%% XXX \end{opdesc}
+%% XXX 
+%% XXX \subsubsection{\z{BREAK}: Escape From Loop}
+%% XXX This is a special form of \z{JUMP} which is designed to branch out of a loop body.
+%% XXX In addition to jumping to the destination address, it destroys one or more loop contexts.  You must
+%% XXX ensure that the correct number of loops is specified when using \z{BREAK} to escape out
+%% XXX of one or more loop bodies.
+%% XXX 
+%% XXX \begin{opdesc}
+%% XXX   \z{83} & \Var*{addr} &&\z{BREAK}&\Var*{addr}\z{,\$} &  break out of \Var{x} loops\\
+%% XXX   \z{A3} & \Var*{addr} &&\z{BREAK}&\Var*{addr}        & break out of innermost loop\\
+%% XXX   \z{C3} & \Var*{addr} & \Var*{n} & \z{BREAK}&\Var*{addr}\z{,\#}\Var*{n} & break out of \Var*{n} loops\\
+%% XXX \end{opdesc}
+%% XXX 
+%% XXX \subsubsection{\z{CALL}: Invoke Sequence as a Subroutine}
+%% XXX Begins excuting a new sequence, possibly with parameters passed into it.
+%% XXX When that sequence completes, the current one will resume where it left off.
+%% XXX 
+%% XXX \begin{opdesc}
+%% XXX   \z{08} &            &           &\z{CALL}&\z{\$,\$} & Call \Var{x} with \Var{y} params.\\
+%% XXX   \z{28} &            &           &\z{CALL}&\z{\$}    & Call \Var{x} with no params.\\
+%% XXX   \z{48} & \Var*{seq} & \Var*{np} &\z{CALL}&\z{\#}\Var*{seq}\z{,\#}\Var*{np} & Call \Var*{seq} with \Var*{np} params.\\
+%% XXX   \z{68} & \Var*{seq} &           &\z{CALL}&\z{\#}\Var*{seq} & Call \Var*{seq} with no params.\\
+%% XXX \end{opdesc}
+%% XXX 
+%% XXX 
+%% XXX \subsubsection{\z{DIMMER}: Set a Channel Dimmer To a Value}
+%% XXX The specified channel \Var*{ch} is set to dimmer level \Var*{lvl} (0--255).
+%% XXX 
+%% XXX \begin{opdesc}
+%% XXX   \z{02} &            &           &\z{DIMMER}&\z{\$,\$} & Set channel \Var{x} to level \Var{y}.\\
+%% XXX   \z{42} & \Var*{ch} & \Var*{lvl} &\z{DIMMER}&\z\#\Var*{ch}\z{,\#}\Var*{lvl} & Set \Var*{ch} to \Var*{lvl}.\\
+%% XXX \end{opdesc}
+%% XXX 
+%% XXX \subsubsection{\z{EXCH}: Exchange Data Stack Values}
+%% XXX Swaps the top two values on the data stack (\Var{x} $\leftrightarrow$ \Var{y}).
+%% XXX 
+%% XXX \begin{opdesc}
+%% XXX   \z{11} &            &           &\z{EXCH}&& Swap \Var{x} and \Var{y}.\\
+%% XXX \end{opdesc}
+%% XXX 
+%% XXX \subsubsection{\z{EXEC}: Start New Sequence}
+%% XXX Begins excuting a new sequence, possibly with parameters passed into it.
+%% XXX This sequence replaces the current one.  When the called sequence \Var*{seq} exits,
+%% XXX execution returns to the caller of the current sequence (if any).
+%% XXX 
+%% XXX \begin{opdesc}
+%% XXX   \z{88} &            &           &\z{EXEC}&\z{\$,\$} & Run \Var{x} with \Var{y} params.\\
+%% XXX   \z{A8} &            &           &\z{EXEC}&\z{\$}    & Run \Var{x} with no params.\\
+%% XXX   \z{C8} & \Var*{seq} & \Var*{np} &\z{EXEC}&\z{\#}\Var*{seq}\z{,\#}\Var*{np} & Run \Var*{seq} with \Var*{np} params.\\
+%% XXX   \z{E8} & \Var*{seq} &           &\z{EXEC}&\z{\#}\Var*{seq} & Run \Var*{seq} with no params.\\
+%% XXX \end{opdesc}
+%% XXX 
+%% XXX \subsubsection{\z{EXIT}: Stop Execution of a Sequence}
+%% XXX The current sequence is terminated.  This will return to the previous sequence context
+%% XXX (resuming the previous sequence if we arrived here from a \z{CALL} instruction).  If this
+%% XXX was the outermost executing sequence, then no sequence will be running anymore.
+%% XXX 
+%% XXX \begin{opdesc}
+%% XXX   \z{00} &&&\z{EXIT}&& Terminate sequence.
+%% XXX \end{opdesc}
+%% XXX 
+%% XXX \subsubsection{\z{FADE}: Fade a Channel Down to Off}
+%% XXX Incrementally decrease the dimmer level of channel \Var*{ch} by subtracting \Var*{step}, with a delay
+%% XXX of \Var*{t}/120\,sec between each step, until it reaches the minimum level of 0.
+%% XXX 
+%% XXX \begin{opdesc}
+%% XXX   \z{04} &&&\z{FADE}&\z{\$,\$,\$}& Fade \Var{x} by \Var{y} per \Var{z}.\\
+%% XXX   \z{44} &\multicolumn{2}{l|}{\Var*{ch} \Var*{step} \Var*{t}}&\z{FADE}&\z\#\Var*{ch}\z{,\#}\Var*{step}\z{,\#}\Var*{t}& Fade \Var*{ch} by \Var*{step} per \Var*{t}.\\
+%% XXX \end{opdesc}
+%% XXX 
+%% XXX \subsubsection{\z{IF*}: Conditional Jumps}
+%% XXX The \z{JUMP} instruction always transfers control to the specified address.  The following
+%% XXX alternatives evaluate some condition, and if that condition is currently true, transfers
+%% XXX the flow of the sequence execution to the specified address \Var*{addr}.
+%% XXX 
+%% XXX Most of these compare two values for equality or inequality:
+%% XXX 
+%% XXX \begin{opdesc}
+%% XXX   \z{0C00} & \Var*{addr} &&\z{IFEQ}&\Var*{addr}\z{,\$,\$}& Jump to \Var*{addr} if \Var{y} $=$ \Var{x}.\\
+%% XXX   \z{4C00} & \Var*{addr} &\Var*{v}&\z{IFEQ}&\Var*{addr}\z{,\$,\#}\Var*{v}& Jump to \Var*{addr} if \Var{x} $=$ \Var*{v}.\\
+%% XXX   \z{0C40} & \Var*{addr} &&\z{IFLT}&\Var*{addr}\z{,\$,\$}& Jump to \Var*{addr} if \Var{y} $<$ \Var{x}.\\
+%% XXX   \z{4C40} & \Var*{addr} &\Var*{v}&\z{IFLT}&\Var*{addr}\z{,\$,\#}\Var*{v}& Jump to \Var*{addr} if \Var{x} $<$ \Var*{v}.\\
+%% XXX   \z{0C80} & \Var*{addr} &&\z{IFGT}&\Var*{addr}\z{,\$,\$}& Jump to \Var*{addr} if \Var{y} $>$ \Var{x}.\\
+%% XXX   \z{4C80} & \Var*{addr} &\Var*{v}&\z{IFGT}&\Var*{addr}\z{,\$,\#}\Var*{v}& Jump to \Var*{addr} if \Var{x} $>$ \Var*{v}.\\
+%% XXX   \z{8C00} & \Var*{addr} &&\z{IFNE}&\Var*{addr}\z{,\$,\$}& Jump to \Var*{addr} if \Var{y} $\ne$ \Var{x}.\\
+%% XXX   \z{CC00} & \Var*{addr} &\Var*{v}&\z{IFNE}&\Var*{addr}\z{,\$,\#}\Var*{v}& Jump to \Var*{addr} if \Var{x} $\ne$ \Var*{v}.\\
+%% XXX   \z{8C40} & \Var*{addr} &&\z{IFGE}&\Var*{addr}\z{,\$,\$}& Jump to \Var*{addr} if \Var{y} $\ge$ \Var{x}.\\
+%% XXX   \z{CC40} & \Var*{addr} &\Var*{v}&\z{IFGE}&\Var*{addr}\z{,\$,\#}\Var*{v}& Jump to \Var*{addr} if \Var{x} $\ge$ \Var*{v}.\\
+%% XXX   \z{8C80} & \Var*{addr} &&\z{IFLE}&\Var*{addr}\z{,\$,\$}& Jump to \Var*{addr} if \Var{y} $\le$ \Var{x}.\\
+%% XXX   \z{CC80} & \Var*{addr} &\Var*{v}&\z{IFLE}&\Var*{addr}\z{,\$,\#}\Var*{v}& Jump to \Var*{addr} if \Var{x} $\le$ \Var*{v}.\\
+%% XXX \end{opdesc}
+%% XXX 
+%% XXX The following forms test the status of a number of boolean flags in the system:
+%% XXX 
+%% XXX \begin{opdesc}
+%% XXX   \z{0CC}\Var{q} & \Var*{addr} &&\z{IFANY}&\Var*{addr}\z{,}\Var*{flags}& Jump to \Var*{addr} if any of \Var*{flags} true.\\
+%% XXX   \z{4CC}\Var{q} & \Var*{addr} &&\z{IFALL}&\Var*{addr}\z{,}\Var*{flags}& Jump to \Var*{addr} if all of \Var*{flags} true.\\
+%% XXX   \z{8CC}\Var{q} & \Var*{addr} &&\z{IFNONE}&\Var*{addr}\z{,}\Var*{flags}& Jump to \Var*{addr} if none of \Var*{flags} true.\\
+%% XXX   \z{CCC}\Var{q} & \Var*{addr} &&\z{IFNALL}&\Var*{addr}\z{,}\Var*{flags}& Jump to \Var*{addr} if not all of \Var*{flags} true.\\
+%% XXX \end{opdesc}
+%% XXX 
+%% XXX \medskip
+%% XXX 
+%% XXX In other words, these correspond to the combination of the specified bits using logical 
+%% XXX \acronym{OR}, \acronym{AND}, \acronym{NOR}, and \acronym{NAND} operations, respectively.
+%% XXX 
+%% XXX The actual flag bits are specified by \acronym{OR}-ing together the following bits to get
+%% XXX the final opcode value (second byte).  Flags not
+%% XXX included will not be part of the test.
+%% XXX 
+%% XXX \medskip\noindent\begin{tabular}{l|l|l}
+%% XXX Bits & Flag Name & Description \\\hline
+%% XXX \z{0020} & \z{Z} & Last \z{ADD}/\z{MUL}/\z{NEXT}/\z{SUB} result was zero.\\
+%% XXX \z{0010} & \z{V} & Last \z{ADD}/\z{MUL}/\z{NEXT}/\z{SUB} result overflowed.\\
+%% XXX \z{0008} & \z{A} & Sensor A input is low (0\,V).\\
+%% XXX \z{0004} & \z{B} & Sensor B input is low (0\,V).\\
+%% XXX \z{0002} & \z{C} & Sensor C input is low (0\,V).\\
+%% XXX \z{0001} & \z{D} & Sensor D input is low (0\,V).\\
+%% XXX \end{tabular}
+%% XXX 
+%% XXX \medskip
+%% XXX 
+%% XXX Watch for the fact that the sensors are ``true'' if they are at ground potential, regardless of
+%% XXX whether any triggers configured for them are set to activate when the sensor reads high or low.
+%% XXX \subsubsection{\z{JUMP}: Go to New Address}
+%% XXX Jump to the specified \Var*{address}.
+%% XXX 
+%% XXX \begin{opdesc}
+%% XXX   \z{03} &\Var*{addr}&&\z{JUMP}&\Var*{addr}\z{,\$}& Jump to \Var*{addr}+\Var{x}\\
+%% XXX   \z{23} &\Var*{addr}&&\z{JUMP}&\Var*{addr}       & Jump to \Var*{addr}\\
+%% XXX   \z{43} &\Var*{addr}&\Var*{offset}&\z{JUMP}&\Var*{addr}\z{,\#}\Var*{offset}& Jump to \Var*{addr}+\Var*{offset}\\
+%% XXX \end{opdesc}
+%% XXX 
+%% XXX \subsubsection{\z{LOOP}: Start New Loop Context}
+%% XXX Begins a new loop context, initializing the loop counter to a specified value.  This pushes the value
+%% XXX onto the loop stack.  This will henceforth be accessible as ``\z{\{0\}}'' for instructions which can
+%% XXX see loop counters, and the previous \z{\{0\}} is now \z{\{1\}} (i.e., \z{\{0\}} always refers to the innermost loop, \z{\{1\}} is the next level of loop context counting outward, etc.).
+%% XXX 
+%% XXX This loop context is destroyed (and the counter popped off the loop stack) by a corresponding
+%% XXX \z{BREAK}, \z{NEXT}, or \z{NEXTDEC}.
+%% XXX 
+%% XXX \begin{opdesc}
+%% XXX   \z{0A} &            &&\z{LOOP}&\z{\$} & Start loop with initial value \Var{x}.\\
+%% XXX   \z{2A} &            &&\z{LOOP}&\z{\#0}& Start loop with initial value 0.\\
+%% XXX   \z{4A} & \Var*{n}   &&\z{LOOP}&\z{\#}\Var*{n} & Start loop with initial value \Var*{n}.\\
+%% XXX   \z{AA} &            &&\z{LOOP}&\z{\#1}& Start loop with initial value 1.\\
+%% XXX \end{opdesc}
+%% XXX 
+%% XXX \subsubsection{\z{MUL}: Multiply Two Numbers}
+%% XXX Multiplies the top two numbers on the stack (or the top number and another value), 
+%% XXX and pushes their product back onto the 
+%% XXX stack.  Note that both operands, and the product, are unsigned 8-bit values (0--255).
+%% XXX If the result exceeded this range, the result will be inaccurate (it will be the least
+%% XXX significant 8 bits of the value) and the overflow flag will be raised which you can test
+%% XXX using conditional branch instructions such as \z{IFANY}.
+%% XXX 
+%% XXX \begin{opdesc}
+%% XXX   \z{12} &            &&\z{MUL}&\z{\$,\$}& \Var{y} $\times$ \Var{x} $\rightarrow$ \Var{x}.\\
+%% XXX   \z{52} & \Var*{v}   &&\z{MUL}&\z{\$,\#}\Var*{v}& \Var{x} $\times$ \Var*{v} $\rightarrow$ \Var{x}.\\
+%% XXX \end{opdesc}
+%% XXX 
+%% XXX \subsubsection{\z{NEXT}: End Loop Body (Start Next Iteration)}
+%% XXX This instruction (including a few variant forms as described below) marks the end of the loop
+%% XXX body began with a \z{LOOP} instruction.  It specifies an increment or decrement value to be
+%% XXX applied to the innermost loop counter, and a maximum value (or minimum, if decrementing).
+%% XXX If the loop counter is greater than the maximum or less than the minimum after updating it,
+%% XXX the loop context is destroyed and execution continues with the following instruction.
+%% XXX Otherwise, execution jumps to the address specified in the \z{NEXT} instruction, which should
+%% XXX be the address of the first instruction after the matching \z{LOOP} (although it need not be,
+%% XXX if you want some initialization code to take place at the start of the first iteration which
+%% XXX is not repeated on subsequent iterations).
+%% XXX 
+%% XXX \begin{opdesc}
+%% XXX   \z{0B} & \Var*{addr}&&\z{NEXT}&\Var*{addr}\z{,\$,\$} & Loop to \Var*{addr} if \z{\{0\}}+=\Var{x}$\le$\Var{y}.\\
+%% XXX   \z{2B} & \Var*{addr}&&\z{NEXT}&\Var*{addr}\z{,\#1,\$}& Loop to \Var*{addr} if \z{\{0\}}+=1$\le$\Var{x}.\\
+%% XXX   \z{4B} & \Var*{addr}& \Var*{inc} \Var*{max}&\z{NEXT}&\Var*{addr}\z{,\#}\Var*{inc}\z{,\#}\Var*{max}& Loop to \Var*{addr} if \z{\{0\}}+=\Var*{inc}$\le$\Var*{max}.\\
+%% XXX   \z{6B} & \Var*{addr}&\Var*{max}&\z{NEXT}&\Var*{addr}\z{,\#1,\#}\Var*{max}& Loop to \Var*{addr} if \z{\{0\}}+=1$\le$\Var*{max}.\\
+%% XXX   \z{15} & \Var*{addr}&&\z{NEXTDEC}&\Var*{addr}\z{,\$,\$} & Loop to \Var*{addr} if \z{\{0\}}--=\Var{x}$\ge$\Var{y}.\\
+%% XXX   \z{35} & \Var*{addr}&&\z{NEXTDEC}&\Var*{addr}\z{,\#1,\$}& Loop to \Var*{addr} if \z{\{0\}}--=1$\ge$\Var{x}.\\
+%% XXX   \z{55} & \Var*{addr}& \Var*{dec} \Var*{min}&\z{NEXTDEC}&\Var*{addr}\z{,\#}\Var*{dec}\z{,\#}\Var*{min}& Loop to \Var*{addr} if \z{\{0\}}--=\Var*{dec}$\ge$\Var*{min}.\\
+%% XXX   \z{75} & \Var*{addr}&\Var*{min}&\z{NEXTDEC}&\Var*{addr}\z{,\#1,\#}\Var*{min}& Loop to \Var*{addr} if \z{\{0\}}--=1$\ge$\Var*{min}.\\
+%% XXX   \z{8B} & \Var*{addr}&&\z{NEXTINF}&\Var*{addr}\z{,\$} & $\infty$ loop to \Var*{addr}, \z{\{0\}}+=\Var{x}.\\
+%% XXX   \z{AB} & \Var*{addr}&&\z{NEXTINF}&\Var*{addr}\z{,\#1}& $\infty$ loop to \Var*{addr}, \z{\{0\}}+=1.\\
+%% XXX   \z{CB} & \Var*{addr}&\Var*{inc}&\z{NEXTINF}&\Var*{addr}\z{,\#}\Var*{inc}& $\infty$ loop to \Var*{addr}, \z{\{0\}}+=\Var*{inc}.\\
+%% XXX   \z{95} & \Var*{addr}&&\z{NXDCINF}&\Var*{addr}\z{,\$} & $\infty$ loop to \Var*{addr}, \z{\{0\}}--=\Var{x}.\\
+%% XXX   \z{B5} & \Var*{addr}&&\z{NXDCINF}&\Var*{addr}\z{,\#1}& $\infty$ loop to \Var*{addr}, \z{\{0\}}--=1.\\
+%% XXX   \z{D5} & \Var*{addr}&\Var*{dec}&\z{NXDCINF}&\Var*{addr}\z{,\#}\Var*{dec}& $\infty$ loop to \Var*{addr}, \z{\{0\}}--=\Var*{dec}.\\
+%% XXX \end{opdesc}
+%% XXX 
+%% XXX \subsubsection{\z{NOP}: No Operation}
+%% XXX When this instruction is executed, nothing happens.
+%% XXX 
+%% XXX \begin{opdesc}
+%% XXX   \z{0E}&&&\z{NOP}&&No operation.\\
+%% XXX \end{opdesc}
+%% XXX 
+%% XXX \subsubsection{\z{OFF}: Turn a Channel Off}
+%% XXX The specified channel is turned fully off.
+%% XXX 
+%% XXX \begin{opdesc}
+%% XXX   \z{01} &           &&\z{OFF}&\z{\$}& Turn off channel \Var{x}.\\
+%% XXX   \z{41} &\Var*{chan}&&\z{OFF}&\z\#\Var*{chan}& Turn off \Var*{chan}.\\
+%% XXX \end{opdesc}
+%% XXX 
+%% XXX \subsubsection{\z{ON}: Turn a Channel On}
+%% XXX The specified channel is turned fully on.
+%% XXX 
+%% XXX \begin{opdesc}
+%% XXX   \z{81} &           &&\z{ON}&\z{\$}& Turn on channel \Var{x}.\\
+%% XXX   \z{C1} &\Var*{chan}&&\z{ON}&\z\#\Var*{chan}& Turn on \Var*{chan}.\\
+%% XXX \end{opdesc}
+%% XXX 
+%% XXX \subsubsection{\z{DROP/POP}: Remove a Value From the Stack}
+%% XXX The \z{DROP} instructions remove values from the stack and discard them. 
+%% XXX The \z{POP} instructions remove values and store them elsewhere in memory
+%% XXX (loop counters and direct memory locations).
+%% XXX 
+%% XXX For example, \z{DROP \$} pops the top value off the data stack (\Var{x}),
+%% XXX and then pops \Var{x} more values off and discards them.
+%% XXX 
+%% XXX \z{POP [\$]} removes the top value \Var{x}, which is used as the address
+%% XXX within memory (i.e., \z{[}\Var{x}\z{]}) into which to store the next value
+%% XXX \Var{y} on the stack.  This will remove both values from the stack.
+%% XXX 
+%% XXX \begin{opdesc}
+%% XXX   \z{10}&&&\z{DROP}&\z{\$}&Drop \Var{x} values, plus \Var{x} itself.\\
+%% XXX   \z{30}&&&\z{DROP}&&Drop the top value (\Var{x}).\\
+%% XXX   \z{50}&\Var*{n}&&\z{DROP}&\z{\#}\Var*{n}&Drop the top \Var*{n} values.\\
+%% XXX   \z{70}&&&\z{POP}&\z{\{0\}}&Store \Var{x} into loop counter \z{\{0\}}.\\
+%% XXX   \z{90}&&&\z{POP}&\z{[\$]}&Store \Var{y} into memory address in \Var{x}.\\
+%% XXX   \z{B0}&&&\z{POP}&\z{[0]}&Store \Var{x} into memory address 0.\\
+%% XXX   \z{D0}&\Var*{a}&&\z{POP}&\z{[}\Var*{a}\z{]}&Store \Var{x} into address \Var*{a}.\\
+%% XXX   \z{F0}&&&\z{POP}&\z{\{\$\}}&Store \Var{y} into loop counter for level \Var{x}.\\
+%% XXX \end{opdesc}
+%% XXX 
+%% XXX \subsubsection{\z{PUSH/DUP}: Push a Value Onto the Stack}
+%% XXX Adds a value to the data stack from various sources.  As a special case, \z{DUP} duplicates
+%% XXX the top value on the stack (i.e., pushes another copy of the top value).
+%% XXX 
+%% XXX The values pushed onto the data stack are consumed by most other commands, or removed from
+%% XXX the stack by \z{DROP} and \z{POP} instructions.
+%% XXX 
+%% XXX \begin{opdesc}
+%% XXX   \z{0F}&&&\z{DUP}&&Duplicate \Var{x}.\\
+%% XXX   \z{2F}&&&\z{PUSH}&\z{\#0}&Push a 0 constant value.\\
+%% XXX   \z{4F}&\Var*{v}&&\z{PUSH}&\z{\#}\Var*{v}&Push value \Var*{v}.\\
+%% XXX   \z{6F}&&&\z{PUSH}&\z{\{0\}}&Push loop counter \z{\{0\}}.\\
+%% XXX   \z{8F}&&&\z{PUSH}&\z{[\$]}&Push contents of address in \Var{x}.\\
+%% XXX   \z{AF}&&&\z{PUSH}&\z{[0]}&Push contents of address 0.\\
+%% XXX   \z{CF}&\Var*{a}&&\z{PUSH}&\z{[}\Var*{a}\z{]}&Push contents of address \Var*{a}.\\
+%% XXX   \z{EF}&&&\z{PUSH}&\z{\{\$\}}&Push loop counter for level \Var{x}.\\
+%% XXX \end{opdesc}
+%% XXX 
+%% XXX \subsubsection{\z{RAMP}: Fade a Channel Up to Full Brightness}
+%% XXX Incrementally increase the dimmer level of channel \Var*{ch} in increments of \Var*{step}, with a delay
+%% XXX of \Var*{t}/120\,sec between each step, until it reaches the maximum level of 255.
+%% XXX 
+%% XXX \begin{opdesc}
+%% XXX   \z{84} &&&\z{RAMP}&\z{\$,\$,\$}& Ramp \Var{x} by \Var{y} per \Var{z}.\\
+%% XXX   \z{C4} &\multicolumn{2}{l|}{\Var*{ch} \Var*{step} \Var*{t}}&\z{RAMP}&\z\#\Var*{ch}\z{,\#}\Var*{step}\z{,\#}\Var*{t}& Ramp \Var*{ch} by \Var*{step} per \Var*{t}.\\
+%% XXX \end{opdesc}
+%% XXX 
+%% XXX \subsubsection{\z{RESUME}: Resume From \z{SUSPEND}}
+%% XXX Resume acting on incoming instructions from the host PC.
+%% XXX If the \z{RESFADE} version is used, all channels are smoothly faded to
+%% XXX black then faded up to their last-known intended values (either the levels
+%% XXX they had when \z{SUSPEND} was invoked, or the result of the subsequent
+%% XXX PC commands if \z{SUSPUPD} was used).
+%% XXX 
+%% XXX \begin{opdesc}
+%% XXX   \z{06} &&&\z{RESUME}&& Resume command interpretation.\\
+%% XXX   \z{86} &&&\z{RESFADE}&& Fade through black and resume.
+%% XXX \end{opdesc}
+%% XXX 
+%% XXX \subsubsection{\z{SLEEP}: Shut Down Load Power}
+%% XXX Tell the load power supply it can shut down.  Requires a properly-configured
+%% XXX compatible power supply.
+%% XXX 
+%% XXX \begin{opdesc}
+%% XXX   \z{07} &&&\z{SLEEP}&& Turn off load power supply.
+%% XXX \end{opdesc}
+%% XXX 
+%% XXX \subsubsection{\z{SSFB}: Set Stack Frame Boundary}
+%% XXX The first instruction of a sequence which expects parameters to be passed into it
+%% XXX should be \z{SSFB} with the number of parameters expected (\Var*{np}).  This will reserve enough
+%% XXX space on the stack and initialze it with zero values.
+%% XXX 
+%% XXX Ideally, if another sequence called this one, it will have already pushed parameters
+%% XXX and moved the stack frame boundary (\acronym{SFB}) so that those parameters are the only
+%% XXX items in the current stack frame.  When the called sequence executes \z{SSFB}, if this
+%% XXX is the case, and the number of values in the stack frame equals \Var*{np},
+%% XXX nothing further is done.  If the number of values is less than \Var*{np}, additional zero bytes
+%% XXX will be pushed onto the stack to make the stack have exactly \Var*{np} values from \acronym{SFB}
+%% XXX upward.  If the number of values in the stack frame exceeds \Var*{np}, a fatal error is flagged
+%% XXX and the sequence terminates immediately.  (This latter condition means that too many values
+%% XXX are there, which will cause the sequence to confuse them with where it expects its own
+%% XXX local variables to be addressed within the stack frame).
+%% XXX 
+%% XXX \begin{opdesc}
+%% XXX   \z{40} & \Var*{np}&&\z{SSFB}&\z{\#}\Var*{np}& Ensure stack frame has \Var*{np} values.\\
+%% XXX \end{opdesc}
+%% XXX 
+%% XXX \subsubsection{\z{SUB/DECR}: Subtract Two Numbers}
+%% XXX Subtracts the top value on the stack from the next value (or another value from the top value),
+%% XXX and pushes their difference back onto the 
+%% XXX stack.  Note that both operands, and the result, are unsigned 8-bit values (0--255).
+%% XXX If the result exceeded this range (including by dropping below zero), 
+%% XXX the result will be inaccurate (it will be the least
+%% XXX significant 8 bits of the value) and the overflow flag will be raised which you can test
+%% XXX using conditional branch instructions such as \z{IFANY}.
+%% XXX 
+%% XXX As a special case, the operation of subtracting 1 from a value is named \z{DECR} to reflect that it
+%% XXX is simply decrementing that value by one.
+%% XXX 
+%% XXX \begin{opdesc}
+%% XXX   \z{14} &            &&\z{SUB}&\z{\$,\$}& \Var{y} $-$ \Var{x} $\rightarrow$ \Var{x}.\\
+%% XXX   \z{54} & \Var*{v}   &&\z{SUB}&\z{\$,\#}\Var*{v}& \Var{x} $-$ \Var*{v} $\rightarrow$ \Var{x}.\\
+%% XXX   \z{34} &            &&\z{DECR}&\z{\$}& \Var{x} $-$ 1 $\rightarrow$ \Var{x}.\\
+%% XXX \end{opdesc}
+%% XXX 
+%% XXX 
+%% XXX \subsubsection{\z{SUSPEND}: Stop Accepting Commands}
+%% XXX Stop acting on incoming instructions from the host PC until a \z{RESUME} instruction is executed.
+%% XXX If the \z{SUSPEND UPDATE} version is used, the effects of the commands are still remembered but
+%% XXX channel outputs are not actually affected.
+%% XXX 
+%% XXX \begin{opdesc}
+%% XXX   \z{05} &&&\z{SUSPEND}&& Suspend command interpretation.\\
+%% XXX   \z{85} &&&\z{SUSPUPD}&& Suspend tracking updates.
+%% XXX \end{opdesc}
+%% XXX 
+%% XXX \subsubsection{\z{WAIT}: Delay}
+%% XXX Pauses execution for \Var*{time}/120 seconds.
+%% XXX 
+%% XXX \begin{opdesc}
+%% XXX   \z{09} &&&\z{WAIT}&\z{\$}& Wait \Var{x}/120\,s.\\
+%% XXX   \z{49} &\Var*{time}&&\z{WAIT}&\z{\#}\Var*{time}& Wait \Var*{time}/120\,s.\\
+%% XXX \end{opdesc}
+%% XXX 
+%% XXX \subsubsection{\z{WAKE}: Turn On Load Power}
+%% XXX Tell the load power supply it can start up.  Requires a properly-configured
+%% XXX compatible power supply.
+%% XXX 
+%% XXX \begin{opdesc}
+%% XXX   \z{87} &&&\z{WAKE}&& Turn on load power supply.
+%% XXX \end{opdesc}
+%% XXX 
+%% XXX 
+%% XXX 
+%% XXX \begin{table}
+%% XXX   \begin{center}
+%% XXX     \begin{tabular}{llll|llll}
+%% XXX 	Opcode & Args & Mode & Instruction & 		Opcode & Args & Mode & Instruction\\
+%% XXX 	\z{00} &      & inh  & exit   			\\
+%% XXX 	\z{01} &      & stk  & off \$ 			& \z{81} &      & stk  & on \$ \\
+%% XXX 	\z{02} &      & stk  & dimmer \$,\$ 		\\
+%% XXX 	\z{03} & a    & stk  & jump a,\$		& \z{83} & a    & stk  & break a,\$ \\
+%% XXX 	\z{04} &      & stk  & fade \$,\$,\$		& \z{84} &      & stk  & ramp \$,\$,\$\\
+%% XXX 	\z{05} &      & inh  & suspend			& \z{85} &      & inh  & suspupd\\
+%% XXX 	\z{06} &      & inh  & resume			& \z{86} &      & inh  & resfade\\
+%% XXX 	\z{07} &      & inh  & sleep			& \z{87} &      & inh  & wake\\
+%% XXX 	\z{08} &      & stk  & call \$,\$		& \z{88} &      & stk  & exec \$,\$\\
+%% XXX 	\z{09} &      & stk  & wait \$ 			\\
+%% XXX 	\z{0A} &      & stk  & loop \$			\\
+%% XXX 	\z{0B} & a    & stk  & next a,\$,\$		& \z{8B} & a    & stk  & nextinf a,\$\\
+%% XXX %	\z{0C} &      &      & see conditionals		& \z{8C} &      &      & see conditionals\\
+%% XXX 	\z{0D} &      & inh  & blackout                 & \z{8D} &      & inh  & fadeout\\
+%% XXX 	\z{0E} &      & inh  & nop 			\\
+%% XXX 	\z{0F} &      & inh  & dup         		& \z{8F} &      & i/s  & push [\$]\\
+%% XXX 	\z{10} &      & inh  & drop \$ 			& \z{90} &      & i/s  & pop [\$]\\
+%% XXX 	\z{11} &      & stk  & exch 			\\
+%% XXX 	\z{12} &      & stk  & mul \$,\$		\\
+%% XXX 	\z{13} &      & stk  & add \$,\$		\\
+%% XXX 	\z{14} &      & stk  & sub \$,\$		\\
+%% XXX 	\z{15} & a    & stk  & nextdec a,\$,\$		& \z{95} & a    & stk  & nxdcinf a,\$\\
+%% XXX 	%\z{21} &      & def  & exch 			\\
+%% XXX 	\z{23} & a    & def  & jump a			& \z{A3} & a    & def  & break a\\
+%% XXX 	\z{28} &      & d/s  & call \$			& \z{A8} & i    & d/s  & exec \$\\
+%% XXX 	\z{2A} &      & def  & loop \#0			& \z{AA} &      & def  & loop \#1\\
+%% XXX 	\z{2B} & a    & d/s  & next a,\#1,\$		& \z{AB} & a    & d/s  & nextinf a,\#1\\
+%% XXX %	\z{2C} &      &      & see conditionals		& \z{AC} &      &      & see conditionals\\
+%% XXX 	\z{2F} &      & def  & push \#0    		& \z{AF} &      & i/d  & push [0]\\
+%% XXX 	\z{30} &      & def  & drop			& \z{B0} &      & i/d  & pop [0]\\
+%% XXX 	\z{33} &      & def  & incr \$ 			\\
+%% XXX 	\z{34} &      & def  & decr \$ 	 		\\
+%% XXX 	\z{35} & a    & d/s  & nextdec a,\#1,\$		& \z{B5} & a    & d/s  & nxdcinf a,\#1\\
+%% XXX 	\z{40} & n    & imm  & ssfb \#n 		\\
+%% XXX 	\z{41} & c    & imm  & off \#c			& \z{C1} & c    & imm  & on  \#c \\
+%% XXX 	\z{42} & c v  & imm  & dimmer \#c,\#v 		\\
+%% XXX 	\z{43} & a o  & imm  & jump a,\#o		& \z{C3} & a n  & imm  & break a,\#n\\
+%% XXX 	\z{44} & c s t& imm  & fade \#c,\#s,\#t		& \z{C4} & c s t& imm  & ramp \#c,\#s,\#t\\
+%% XXX 	\z{48} & i n  & imm  & call \#i,\#n		& \z{C8} & i n  & imm  & exec \#i,\#n\\
+%% XXX 	\z{49} & t    & imm  & wait \#t 		\\
+%% XXX 	\z{4A} & v    & imm  & loop \#v			\\
+%% XXX 	\z{4B} & a i x& imm  & next a,\#i,\#x		& \z{CB} & a i  & imm  & nextinf a,\#i\\
+%% XXX %	\z{4C} &      &      & see conditionals		& \z{CC} &      &      & see conditionals\\
+%% XXX 	\z{4F} & v    & imm  & push \#v    		& \z{CF} & a    & ind  & push [a]\\
+%% XXX 	\z{50} & n    & imm  & drop \#n  		& \z{D0} & a    & ind  & pop [a]\\
+%% XXX 	%\z{51} & n    & imm  & exch \#n		\\
+%% XXX 	\z{52} & x    & imm  & mul \$,\#x		\\
+%% XXX 	\z{53} & x    & imm  & add \$,\#x		\\
+%% XXX 	\z{54} & x    & imm  & sub \$,\#x		\\
+%% XXX 	\z{55} & a i x& imm  & nextdec a,\#i,\#x 	& \z{D5} & a i  & imm  & nxdcinf a,\#i\\
+%% XXX 	\z{68} & i    & i/d  & call \#i			& \z{E8} & i    & i/d  & fexec \#i\\
+%% XXX 	\z{6B} & a x  & i/d  & next a,\#1,\#x		\\%& \z{EB} & a    & i/d  & nextinf a,\#1\\
+%% XXX %	\z{6C} &      &      & see conditionals		& \z{EC} &      &      & see conditionals\\
+%% XXX 	\z{6F} &      & d/l  & push \{0\}    		& \z{EF} &      & s/l  & push \{\$\}\\
+%% XXX 	\z{70} &      & d/l  & pop \{0\}    		& \z{F0} &      & s/l  & pop \{\$\}\\
+%% XXX 	\z{75} & a x  & i/d  & nextdec a,\#1,\#x	\\%& \z{F5} & a    & i/d  & nxdcinf a,\#1\\
+%% XXX     \end{tabular}
+%% XXX   \end{center}
+%% XXX   \caption{Summary of Sequence Instructions by Opcode Value\label{tbl:opcodes}}
+%% XXX \end{table}
+%% XXX 
+%% XXX 
+%% XXX \begin{table}
+%% XXX   \begin{center}
+%% XXX     \begin{tabular}{llll|llll}
+%% XXX 	Opcode & Args & Mode & Instruction & 		Opcode & Args & Mode & Instruction\\
+%% XXX 	\z{0C00}&a    & stk  & ifeq a,\$		& \z{8C00}&a    & stk  & ifne a,\$\\
+%% XXX 	\z{0C40}&a    & stk  & iflt a,\$		& \z{8C40}&a    & stk  & ifge a,\$\\
+%% XXX 	\z{0C80}&a    & stk  & ifgt a,\$		& \z{8C80}&a    & stk  & ifle a,\$\\
+%% XXX 	\z{0CCx}&a    & inh  & ifany a,f		& \z{8CCx}&a    & inh  & ifnone a,f\\   % or nor
+%% XXX 	\z{4C00}&a x  & imm  & ifeq a,\#x		& \z{CC00}&a x  & imm  & ifne a,\#x\\
+%% XXX 	\z{4C40}&a x  & imm  & iflt a,\#x		& \z{CC40}&a x  & imm  & ifge a,\#x\\
+%% XXX 	\z{4C80}&a x  & imm  & ifgt a,\#x		& \z{CC80}&a x  & imm  & ifle a,\#x\\
+%% XXX 	\z{4CCx}&a    & inh  & ifall a,f		& \z{CCCx}&a    & inh  & ifnall a,f\\   %and nand
+%% XXX     \end{tabular}
+%% XXX   \end{center}
+%% XXX   \caption{Summary of Conditional Jump Instructions by Opcode Value\label{tbl:conditionals}}
+%% XXX \end{table}
+%% XXX 
+%% XXX \begin{table}
+%% XXX   \begin{center}
+%% XXX     \begin{tabular}{rcl}
+%% XXX 	Bits & Flag & Description \\
+%% XXX 	\z{0020}& \z{Z} & Last \z{NEXT*}/\z{MUL}/\z{ADD}/\z{SUB} result was zero \\
+%% XXX 	\z{0010}& \z{V} & Last \z{NEXT*}/\z{MUL}/\z{ADD}/\z{SUB} result overflowed byte \\
+%% XXX 	\z{0008}& \z{A} & Sensor A input is true (low) \\
+%% XXX 	\z{0004}& \z{B} & Sensor B input is true (low)\\
+%% XXX 	\z{0002}& \z{C} & Sensor C input is true (low)\\
+%% XXX 	\z{0001}& \z{D} & Sensor D input is true (low)\\
+%% XXX     \end{tabular}
+%% XXX   \end{center}
+%% XXX   \caption{Conditional Jump Condition Code Bits\label{tbl:condcodes}}
+%% XXX \end{table}
+%% XXX 
+%% XXX \section{Loading Binary Sequences Onto Lumos Boards}
+%% XXX The binary sequences are stored in the Intel Hex Format, where memory addresses
+%% XXX are effectively assumed to be 24 bits long, with the upper eight bits representing
+%% XXX the sequence number and the lower 16 bits forming the address within that sequence,
+%% XXX allowing for 65,536 bytes per instruction, which is far more than the current Lumos
+%% XXX boards can actually accommodate.
+%% XXX 
+%% XXX Each sequence begins with a line of the form:
+%% XXX \begin{Coding}
+%% XXX |:0200000400|\Var{ss}\Var{kk}
+%% XXX \end{Coding}
+%% XXX where \Var{ss} is the two-hex-digit sequence number and \Var{kk} is the checksum obtained
+%% XXX by adding all the bytes together and taking the 8-bit two's compliment of that sum.
+%% XXX 
+%% XXX Each line after that provides a number of data bytes in the sequence, and is of the form:
+%% XXX \begin{Coding}
+%% XXX |:|\Var{nn}\Var{aaaa}|00|\Var*{\Var{n} data bytes (2\Var{n} hex digits)\dots}\Var{kk}
+%% XXX \end{Coding}
+%% XXX where:
+%% XXX \begin{itemize}
+%% XXX 	\item[\Var{n}] is the number of data bytes on this line.  This is typically 16 or 32
+%% XXX 	but may be any number from 0--255.
+%% XXX 	\item[\Var{a}] is the address within the sequence where these data bytes reside.
+%% XXX 	\item[\Var*{data}] bytes are the instruction data being recorded at this address.
+%% XXX 	\item[\Var{k}] is the two-hex-digit checksum calculated as described above.
+%% XXX \end{itemize}
+%% XXX 
+%% XXX Finally, the last line of the hex file is always:
+%% XXX \begin{Coding}
+%% XXX |:00000001FF|
+%% XXX \end{Coding}
+%% XXX 
+%% XXX For example, the sequence pair 
+%% XXX shown on page~\pageref{src:2seq} would be encoded
+%% XXX in the hex file as follows:
+%% XXX \begin{SourceCode}
+%% XXX :020000040001F9
+%% XXX :100000004F0A2A4A144F01EF6F480502AF097503E2
+%% XXX :0A0010000AAF530AB04B0204FF00D0
+%% XXX :020000040005F5
+%% XXX :1000000040024F42AFCF0102CF0153140F810100D4
+%% XXX :00000001FF
+%% XXX \end{SourceCode}
+%% XXX 
+%% XXX To assemble the sequence mnemonics into binary format, use the \z{lumosasm} \acronym{CLI}
+%% XXX command (documented fully on page~\pageref{man:lumosasm}):
+%% XXX \begin{SourceCode}
+%% XXX $ lumosasm --output=sequences.hex sequences.lasm
+%% XXX Lumos Sequence Assembler version 1.0
+%% XXX SEQUENCES: 002
+%% XXX ERRORS:    000
+%% XXX \end{SourceCode}
+%% XXX This binary file may then be downloaded into the Lumos controller using the \z{lumosctl}
+%% XXX command:
+%% XXX \begin{SourceCode}
+%% XXX $ lumosctl --port=COM1 --speed=19200 --address=2 \
+%% XXX     --load-hex-sequences=sequences.hex
+%% XXX \end{SourceCode}
+%% XXX } % end of grayed-out text
+\end{NotImplemented*}
 \chapter{Communication Protocol Details}\label{ch:proto}
 \LLstart{T}{he}{protocol used by Lumos boards} to receive commands is designed to be compact (so as to 
 conserve the number of bytes transmitted to carry out common functions) while remaining 
 simple and fast for the controller to interpret.  It is also designed so that multiple devices can
-share the same RS-485 network connection.  As long as they all implement this basic protocol, they can
+share the same \acronym{RS-485} network connection.  As long as they all implement this basic protocol, they can
 safely avoid misinterpreting each other's commands even if they do not know the details of each other's
 command structure.  This includes, for example, Lumos boards at different revision levels.  (There are
 also more devices designed by the author which have very different command sets but use a compatible
 protocol so they may peacefully coexist with Lumos controllers on the same network.)
 
 The protocol is essentially a stream of 8-bit bytes transmitted over an asynchronous communication link
-such as RS-232 or RS-485.  Commands may consist of as little as a single byte, or could be an arbitrarily
+such as \acronym{RS-232} or \acronym{RS-485}.  Commands may consist of as little as a single byte, or could be an arbitrarily
 large number of bytes long.  
 
 The first byte of a command always has this format:  
@@ -2972,68 +2991,68 @@ Note that it may be necessary to escape some of these data bytes so their 8-bit 
 conform to the overall communications protocol as described at the beginning of
 this chapter (see p.~\pageref{escapebytes} for details about this escape mechanism).
 
-\subsection{\z{0x3}: Bulk Channel Update---deprecated version}
-\strong{The following is obsolete and no longer supported:}
-{\color{gray}
-\begin{BF}
-  \bitbox{1}{\z1} & \bitbox{3}{3} & \bitbox{4}{\Var*{addr}}\\
-  \bitbox{1}{\z0} & \bitbox{1}{\Var{m}} & \bitbox{6}{\Var*{channel}}\\
-  \bitbox{1}{\z0} & \bitbox{7}{\Var*{N}$-$1}\\
-  \bitbox{1}{\z0} & \bitbox{7}{\Var*{level$_0$}}\\
-  \wordbox[]{1}{$\vdots$ \\[1ex]} \\
-  \bitbox{1}{\z0} & \bitbox{7}{\Var*{level$_{N-1}$}}\\
-  \begin{rightwordgroup}{if \Var{m}=1}
-  \bitbox{1}{\z0} 
-	& \bitbox[]{1}{\z1}
-	& \bitbox[]{1}{\z0}
-	& \bitbox[]{1}{\z1}
-	& \bitbox[]{1}{\z0}
-	& \bitbox[]{1}{\z1}
-	& \bitbox[]{1}{\z1}
-	& \bitbox[r]{1}{\z0}\\
-  \bitbox{1}{\z0} 
-	& \bitbox{1}{$h_0$}
-	& \bitbox{1}{$h_1$}
-	& \bitbox{1}{$h_2$}
-	& \bitbox{1}{$h_3$}
-	& \bitbox{1}{$h_4$}
-	& \bitbox{1}{$h_5$}
-	& \bitbox{1}{$h_6$}\\
-  \wordbox[]{1}{$\vdots$ \\[1ex]} \\
-  \bitbox{1}{\z0} 
-	& \bitbox[t]{4}{$\cdots$}
-	& \bitbox[tr]{3}{$h_{N-1}$}
-	\end{rightwordgroup}\\
-  \bitbox{1}{\z0} 
-	& \bitbox[tb]{1}{\z1}
-	& \bitbox[tb]{1}{\z0}
-	& \bitbox[tb]{1}{\z1}
-	& \bitbox[tb]{1}{\z0}
-	& \bitbox[tb]{1}{\z1}
-	& \bitbox[tb]{1}{\z0}
-	& \bitbox[tbr]{1}{\z1}
-\end{BF}
-If more than a small number of channel levels are being updated at once,
-it is more economical to send a single bulk update command with all their
-new values in one payload, rather than initiate individual commands for them.
-
-This updates \Var*{N} channels starting with \Var*{channel} and continuing to
-\Var*{channel}$+$\Var*{N}$-$1.  Note that the value \Var*{N}$-$1 is passed, not \Var*{N}.
-This allows for any number of channels from 1--128 to be updated.
-
-As with the ``Set Output Channel Level'' command above, the 8-bit level value for
-the $i$th channel in the list is the combination of the \Var*{level$_i$} field and the $h_i$ bit:
-\begin{BF}
-  \bitbox{7}{\Var*{level$_i$}} & \bitbox{1}{\Var{h$_i$}}
-\end{BF}
-
-This command has two modes of operation as selected by the \Var{m} bit.  In low-resolution
-mode (\Var{m}=0), all the \Var{h} bits are omitted, and the level range is effectively
-0--127, with 0 being fully off and 127 being fully on.\footnote{The Lumos device intelligently
-handles these edge conditions rather than simply assuming the least significant bit is always 
-set or clear.}  In high-resolution mode (\Var{m}=1), then all bits are specified and the full
-range of values (0--255) is supported.
-}
+%% XXX DEPRECATED XXX  \subsection{\z{0x3}: Bulk Channel Update---deprecated version}
+%% XXX DEPRECATED XXX  \strong{The following is obsolete and no longer supported:}
+%% XXX DEPRECATED XXX  {\color{gray}
+%% XXX DEPRECATED XXX  \begin{BF}
+%% XXX DEPRECATED XXX    \bitbox{1}{\z1} & \bitbox{3}{3} & \bitbox{4}{\Var*{addr}}\\
+%% XXX DEPRECATED XXX    \bitbox{1}{\z0} & \bitbox{1}{\Var{m}} & \bitbox{6}{\Var*{channel}}\\
+%% XXX DEPRECATED XXX    \bitbox{1}{\z0} & \bitbox{7}{\Var*{N}$-$1}\\
+%% XXX DEPRECATED XXX    \bitbox{1}{\z0} & \bitbox{7}{\Var*{level$_0$}}\\
+%% XXX DEPRECATED XXX    \wordbox[]{1}{$\vdots$ \\[1ex]} \\
+%% XXX DEPRECATED XXX    \bitbox{1}{\z0} & \bitbox{7}{\Var*{level$_{N-1}$}}\\
+%% XXX DEPRECATED XXX    \begin{rightwordgroup}{if \Var{m}=1}
+%% XXX DEPRECATED XXX    \bitbox{1}{\z0} 
+%% XXX DEPRECATED XXX  	& \bitbox[]{1}{\z1}
+%% XXX DEPRECATED XXX  	& \bitbox[]{1}{\z0}
+%% XXX DEPRECATED XXX  	& \bitbox[]{1}{\z1}
+%% XXX DEPRECATED XXX  	& \bitbox[]{1}{\z0}
+%% XXX DEPRECATED XXX  	& \bitbox[]{1}{\z1}
+%% XXX DEPRECATED XXX  	& \bitbox[]{1}{\z1}
+%% XXX DEPRECATED XXX  	& \bitbox[r]{1}{\z0}\\
+%% XXX DEPRECATED XXX    \bitbox{1}{\z0} 
+%% XXX DEPRECATED XXX  	& \bitbox{1}{$h_0$}
+%% XXX DEPRECATED XXX  	& \bitbox{1}{$h_1$}
+%% XXX DEPRECATED XXX  	& \bitbox{1}{$h_2$}
+%% XXX DEPRECATED XXX  	& \bitbox{1}{$h_3$}
+%% XXX DEPRECATED XXX  	& \bitbox{1}{$h_4$}
+%% XXX DEPRECATED XXX  	& \bitbox{1}{$h_5$}
+%% XXX DEPRECATED XXX  	& \bitbox{1}{$h_6$}\\
+%% XXX DEPRECATED XXX    \wordbox[]{1}{$\vdots$ \\[1ex]} \\
+%% XXX DEPRECATED XXX    \bitbox{1}{\z0} 
+%% XXX DEPRECATED XXX  	& \bitbox[t]{4}{$\cdots$}
+%% XXX DEPRECATED XXX  	& \bitbox[tr]{3}{$h_{N-1}$}
+%% XXX DEPRECATED XXX  	\end{rightwordgroup}\\
+%% XXX DEPRECATED XXX    \bitbox{1}{\z0} 
+%% XXX DEPRECATED XXX  	& \bitbox[tb]{1}{\z1}
+%% XXX DEPRECATED XXX  	& \bitbox[tb]{1}{\z0}
+%% XXX DEPRECATED XXX  	& \bitbox[tb]{1}{\z1}
+%% XXX DEPRECATED XXX  	& \bitbox[tb]{1}{\z0}
+%% XXX DEPRECATED XXX  	& \bitbox[tb]{1}{\z1}
+%% XXX DEPRECATED XXX  	& \bitbox[tb]{1}{\z0}
+%% XXX DEPRECATED XXX  	& \bitbox[tbr]{1}{\z1}
+%% XXX DEPRECATED XXX  \end{BF}
+%% XXX DEPRECATED XXX  If more than a small number of channel levels are being updated at once,
+%% XXX DEPRECATED XXX  it is more economical to send a single bulk update command with all their
+%% XXX DEPRECATED XXX  new values in one payload, rather than initiate individual commands for them.
+%% XXX DEPRECATED XXX  
+%% XXX DEPRECATED XXX  This updates \Var*{N} channels starting with \Var*{channel} and continuing to
+%% XXX DEPRECATED XXX  \Var*{channel}$+$\Var*{N}$-$1.  Note that the value \Var*{N}$-$1 is passed, not \Var*{N}.
+%% XXX DEPRECATED XXX  This allows for any number of channels from 1--128 to be updated.
+%% XXX DEPRECATED XXX  
+%% XXX DEPRECATED XXX  As with the ``Set Output Channel Level'' command above, the 8-bit level value for
+%% XXX DEPRECATED XXX  the $i$th channel in the list is the combination of the \Var*{level$_i$} field and the $h_i$ bit:
+%% XXX DEPRECATED XXX  \begin{BF}
+%% XXX DEPRECATED XXX    \bitbox{7}{\Var*{level$_i$}} & \bitbox{1}{\Var{h$_i$}}
+%% XXX DEPRECATED XXX  \end{BF}
+%% XXX DEPRECATED XXX  
+%% XXX DEPRECATED XXX  This command has two modes of operation as selected by the \Var{m} bit.  In low-resolution
+%% XXX DEPRECATED XXX  mode (\Var{m}=0), all the \Var{h} bits are omitted, and the level range is effectively
+%% XXX DEPRECATED XXX  0--127, with 0 being fully off and 127 being fully on.\footnote{The Lumos device intelligently
+%% XXX DEPRECATED XXX  handles these edge conditions rather than simply assuming the least significant bit is always 
+%% XXX DEPRECATED XXX  set or clear.}  In high-resolution mode (\Var{m}=1), then all bits are specified and the full
+%% XXX DEPRECATED XXX  range of values (0--255) is supported.
+%% XXX DEPRECATED XXX }
 \subsection{\z{0x4}: Ramp Channel Level}
 \begin{BF}
   \bitbox{1}{\z1} & \bitbox{3}{4} & \bitbox{4}{\Var*{addr}}\\
@@ -3333,6 +3352,7 @@ The information contained in this packet describes several facts about the Lumos
 		\end{bytefield}\end{center}
 \end{description}
 
+\begin{NotImplemented}
 \subsection{\z{0x704}: Define Sequence}
 \begin{BF}
 	\bitbox{1}{\z1} & \bitbox{3}{7} & \bitbox{4}{\Var*{addr}} \\
@@ -3451,6 +3471,7 @@ If the mask is 0, it is responded to normally.
 		& \bitbox[br]{1}{\z1}
 \end{BF}
 All stored sequences are erased.
+\end{NotImplemented}
 
 \subsection{\z{0x709} Forbid Configuration Mode}\label{cmd:xpriv}
 \begin{BF}
@@ -3918,6 +3939,10 @@ will send the result ``\z{@DEL@@@@k}''.
 
 
 \chapter{DMX512 Command Structure}\label{ch:dmx}
+\begin{NotImplemented*}{Support for \acronym{DMX512} is included in the Lumos firmware but has not
+been tested to be reliable yet, and in fact may not function at all.  The information that follows
+is experimental.  If you have \acronym{DMX512} equipment, expertise, and willingness to help develop
+this feature of Lumos further, contact the author.}
 When configured in \acronym{DMX512} mode, none of the Lumos commands documented in Chapter~\ref{ch:proto}
 are recognized. The Lumos controller will be only looking for \acronym{DMX512} command packets.
 To use the Lumos commands for configuration of the board (e.g., to turn off \acronym{DMX512} mode or change
@@ -3970,6 +3995,7 @@ channel numbers start with 1.
  \end{BF}
  \caption{DMX Packet\label{fig:dmx}}
 \end{figure}
+\end{NotImplemented*}
 \chapter{Theory of Operation}\label{ch:too}
 \LLstart{T}{he}{Lumos controller boards} provide 256 levels of dimmer control on their
 output channels by using pulse width modification (\acronym{PWM}).  That is, each output
@@ -4267,7 +4293,12 @@ References to other program manual entries look like ``\z{lumosctl}(1)'' which i
 \z{lumosctl} command is documented in section~1 of the manual, which is the section for general 
 user commands on Unix-like systems.
 \newpage
-\input lumosasm
+\begin{NotImplemented*}{The \z{lumosasm} program is used to assemble descriptions of stored
+sequences into the internal binary format recognized by the Lumos boards.  Since that feature is
+not yet supported by Lumos boards, this section of the manual is blank until that feature is
+fully defined.}
+%\input lumosasm
+\end{NotImplemented*}
 \newpage
 \input lumosctl
 \newpage

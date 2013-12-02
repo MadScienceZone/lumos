@@ -444,10 +444,11 @@ class LumosControllerUnit (ControllerUnit):
                         # watch for 0x7e, 0x7f
                         extra_bytes = 0
                         skip_next = False
-                        for i in d[cb+2:cb+35]:
+                        for pos, ch in enumerate(d[cb+2:]):
+                            if pos >= 35+extra_bytes: break
                             if skip_next:
                                 skip_next = False
-                            elif 0x7e <= ord(i) <= 0x7f:
+                            elif 0x7e <= ord(ch) <= 0x7f:
                                 extra_bytes += 1
                                 skip_next = True
 

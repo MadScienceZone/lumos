@@ -27,7 +27,7 @@ def parse_arguments():
     parser.add_option('-a', '--address',        metavar='ADDR', type='int', help='Unit address (0-15) [%default]')
     parser.add_option('-S', '--clear-sequences', action='store_true', help='Delete all stored sequences from the device.')
     parser.add_option('-D', '--disable-sensor',  metavar='LIST', help='Disable sensor(s) ABCD in LIST')
-    parser.add_option('-d', '--drop-privileged-mode', action='store_true', help='Run in unprivileged mode')
+    parser.add_option('-d', '--drop-configuration-mode', action='store_true', help='Run in normal mode')
     parser.add_option('-C', '--dump-configuration-file', metavar='FILE', help='Get and save device configuration')
     parser.add_option('-x', '--duplex', metavar='DPX', action='store', choices=['full', 'half'], help='Serial duplex mode [%default]')
     parser.add_option('-E', '--enable-sensor', metavar='LIST', help='Enable sensor(s) ABCD in LIST')
@@ -184,7 +184,7 @@ def report_on(device):
 
     print "Device Type:              {0} ({1} channels)".format(device.hardware_type, device.channels)
     print "Serial Number:            {0}".format(device.serial_number or 'N/A')
-    print "Config (privileged) mode: {0}".format('ON' if device.in_config_mode else 'OFF')
+    print "Configuration mode:       {0}".format('ON' if device.in_config_mode else 'OFF')
     print "Sleep mode:               {0}".format('ON' if device.in_sleep_mode else 'OFF')
     print "Currently Executing:      {0}".format(device.current_sequence or 'Nothing')
     #print "Dimmer Resolution:        {0:4d} steps".format(device.config.resolution)
@@ -285,7 +285,7 @@ def assert_priv(operation):
         return
 
     if not status_cache.in_config_mode:
-        print "**WARNING: The Lumos board is not in the privileged mode required by {0}.".format(operation)
+        print "**WARNING: The Lumos board is not in the configuration mode required by {0}.".format(operation)
 
 def change_speed(target, io, new_speed):
     global options
@@ -490,9 +490,9 @@ def main():
     # All operations requiring privileges are done now,
     # so if they want out of this mode, accommodate that wish.
     #
-    if options.drop_privileged_mode:
-        assert_priv('--drop-privileged-mode')
-        trace(1, "dropping privileged (configuration) mode")
+    if options.drop_configuration_mode:
+        assert_priv('--drop-configuration-mode')
+        trace(1, "dropping configuration mode")
         target.raw_control('noconfig')
         verifystatus(target, {'in_config_mode': False})
     #

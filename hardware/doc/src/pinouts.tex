@@ -19,14 +19,15 @@
 	\node [right] at (15,1.5)  {\strut 8 Return Data Ground};
 \end{tikzpicture}
 \end{center}
-Note that the jacks are labeled ``in'' and ``out/thru'' on the board.  This is intended to remind the user
+Note that the jacks are labeled ``\mc{IN}'' and ``\mc{OUT/THRU}'' on the board.  This is intended to remind the user
 that these are daisy-chained connections with a signal coming ``in'' to the board on one wire, and on ``through'' to
-the next board in the circuit (or ``out'' back to the host PC in the case of responses to query commands).  These
+the next board in the circuit.% (or ``out'' back to the host PC in the case of responses to query commands).  
+These
 names also mirror the naming conventions used with \acronym{DMX} equipment. 
 
 Electrically, however, the RS-485 serial ``network'' is a single bus running from the host PC to the last Lumos
 controller.  Each controller ``taps'' into the line as it goes by.  This means that, labeling notwithstanding,
-the ``in'' and ``out/thru'' jacks are in fact completely identical and interchangeable.
+the ``\mc{IN}'' and ``\mc{OUT/THRU}'' jacks are in fact completely identical and interchangeable.
 
 The ``cable check'' lines are simply passed through the Lumos board from input to output, with the expectation that
 the terminator will connect them together.  These lines are not used by Lumos boards at all.  They are provided as
@@ -36,6 +37,22 @@ The Lumos front panel circuit board is one example of a circuit which makes use 
 
 The two grounds on pins 7 and 8 are actually shorted together and connected to the common signal ground
 on the Lumos board.
+
+If connecting a Lumos board to a \acronym{DMX} controller, an adapter cable is needed to connect the
+\acronym{DMX} \acronym{DIN} plug to the 8-pin modular plug used on the Lumos board.  A typical adapter is wired as shown in Figure~\ref{fig:dmx8p}, but check your equipment in case it is different.
+\begin{figure}
+ \begin{center}
+  \begin{tabular}{ccc}
+	\bfseries Signal &
+	\bfseries \acronym{DMX} \acronym{DIN} Connector &
+	\bfseries Lumos Modular Connector\\\hline
+	Ground & 1 & 7, 8 \\
+	Data ($-$) & 2 & 4 \\
+	Data ($+$) & 3 & 5 \\\hline
+  \end{tabular}
+  \caption{Typical Wiring Arrangement to Adapt \acronym{DMX} to Lumos\label{fig:dmx8p}}
+ \end{center}
+\end{figure}
 
 \newpage
 
@@ -292,8 +309,8 @@ If it is necessary to move this selection to a front panel switch, this can be a
 		\draw [thick] (.2,.2) -- (.2,2.8) -- (13.8,2.8) -- (13.8,.2) -- cycle;
 		\node [below] at (1,0) {\strut1};
 		\node [above] at (1,3) {\strut2};
-		\node [below] at (2,0) {\strut3};
-		\node [above] at (2,3) {\strut4};
+%		\node [below] at (2,0) {\strut3};
+%		\node [above] at (2,3) {\strut4};
 		\node [below] at (3.5,0) {\strut$\cdots$};
 		\node [above] at (3.5,3) {\strut$\cdots$};
 		\node [below] at (13,0) {\strut 25};

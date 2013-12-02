@@ -52,6 +52,7 @@
 %\settrimmedsize{8.5in}{7in}{*}
 %\checkandfixthelayout
 \usepackage{ifpdf}
+\usepackage{comment}
 \usepackage{multirow}
 \usepackage{ifthen}
 \usepackage{relsize}
@@ -512,3 +513,9 @@
 % \addcontentsline{toc}{chapter}{Index}
 % \printindex
 %
+\newenvironment{NotImplemented}{\par{\bfseries The following describes a feature of the Lumos
+controller which is planned for a future release but not implemented today.  While this description
+follows the expected behavior the Lumos board will have when that feature is actually available,
+it is still under development and subject to change.}
+\par\begingroup\color{gray}}{\endgroup}
+\newenvironment{NotImplemented*}[1]{\par{\bfseries #1}\par\begingroup\color{gray}}{\endgroup}
