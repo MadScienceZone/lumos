@@ -9,13 +9,12 @@
 .\" release for details.)
 .\"
 .\" <<bold-is-fixed>> <<ital-is-var>>
-.\" XXX have to deal with nested font changes properly
 .TH LUMOSCTL 1 2.0 "Lumos SSR Controller" "Utility Commands"
 .SH NAME
 lumosctl \- Manual control for Lumos SSR controller hardware
 .SH SYNOPSIS
 .B lumosctl
-.RB [ \-dhkPRSvwXz ]
+.RB [ \-dFhkPRrSvwXz ]
 .RB [ \-a
 .IR addr ]
 .RB [ \-A
@@ -34,14 +33,22 @@ lumosctl \- Manual control for Lumos SSR controller hardware
 .IR sens ]
 .RB [ \-H 
 .IR hexfile ]
+.RB [ \-L
+.IR level ]
+.RB [ \-m
+.IR mS ]
 .RB [ \-p
 .IR port ]
 .RB [ \-P
 .IR phase ]
 .RB [ \-s
 .IR file ]
+.RB [ \-T
+.IR mode ]
 .RB [ \-t
 .IB s \fR[\fPorw+\fR]\fP: init : seq : term\fR]\fP
+.RB [ \-x
+.IB duplex ]
 .IR channel-outputs ...
 .LP
 Where
@@ -151,19 +158,19 @@ channels (so channel 11 is set to 0, 12 is set to 255, and so forth).
 .\"are fully off, 2 and 3 are the next level up, and so on, with
 .\"values 252 and 253 being the penultimate dimmer level,
 .\"and 254 and 255 being fully on.
-.LP
-In addition to the channel-setting argument described above,
-an argument of the form
-.BI x i
-causes stored sequence 
-.I i
-to be executed.  Note that this is run in the \*(lqbackground\*(rq\(emany
-subsequent channel-setting arguments will be acted upon \" <</ital-is-var>>
-.I while
-the sequence is running.  If a sequence was already running, it is stopped first.
-As a special case, 
-.B x0
-stops the currently-running sequence but does not start a new one.
+.\" XXX FUTURE XXX  .LP
+.\" XXX FUTURE XXX  In addition to the channel-setting argument described above,
+.\" XXX FUTURE XXX  an argument of the form
+.\" XXX FUTURE XXX  .BI x i
+.\" XXX FUTURE XXX  causes stored sequence 
+.\" XXX FUTURE XXX  .I i
+.\" XXX FUTURE XXX  to be executed.  Note that this is run in the \*(lqbackground\*(rq\(emany
+.\" XXX FUTURE XXX  subsequent channel-setting arguments will be acted upon \" <</ital-is-var>>
+.\" XXX FUTURE XXX  .I while
+.\" XXX FUTURE XXX  the sequence is running.  If a sequence was already running, it is stopped first.
+.\" XXX FUTURE XXX  As a special case, 
+.\" XXX FUTURE XXX  .B x0
+.\" XXX FUTURE XXX  stops the currently-running sequence but does not start a new one.
 .LP
 A pause in the execution of the arguments may be effected by adding an
 argument of the form \" <<ital-is-var>>
@@ -193,7 +200,7 @@ Kill all channels
 Other configuration changes
 .TP
 4. 
-Disable privileges
+Disable configuration mode
 .TP
 5. 
 Channel(s) off/on/dim/etc.
