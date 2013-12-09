@@ -39,20 +39,20 @@ The two grounds on pins 7 and 8 are actually shorted together and connected to t
 on the Lumos board.
 
 If connecting a Lumos board to a \acronym{DMX} controller, an adapter cable is needed to connect the
-\acronym{DMX} \acronym{DIN} plug to the 8-pin modular plug used on the Lumos board.  A typical adapter is wired as shown in Figure~\ref{fig:dmx8p}, but check your equipment in case it is different.
-\begin{figure}
+\acronym{DMX} \acronym{DIN} plug to the 8-pin modular plug used on the Lumos board.  A typical adapter is wired as shown in Table~\ref{tbl:dmx8p}, but check your equipment in case it is different.
+\begin{table}
  \begin{center}
-  \begin{tabular}{ccc}
+  \begin{tabular}{ccc}\toprule
 	\bfseries Signal &
 	\bfseries \acronym{DMX} \acronym{DIN} Connector &
-	\bfseries Lumos Modular Connector\\\hline
+	\bfseries Lumos Modular Connector\\\midrule
 	Ground & 1 & 7, 8 \\
 	Data ($-$) & 2 & 4 \\
-	Data ($+$) & 3 & 5 \\\hline
+	Data ($+$) & 3 & 5 \\\bottomrule
   \end{tabular}
-  \caption{Typical Wiring Arrangement to Adapt \acronym{DMX} to Lumos\label{fig:dmx8p}}
+  \caption{Typical Wiring Arrangement to Adapt \acronym{DMX} to Lumos\label{tbl:dmx8p}}
  \end{center}
-\end{figure}
+\end{table}
 
 \newpage
 
@@ -214,12 +214,13 @@ in Figure~\ref{fig:dutycycle}.
 		\node [right] at (15, 2.0) {5 PGC$/\overline{\hbox{\mc{OPTION}}}$};
 	\end{tikzpicture}
 \end{center}
+
 This header is used for reprogramming a new firmware image onto the microcontroller chip.  Be sure to check the pinout
 used by your programmer before connecting it to this port.  It may be different!
 
 During normal operations, this header may also be used to connect off-board buttons for the reset and option functions.  These
 buttons should be normally open, but connect their respective pins to ground when pushed. 
-Note that the $\overline{\hbox{\mc{PWR CTL}}}$ output is also present on pin~3 of J11 in addition to its normal
+Note that the $\overline{\hbox{\mc{PWR CTL}}}$ output is also present on pin~4 of J11 in addition to its normal
 terminal at J9.
 
 

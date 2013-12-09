@@ -15,13 +15,11 @@
 %\strut 
 \vfill
 \begin{center}
-{\HUGE Assembling the Lumos\TM}
-
-\bigskip
-
-{\HUGE 24-Channel DC Controller}
+{\fontfamily{ppl}\fontseries{b}\fontsize{48}{50}\selectfont
+Assembling the Lumos\TM\\24-Channel DC\\SSR Controller\\\strut
 
 \vfill
+}
 
 \end{center}
 
@@ -67,6 +65,8 @@ set of licensing terms.
 
 \newpage
 \tableofcontents
+\listoffigures
+\listoftables
 
 \mainmatter
 
@@ -130,7 +130,7 @@ beginning any actual work.  Begin assembly \emph{only} if you understand all the
 to carry out.
 
 Once your controller is complete and ready to use, refer to the separate manual,
-\emph{Using Lumos SSR Controllers} for full instructions on how to program
+\emph{Using the Lumos SSR Controllers} for full instructions on how to program
 and use your controller.
 
 \section{The Name of the Game}
@@ -312,8 +312,9 @@ to coordinate their actions.
 
 \section{Valid Option Combinations}
 You need to choose one of these combinations of options to make a complete unit:
+\begin{table}[h]
 \begin{center}
-    \begin{tabular}{|c|c|c|c|c|c|c|l|}\hline
+    \begin{tabular}{cccccccl}\toprule
 	
 \begin{sideways}\bfseries Base \end{sideways}
 & \begin{sideways}\bfseries CPU \end{sideways}
@@ -323,14 +324,16 @@ You need to choose one of these combinations of options to make a complete unit:
 & \begin{sideways}\bfseries Sensor-In \end{sideways}
 & \begin{sideways}\bfseries Logic-Out\quad\strut \end{sideways}
 & \bfseries Description
-\\\hline\hline
+\\\midrule
 %	base      & CPU      & FDX      & HDX      & 232      & SI       & LO       &
 	\Checkmark&          &          &          &          &          & ?        & ``Dumb'' relay-only board\\\hline
 	\Checkmark&\Checkmark&\Checkmark&          &          & ?        & ?        & Full-Duplex RS-485\\\hline
 	\Checkmark&\Checkmark&          &\Checkmark&          & ?        & ?        & Half-Duplex RS-485\\\hline
-	\Checkmark&\Checkmark&          &          &\Checkmark& ?        & ?        & RS-232 Serial\\\hline
+	\Checkmark&\Checkmark&          &          &\Checkmark& ?        & ?        & RS-232 Serial\\\bottomrule
     \end{tabular}
 \end{center}
+\caption{Hardware Configuration Option Combinations}
+\end{table}
 
 ``\Checkmark'' denotes a required option for a given configuration; ``?'' indicates an optional selection.
 
@@ -368,49 +371,52 @@ If you need to make any RS-485 terminators, you will also need the materials lis
 
 \section{Bill of Materials}
 Referring back to the set of options you selected in Chapter~\ref{ch:before}, add up the quantity of
-parts needed for each option in the bill of materials in Figures~\ref{fig:bom}
-and~\ref{fig:bom2}.
+parts needed for each option in the bill of materials in Tables~\ref{tbl:bom}
+and~\ref{tbl:bom2}.
 
-\begin{figure}
+\begin{table}
 \centerfloat
-\begin{tabular}[c]{|r|r|r|r|r|r|r|l|l|}\hline
-\begin{sideways}{\bfseries Base}\end{sideways} 
-& \begin{sideways}{\bfseries CPU} \end{sideways}
-& \begin{sideways}{\bfseries FDX-485} \end{sideways}
-& \begin{sideways}{\bfseries HDX-485} \end{sideways}
-& \begin{sideways}{\bfseries RS-232} \end{sideways}
-& \begin{sideways}{\bfseries Sensor-In} \end{sideways}
-& \begin{sideways}{\bfseries Logic-Out\quad} \end{sideways}
-& {\bfseries Number} & {\bfseries Description} \\\hline\hline
+\begin{tabular}[c]{r|r|r|r|r|r|r|ll}
+\toprule
+\multicolumn{1}{c}{\begin{sideways}{\bfseries Base}\end{sideways}}
+& \multicolumn{1}{c}{\begin{sideways}{\bfseries CPU} \end{sideways}}
+& \multicolumn{1}{c}{\begin{sideways}{\bfseries FDX-485} \end{sideways}}
+& \multicolumn{1}{c}{\begin{sideways}{\bfseries HDX-485} \end{sideways}}
+& \multicolumn{1}{c}{\begin{sideways}{\bfseries RS-232} \end{sideways}}
+& \multicolumn{1}{c}{\begin{sideways}{\bfseries Sensor-In} \end{sideways}}
+& \multicolumn{1}{c}{\begin{sideways}{\bfseries Logic-Out\quad} \end{sideways}}
+& \multicolumn{1}{c}{{\bfseries Number}} 
+& \multicolumn{1}{c}{{\bfseries Description}} \\
+\midrule
 %B CPU F H  232 SI LO
 3 & 1&  &  &  &  &  & C0--2, 11 & Capacitors, 0.33\,$\mu$F \\
 3 & 2&  &  &  &  &  & C3--5, 8, 12 & Capacitors, 0.1\,$\mu$F \\
   & 2&  &  &  &  &  & C6--7 & Capacitors, 33\,pF ceramic \\
   & 1& 1& 1&  &  &  & C9, 10  & Capacitor, 0.01\,$\mu$F \\
   &  &  &  & 1&  &  & C13    & Capacitor, 1\,$\mu$F, electrolytic \\
-\hline
+\midrule
 3 & 1&  &  &  &  &  & D0--2, 6 & Diodes, 1N4004 \\
-4 & 1&  &  &  &  &  & D3--5, 7, 8 & \mc{LED}, green, 3\,mm \\
-  & 2&  &  &  &  &  & D9, 11& \mc{LED}, yellow, 3\,mm \\
-  & 1&  &  &  &  &  & D10   & \mc{LED}, red, 3\,mm \\
-\hline
-3 &  &  &  &  &  &  & F0--2 & Fuse, 10\,A, XXX type XXX \\
-  &  & 1& 1&  &  &  & F3   & Fuse, 800\,mA, XXX type XXX \\
-\hline
+4 & 1&  &  &  &$-x$*&  & D3--5, 7, 8 & \mc{LED}, green, 3\,mm \\
+  & 2&  &  &  &$-x$*&  & D9, 11& \mc{LED}, yellow, 3\,mm \\
+  & 1&  &  &  &$-x$*&  & D10   & \mc{LED}, red, 3\,mm \\
+\midrule
+3 &  &  &  &  &  &  & F0--2 & Fuse, 10\,A, Littelfuse 0297010.WXNV or equiv. \\
+  &  & 1& 1&  &  &  & F3   & Fuse, 800\,mA, Cooper Bussmann SR-5F-800MA-AP or equiv. \\
+\midrule
 2 &  &  &  &  &  &  & HS0, 1 & Heat sinks, aluminum (see text) \\
   & 1&  &  &  &  &  & HS2   & Heat sink, TO-220, for U11\\
-\hline
-3 &  &  &  &  &  &  & J0--2 & Terminal block, 10-position, XXX type XXX \\
-3 & 2&  &  &  &  &  & J3--5, 9, 10 & Terminal block, 2-position, XXX type XXX\\
+\midrule
+3 &  &  &  &  &  &  & J0--2 & Terminal block, 10-position, Altech \mc{MBE}-1510 \\
+3 & 2&  &  &  &$-1$&  & J3--5, 9, 10 & Terminal block, 2-position, Altech \mc{MBE}-152\\
 3 & 1&  &  &  &  &  & J6--8, 17 & Jumper block header, 4-position \\
   & 1&  &  &  &  &  & J11	   & Jumper block header, 5-position \\
   &  & 2& 2&  &  &  & J12, J13& Modular jack, 8p8c \\
 1&$-$1&  &  &  &  &  & J14    & Ribbon cable box header, 26-position \\
   &  &  &  & 1&  &  & J15	   & Connector, D-sub-miniature DE-9, female \\
-  &  &  &  &  & 1& 1& J16, 18  & Terminal block, 5-position XXX type XXX \\
-\hline
+  &  &  &  &  & 1& 1& J16, 18  & Terminal block, 5-position, Altech \mc{MBE}-155\\
+\midrule
 24&  &  &  &  &  &  & Q0--23& Transistor, \acronym{MOSFET}, FQPF13N06L \\
-\hline
+\midrule
 6 &  &  &  &  &  &  & R0--5 & Resistor network, 680\,$\Omega\times$5 \\
 4 &$-$1&  &  &  &  &  & R6--8 & Resistor, 220\,$\Omega$, \sfrac{1}{4}\,W \\
 24&  &  &  &  &  &  & R9--32& Resistor, 470\,$\Omega$, \sfrac{1}{4}\,W \\
@@ -420,10 +426,10 @@ and~\ref{fig:bom2}.
   &  &  &  &  & 1&  & R59    & Resistor network, 10\,K$\times$5; \emph{replaces R58}\\
   & 1&  &  &  &  &  & R60    & Resistor network, 220\,$\Omega\times$5, \sfrac{1}{4}\,W \\
   & 1&  &  &  &  &  & R61    & Resistor, 330\,$\Omega$, \sfrac{1}{4}\,W \\
-\hline
-  & 1&  &  &  &  &  & S0     & Push-button, red, ``reset'' XXX type XXX\\
-  & 1&  &  &  &  &  & S1     & Push-button, green, ``option'' XXX type XXX\\
-\hline
+\midrule
+  & 1&  &  &  &  &  & S0     & Push-button, red, ``reset'' \\
+  & 1&  &  &  &  &  & S1     & Push-button, green, ``option'' \\
+\midrule
 6 &  &  &  &  &  &  & U0--5 & K847PH quad opto-isolator, \mc{NPN} transistor output \\
 3 &  &  &  &  &  &  & U6--8 & LM78L05 +5\,V DC regulator, 100\,mA \\
   & 1&  &  &  &  &  & U9     & PIC18F4685 microcontroller, Lumos programmed \\
@@ -431,9 +437,9 @@ and~\ref{fig:bom2}.
   & 1&  &  &  &  &  & U11    & LM7805 +5\,V DC regulator, 1.5\,A \\
   &  &  &  & 1&  &  & U12    & MAX233A RS-232 driver/receiver\\
   &  & 1&  &  &  &  & U13    & MAX489 full-duplex RS-485 driver/receiver\\
-\hline
+\midrule
   & 1&  &  &  &  &  & X0     & Crystal, 10\,MHz \\
-\hline
+\bottomrule
 %\multicolumn{9}{l}{%p{\textwidth}}{
 %{\footnotesize
 %*J14 is only needed if the {\bfseries CPU} option is \emph{not} used (i.e., if a ``dumb'' relay-only
@@ -443,35 +449,42 @@ and~\ref{fig:bom2}.
 %so J9 is no longer used.
 %}}
 \end{tabular}
-\caption{Lumos Bill of Materials (Components)\label{fig:bom}}
-\end{figure}
+\\{\footnotesize *Some of these are not used to make room for sensor input lines.}
+\caption{Lumos Bill of Materials (Components)\label{tbl:bom}}
+\end{table}
 
-\begin{figure}
+\begin{table}
 \centerfloat
-\begin{tabular}[c]{|r|r|r|r|r|r|r|l|l|}\hline
-\begin{sideways}{\bfseries Base}\end{sideways} 
-& \begin{sideways}{\bfseries CPU} \end{sideways}
-& \begin{sideways}{\bfseries FDX-485} \end{sideways}
-& \begin{sideways}{\bfseries HDX-485} \end{sideways}
-& \begin{sideways}{\bfseries RS-232} \end{sideways}
-& \begin{sideways}{\bfseries Sensor-In} \end{sideways}
-& \begin{sideways}{\bfseries Logic-Out\quad} \end{sideways}
-& {\bfseries Number} & {\bfseries Description} \\\hline\hline
+\begin{tabular}[c]{r|r|r|r|r|r|r|ll}
+\toprule
+\multicolumn{1}{c}{\begin{sideways}{\bfseries Base}\end{sideways}}
+& \multicolumn{1}{c}{\begin{sideways}{\bfseries CPU} \end{sideways}}
+& \multicolumn{1}{c}{\begin{sideways}{\bfseries FDX-485} \end{sideways}}
+& \multicolumn{1}{c}{\begin{sideways}{\bfseries HDX-485} \end{sideways}}
+& \multicolumn{1}{c}{\begin{sideways}{\bfseries RS-232} \end{sideways}}
+& \multicolumn{1}{c}{\begin{sideways}{\bfseries Sensor-In} \end{sideways}}
+& \multicolumn{1}{c}{\begin{sideways}{\bfseries Logic-Out\quad} \end{sideways}}
+& \multicolumn{1}{c}{\bfseries Number}
+& \multicolumn{1}{c}{\bfseries Description}
+\\
+\midrule
 %B CPU F H  232 SI LO
-3 &  &  &  &  &  &  & XF0--2 & Fuse holders XXX type XXX, for F0--2 \\
-  &  & 1& 1&  &  &  & XF3    & Fuse holder XXX type XXX, for F3\\
-\hline
+3 &  &  &  &  &  &  & XF0--2 & Fuse holders, Littelfuse 01530008Z, for F0--2 \\
+  &  & 1& 1&  &  &  & XF3    & Fuse holder, Cooper Bussmann 504-\mc{PCS}, for F3\\
+\midrule
+6 & 2&  &  &  &  &  & XJ0--7 & Jumper, 2-pos, 0.1$''$ pitch\\
+\midrule
 6 &  &  &  &  &  &  & XU0--5 & \mc{DIP} socket, 16-pin, for U0--5 \\
   & 1&  &  &  &  &  & XU9    & \mc{DIP} socket, 40-pin, for U9 \\
   &  &  & 1&  &  &  & XU10   & \mc{DIP} socket, 8-pin, for U10\\
   &  &  &  & 1&  &  & XU12   & \mc{DIP} socket, 20-pin, for U12\\
   &  & 1&  &  &  &  & XU13   & \mc{DIP} socket, 14-pin, for U13\\
-\hline
+\midrule
 24&  &  &  &  &  &  & XX0--XX23& \#4 bolts, \sfrac{3}{8}$''$ long, with lock washers and nuts\\
-\hline
+\bottomrule
 \end{tabular}
-\caption{Lumos Bill of Materials (Sockets and Hardware)\label{fig:bom2}}
-\end{figure}
+\caption{Lumos Bill of Materials (Sockets and Hardware)\label{tbl:bom2}}
+\end{table}
 
 Note that all resistors and capacitors are miniature-size.  Check the dimensions of the parts
 you order to ensure they will fit properly on the board and will go through the holes.
@@ -482,17 +495,17 @@ resistor arrays R0--R5.
 \section{Heat Sinks HS0--HS1}
 We recommend mounting the \acronym{MOSFET}s to a heat sink when assembling the board.  These
 will need to be custom built.  The bill of materials refers to these as HS0 and HS1.  If you
-don't install a heat sink, the Lumos board will not be able to provide very much current to
+don't install a heat sink, the Lumos board will not be able to provide as much current to
 the output channels before the \acronym{MOSFET} parts overheat.  (In our testing, we found that
 the transistors ran comfortably cool up to about 1\,A, and warm to the touch with
 a load up to about 2\,A.  However, after the current load increased into the 2--3\,A range, 
 the transistors got too hot to touch.)
 
-With a heatsink installed as described in these instructions, we found that the board could
-sustain a current level of XXX\,A indefinitely without undue heat, or XXX\,A for brief periods.
+%With a heatsink installed as described in these instructions, we found that the board could
+%sustain a current level of XXX\,A indefinitely without undue heat, or XXX\,A for brief periods.
 
 To construct these two heat sinks, you will need two 
-8\sfrac{1}{2}$''\times$\sfrac{3}{4}$''\times$\sfrac{1}{8}$''$ thick ($\approx$25.5$\times$2\,cm$\times$3\,mm thick) 
+8\sfrac{1}{2}$\times$\sfrac{3}{4}$\times$\sfrac{1}{8}$''$ thick ($\approx$25.5$\times$2$\times$0.3\,cm thick) 
 aluminum bars (we found these to be readily available at home improvement
 and hardware stores).  Drill twelve \sfrac{1}{8}$''$ holes into each bar at the locations shown in 
 Figure~\ref{fig:hsdrill}.
@@ -729,7 +742,7 @@ do the following if you will be adding the intelligent on-board controller (``\a
 
 Your relay-only board is now complete and ready to plug into the controlling circuit which will
 be driving it.  For details on how to plug it in, see the connector pinout diagrams in the appendices,
-and the theory of operation section of \emph{Using Lumos SSR Controllers} as it applies to the way
+and the theory of operation section of \emph{Using the Lumos SSR Controllers} as it applies to the way
 signals are sent to the relays, since your controlling circuit will need to do this directly via
 its connection at J14.
 
@@ -752,7 +765,7 @@ Follow these steps to add the \acronym{CPU} to your Lumos board:
 \item	Install a 330\,$\Omega$ resistor (``orange-orange-brown'') at position R61.  Solder into place.
 \item	Install a 40-pin \acronym{DIP} socket at U9. Solder into place.
 
-\item	Install (2) 30\,pF capacitors at positions C6 and C7. Solder into place.
+\item	Install (2) 33\,pF capacitors at positions C6 and C7. Solder into place.
 \item	Install a 0.1\,$\mu$F (100\,nF) capacitor at C8 and C12.  Solder into place.
 \item	Install a 0.01\,$\mu$F (10\,nF) capacitor at C9. Solder into place.
 \item	Install a 0.33\,$\mu$F (330\,nF) capacitor at C11.  Solder into place.
@@ -933,6 +946,10 @@ Perform the following steps:
 	wires.
 \item	Refer to the diagram in Figure~\ref{fig:terminator-pcb}.  Solder an orange wire to 
 	hole \#2.
+\begin{figure}
+\centerfloat{\LLimg[height=2in]{terminator-pcb}}
+\caption{Terminator \acronym{PCB}\label{fig:terminator-pcb}}
+\end{figure}
 \item	Solder another orange wire to hole \#4.
 \item	Solder a blue wire to hole \#6.
 \item	Solder another blue wire to hole \#8.
@@ -941,6 +958,10 @@ Perform the following steps:
 \item	Install a 120\,$\Omega$ resistor (``brown-red-brown'') between holes \#5 and \#7.  Solder
 	into place.
 \item 	The board should now look like Figure~\ref{fig:terminator-pcb-wired}.
+\begin{figure}
+ \centerfloat{\LLimg[height=\textheight]{IMG404}}
+ \caption{Fully Wired Terminator (Colors Vary from Text)\label{fig:terminator-pcb-wired}}
+\end{figure}
 \item	Arrange all the wires in a row so they are straight and parallel, with the colors in
 	the following order:
 	\begin{itemize}
@@ -955,10 +976,10 @@ Perform the following steps:
 	the wire will loop around and the other end appears at position 6.  Allow enough of the green
 	wire to loop around the board without interfering with it, leaving the excess wire with the
 	bundle of other wires you're arranging.
-\item	Carefully, so as not to disturb the order of the wires, trim the excess wire so the length from the
-	end of the \acronym{PCB} to the end of the wires is about 1$''$ or 25\,mm.  Be sure to make the 
-	cut so you leave a clean, straight end to the bundle of wires, so they all end at the same
-	place.
+\item	Carefully, so as not to disturb the order of the wires, trim the excess wire so the 
+	wires extend about 1$''$ (25\,mm) from the
+	end of the \acronym{PCB}.  Be sure to make the 
+	cut so you leave a clean, straight edge to the flat bundle of wires.
 \item	Carefully, so as not to disturb the order of the wires, insert them into an 8p8c male plug
 	shell, with the first orange wire at pin~1 of the plug and the last green wire at pin~6.
 	Note that pins~7 and~8 will have no connection.  Push the wires all the way to the end so they
@@ -987,9 +1008,9 @@ perform the following steps to add this capability to the basic \acronym{CPU} ci
 	on the \acronym{PCB} with a square hole and a silk-screened ``+'' mark; however, it is typical
 	for electrolytic capacitors to mark the \emph{negative} lead in some way (usually with an arrow
 	and ``$-$'' sign printed on the package).  Solder into place.
-\item	Install a female DE-9 (9-pin D-subminiature serial) jack at J15, 
+\item	Install a female \acronym{DE-9} (9-pin D-subminiature serial) jack at J15, 
 	noting the position of pin~1 as indicated by a square pad.  Solder into place.
-\item	Install a MAX232A driver/receiver chip into its socket at U12, noting the marked location
+\item	Install a \acronym{MAX232A} driver/receiver chip into its socket at U12, noting the marked location
 	of pin~1 (see Step~\ref{s:u12pin1}).  Press carefully down into place.
 \end{enumerate}
 
@@ -1010,13 +1031,13 @@ the diagnostic \acronym{LED}s.  Any given line may only be a sensor input \emph{
 output at any given point in time, but never both.
 
 It is generally recommended that you decide in advance how many sensor inputs you will need, then
-look at the table of diagnostic codes in \emph{Using Lumos SSR Controllers} to determine which
+look at the table of diagnostic codes in \emph{Using the Lumos SSR Controllers} to determine which
 specific \acronym{LED}s you're willing to live without.  Those \acronym{LED}s should then be omitted
 from the construction of the board's \acronym{CPU} option, so they won't interfere with the
 inputs coming in on the same pins of the microcontroller.
 
-The correspondence of \acronym{LED}s to inputs is shown in Figure~\ref{tbl:led-inputs}.
-\begin{figure}[htb]
+The correspondence of \acronym{LED}s to inputs is shown in Table~\ref{tbl:led-inputs}.
+\begin{table}[htb]
  \begin{center}
   \begin{tabular}{|c|ll|}\hline
     \bfseries Sensor & \multicolumn{2}{c|}{\bfseries Diagnostic \acronym{LED}} \\\hline\hline
@@ -1027,7 +1048,7 @@ The correspondence of \acronym{LED}s to inputs is shown in Figure~\ref{tbl:led-i
   \end{tabular}
  \end{center}
  \caption{\label{tbl:led-inputs}Mapping of Diagnostic \acronym{LED}s to Input Sensors}
-\end{figure}
+\end{table}
 
 These are named as active-low inputs (i.e., ``$\overline{\hbox{A}}$'' instead of ``A'') because that
 is a common model and is compatible with the Lumos logic output lines which are active-low signals.
@@ -1109,7 +1130,7 @@ To install this option, do the following:
 \begin{description}
 \item[\HandRight\ Note:] Before any inputs will be recognized, the Lumos board must be configured
 in software to change those specific lines from \acronym{LED} outputs to logic inputs.  See
-\emph{Using Lumos SSR Controllers} for programming and configuration details.
+\emph{Using the Lumos SSR Controllers} for programming and configuration details.
 {\bfseries Never attach sensors to the terminal block at any time the Lumos board is software-configured
 to drive those lines as \acronym{LED}s.  
 \item[\HandRight\ Note:] Always configure those as inputs before attaching the
@@ -1145,7 +1166,7 @@ be exercised when attaching these outputs to other devices.
 \chapter{Using a Front Panel}\label{ch:fp}
 \LLstart{M}{any}{controllers are installed} into a weather-resistant enclosure which allows access
 to the circuit board to make connections and to access the buttons and \acronym{LED}s.  If the Lumos
-board will be installed in a more closed box it would be desirable to bring the \acronym{LED}s, buttons,
+board will be installed in a closed box it may be desirable to bring the \acronym{LED}s, buttons,
 and other connections to panel-mount components.
 
 For power connections, there are a variety of panel-mount connectors which may be employed and wired
@@ -1160,7 +1181,9 @@ on the outside, wiring them back to J12 and J13 or J15.
 
 If external \acronym{LED}s are needed, the easiest approach is to install a terminal strip at J16.
 The terminals A--D on that terminal carry the same signals that run the on-board \acronym{LED}s.
-See the table in Figure~\ref{tbl:input-leds} to find which terminal carries which \acronym{LED} power.
+See the schematic in Figure~\ref{sch:fpex}
+%See the table in Figure~\ref{tbl:input-leds} 
+to find which terminal carries which \acronym{LED} power.
 To avoid overloading the microcontroller's I/O port power capacity, it would be better to remove the
 on-board \acronym{LED}s in the cluster D7, D9, D10, and D11 if external \acronym{LED}s will be used
 in this manner.  Note that the external \acronym{LED}s require appropriate current-limiting resistors
@@ -1213,10 +1236,140 @@ plugged in to J11.  An example front panel circuit is shown in Figure~\ref{sch:f
 \LLstart{N}{OW}{that your Lumos controller} board is assembled, go on to read the manual
 \emph{Installing the Lumos 24-Channel DC Controller} for help in setting up your controller
 for use (including cabling and connector pinout information), and
-\emph{Using Lumos SSR Controllers} to learn how to control and program it using software.
+\emph{Using the Lumos SSR Controllers} to learn how to control and program it using software.
 
 \backmatter
 \appendix
+\renewcommand\thechapter{A}
+\counterwithin{figure}{chapter}
+\counterwithin{table}{chapter}
+\chapter{Ordering Information}\label{ch:ordering}
+%\section{Printed Circuit Boards}
+%There is very small supply of Lumos printed circuit boards on hand at any given time (the number
+%of boards may actually be zero).  Check the 
+%project website for details.  Most likely more boards will occasionally be produced as part of a
+%``co-op'' or group purchase.
+
+%XXX ordering from batchpcb?
+
+\section{Components}
+The components used on the Lumos board are all commonly available from retail electronics suppliers.
+As an example, Tables~\ref{tbl:mouserp2} and \ref{tbl:mouser} list the part numbers we used when building the prototypes,
+ordered from Mouser (an on-line electronics retailer).  These specific parts are known to work with
+the board and are the correct sizes to fit through all the holes.  Any equivalent parts from any
+supplier should work as well.
+\begin{table}
+ \centerfloat
+ \begin{tabular}{lllr@{}l}
+  \toprule
+  \multicolumn{1}{c}{\bfseries Lumos}
+	&\multicolumn{1}{c}{\bfseries Mouser}
+	&
+	&\multicolumn{2}{c}{\bfseries Price*}
+  \\
+  \multicolumn{1}{c}{\bfseries Part \#}
+	&\multicolumn{1}{c}{\bfseries Part \#}
+	&\multicolumn{1}{c}{\bfseries Description}
+	&\multicolumn{2}{c}{\bfseries (2012)}
+  \\
+  \midrule
+        HS2   & 532-507302B00		& Heat sink, \acronym{TO-220}, horizontal		&\$0	&.25	\\
+  \midrule
+ XF0--2	      & 576-01530008Z		& Fuse holder, Littelfuse 01530008Z or equiv.		& 2	&.45 \\
+ XF3	      & 504-PCS			& Fuse holder, Cooper Bussman 504-PCS or equiv.		& 	&.89 \\
+  \midrule
+XJ0--7	      & 571-8815452		& Jumper, 2-pos., 0.1\,in pitch				&	&.12	\\
+  \midrule
+XU0--5	      &	517-4816-3004-CP	& IC socket, \acronym{DIP}, 16-pin			&	&.29	\\
+XU9   	      &	517-4840-6000-CP	& IC socket, \acronym{DIP}, 40-pin			&	&.54	\\
+XU10   	      &	517-4808-3000-CP	& IC socket, \acronym{DIP},  8-pin			&	&.28	\\
+XU12   	      &	517-4820-3004-CP	& IC socket, \acronym{DIP}, 20-pin			&	&.42	\\
+XU13   	      &	517-4814-3004-CP	& IC socket, \acronym{DIP}, 14-pin			&	&.36	\\
+\bottomrule
+	\multicolumn{5}{p{6in}}{\footnotesize *This is not a price quote and we do not represent Mouser.com in any way. This is
+simply the price \emph{we} paid in 2012, offered for general budgetary reference.  The prices shown
+were for each unit, but may reflect quantity discounts we were given.}\\
+ \end{tabular}
+ \caption{Component Ordering Information (accessories)\label{tbl:mouserp2}}
+\end{table}
+\begin{table}
+ \centerfloat
+ \begin{tabular}{lllr@{}l}
+  \toprule
+  \multicolumn{1}{c}{\bfseries Lumos}
+	&\multicolumn{1}{c}{\bfseries Mouser}
+	&
+	&\multicolumn{2}{c}{\bfseries Price*}
+  \\
+  \multicolumn{1}{c}{\bfseries Part \#}
+	&\multicolumn{1}{c}{\bfseries Part \#}
+	&\multicolumn{1}{c}{\bfseries Description}
+	&\multicolumn{2}{c}{\bfseries (2012)}
+  \\
+  \midrule
+     C0--2, 11& 810-FK14X7R1H334K	& Capacitor, ceramic, 0.33\,$\mu$F, 50\,V, $\pm$10\%	&\$0 	&.186\\
+C3--5, 8, 12  & 810-FK18X7R1H104K	& Capacitor, ceramic, 0.1\,$\mu$F, 50\,V, $\pm$10\%	&	&.10 \\
+	C6--7 & 80-C315C300J1G		& Capacitor, ceramic, 30\,pF, $\pm$5\%			&	&.70 \\
+	C9--10& 810-FK18C0G1H103J	& Capacitor, ceramic, 0.01\,$\mu$F, 50\,V, $\pm$5\%	&	&.21 \\
+	C13   & 667-EEA-GA1H1R0H	& Capacitor, electrolytic, aluminum, 1\,$\mu$F, 50\,V	&	&.32 \\
+  \midrule
+      D0--2, 6& 512-1N4004		& Diode, 1N4004						&	&.079\\
+  D3--5, 7, 8 & 604-WP132XGD		& LED, green						&	&.07 \\
+	D9, 11& 604-WP132XYD		& LED, yellow						&	&.06 \\
+	D10   & 604-WP132XID		& LED, red						&	&.07 \\
+  \midrule
+	F0--2 & 576-0297010.WXNV	& Fuse, 32\,V, 10\,A, fast-acting			&	&.526\\
+	F3    & 504-SR-5F-800MA-AP	& Fuse, 250\,V, 800\,mA, SR-5F				& 1	&.17 \\
+  \midrule
+% 	J0--2 & 538-39543-0010 		& Terminal block, 10-pos., 5\,mm pitch			& 1	&.97 \\
+%   J3--5,9,10 & 538-39543-3002		& Terminal block, 2-pos., 5\,mm pitch			& 	&.523\\
+ 	J0--2 & 845-MBE-1510 		& Terminal block, 10-pos., 5\,mm pitch			& 1	&.47 \\
+    J3--5,9,10& 845-MBE-152		& Terminal block, 2-pos., 5\,mm pitch			&	&.35 \\
+     J6--8,17 & 649-68001-104HLF	& Header, 4-pos., 0.1\,in pitch				& 	&.202\\
+          J11 & 649-68001-105HLF	& Header, 5-pos., 0.1\,in pitch				& 	&.39 \\
+       J12--13& 649-69255-001LF		& Modular jack, 8p8c, vertical \acronym{PCB} mount	& 1	&.25 \\
+	J14   &	571-5103309-6		& Header, \acronym{IDC}-type, 26-pos.			& 1	&.47 \\
+	J15   &	617-09-66-152-6612	& Socket, D-subminiature, 9-pin, female, \acronym{PCB}	& 4	&.44 \\
+     J16, 18  & 845-MBE-155		& Terminal block, 5-pos., 5\,mm pitch			&       &.80 \\
+%	J16   & 538-39543-0004		& Terminal block, 4-pos., 5\,mm pitch			& 	&.98 \\
+%	J18   & 538-39543-0005		& Terminal block, 5-pos., 5\,mm pitch			& 1	&.38 \\
+  \midrule
+	Q0--23& 512-FQPF13N06L		& Transistor, \acronym{MOSFET}, N-Channel, 60\,V	&	&.524\\
+  \midrule
+	R0--5 & 652-6406X-1LF-680	& Resistor network, 6-pin, 680\,$\Omega$, bussed	&	&.16 \\
+	R6--8 & 660-CFS1/4CVTR221J	& Resistor, 220\,$\Omega$, \sfrac14\,W, mini, $\pm$5\%	&	&.34 \\
+	R9--32& 660-CFS1/4C471J   	& Resistor, 470\,$\Omega$, \sfrac14\,W, mini, $\pm$5\%	&	&.05 \\
+%	      & 660-CFS1/4C561J   	& Resistor, 560\,$\Omega$, \sfrac14\,W, mini, $\pm$5\%	&	&.15 \\
+R33--56, 58, 62& 660-CFS1/4C103J   	& Resistor, 10K, \sfrac14\,W, mini, $\pm$5\%		&	&.05 \\
+%              & 660-CFS1/4C102J   	& Resistor, 1K, \sfrac14\,W, mini, $\pm$5\%		&	&.15 \\
+ R57          & 660-CFS1/4C333J   	& Resistor, 33K, \sfrac14\,W, mini, $\pm$5\%		&	&.15 \\
+ R59          & 652-4606X-1LF-10K 	& Resistor network, 6-pin, 10K, bussed			&	&.13 \\
+ R60          & 652-4606X-1LF-220 	& Resistor network, 6-pin, 220\,$\Omega$, bussed	&	&.25 \\
+%              & 652-4610X-1LF-560 	& Resistor network, 10-pin, 560\,$\Omega$, bussed	&	&.39 \\
+ R61          & 660-CFS1/4C331J   	& Resistor, 330\,$\Omega$, \sfrac14\,W, mini, $\pm$5\%	&	&.15 \\
+ R63          & 660-CFS1/4C101J   	& Resistor, 100\,$\Omega$, \sfrac14\,W, mini, $\pm$5\%	&	&.15 \\
+ Terminators  & 660-CFS1/4CT52R121J 	& Resistor, 120\,$\Omega$, \sfrac14\,W, mini, $\pm$5\%	&	&.15 \\
+  \midrule
+ S0	      & 611-D6R40F1LFS		& Switch, tactile key, N.O., SPDT, 0.01\,A, red		& 1	&.00 \\
+ S1	      & 611-D6R50F1LFS		& Switch, tactile key, N.O., SPDT, 0.01\,A, green	&  	&.90 \\
+  \midrule
+ U0--5	      & 782-K847PH		& K847PH quad optocoupler, phototransistor output	&	&.827\\
+ U6--8	      & 512-LM78L05ACZXA	& LM78L05 linear +5\,V regulator, 0.1\,A		&	&.216\\
+	U9    &	579-PIC18F4685-I/P	& PIC18F4685 microcontroller				& 10	&.15 \\
+	U10   &	595-SN75176BP		& SN75176 \acronym{RS-485} transceiver, half-duplex	&	&.88 \\
+ U11	      & 511-L7805ABV		& L7805 linear +5\,V regulator, 1.0\,A			&	&.46 \\
+ U12	      & 700-MAX233ACPPG36	& MAX233ACPP \acronym{RS-232} driver/receiver		& 12	&.46 \\
+	U13   &	700-MAX489EPD		& MAX489 \acronym{RS-485} transceiver, full-duplex	& 4	&.11 \\
+  \midrule
+ X0	      & 774-MP101		& Crystal, 10\,MHz, 30\,pF				&	&.60 \\
+  \bottomrule
+	\multicolumn{5}{p{6in}}{\footnotesize *This is not a price quote and we do not represent Mouser.com in any way. This is
+simply the price \emph{we} paid in 2012, offered for general budgetary reference.  The prices shown
+were for each unit, but may reflect quantity discounts we were given.}\\
+ \end{tabular}
+ \caption{Component Ordering Information (electronics)\label{tbl:mouser}}
+\end{table}
+
 
 \chapter{Errata}
 On \acronym{PCB} version 1.0.8, one of the parts is mis-labeled on the white silk-screened legend.

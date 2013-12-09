@@ -11,11 +11,9 @@
 %\strut
 \vfill
 \begin{center}
-{\HUGE Installing the Lumos\TM}
-
-\bigskip
-
-{\HUGE 24-Channel DC Controller}
+{\fontfamily{ppl}\fontseries{b}\fontsize{48}{50}\selectfont
+\strut Installing the \\\strut Lumos\TM\\\strut
+24-Channel \\\strut DC Controller}
 
 \vfill
 
@@ -214,7 +212,11 @@ to operate at sustained levels below those limits.
 Also note that the Lumos output circuits were designed to control simple resistive loads such as
 incandescent lights.  They are not appropriate for all kinds of loads.  Some inductive loads
 (for example, electromagnetic relays and motors) may require a protective ``snubber'' circuit
-between the Lumos output and the load to avoid damage to the Lumos board and/or the attached load.
+which is not included in the Lumos product.  Adding snubber components to a Lumos board would be
+a custom modification to the Lumos circuit and should not be attempted except by qualified engineers.
+%between the Lumos output and the load to avoid damage to the Lumos board and/or the attached load.
+%See Figure~\ref{u:fig:snubber} in \emph{Using the Lumos SSR Controllers}, page~\pageref{u:fig:snubber} 
+%for an example snubber circuit which might be appropriate for such a load.
 
 %\chapter{What You Will Need}\label{ch:materials}
 %
@@ -671,7 +673,8 @@ output channels you will be controlling.
 Also note that the Lumos output circuits were designed to control simple resistive loads such as
 incandescent lights.  They are not appropriate for all kinds of loads.  Some inductive loads
 (for example, electromagnetic relays and motors) may require a protective ``snubber'' circuit
-between the Lumos output and the load to avoid damage to the Lumos board and/or the attached load.
+which is not included in the Lumos product.  Adding snubber components to a Lumos board would be
+a custom modification to the Lumos circuit and should not be attempted except by qualified engineers.
 
 For these instructions, we will guide you through attaching an \mc{ATX}-style \ix{power supply} to a 
 Lumos board, to supply +5\,V power to run the Lumos board itself, and +12\,V to run two strings of \mc{LED}

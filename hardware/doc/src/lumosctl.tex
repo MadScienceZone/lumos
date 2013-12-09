@@ -2,7 +2,7 @@
 lumosctl -- Manual control for Lumos SSR controller hardware
 \section*{SYNOPSIS}
 \codetype{lumosctl}
-[\codetype{--dhkPRSvwXz}]
+[\codetype{--dFhkPRrSvwXz}]
 [\codetype{--a}
 \Var*{addr}]
 [\codetype{--A}
@@ -21,14 +21,22 @@ lumosctl -- Manual control for Lumos SSR controller hardware
 \Var*{sens}]
 [\codetype{--H}
 \Var*{hexfile}]
+[\codetype{--L}
+\Var*{level}]
+[\codetype{--m}
+\Var*{mS}]
 [\codetype{--p}
 \Var*{port}]
 [\codetype{--P}
 \Var*{phase}]
 [\codetype{--s}
 \Var*{file}]
+[\codetype{--T}
+\Var*{mode}]
 [\codetype{--t}
 \Var*{s}\codetype{\textnormal{[}orw+\textnormal{]}:}\Var*{init}\codetype{:}\Var*{seq}\codetype{:}\Var*{term\textnormal{]}}
+[\codetype{--x}
+\Var*{duplex}\codetype{]}
 \Var*{channel-outputs}\dots 
 
 
@@ -135,20 +143,6 @@ Then the channel named (10 in this example) is assigned the first value
 channels (so channel 11 is set to 0, 12 is set to 255, and so forth).
 
 
-In addition to the channel-setting argument described above,
-an argument of the form
-\codetype{x}\Var*{i}
-causes stored sequence 
-\Var*{i}
-to be executed.  Note that this is run in the ``background''---any
-subsequent channel-setting arguments will be acted upon 
-\emph{while}
-the sequence is running.  If a sequence was already running, it is stopped first.
-As a special case, 
-\codetype{x0}
-stops the currently-running sequence but does not start a new one.
-
-
 A pause in the execution of the arguments may be effected by adding an
 argument of the form 
 \codetype{p}\Var*{t}\codetype{\textnormal{[}s\textnormal{[}ec\textnormal{[}ond\textnormal{[}s\textnormal{]]]]}}
@@ -180,7 +174,7 @@ Kill all channels
 Other configuration changes
 % tagged paragraph, width=4
 \item
-Disable privileges
+Disable configuration mode
 % tagged paragraph, width=4
 \item
 Channel(s) off/on/dim/etc.
@@ -217,6 +211,7 @@ value is an integer from 0 to 15, inclusive.  It defaults to 0.
 \item[{\codetype{----clear--sequences}}]\hfill\\
 (\codetype{--S})
 Delete all stored sequences from the device's memory.
+\strong{[This is a future feautre, currently not available on Lumos boards.]}
 % tagged paragraph, width=4
 \item[{\codetype{----disable--sensor=}\Var*{s}}]\hfill\\
 (\codetype{--D}
@@ -233,14 +228,15 @@ The special character
 appearing in 
 \Var*{s}
 means to disable all sensors.
+\strong{[This is a future feautre, currently not available on Lumos boards.]}
 % tagged paragraph, width=4
-\item[{\codetype{----drop--privileged--mode}}]\hfill\\
+\item[{\codetype{----drop--configuration--mode}}]\hfill\\
 (\codetype{--d})
-If the Lumos device is in privileged command mode (for configuraiton of
-the device), this will cancel that mode.  Further privileged commands will
+If the Lumos device is in configuration command mode (for configuraiton of
+the device), this will cancel that mode.  Further configuration commands will
 not be recognized on that device.
 % tagged paragraph, width=4
-\item[{\codetype{----dump--configuration=}\Var*{file}}]\hfill\\
+\item[{\codetype{----dump--configuration--file=}\Var*{file}}]\hfill\\
 (\codetype{--C}
 \Var*{file})
 Dump the device configuration into the named
@@ -254,6 +250,15 @@ Enable inputs from the sensor(s) specified as the
 \Var*{s}
 parameter.  See 
 \codetype{----disable--sensor}.
+\strong{[This is a future feautre, currently not available on Lumos boards.]}
+% tagged paragraph, width=4
+\item[{\codetype{----factory--reset}}]\hfill\\
+(\codetype{--F})
+Resets the board to its initial default settings, as it would have arrived ``out of the box''
+as it were (of course this is a DIY project, so there's no actual ``factory'' but if there
+were one, these are the defaults the board would come shipped with).  This can also be accomplished
+by inserting a jumper on the board in the correct sequence.  See the Lumos controller user's manual
+for details.
 % tagged paragraph, width=4
 \item[{\codetype{----help}}]\hfill\\
 (\codetype{--h})
@@ -263,14 +268,7 @@ Prints a summary of these options and exits.
 (\codetype{--k})
 Turn off all output channels at once.
 % tagged paragraph, width=4
-\item[{\codetype{----load--configuration=}\Var*{file}}]\hfill\\
-(\codetype{--c}
-\Var*{file})
-Load the device configuration from the named
-\Var*{file}
-and program that into the device.
-% tagged paragraph, width=4
-\item[{\codetype{----load--hex--sequence=}\Var*{file}}]\hfill\\
+\item[{\codetype{----load--compiled--sequence=}\Var*{file}}]\hfill\\
 (\codetype{--H}
 \Var*{file})
 Load one or more pre-compiled sequences from the specified hex 
@@ -278,6 +276,14 @@ Load one or more pre-compiled sequences from the specified hex
 This is expected to be the output from the 
 \codetype{lumosasm}(1)
 command.
+\strong{[This is a future feautre, currently not available on Lumos boards.]}
+% tagged paragraph, width=4
+\item[{\codetype{----load--configuration--file=}\Var*{file}}]\hfill\\
+(\codetype{--c}
+\Var*{file})
+Load the device configuration from the named
+\Var*{file}
+and program that into the device.
 % tagged paragraph, width=4
 \item[{\codetype{----load--sequence=}\Var*{file}}]\hfill\\
 (\codetype{--s}
@@ -293,6 +299,7 @@ storage space for them.  To avoid this, it is best to clear all
 sequences using the
 \codetype{----clear--sequences}
 option, then load all the sequences you want on the device at once.
+\strong{[This is a future feautre, currently not available on Lumos boards.]}
 % tagged paragraph, width=4
 \item[{\codetype{----port=}\Var*{port}}]\hfill\\
 (\codetype{--p}
@@ -312,6 +319,23 @@ If the
 \codetype{----report}
 option is also specified, this provides that level of output for every attached
 device; otherwise, it only lists device models and addresses.
+% tagged paragraph, width=4
+\item[{\codetype{----read--only}}]\hfill\\
+(\codetype{--r})
+Do not query the Lumos board's status.  Normally, 
+\codetype{lumosctl}
+reads back the board status at the start and after each configuration change
+to ensure that the changes were successful.  If you are using the board under
+conditions where getting data from the Lumos board is not possible (e.g., if your
+RS-485 adapter doesn't support a return channel), use the
+\codetype{--r}
+option to suppress this part of
+\codetype{lumosctl}'s
+behavior.  This means that configuration requests are sent ``blindly'' to
+the Lumos board without any way to confirm that they took effect.  (The name
+of this option seems backwards, but it was named from the Lumos board's point
+of view---that is, it sees its data connection as a read-only source of data
+and won't try to send any data back to the PC.)
 % tagged paragraph, width=4
 \item[{\codetype{----report}}]\hfill\\
 (\codetype{--R})
@@ -370,6 +394,9 @@ high output (active-high mode).  Normally, sensors are active-low
 
 If 0 is specified for any of the sequence numbers, that means no
 sequence is called for that part of the trigger action.
+
+
+\strong{[This is a future feautre, currently not available on Lumos boards.]}
 % tagged paragraph, width=4
 \item[{\codetype{----set--address=}\Var*{addr}}]\hfill\\
 (\codetype{--A}
@@ -409,6 +436,37 @@ Set the serial port to the given
 baud
 \Var*{rate}.
 [Default is 19200 baud.]
+% tagged paragraph, width=4
+\item[{\codetype{----txdelay=}\Var*{mS}}]\hfill\\
+(\codetype{--m}
+\Var*{mS})
+Delay 
+\Var*{mS}
+milliseconds between each transition from transmitting to receiving mode and vice versa.
+Usually only needed for half-duplex networks.
+% tagged paragraph, width=4
+\item[{\codetype{----txlevel=}\Var*{level}}]\hfill\\
+(\codetype{--L}
+\Var*{level})
+Transmit mode is controlled by either the DTR or RTS lines.  This option controls what logic level
+on that line means to engage the transmitter.  The value of
+\Var*{level}
+may be either 
+``\codetype{0}''
+to mean a logic low (off) indicates transmit mode, or
+``\codetype{1}''
+to mean a logic high (on) is used.
+% tagged paragraph, width=4
+\item[{\codetype{----txmode=}\Var*{line}}]\hfill\\
+(\codetype{--T}
+\Var*{line})
+Specifies which serial control line is used to control the RS-485 transmitter.  The
+value for 
+\Var*{line}
+may be either
+``\codetype{dtr}''
+or
+``\codetype{rts}''.
 % tagged paragraph, width=4
 \item[{\codetype{----wake}}]\hfill\\
 (\codetype{--w})
@@ -454,7 +512,12 @@ are simply doubled
 
 All configration data are contained in a stanza called
 ``\codetype{[lumos\_device\_settings]}''.
-The values are:
+The values are detailed individually below.
+\strong{Note that some of these describe anticipated future features of the Lumos hardware that are not available at this time.}
+These future features are recognized by 
+\codetype{lumosctl}
+as documented here, but won't actually have any effect until they are fully implemented in the Lumos
+firmware.
 \begin{list}{}{}
 % tagged paragraph, width=4
 \item[{\codetype{baud=}\Var*{n}}]\hfill\\
@@ -536,304 +599,8 @@ main sequence might not have played to completion.
 Each source file given to 
 \codetype{----load--sequence}
 contains one or more sequence definitions as described here.  The formal syntax
-definition for the sequence language is:
-\begin{SourceCode}
-<sequence> ::= SEQUENCE <id> ['(' <arg-list> ')'] <block>
-<statement-list> ::= <statement> <newline> 
-    | <statement-list> <statement> <newline>
-<statement> ::= BLACKOUT
-    | CHANNEL <chan> <state>
-    | RAMP <direction> <chan> [BY <steps> [PER <time>]]
-    | CALL <id> ['(' <value-list> ')']
-    | EXECUTE <id> ['(' <value-list> ')']
-    | WAIT <time>
-    | FOR <symbol> '=' <value> TO <value> [BY <value>] <block>
-    | IF <condition> <block>
-    | UNLESS <condition> <block>
-    | REPEAT [<value> [TIME[S]]] [AS <symbol>] <block>
-    | BREAK <symbol>
-    | CONTINUE <symbol>
-    | <symbol> '=' <value>
-    | SLEEP
-    | WAKE
-    | SUSPEND [WITH UPDATE]
-    | RESUME [WITH FADE]
-    | EXIT
-<block> ::= ':' <newline> <statement-list> END
-<id> ::= 0 | 1 | ... | 127
-<chan> ::= <value> (allowed range 0...63)
-<dimmer-value> ::= 0 | 1 | ... | 255
-<percentage> ::= 0 | 1 | ... | 100
-<state> ::= ON | OFF | <dimmer-value> | <percentage> '%'
-<direction> ::= UP | DOWN
-<steps> ::= 1 | 2 | ... | 128
-<time> :: = <cycles> | <real> SEC[ONDS]
-<cycles> ::= 1 | 2 | ... | 128
-<real> ::= <digits> ['.' [<digits>]] | [<digits>] '.' <digits>
-<condition> ::= SUSPENDED
-    | SENSOR <sens-list>
-    | <value> <comparison> <value>
-<comparison> ::= '<' | '>' | '==' | '!=' | '<=', '>='
-<arg-list> ::= <symbol> | <arg-list> ',' <symbol>
-<value-list> ::= <value> | <value-list> ',' <value>
-<value> ::= <int> 
-    | <symbol>
-    | <value> '*' <value>
-    | <value> '+' <value>
-    | <value> '-' <value>
-    | <value> '/' <value>
-    | '(' <value> ')'
-<int> ::= ['-' | '+'] <digits>
-<symbol> ::= <letter> | <symbol> <digit> | <symbol> <letter>
-<digits> ::= <digit> | <digits> <digit>
-<digit> ::= '0' | '1' | ... | '9'
-<letter> ::= '_' | 'A' | 'B' | ... | 'Z'
-<sens-list> ::= <sens> | <sens-list> OR <sens>
-<sens> ::= 'A' | 'B' | 'C' | 'D'
-<newline> ::= '\n'
-\end{SourceCode}
-
-
-While the language keywords are shown here in upper-case letters,
-in fact all symbols are interpreted irrespective of case throughout
-the sequence source file.
-
-
-\subsection*{Expressions}
-Simple math expressions are supported, including addition, subtraction,
-multiplication, and division, but the values supported by the hardware
-runtime system are exclusively 8 bit unsigned integers.  Division is not
-supported at all in the hardware.  Math involving compile-time values
-is not so limited, but if the expression evaluation remaining to be done
-at runtime it too complex, the compiler will issue a fatal error.
-\subsection*{Flow Control Constructs}
-
-
-Each of these constructs operates on a 
-\Var*{block}
-of code.  A block is a sequence of one or more lines of code (each terminated
-by a newline), ending with an 
-\codetype{END}
-statement.
-
-
-\begin{list}{}{}
-% tagged paragraph, width=4
-\item[{\codetype{IF SENSOR }\Var*{s1}\codetype{ \textnormal{[}OR }\Var*{s2}\codetype{\textnormal{] [\dots ]}: \textnormal{\dots } END}}]\hfill\\
-Execute the statements in the block if any of the sensors are currently active.
-% tagged paragraph, width=4
-\item[{\codetype{IF SUSPENDED: }\dots \codetype{ END}}]\hfill\\
-Execute the block if the unit is currently in a suspended state.
-% tagged paragraph, width=4
-\item[{\codetype{IF }\Var*{condition}\codetype{: \textnormal{\dots } END}}]\hfill\\
-Execute the block if the condition holds. This is a simple comparison between
-two values, where the comparison may be equals, not equals, less than, greater than,
-less than or equal, or greater than or equal as represented by the operators
-\codetype{==},
-\codetype{!=},
-\codetype{<},
-\codetype{>},
-\codetype{<=},
-and
-\codetype{>=},
-respectively.
-% tagged paragraph, width=4
-\item[{\codetype{UNLESS }\dots}]\hfill\\
-All of the forms of the
-\codetype{IF}
-construct may be used with the word 
-\codetype{UNLESS}
-substituted for
-\codetype{IF}.
-In this case, the sense of the conditional test is reversed.
-% tagged paragraph, width=4
-\item[{\codetype{REPEAT \textnormal{[}}\Var*{n}\codetype{ \textnormal{[}TIME\textnormal{[}S\textnormal{]]} \textnormal{[}AS }\Var*{var}\codetype{\textnormal{]}: \textnormal{\dots } END}}]\hfill\\
-Repeat the statements in the block until forced to quit via 
-\codetype{EXIT}
-or
-\codetype{BREAK}.
-If a repeat count
-\Var*{n}
-is given, then at most only repeat the statements that many times.
-The 
-\codetype{AS}
-clause allows the current loop counter (which begins at 0 and counts up to, 
-but never reaches,
-\Var*{n})
-to be visible within the block as the variable
-\Var*{var}.
-% tagged paragraph, width=4
-\item[{\codetype{FOR }\Var*{var}\codetype{=}\Var*{start}\codetype{ TO }\Var*{end}\codetype{ \textnormal{[}BY }\Var*{step}\codetype{\textnormal{]}: \textnormal{\dots } END}}]\hfill\\
-Repeat the statements in the block once for each value of 
-\Var*{var}
-from
-\Var*{start}
-to 
-\Var*{end},
-inclusive.
-If
-\Var*{step}
-is given, 
-\Var*{var}
-is incremented by that amount between each iteration.  The default
-\Var*{step}
-is 1.
-The behavior of this loop may be modified by
-\codetype{BREAK}
-or
-\codetype{CONTINUE}
-statements just like the
-\codetype{REPEAT}
-loops are.
-% tagged paragraph, width=4
-\item[{\codetype{BREAK \textnormal{[}}\Var*{var}\codetype{\textnormal{]}}}]\hfill\\
-Terminate the innermost loop immediately.  If an outer loop is to be terminated,
-then specify its index 
-\Var*{var}
-to identify which loop is the target of this statement.
-% tagged paragraph, width=4
-\item[{\codetype{CONTINUE \textnormal{[}}\Var*{var}\codetype{\textnormal{]}}}]\hfill\\
-Begin the next iteration of the innermost loop immediately.  
-If an outer loop is to be continued,
-then specify its index 
-\Var*{var}
-to identify which loop is the target of this statement.
-% tagged paragraph, width=4
-\item[{\codetype{SEQUENCE }\Var*{id}\codetype{\textnormal{[}(}\Var*{var}\codetype{, \textnormal{\dots })\textnormal{]}: \textnormal{\dots } END}}]\hfill\\
-Define a stored sequence consisting of the statements to the 
-\codetype{END}.
-The 
-\Var*{id}
-may be a number from 0 to 127, with a few caveats:
-\begin{description}
-% tagged paragraph, width=4
-\item[{\#0:}]
-Sequence \#0 may 
-\emph{never}
-be explicitly invoked by anything.  This sequence is invoked automatically
-during device boot to initialize the unit.
-% tagged paragraph, width=4
-\item[{\#1--63:}]
-Sequences in this range are stored in EEPROM and will survive a power failure
-or device reboot.  Note that there probably won't be enough available memory
-to actually store 63 sequences.
-% tagged paragraph, width=4
-\item[{\#64--127:}]
-Sequences in this range are stored in RAM and will 
-\emph{not}
-survive a power failure
-or device reboot.  Note that there probably won't be enough available memory
-to actually store 64 sequences in RAM. 
-\end{description}
-\end{list}
-
-
-If input parameters are expected, they are given symbolic names inside
-parentheses between the sequence
-\Var*{id}
-and the colon.  A maximum of four parameters are allowed.
-\subsection*{Commands}
-
-
-Each statement is described briefly here.  For more details, see the
-Lumos board user manual.
-\begin{list}{}{}
-% tagged paragraph, width=4
-\item[{\codetype{BLACKOUT}}]\hfill\\
-Immediately turn off all channel outputs.
-% tagged paragraph, width=4
-\item[{\codetype{CALL }\Var*{id}\codetype{\textnormal{[}(}\Var*{value}\codetype{,\textnormal{ \dots })\textnormal{]}}}]\hfill\\
-Suspend the execution of the current sequence and begin executing
-sequence
-\#\Var*{id}.
-When that sequence has completed, execution of the current sequence
-will resume where it left off.  Up to four parameters may be passed
-to the called sequence by placing them inside parentheses after the
-sequence 
-\Var*{id}.
-The 
-\Var*{id}
-cannot be 0.
-% tagged paragraph, width=4
-\item[{\codetype{CHANNEL }\Var*{c}\codetype{ ON|OFF|}\Var*{value}\codetype{\textnormal{[}\%\textnormal{]}}}]\hfill\\
-Change the output level of channel
-\Var*{c}
-to fully on, fully off, or to a specific value.  If the value
-is followed by a percent sign 
-(``\codetype{\%}''),
-then the value is assumed to be a percentage in the range 0--100.  
-% tagged paragraph, width=4
-\item[{\codetype{EXECUTE }\Var*{id}\codetype{\textnormal{[}(}\Var*{value}\codetype{,\textnormal{ \dots })\textnormal{]}}}]\hfill\\
-Abandon the current sequence and begin executing the specified sequence
-instead.
-When that sequence has completed, execution of the current sequence
-will not resume.  Up to four parameters may be passed
-to the new sequence by placing them inside parentheses after the
-sequence 
-\Var*{id}.
-Note that the 
-\Var*{id}
-cannot be 0.
-% tagged paragraph, width=4
-\item[{\codetype{EXIT}}]\hfill\\
-Terminate execution of the current sequence.
-% tagged paragraph, width=4
-\item[{\codetype{RAMP UP|DOWN }\Var*{c}\codetype{ \textnormal{[}BY }\Var*{steps}\codetype{ \textnormal{[}PER }\Var*{time}\codetype{ \textnormal{[}SEC\textnormal{[}ONDS\textnormal{]]]}}}]\hfill\\
-Start fading channel
-\Var*{c}
-up or down from its current output level to the maximum or minimum value.  This is done
-by adding or subtracting the value of
-\Var*{steps}
-(which is in the range 1--128) each time, pausing for
-\Var*{time}
-between each value change.  If the
-\Var*{time}
-value is followed by 
-\codetype{SEC}
-or
-\codetype{SECONDS},
-it is assumed to be the number of seconds between level changes (a real number
-in the range 0.0083--1.0667). 
-Otherwise, it is assumed to be an integer in the range 1--128 specifying the number
-of 1/120ths of a second for the pause.  
-% tagged paragraph, width=4
-\item[{\codetype{RESUME }[\codetype{WITH FADE}]}]\hfill\\
-Resume from
-\codetype{SUSPEND}
-mode.  If the
-\codetype{WITH FADE}
-option is given, then all channels are faded down to fully off, and then up to
-their last-known state is supposed to be.
-% tagged paragraph, width=4
-\item[{\codetype{SLEEP}}]\hfill\\
-Enter sleep state.  The load power supply is commanded to shut down (if such
-a supply is connected that way to the controller).  Note that the unit may still
-wake on its own as needed, possibly even immediately.
-% tagged paragraph, width=4
-\item[{\codetype{SUSPEND }[\codetype{WITH UPDATE}]}]\hfill\\
-Suspend input of commands from outside.  From this point forward, only saved
-sequences will affect channel outputs.  If the
-\codetype{WITH UPDATE}
-option is given, then external commands are still accepted but have no effect
-on the outputs until after a
-\codetype{RESUME}
-is executed.  Note that a unit may still remain in suspended state after the
-sequence putting it in that state exits.  It only ends upon
-\codetype{RESUME}.
-% tagged paragraph, width=4
-\item[{\codetype{WAIT \Var*{t} }[\codetype{SEC}[\codetype{ONDS}]]}]\hfill\\
-Pause execution of the script for the designated time.  The time
-\Var*{t}
-is interpreted identically to that described above for the
-\codetype{RAMP}
-command.
-% tagged paragraph, width=4
-\item[{\codetype{WAKE}}]\hfill\\
-Wake up the unit from
-\codetype{SLEEP}
-mode.  The power supply is commanded to start (if a suitable one is appropriately
-configured).
-\end{list}
+definition for the sequence language is still being designed and will be documented
+here when it is implemented.
 \section*{AUTHOR}
 
 
@@ -877,6 +644,16 @@ this name and to include the expanded features for firmware version 3.0.
 This program does not send DMX512 commands to the device(s), only Lumos native
 commands.
 \section*{BUGS}
+
+
+Sometimes 
+\codetype{lumosctl}
+doesn't correctly track board configuration changes and incorrectly reports that 
+the Lumos board's configuration was ``not as expected'' even though the operation
+was successful.  If this happens, try running
+\codetype{lumosctl}
+\codetype{--R}
+to get a fresh report of the board's status and verify that it is configured as desired.
 
 
 The sequence language is constrained by the limits of the hardware (such as 8-bit

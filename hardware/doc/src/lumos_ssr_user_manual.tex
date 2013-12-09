@@ -254,7 +254,10 @@ to operate at sustained levels below those limits.
 Also note that the Lumos output circuits were designed to control simple resistive loads such as
 incandescent lights.  They are not appropriate for all kinds of loads.  Some inductive loads
 (for example, electromagnetic relays and motors) may require a protective ``snubber'' circuit
-between the Lumos output and the load to avoid damage to the Lumos board and/or the attached load.
+which would be a custom modification to the Lumos circuit requiring qualified engineering work.
+%
+%between the Lumos output and the load to avoid damage to the Lumos board and/or the attached load.
+%(See Figure~\ref{fig:snubber} on page~\pageref{fig:snubber}.)
 
 Do not plug any load into a Lumos board which cannot be dimmed.
 
@@ -4096,13 +4099,19 @@ The output solid-state relays (\acronym{SSR}s) used by the Lumos boards are vari
 In both cases, the relay is intended to control a simple resistive load (typically incandescent and \acronym{LED}
 lights).  They are not designed to control inductive loads (e.g., motors or flourescent lights).  If you intend
 to use those types of loads with these \acronym{SSR}s, you will need to add protective circuitry (such as an
-additional, higher-power \acronym{SSR} or a ``snubber'' circuit) to the Lumos output.
+additional, higher-power \acronym{SSR} or a ``snubber'' circuit) to the Lumos circuit, which is outside the
+design scope of the Lumos board.  Such a modification requires qualified engineering design and should not be
+attempted by the end user.
 
-The specific circuit needed depends on your load, determined by a qualified electrician or other
-appropriately qualified person.  The general idea is to place an appropraitely-sized resistor
-and capacitor across the \acronym{SSR} output like so:
-
-XXX figure needed XXX
+%The specific circuit needed depends on your load, determined by a qualified electrician or other
+%appropriately qualified person.  The general idea is to place an appropraitely-sized resistor
+%and capacitor across the \acronym{SSR} output like so:
+%
+%XXX figure needed XXX
+%% R=100 C=.1 across MT1, MT2 of triac or across driving pins of mosfet
+%\begin{figure}
+%\caption{Example Snubber Circuit (adapt as needed)\label{fig:snubber}}
+%\end{figure}
 
 \backmatter
 \appendix

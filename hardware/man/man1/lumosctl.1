@@ -234,6 +234,9 @@ value is an integer from 0 to 15, inclusive.  It defaults to 0.
 .B \-\-clear\-sequences
 .RB ( \-S )
 Delete all stored sequences from the device's memory.
+.\" <</bold-is-fixed>>
+.B "[This is a future feautre, currently not available on Lumos boards.]"
+.\" <<bold-is-fixed>>
 .TP
 .BI \-\-disable\-sensor= s
 .RB ( \-D
@@ -250,14 +253,17 @@ The special character
 appearing in 
 .I s
 means to disable all sensors.
+.\" <</bold-is-fixed>>
+.B "[This is a future feautre, currently not available on Lumos boards.]"
+.\" <<bold-is-fixed>>
 .TP
-.B \-\-drop\-privileged\-mode
+.B \-\-drop\-configuration\-mode
 .RB ( \-d )
-If the Lumos device is in privileged command mode (for configuraiton of
-the device), this will cancel that mode.  Further privileged commands will
+If the Lumos device is in configuration command mode (for configuraiton of
+the device), this will cancel that mode.  Further configuration commands will
 not be recognized on that device.
 .TP
-.BI \-\-dump\-configuration= file
+.BI \-\-dump\-configuration\-file= file
 .RB ( \-C
 .IR file )
 Dump the device configuration into the named
@@ -271,6 +277,17 @@ Enable inputs from the sensor(s) specified as the
 .I s
 parameter.  See 
 .BR \-\-disable\-sensor .
+.\" <</bold-is-fixed>>
+.B "[This is a future feautre, currently not available on Lumos boards.]"
+.\" <<bold-is-fixed>>
+.TP
+.B \-\-factory\-reset
+.RB ( \-F )
+Resets the board to its initial default settings, as it would have arrived \*(lqout of the box\*(rq
+as it were (of course this is a DIY project, so there's no actual \*(lqfactory\*(rq but if there
+were one, these are the defaults the board would come shipped with).  This can also be accomplished
+by inserting a jumper on the board in the correct sequence.  See the Lumos controller user's manual
+for details.
 .TP
 .B \-\-help
 .RB ( \-h )
@@ -280,14 +297,7 @@ Prints a summary of these options and exits.
 .RB ( \-k )
 Turn off all output channels at once.
 .TP
-.BI \-\-load\-configuration= file
-.RB ( \-c
-.IR file )
-Load the device configuration from the named
-.I file
-and program that into the device.
-.TP
-.BI \-\-load\-hex\-sequence= file
+.BI \-\-load\-compiled\-sequence= file
 .RB ( \-H
 .IR file )
 Load one or more pre-compiled sequences from the specified hex 
@@ -295,6 +305,16 @@ Load one or more pre-compiled sequences from the specified hex
 This is expected to be the output from the 
 .BR lumosasm (1)
 command.
+.\" <</bold-is-fixed>>
+.B "[This is a future feautre, currently not available on Lumos boards.]"
+.\" <<bold-is-fixed>>
+.TP
+.BI \-\-load\-configuration\-file= file
+.RB ( \-c
+.IR file )
+Load the device configuration from the named
+.I file
+and program that into the device.
 .TP 
 .BI \-\-load\-sequence= file
 .RB ( \-s
@@ -310,6 +330,9 @@ storage space for them.  To avoid this, it is best to clear all
 sequences using the
 .B \-\-clear\-sequences
 option, then load all the sequences you want on the device at once.
+.\" <</bold-is-fixed>>
+.B "[This is a future feautre, currently not available on Lumos boards.]"
+.\" <<bold-is-fixed>>
 .TP
 .BI \-\-port= port
 .RB ( \-p
@@ -329,6 +352,23 @@ If the
 .B \-\-report
 option is also specified, this provides that level of output for every attached
 device; otherwise, it only lists device models and addresses.
+.TP
+.B \-\-read\-only
+.RB ( \-r )
+Do not query the Lumos board's status.  Normally, 
+.B lumosctl
+reads back the board status at the start and after each configuration change
+to ensure that the changes were successful.  If you are using the board under
+conditions where getting data from the Lumos board is not possible (e.g., if your
+RS-485 adapter doesn't support a return channel), use the
+.B \-r
+option to suppress this part of
+.BR lumosctl "'s"
+behavior.  This means that configuration requests are sent \*(lqblindly\*(rq to
+the Lumos board without any way to confirm that they took effect.  (The name
+of this option seems backwards, but it was named from the Lumos board's point
+of view\(emthat is, it sees its data connection as a read-only source of data
+and won't try to send any data back to the PC.)
 .TP
 .B \-\-report
 .RB ( \-R )
@@ -385,6 +425,10 @@ high output (active-high mode).  Normally, sensors are active-low
 .LP \" <</>>
 If 0 is specified for any of the sequence numbers, that means no
 sequence is called for that part of the trigger action.
+.LP
+.\" <</bold-is-fixed>>
+.B "[This is a future feautre, currently not available on Lumos boards.]"
+.\" <<bold-is-fixed>>
 .RE 
 .TP
 .BI \-\-set\-address= addr
@@ -392,11 +436,7 @@ sequence is called for that part of the trigger action.
 .IR addr )
 Change the device address to
 .IR addr .
-This must be an integer in the range 0\-15.\"; however, the address 15
-.\"is also a limited \*(lqbroadcast\*(rq address, so ideally the address
-.\"of a Lumos controller should be in the range [0, 14] unless you know
-.\"for sure that the board can be loacated at address 15 without upsetting
-.\"your purposes for it.
+This must be an integer in the range 0\-15.
 .TP
 .BI \-\-set\-baud\-rate= speed
 .RB ( \-B
@@ -431,6 +471,37 @@ Set the serial port to the given
 baud
 .IR rate .
 [Default is 19200 baud.]
+.TP
+.BI \-\-txdelay= mS
+.RB ( \-m
+.IR mS )
+Delay 
+.I mS
+milliseconds between each transition from transmitting to receiving mode and vice versa.
+Usually only needed for half-duplex networks.
+.TP
+.BI \-\-txlevel= level
+.RB ( \-L
+.IR level )
+Transmit mode is controlled by either the DTR or RTS lines.  This option controls what logic level
+on that line means to engage the transmitter.  The value of
+.I level
+may be either 
+.RB \*(lq 0 \*(rq
+to mean a logic low (off) indicates transmit mode, or
+.RB \*(lq 1 \*(rq
+to mean a logic high (on) is used.
+.TP
+.BI \-\-txmode= line
+.RB ( \-T
+.IR line )
+Specifies which serial control line is used to control the RS-485 transmitter.  The
+value for 
+.I line
+may be either
+.RB \*(lq dtr \*(rq
+or
+.RB \*(lq rts \*(rq.
 .TP
 .B \-\-wake
 .RB ( \-w )
@@ -472,7 +543,14 @@ are simply doubled
 .LP \" <</>>
 All configration data are contained in a stanza called
 .RB \*(lq [lumos_device_settings] \*(rq.
-The values are:
+The values are detailed individually below.
+.\" <</bold-is-fixed>>
+.B "Note that some of these describe anticipated future features of the Lumos hardware that are not available at this time."
+.\" <<bold-is-fixed>>
+These future features are recognized by 
+.B lumosctl
+as documented here, but won't actually have any effect until they are fully implemented in the Lumos
+firmware.
 .TP \" <<list>>
 .BI baud= n
 The configured serial I/O speed of the device.  Supported values include 300, 600, 1200, 2400,
@@ -493,16 +571,6 @@ at all.
 The AC waveform phase offset for the unit.  This should only be changed if needed due to some
 anomaly with the zero-crossing detector which throws off the unit's timing.  This is an integer
 in the range 0\-511.  [Default is 2.]
-.\".TP
-.\".BR resolution= { high | low }
-.\"If
-.\".RB \*(lq high \*(rq,
-.\"channel output levels in the full range [0, 255] are recognized.  If 
-.\".RB \*(lq low \*(rq,
-.\"then only 128 levels are used, although the data values referenced by the user remain in the range
-.\"[0, 255].  However, only 7 bits of dimmer data are transmitted to the hardware unit, saving a small
-.\"amount of transmission data.  In this mode, values 0 and 1 are the fully-off value, 2 and 3 are the 
-.\"next step up from that, 254 and 255 are fully on, and so forth.
 .TP
 .BI sensors= list
 The value is a list of single letters in the range A\-D.  Each letter appearing in this
@@ -560,302 +628,304 @@ main sequence might not have played to completion.
 Each source file given to 
 .B \-\-load\-sequence
 contains one or more sequence definitions as described here.  The formal syntax
-definition for the sequence language is:
-.RS \" <<code>>
-.nf
-.na
-<sequence> ::= SEQUENCE <id> ['(' <arg-list> ')'] <block>
-<statement-list> ::= <statement> <newline> 
-    | <statement-list> <statement> <newline>
-<statement> ::= BLACKOUT
-    | CHANNEL <chan> <state>
-    | RAMP <direction> <chan> [BY <steps> [PER <time>]]
-    | CALL <id> ['(' <value-list> ')']
-    | EXECUTE <id> ['(' <value-list> ')']
-    | WAIT <time>
-    | FOR <symbol> '=' <value> TO <value> [BY <value>] <block>
-    | IF <condition> <block>
-    | UNLESS <condition> <block>
-    | REPEAT [<value> [TIME[S]]] [AS <symbol>] <block>
-    | BREAK <symbol>
-    | CONTINUE <symbol>
-    | <symbol> '=' <value>
-    | SLEEP
-    | WAKE
-    | SUSPEND [WITH UPDATE]
-    | RESUME [WITH FADE]
-    | EXIT
-<block> ::= ':' <newline> <statement-list> END
-<id> ::= 0 | 1 | ... | 127
-<chan> ::= <value> (allowed range 0...63)
-<dimmer-value> ::= 0 | 1 | ... | 255
-<percentage> ::= 0 | 1 | ... | 100
-<state> ::= ON | OFF | <dimmer-value> | <percentage> '%'
-<direction> ::= UP | DOWN
-<steps> ::= 1 | 2 | ... | 128
-<time> :: = <cycles> | <real> SEC[ONDS]
-<cycles> ::= 1 | 2 | ... | 128
-<real> ::= <digits> ['.' [<digits>]] | [<digits>] '.' <digits>
-<condition> ::= SUSPENDED
-    | SENSOR <sens-list>
-    | <value> <comparison> <value>
-<comparison> ::= '<' | '>' | '==' | '!=' | '<=', '>='
-<arg-list> ::= <symbol> | <arg-list> ',' <symbol>
-<value-list> ::= <value> | <value-list> ',' <value>
-<value> ::= <int> 
-    | <symbol>
-    | <value> '*' <value>
-    | <value> '+' <value>
-    | <value> '-' <value>
-    | <value> '/' <value>
-    | '(' <value> ')'
-<int> ::= ['-' | '+'] <digits>
-<symbol> ::= <letter> | <symbol> <digit> | <symbol> <letter>
-<digits> ::= <digit> | <digits> <digit>
-<digit> ::= '0' | '1' | ... | '9'
-<letter> ::= '_' | 'A' | 'B' | ... | 'Z'
-<sens-list> ::= <sens> | <sens-list> OR <sens>
-<sens> ::= 'A' | 'B' | 'C' | 'D'
-<newline> ::= '\en'
-.fi
-.ad
-.RE \" <</code>>
-.LP
-While the language keywords are shown here in upper-case letters,
-in fact all symbols are interpreted irrespective of case throughout
-the sequence source file.
-.LP
-.SS Expressions
-Simple math expressions are supported, including addition, subtraction,
-multiplication, and division, but the values supported by the hardware
-runtime system are exclusively 8 bit unsigned integers.  Division is not
-supported at all in the hardware.  Math involving compile-time values
-is not so limited, but if the expression evaluation remaining to be done
-at runtime it too complex, the compiler will issue a fatal error.
-.SS "Flow Control Constructs"
-.LP
-Each of these constructs operates on a 
-.I block
-of code.  A block is a sequence of one or more lines of code (each terminated
-by a newline), ending with an 
-.B END
-statement.
-.LP
-.TP \" <<list>>
-.BI "IF SENSOR " s1 " \fR[\fPOR " s2 "\fR] [...]\fP: \fR...\fP END"
-Execute the statements in the block if any of the sensors are currently active.
-.TP
-.BR "IF SUSPENDED: " ... " END"
-Execute the block if the unit is currently in a suspended state.
-.TP
-.BI "IF " condition ": \fR...\fP END"
-Execute the block if the condition holds. This is a simple comparison between
-two values, where the comparison may be equals, not equals, less than, greater than,
-less than or equal, or greater than or equal as represented by the operators
-.BR == ,
-.BR != ,
-.BR < ,
-.BR > ,
-.BR <= ,
-and
-.BR >= ,
-respectively.
-.TP
-.BR "UNLESS " ...
-All of the forms of the
-.B IF
-construct may be used with the word 
-.B UNLESS
-substituted for
-.BR IF .
-In this case, the sense of the conditional test is reversed.
-.TP
-.BI "REPEAT \fR[\fP" n " \fR[\fPTIME\fR[\fPS\fR]]\fP \fR[\fPAS " var "\fR]\fP: \fR...\fP END"
-Repeat the statements in the block until forced to quit via 
-.B EXIT
-or
-.BR BREAK .
-If a repeat count
-.I n
-is given, then at most only repeat the statements that many times.
-The 
-.B AS
-clause allows the current loop counter (which begins at 0 and counts up to, 
-but never reaches,
-.IR n )
-to be visible within the block as the variable
-.IR var .
-.TP
-.BI "FOR " var = start " TO " end " \fR[\fPBY " step "\fR]\fP: \fR...\fP END"
-Repeat the statements in the block once for each value of 
-.I var
-from
-.I start
-to 
-.IR end ,
-inclusive.
-If
-.I step
-is given, 
-.I var
-is incremented by that amount between each iteration.  The default
-.I step
-is 1.
-The behavior of this loop may be modified by
-.B BREAK
-or
-.B CONTINUE
-statements just like the
-.B REPEAT
-loops are.
-.TP
-.BI "BREAK \fR[\fP" var \fR]\fP
-Terminate the innermost loop immediately.  If an outer loop is to be terminated,
-then specify its index 
-.I var
-to identify which loop is the target of this statement.
-.TP
-.BI "CONTINUE \fR[\fP" var \fR]\fP
-Begin the next iteration of the innermost loop immediately.  
-If an outer loop is to be continued,
-then specify its index 
-.I var
-to identify which loop is the target of this statement.
-.TP
-.BI "SEQUENCE " id \fR[\fP( var ", \fR...\fP)\fR]\fP: \fR...\fP END"
-Define a stored sequence consisting of the statements to the 
-.BR END .
-The 
-.I id
-may be a number from 0 to 127, with a few caveats:
-.RS \" <<desc>>
-.TP
-#0:
-Sequence #0 may \" <</ital-is-var>>
-.I never
-be explicitly invoked by anything.  This sequence is invoked automatically
-during device boot to initialize the unit.
-.TP
-#1\-63:
-Sequences in this range are stored in EEPROM and will survive a power failure
-or device reboot.  Note that there probably won't be enough available memory
-to actually store 63 sequences.
-.TP
-#64\-127:
-Sequences in this range are stored in RAM and will 
-.I not
-survive a power failure
-or device reboot.  Note that there probably won't be enough available memory
-to actually store 64 sequences in RAM. \" <<ital-is-var>>
-.RE \" <</>>
-.LP \" <</>>
-If input parameters are expected, they are given symbolic names inside
-parentheses between the sequence
-.I id
-and the colon.  A maximum of four parameters are allowed.
-.SS Commands
-.LP
-Each statement is described briefly here.  For more details, see the
-Lumos board user manual.
-.TP \" <<list>>
-.B BLACKOUT
-Immediately turn off all channel outputs.
-.TP
-.BI "CALL " id \fR[\fP( value ",\fR ...\fP)\fR]\fP"
-Suspend the execution of the current sequence and begin executing
-sequence
-.RI # id .
-When that sequence has completed, execution of the current sequence
-will resume where it left off.  Up to four parameters may be passed
-to the called sequence by placing them inside parentheses after the
-sequence 
-.IR id .
-The 
-.I id
-cannot be 0.
-.TP
-.BI "CHANNEL " c " ON|OFF|" value \fR[\fP%\fR]\fP
-Change the output level of channel
-.I c
-to fully on, fully off, or to a specific value.  If the value
-is followed by a percent sign 
-.RB (\*(lq % \*(rq),
-then the value is assumed to be a percentage in the range 0\-100.  \"Otherwise
-.\"the value interpreted as an absolute output value in the range [0, 255].  Note that
-.\"sequences are always considered to be \*(lqhigh resolution\*(rq so this number range
-.\"is used ragardless of whether the board itself is in high or low resolution mode.
-.TP
-.BI "EXECUTE " id \fR[\fP( value ",\fR ...\fP)\fR]\fP"
-Abandon the current sequence and begin executing the specified sequence
-instead.
-When that sequence has completed, execution of the current sequence
-will not resume.  Up to four parameters may be passed
-to the new sequence by placing them inside parentheses after the
-sequence 
-.IR id .
-Note that the 
-.I id
-cannot be 0.
-.TP
-.B EXIT
-Terminate execution of the current sequence.
-.TP
-.BI "RAMP UP|DOWN " c " \fR[\fPBY " steps " \fR[\fPPER " time " \fR[\fPSEC\fR[\fPONDS\fR]]]\fP"
-Start fading channel
-.I c
-up or down from its current output level to the maximum or minimum value.  This is done
-by adding or subtracting the value of
-.I steps
-(which is in the range 1\-128) each time, pausing for
-.I time
-between each value change.  If the
-.I time
-value is followed by 
-.B SEC
-or
-.BR SECONDS ,
-it is assumed to be the number of seconds between level changes (a real number
-in the range 0.0083\-1.0667). 
-Otherwise, it is assumed to be an integer in the range 1\-128 specifying the number
-of 1/120ths of a second for the pause.  
-.TP
-.BR "RESUME " [ "WITH FADE" ]
-Resume from
-.B SUSPEND
-mode.  If the
-.B "WITH FADE"
-option is given, then all channels are faded down to fully off, and then up to
-their last-known state is supposed to be.
-.TP
-.B SLEEP
-Enter sleep state.  The load power supply is commanded to shut down (if such
-a supply is connected that way to the controller).  Note that the unit may still
-wake on its own as needed, possibly even immediately.
-.TP
-.BR "SUSPEND " [ "WITH UPDATE" ]
-Suspend input of commands from outside.  From this point forward, only saved
-sequences will affect channel outputs.  If the
-.B "WITH UPDATE"
-option is given, then external commands are still accepted but have no effect
-on the outputs until after a
-.B RESUME
-is executed.  Note that a unit may still remain in suspended state after the
-sequence putting it in that state exits.  It only ends upon
-.BR RESUME .
-.TP
-.BR "WAIT \fIt\fP " [ SEC [ ONDS ]]
-Pause execution of the script for the designated time.  The time
-.I t
-is interpreted identically to that described above for the
-.B RAMP
-command.
-.TP
-.B WAKE
-Wake up the unit from
-.B SLEEP
-mode.  The power supply is commanded to start (if a suitable one is appropriately
-configured).
-.\" <</>>
+definition for the sequence language is still being designed and will be documented
+here when it is implemented.
+.\"  XXX FUTURE XXX  
+.\"  XXX FUTURE XXX  .RS \" [[code]]
+.\"  XXX FUTURE XXX  .nf
+.\"  XXX FUTURE XXX  .na
+.\"  XXX FUTURE XXX  <sequence> ::= SEQUENCE <id> ['(' <arg-list> ')'] <block>
+.\"  XXX FUTURE XXX  <statement-list> ::= <statement> <newline> 
+.\"  XXX FUTURE XXX      | <statement-list> <statement> <newline>
+.\"  XXX FUTURE XXX  <statement> ::= BLACKOUT
+.\"  XXX FUTURE XXX      | CHANNEL <chan> <state>
+.\"  XXX FUTURE XXX      | RAMP <direction> <chan> [BY <steps> [PER <time>]]
+.\"  XXX FUTURE XXX      | CALL <id> ['(' <value-list> ')']
+.\"  XXX FUTURE XXX      | EXECUTE <id> ['(' <value-list> ')']
+.\"  XXX FUTURE XXX      | WAIT <time>
+.\"  XXX FUTURE XXX      | FOR <symbol> '=' <value> TO <value> [BY <value>] <block>
+.\"  XXX FUTURE XXX      | IF <condition> <block>
+.\"  XXX FUTURE XXX      | UNLESS <condition> <block>
+.\"  XXX FUTURE XXX      | REPEAT [<value> [TIME[S]]] [AS <symbol>] <block>
+.\"  XXX FUTURE XXX      | BREAK <symbol>
+.\"  XXX FUTURE XXX      | CONTINUE <symbol>
+.\"  XXX FUTURE XXX      | <symbol> '=' <value>
+.\"  XXX FUTURE XXX      | SLEEP
+.\"  XXX FUTURE XXX      | WAKE
+.\"  XXX FUTURE XXX      | SUSPEND [WITH UPDATE]
+.\"  XXX FUTURE XXX      | RESUME [WITH FADE]
+.\"  XXX FUTURE XXX      | EXIT
+.\"  XXX FUTURE XXX  <block> ::= ':' <newline> <statement-list> END
+.\"  XXX FUTURE XXX  <id> ::= 0 | 1 | ... | 127
+.\"  XXX FUTURE XXX  <chan> ::= <value> (allowed range 0...63)
+.\"  XXX FUTURE XXX  <dimmer-value> ::= 0 | 1 | ... | 255
+.\"  XXX FUTURE XXX  <percentage> ::= 0 | 1 | ... | 100
+.\"  XXX FUTURE XXX  <state> ::= ON | OFF | <dimmer-value> | <percentage> '%'
+.\"  XXX FUTURE XXX  <direction> ::= UP | DOWN
+.\"  XXX FUTURE XXX  <steps> ::= 1 | 2 | ... | 128
+.\"  XXX FUTURE XXX  <time> :: = <cycles> | <real> SEC[ONDS]
+.\"  XXX FUTURE XXX  <cycles> ::= 1 | 2 | ... | 128
+.\"  XXX FUTURE XXX  <real> ::= <digits> ['.' [<digits>]] | [<digits>] '.' <digits>
+.\"  XXX FUTURE XXX  <condition> ::= SUSPENDED
+.\"  XXX FUTURE XXX      | SENSOR <sens-list>
+.\"  XXX FUTURE XXX      | <value> <comparison> <value>
+.\"  XXX FUTURE XXX  <comparison> ::= '<' | '>' | '==' | '!=' | '<=', '>='
+.\"  XXX FUTURE XXX  <arg-list> ::= <symbol> | <arg-list> ',' <symbol>
+.\"  XXX FUTURE XXX  <value-list> ::= <value> | <value-list> ',' <value>
+.\"  XXX FUTURE XXX  <value> ::= <int> 
+.\"  XXX FUTURE XXX      | <symbol>
+.\"  XXX FUTURE XXX      | <value> '*' <value>
+.\"  XXX FUTURE XXX      | <value> '+' <value>
+.\"  XXX FUTURE XXX      | <value> '-' <value>
+.\"  XXX FUTURE XXX      | <value> '/' <value>
+.\"  XXX FUTURE XXX      | '(' <value> ')'
+.\"  XXX FUTURE XXX  <int> ::= ['-' | '+'] <digits>
+.\"  XXX FUTURE XXX  <symbol> ::= <letter> | <symbol> <digit> | <symbol> <letter>
+.\"  XXX FUTURE XXX  <digits> ::= <digit> | <digits> <digit>
+.\"  XXX FUTURE XXX  <digit> ::= '0' | '1' | ... | '9'
+.\"  XXX FUTURE XXX  <letter> ::= '_' | 'A' | 'B' | ... | 'Z'
+.\"  XXX FUTURE XXX  <sens-list> ::= <sens> | <sens-list> OR <sens>
+.\"  XXX FUTURE XXX  <sens> ::= 'A' | 'B' | 'C' | 'D'
+.\"  XXX FUTURE XXX  <newline> ::= '\en'
+.\"  XXX FUTURE XXX  .fi
+.\"  XXX FUTURE XXX  .ad
+.\"  XXX FUTURE XXX  .RE \" [[/code]]
+.\"  XXX FUTURE XXX  .LP
+.\"  XXX FUTURE XXX  While the language keywords are shown here in upper-case letters,
+.\"  XXX FUTURE XXX  in fact all symbols are interpreted irrespective of case throughout
+.\"  XXX FUTURE XXX  the sequence source file.
+.\"  XXX FUTURE XXX  .LP
+.\"  XXX FUTURE XXX  .SS Expressions
+.\"  XXX FUTURE XXX  Simple math expressions are supported, including addition, subtraction,
+.\"  XXX FUTURE XXX  multiplication, and division, but the values supported by the hardware
+.\"  XXX FUTURE XXX  runtime system are exclusively 8 bit unsigned integers.  Division is not
+.\"  XXX FUTURE XXX  supported at all in the hardware.  Math involving compile-time values
+.\"  XXX FUTURE XXX  is not so limited, but if the expression evaluation remaining to be done
+.\"  XXX FUTURE XXX  at runtime it too complex, the compiler will issue a fatal error.
+.\"  XXX FUTURE XXX  .SS "Flow Control Constructs"
+.\"  XXX FUTURE XXX  .LP
+.\"  XXX FUTURE XXX  Each of these constructs operates on a 
+.\"  XXX FUTURE XXX  .I block
+.\"  XXX FUTURE XXX  of code.  A block is a sequence of one or more lines of code (each terminated
+.\"  XXX FUTURE XXX  by a newline), ending with an 
+.\"  XXX FUTURE XXX  .B END
+.\"  XXX FUTURE XXX  statement.
+.\"  XXX FUTURE XXX  .LP
+.\"  XXX FUTURE XXX  .TP \" [[list]]
+.\"  XXX FUTURE XXX  .BI "IF SENSOR " s1 " \fR[\fPOR " s2 "\fR] [...]\fP: \fR...\fP END"
+.\"  XXX FUTURE XXX  Execute the statements in the block if any of the sensors are currently active.
+.\"  XXX FUTURE XXX  .TP
+.\"  XXX FUTURE XXX  .BR "IF SUSPENDED: " ... " END"
+.\"  XXX FUTURE XXX  Execute the block if the unit is currently in a suspended state.
+.\"  XXX FUTURE XXX  .TP
+.\"  XXX FUTURE XXX  .BI "IF " condition ": \fR...\fP END"
+.\"  XXX FUTURE XXX  Execute the block if the condition holds. This is a simple comparison between
+.\"  XXX FUTURE XXX  two values, where the comparison may be equals, not equals, less than, greater than,
+.\"  XXX FUTURE XXX  less than or equal, or greater than or equal as represented by the operators
+.\"  XXX FUTURE XXX  .BR == ,
+.\"  XXX FUTURE XXX  .BR != ,
+.\"  XXX FUTURE XXX  .BR < ,
+.\"  XXX FUTURE XXX  .BR > ,
+.\"  XXX FUTURE XXX  .BR <= ,
+.\"  XXX FUTURE XXX  and
+.\"  XXX FUTURE XXX  .BR >= ,
+.\"  XXX FUTURE XXX  respectively.
+.\"  XXX FUTURE XXX  .TP
+.\"  XXX FUTURE XXX  .BR "UNLESS " ...
+.\"  XXX FUTURE XXX  All of the forms of the
+.\"  XXX FUTURE XXX  .B IF
+.\"  XXX FUTURE XXX  construct may be used with the word 
+.\"  XXX FUTURE XXX  .B UNLESS
+.\"  XXX FUTURE XXX  substituted for
+.\"  XXX FUTURE XXX  .BR IF .
+.\"  XXX FUTURE XXX  In this case, the sense of the conditional test is reversed.
+.\"  XXX FUTURE XXX  .TP
+.\"  XXX FUTURE XXX  .BI "REPEAT \fR[\fP" n " \fR[\fPTIME\fR[\fPS\fR]]\fP \fR[\fPAS " var "\fR]\fP: \fR...\fP END"
+.\"  XXX FUTURE XXX  Repeat the statements in the block until forced to quit via 
+.\"  XXX FUTURE XXX  .B EXIT
+.\"  XXX FUTURE XXX  or
+.\"  XXX FUTURE XXX  .BR BREAK .
+.\"  XXX FUTURE XXX  If a repeat count
+.\"  XXX FUTURE XXX  .I n
+.\"  XXX FUTURE XXX  is given, then at most only repeat the statements that many times.
+.\"  XXX FUTURE XXX  The 
+.\"  XXX FUTURE XXX  .B AS
+.\"  XXX FUTURE XXX  clause allows the current loop counter (which begins at 0 and counts up to, 
+.\"  XXX FUTURE XXX  but never reaches,
+.\"  XXX FUTURE XXX  .IR n )
+.\"  XXX FUTURE XXX  to be visible within the block as the variable
+.\"  XXX FUTURE XXX  .IR var .
+.\"  XXX FUTURE XXX  .TP
+.\"  XXX FUTURE XXX  .BI "FOR " var = start " TO " end " \fR[\fPBY " step "\fR]\fP: \fR...\fP END"
+.\"  XXX FUTURE XXX  Repeat the statements in the block once for each value of 
+.\"  XXX FUTURE XXX  .I var
+.\"  XXX FUTURE XXX  from
+.\"  XXX FUTURE XXX  .I start
+.\"  XXX FUTURE XXX  to 
+.\"  XXX FUTURE XXX  .IR end ,
+.\"  XXX FUTURE XXX  inclusive.
+.\"  XXX FUTURE XXX  If
+.\"  XXX FUTURE XXX  .I step
+.\"  XXX FUTURE XXX  is given, 
+.\"  XXX FUTURE XXX  .I var
+.\"  XXX FUTURE XXX  is incremented by that amount between each iteration.  The default
+.\"  XXX FUTURE XXX  .I step
+.\"  XXX FUTURE XXX  is 1.
+.\"  XXX FUTURE XXX  The behavior of this loop may be modified by
+.\"  XXX FUTURE XXX  .B BREAK
+.\"  XXX FUTURE XXX  or
+.\"  XXX FUTURE XXX  .B CONTINUE
+.\"  XXX FUTURE XXX  statements just like the
+.\"  XXX FUTURE XXX  .B REPEAT
+.\"  XXX FUTURE XXX  loops are.
+.\"  XXX FUTURE XXX  .TP
+.\"  XXX FUTURE XXX  .BI "BREAK \fR[\fP" var \fR]\fP
+.\"  XXX FUTURE XXX  Terminate the innermost loop immediately.  If an outer loop is to be terminated,
+.\"  XXX FUTURE XXX  then specify its index 
+.\"  XXX FUTURE XXX  .I var
+.\"  XXX FUTURE XXX  to identify which loop is the target of this statement.
+.\"  XXX FUTURE XXX  .TP
+.\"  XXX FUTURE XXX  .BI "CONTINUE \fR[\fP" var \fR]\fP
+.\"  XXX FUTURE XXX  Begin the next iteration of the innermost loop immediately.  
+.\"  XXX FUTURE XXX  If an outer loop is to be continued,
+.\"  XXX FUTURE XXX  then specify its index 
+.\"  XXX FUTURE XXX  .I var
+.\"  XXX FUTURE XXX  to identify which loop is the target of this statement.
+.\"  XXX FUTURE XXX  .TP
+.\"  XXX FUTURE XXX  .BI "SEQUENCE " id \fR[\fP( var ", \fR...\fP)\fR]\fP: \fR...\fP END"
+.\"  XXX FUTURE XXX  Define a stored sequence consisting of the statements to the 
+.\"  XXX FUTURE XXX  .BR END .
+.\"  XXX FUTURE XXX  The 
+.\"  XXX FUTURE XXX  .I id
+.\"  XXX FUTURE XXX  may be a number from 0 to 127, with a few caveats:
+.\"  XXX FUTURE XXX  .RS \" [[desc]]
+.\"  XXX FUTURE XXX  .TP
+.\"  XXX FUTURE XXX  #0:
+.\"  XXX FUTURE XXX  Sequence #0 may \" [[/ital-is-var]]
+.\"  XXX FUTURE XXX  .I never
+.\"  XXX FUTURE XXX  be explicitly invoked by anything.  This sequence is invoked automatically
+.\"  XXX FUTURE XXX  during device boot to initialize the unit.
+.\"  XXX FUTURE XXX  .TP
+.\"  XXX FUTURE XXX  #1\-63:
+.\"  XXX FUTURE XXX  Sequences in this range are stored in EEPROM and will survive a power failure
+.\"  XXX FUTURE XXX  or device reboot.  Note that there probably won't be enough available memory
+.\"  XXX FUTURE XXX  to actually store 63 sequences.
+.\"  XXX FUTURE XXX  .TP
+.\"  XXX FUTURE XXX  #64\-127:
+.\"  XXX FUTURE XXX  Sequences in this range are stored in RAM and will 
+.\"  XXX FUTURE XXX  .I not
+.\"  XXX FUTURE XXX  survive a power failure
+.\"  XXX FUTURE XXX  or device reboot.  Note that there probably won't be enough available memory
+.\"  XXX FUTURE XXX  to actually store 64 sequences in RAM. \" [[ital-is-var]]
+.\"  XXX FUTURE XXX  .RE \" [[/]]
+.\"  XXX FUTURE XXX  .LP \" [[/]]
+.\"  XXX FUTURE XXX  If input parameters are expected, they are given symbolic names inside
+.\"  XXX FUTURE XXX  parentheses between the sequence
+.\"  XXX FUTURE XXX  .I id
+.\"  XXX FUTURE XXX  and the colon.  A maximum of four parameters are allowed.
+.\"  XXX FUTURE XXX  .SS Commands
+.\"  XXX FUTURE XXX  .LP
+.\"  XXX FUTURE XXX  Each statement is described briefly here.  For more details, see the
+.\"  XXX FUTURE XXX  Lumos board user manual.
+.\"  XXX FUTURE XXX  .TP \" [[list]]
+.\"  XXX FUTURE XXX  .B BLACKOUT
+.\"  XXX FUTURE XXX  Immediately turn off all channel outputs.
+.\"  XXX FUTURE XXX  .TP
+.\"  XXX FUTURE XXX  .BI "CALL " id \fR[\fP( value ",\fR ...\fP)\fR]\fP"
+.\"  XXX FUTURE XXX  Suspend the execution of the current sequence and begin executing
+.\"  XXX FUTURE XXX  sequence
+.\"  XXX FUTURE XXX  .RI # id .
+.\"  XXX FUTURE XXX  When that sequence has completed, execution of the current sequence
+.\"  XXX FUTURE XXX  will resume where it left off.  Up to four parameters may be passed
+.\"  XXX FUTURE XXX  to the called sequence by placing them inside parentheses after the
+.\"  XXX FUTURE XXX  sequence 
+.\"  XXX FUTURE XXX  .IR id .
+.\"  XXX FUTURE XXX  The 
+.\"  XXX FUTURE XXX  .I id
+.\"  XXX FUTURE XXX  cannot be 0.
+.\"  XXX FUTURE XXX  .TP
+.\"  XXX FUTURE XXX  .BI "CHANNEL " c " ON|OFF|" value \fR[\fP%\fR]\fP
+.\"  XXX FUTURE XXX  Change the output level of channel
+.\"  XXX FUTURE XXX  .I c
+.\"  XXX FUTURE XXX  to fully on, fully off, or to a specific value.  If the value
+.\"  XXX FUTURE XXX  is followed by a percent sign 
+.\"  XXX FUTURE XXX  .RB (\*(lq % \*(rq),
+.\"  XXX FUTURE XXX  then the value is assumed to be a percentage in the range 0\-100.  \"Otherwise
+.\"  XXX FUTURE XXX  .\"the value interpreted as an absolute output value in the range [0, 255].  Note that
+.\"  XXX FUTURE XXX  .\"sequences are always considered to be \*(lqhigh resolution\*(rq so this number range
+.\"  XXX FUTURE XXX  .\"is used ragardless of whether the board itself is in high or low resolution mode.
+.\"  XXX FUTURE XXX  .TP
+.\"  XXX FUTURE XXX  .BI "EXECUTE " id \fR[\fP( value ",\fR ...\fP)\fR]\fP"
+.\"  XXX FUTURE XXX  Abandon the current sequence and begin executing the specified sequence
+.\"  XXX FUTURE XXX  instead.
+.\"  XXX FUTURE XXX  When that sequence has completed, execution of the current sequence
+.\"  XXX FUTURE XXX  will not resume.  Up to four parameters may be passed
+.\"  XXX FUTURE XXX  to the new sequence by placing them inside parentheses after the
+.\"  XXX FUTURE XXX  sequence 
+.\"  XXX FUTURE XXX  .IR id .
+.\"  XXX FUTURE XXX  Note that the 
+.\"  XXX FUTURE XXX  .I id
+.\"  XXX FUTURE XXX  cannot be 0.
+.\"  XXX FUTURE XXX  .TP
+.\"  XXX FUTURE XXX  .B EXIT
+.\"  XXX FUTURE XXX  Terminate execution of the current sequence.
+.\"  XXX FUTURE XXX  .TP
+.\"  XXX FUTURE XXX  .BI "RAMP UP|DOWN " c " \fR[\fPBY " steps " \fR[\fPPER " time " \fR[\fPSEC\fR[\fPONDS\fR]]]\fP"
+.\"  XXX FUTURE XXX  Start fading channel
+.\"  XXX FUTURE XXX  .I c
+.\"  XXX FUTURE XXX  up or down from its current output level to the maximum or minimum value.  This is done
+.\"  XXX FUTURE XXX  by adding or subtracting the value of
+.\"  XXX FUTURE XXX  .I steps
+.\"  XXX FUTURE XXX  (which is in the range 1\-128) each time, pausing for
+.\"  XXX FUTURE XXX  .I time
+.\"  XXX FUTURE XXX  between each value change.  If the
+.\"  XXX FUTURE XXX  .I time
+.\"  XXX FUTURE XXX  value is followed by 
+.\"  XXX FUTURE XXX  .B SEC
+.\"  XXX FUTURE XXX  or
+.\"  XXX FUTURE XXX  .BR SECONDS ,
+.\"  XXX FUTURE XXX  it is assumed to be the number of seconds between level changes (a real number
+.\"  XXX FUTURE XXX  in the range 0.0083\-1.0667). 
+.\"  XXX FUTURE XXX  Otherwise, it is assumed to be an integer in the range 1\-128 specifying the number
+.\"  XXX FUTURE XXX  of 1/120ths of a second for the pause.  
+.\"  XXX FUTURE XXX  .TP
+.\"  XXX FUTURE XXX  .BR "RESUME " [ "WITH FADE" ]
+.\"  XXX FUTURE XXX  Resume from
+.\"  XXX FUTURE XXX  .B SUSPEND
+.\"  XXX FUTURE XXX  mode.  If the
+.\"  XXX FUTURE XXX  .B "WITH FADE"
+.\"  XXX FUTURE XXX  option is given, then all channels are faded down to fully off, and then up to
+.\"  XXX FUTURE XXX  their last-known state is supposed to be.
+.\"  XXX FUTURE XXX  .TP
+.\"  XXX FUTURE XXX  .B SLEEP
+.\"  XXX FUTURE XXX  Enter sleep state.  The load power supply is commanded to shut down (if such
+.\"  XXX FUTURE XXX  a supply is connected that way to the controller).  Note that the unit may still
+.\"  XXX FUTURE XXX  wake on its own as needed, possibly even immediately.
+.\"  XXX FUTURE XXX  .TP
+.\"  XXX FUTURE XXX  .BR "SUSPEND " [ "WITH UPDATE" ]
+.\"  XXX FUTURE XXX  Suspend input of commands from outside.  From this point forward, only saved
+.\"  XXX FUTURE XXX  sequences will affect channel outputs.  If the
+.\"  XXX FUTURE XXX  .B "WITH UPDATE"
+.\"  XXX FUTURE XXX  option is given, then external commands are still accepted but have no effect
+.\"  XXX FUTURE XXX  on the outputs until after a
+.\"  XXX FUTURE XXX  .B RESUME
+.\"  XXX FUTURE XXX  is executed.  Note that a unit may still remain in suspended state after the
+.\"  XXX FUTURE XXX  sequence putting it in that state exits.  It only ends upon
+.\"  XXX FUTURE XXX  .BR RESUME .
+.\"  XXX FUTURE XXX  .TP
+.\"  XXX FUTURE XXX  .BR "WAIT \fIt\fP " [ SEC [ ONDS ]]
+.\"  XXX FUTURE XXX  Pause execution of the script for the designated time.  The time
+.\"  XXX FUTURE XXX  .I t
+.\"  XXX FUTURE XXX  is interpreted identically to that described above for the
+.\"  XXX FUTURE XXX  .B RAMP
+.\"  XXX FUTURE XXX  command.
+.\"  XXX FUTURE XXX  .TP
+.\"  XXX FUTURE XXX  .B WAKE
+.\"  XXX FUTURE XXX  Wake up the unit from
+.\"  XXX FUTURE XXX  .B SLEEP
+.\"  XXX FUTURE XXX  mode.  The power supply is commanded to start (if a suitable one is appropriately
+.\"  XXX FUTURE XXX  configured).
+.\"  XXX FUTURE XXX  .\" [[/]]
 .SH AUTHOR
 .LP
 Software Alchemy / support@alchemy.com
@@ -893,6 +963,15 @@ this name and to include the expanded features for firmware version 3.0.
 This program does not send DMX512 commands to the device(s), only Lumos native
 commands.
 .SH BUGS
+.LP
+Sometimes 
+.B lumosctl
+doesn't correctly track board configuration changes and incorrectly reports that 
+the Lumos board's configuration was \*(lqnot as expected\*(rq even though the operation
+was successful.  If this happens, try running
+.B lumosctl
+.B \-R
+to get a fresh report of the board's status and verify that it is configured as desired.
 .LP
 The sequence language is constrained by the limits of the hardware (such as 8-bit
 unsigned integer values and limited arithmetic expression evaluation), 

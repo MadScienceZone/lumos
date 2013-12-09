@@ -46,5 +46,6 @@ rebuild: pureclean
 			echo "-- pass $$pass"; \
 			pdflatex $$basedoc; \
 			makeindex $$basedoc; \
+			./pull_external_refs; \
 		done; \
 	done
