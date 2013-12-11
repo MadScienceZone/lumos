@@ -82,7 +82,7 @@ of your computer.  These outputs are arranged into three \ix{blocks} of eight \i
 Each block is electrically isolated from the logic control circuit and from each other,
 so each block may be separately powered at different voltages if desired.
 
-If Lumos boards are configured with the \ix{RS-485} network option, up to sixteen Lumos
+If Lumos boards are configured with the \acronym{RS-485} network option, up to sixteen Lumos
 boards may be ``daisy chained'' together (a total of 384 channels) and controlled from 
 the same PC serial port.
 By plugging DC-powered Christmas lights into the Lumos controller, your PC can orchestrate
@@ -254,12 +254,12 @@ a live stream of commands from a PC telling it when to turn on or off various ou
 There are three options available for the Lumos boards:
 
 \subsection{RS-485, Full Duplex}
-RS-485 (also known as \acronym{TIA/EIA-485}) is a communications standard using differential
-serial data signals in a multi-drop bus arrangement.  An RS-485 data cable may support up to 16
+\acronym{RS-485} (also known as \acronym{TIA/EIA-485}) is a communications standard using differential
+serial data signals in a multi-drop bus arrangement.  An \acronym{RS-485} data cable may support up to 16
 Lumos boards and may have a maximum length of 1,200\,m (4,000\,ft).  The cable used is unshielded
 twisted pair (usually \acronym{CAT3}, \acronym{CAT5}, or \acronym{CAT6}).  
 
-In order to use RS-485, the host PC will need some kind of \acronym{USB} or RS-232 to RS-485 adapter.
+In order to use \acronym{RS-485}, the host PC will need some kind of \acronym{USB} or \acronym{RS-232} to \acronym{RS-485} adapter.
 
 With the full duplex option, there are two independent data channels.  One is used for the host PC
 to send commands to the Lumos board(s).  The other is used for the Lumos board(s) to respond back to
@@ -267,7 +267,7 @@ the host PC if asked to send status information about their configuration.
 
 
 \subsection{RS-485, Half Duplex}
-This option uses RS-485 as indicated above, but only a single data channel is used.  Most of the time,
+This option uses \acronym{RS-485} as indicated above, but only a single data channel is used.  Most of the time,
 the host PC keeps control of the wire and sends a stream of commands to the Lumos board(s) connected
 to the wire.  However, if it asks one of them for a response, it must relinquish control of the line
 and allow the Lumos board to assert control, transmit its response, then release control again.
@@ -277,16 +277,16 @@ of the serial data line.  The Lumos software assumes this is accomplished by swi
 line on when the PC is to transmit, and switching it off to release control and allow another device to
 transmit.
 
-Either RS-485 option is suitable for \acronym{DMX512} communications.
+Either \acronym{RS-485} option is suitable for \acronym{DMX512} communications.
 
 \subsection{RS-232}
-RS-232 (also known as \acronym{TIA/EIA-232}) is the standard serial communications scheme used by
+\acronym{RS-232} (also known as \acronym{TIA/EIA-232}) is the standard serial communications scheme used by
 PCs, modems, terminals, and similar devices (although most of those functions have now been moved
-to \acronym{USB} in recent years).  Since the host PC will likely either already have an RS-232
+to \acronym{USB} in recent years).  Since the host PC will likely either already have an \acronym{RS-232}
 port, or can be supplied with a \acronym{USB}-to-serial adapter for less than \$15, this is the
 simplest and least expensive option.
 
-However, that simplicity comes at a price.  Only one device may be plugged in to an RS-232 line
+However, that simplicity comes at a price.  Only one device may be plugged in to an \acronym{RS-232} line
 at a time, and the cable should be a high-quality, shielded cable 25\,ft or shorter to avoid
 interference which can disrupt communications.
 
@@ -341,7 +341,7 @@ Note that the {\bfseries Sensor-In} and {\bfseries Logic-Out} options may be add
 configurations (except that {\bfseries Sensor-In} can't be used with relay-only boards).  If you don't know which option to choose, the most likely
 set to be useful to begin with would either be {\bfseries Base}+{\bfseries CPU}+{\bfseries RS-232} if
 you want a single Lumos board connected to a PC via standard serial port, or
-{\bfseries Base}+{\bfseries CPU}+{\bfseries FDX-485} if you want to use RS-485 communications (including
+{\bfseries Base}+{\bfseries CPU}+{\bfseries FDX-485} if you want to use \acronym{RS-485} communications (including
 \acronym{DMX512}) over long distances or with multiple units connected together.
 
 
@@ -367,7 +367,7 @@ you want a single Lumos board connected to a PC via standard serial port, or
 	\item A few ounces of thermal (heat sink) grease.
 \end{itemize}
 
-If you need to make any RS-485 terminators, you will also need the materials listed in Section~\ref{sec:terminator} (p.~\pageref{sec:terminator}).  Those materials are \emph{not} included in this bill of materials here.
+If you need to make any \acronym{RS-485} terminators, you will also need the materials listed in Section~\ref{sec:terminator} (p.~\pageref{sec:terminator}).  Those materials are \emph{not} included in this bill of materials here.
 
 \section{Bill of Materials}
 Referring back to the set of options you selected in Chapter~\ref{ch:before}, add up the quantity of
@@ -859,9 +859,9 @@ to install the other options you selected.
 
 \chapter{Assembling the Communications Options}\label{ch:comms}
 \LLstart{A}{N}{Intelligent controller board} needs some way to receive commands from the outside
-world.  Three different options are available: RS-485 full duplex, RS-485 half duplex, and RS-232
+world.  Three different options are available: \acronym{RS-485} full duplex, \acronym{RS-485} half duplex, and \acronym{RS-232}
 (standard serial).  (If you will be using the Lumos controller with \acronym{DMX512}, build the
-board with one of the RS-485 options.  The \acronym{DMX512} mode of operations will only 
+board with one of the \acronym{RS-485} options.  The \acronym{DMX512} mode of operations will only 
 accept commands and never transmit data back, so it will not take advantage
 of the full duplex capability, but you may wish to have full duplex for Lumos mode operations
 or for programming and configuring the board.
@@ -872,7 +872,7 @@ or for programming and configuring the board.
 you have selected.  You must do exactly {\bfseries one} of these.
 
 \section{RS-485 Full Duplex / DMX512}
-Perform the following steps to add {\bfseries full-duplex} RS-485 capability:
+Perform the following steps to add {\bfseries full-duplex} \acronym{RS-485} capability:
 \begin{enumerate}
 \item	Install a 10\,K resistor (``brown-black-orange'') at R62.  Solder into place.
 \item\label{s:u13pin1}
@@ -894,10 +894,10 @@ Perform the following steps to add {\bfseries full-duplex} RS-485 capability:
 	of pin~1 (see Step~\ref{s:u13pin1}).  Press carefully down into place.
 \end{enumerate}
 
-\bigskip\noindent{\bfseries Skip} to the section on RS-485 terminators below.
+\bigskip\noindent{\bfseries Skip} to the section on \acronym{RS-485} terminators below.
 
 \section{RS-485 Half Duplex}
-Perform the following steps to add {\bfseries half-duplex} RS-485 capability:
+Perform the following steps to add {\bfseries half-duplex} \acronym{RS-485} capability:
 \begin{enumerate}
 \item	Install a 10\,K resistor (``brown-black-orange'') at R62.  Solder into place.
 \item\label{s:u10pin1}
@@ -919,17 +919,17 @@ Perform the following steps to add {\bfseries half-duplex} RS-485 capability:
 	of pin~1 (see Step~\ref{s:u10pin1}).  Press carefully down into place.
 \end{enumerate}
 
-\bigskip\noindent{\bfseries Continue} to the section on RS-485 terminators below.
+\bigskip\noindent{\bfseries Continue} to the section on \acronym{RS-485} terminators below.
 
 \section{RS-485 Terminator Construction}\label{sec:terminator}
-Each end of an RS-485 communications line must be terminated, or it won't work.
+Each end of an \acronym{RS-485} communications line must be terminated, or it won't work.
 % (in fact, without termination
 %it might not even work \emph{at all}).  
 The schematic for this is on page~\pageref{sch:terminator} in the 
 appendices.  To build one yourself, you'll need:
 \begin{itemize}
 \item	(2) 120\,$\Omega$ resistors.
-\item	Lumos RS-485 terminator \acronym{PCB}.
+\item	Lumos \acronym{RS-485} terminator \acronym{PCB}.
 \item	A short length of \acronym{CAT5} cable.
 \item	An 8p8c male modular plug with detachable boot.
 \item	A modular plug crimping tool.
@@ -989,14 +989,14 @@ Perform the following steps:
 \item	Cover the end with a plastic boot or other suitable protection.
 \end{enumerate}
 
-This completes the assembly of an RS-485 full-duplex terminator with cable-check pins, suitable
+This completes the assembly of an \acronym{RS-485} full-duplex terminator with cable-check pins, suitable
 for use with full-duplex or half-duplex Lumos boards.  It may nor may not be compatible with other
-RS-485 gear.
+\acronym{RS-485} gear.
 
 \bigskip\noindent{\bfseries Skip} to the next chapter to install more options, if desired.
 
 \section{RS-232}
-If you will be using a standard RS-232 serial port to communicate with your Lumos board,
+If you will be using a standard \acronym{RS-232} serial port to communicate with your Lumos board,
 perform the following steps to add this capability to the basic \acronym{CPU} circuit:
 \begin{enumerate}
 \item\label{s:u12pin1}
@@ -1014,7 +1014,7 @@ perform the following steps to add this capability to the basic \acronym{CPU} ci
 	of pin~1 (see Step~\ref{s:u12pin1}).  Press carefully down into place.
 \end{enumerate}
 
-This completes the installation of the RS-232 serial option.
+This completes the installation of the \acronym{RS-232} serial option.
 
 \bigskip\noindent{\bfseries Continue} to the next chapter to install more options, if desired.
 
@@ -1451,7 +1451,7 @@ a Lumos 24-channel DC controller.
 		is used (like Ethernet cable), and the cable lengths should not exceed a total of 4,000\,ft
 		(1,200\,m).
 	\item[Terminator Plug:]
-		An RS-485 network requires a terminator at each end.  This is a small plug which plugs into
+		An \acronym{RS-485} network requires a terminator at each end.  This is a small plug which plugs into
 		the last unit in the daisy chain.
 	\item[\acronym{TTL} (Transistor-Transistor Logic):] One of the ways digital logic circuits can be
 		constructed.  For our purposes here, we consider a ``\acronym{TTL}-level'' signal to be a

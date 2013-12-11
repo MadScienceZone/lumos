@@ -185,6 +185,7 @@ If you need to koow the low-level details concerning how the board communicates 
 continue reading the more advanced material which comprises the remainder of this manual.
 
 \section{The Name of the Game}
+\index{Lumos, the name}
 The name ``Lumos'' is a combination of \emph{lumen}, the Latin word for ``light,''
 and the initial letters of ``Orchestration System.''  Hence, ``Light Orchestration System''
 which is the most common application for which the Lumos hardware and software are used---running
@@ -274,6 +275,7 @@ family of controllers, which are the subject of this manual:
 This board controls 48 channels of outputs but does not contain any actual relay circuits of its own.
 The \acronym{TTL}-level outputs are designed to be sent directly to a 24-channel relay board (AC, DC,
 or one of each), although of course they could be connected to another compatible circuit.
+\index{Lumos 48-channel controller}
 
 The controller supports only half-duplex RS-485 communications.
 It occupies a single address for the Lumos command protocol.  When in \acronym{DMX512} mode, it consumes
@@ -294,10 +296,12 @@ design.}
 \section{48-Channel Front Panel}
 \begin{figure}
   \begin{center}
-    \LLimg{IMG393}
+    %\LLimg{IMG393}
+    \LLimg{fp-assembled}
   \end{center}
-  \caption{Lumos 48-Channel Front Panel (Bare \acronym{PCB})}
+  \caption{Lumos 48-Channel Front Panel}
 \end{figure}
+\index{Lumos front panel}
 Designed to work with the Lumos 48-Channel controller, this panel is connected to the controller's outputs
 in parallel with the relay boards.  It provides an \acronym{LED} for each output channel, allowing you
 to see at a glance the activity and state of all outputs.  Additionally, it has \acronym{LED}s which show
@@ -305,7 +309,7 @@ that power is being sent to the relays, cable check \acronym{LED}s to show that 
 the entire length of the network, and serial I/O status indicators. It allows for the controller's status
 \acronym{LED}s to be displayed on the front panel as well.
 
-This board also contains a pair of RS-232-to-RS-485 converters, one full-duplex and one half-duplex.
+This board also contains a pair of RS-232-to-\ix{RS-485 converters@\acronym*{RS-485} converters}, one \ix{full-duplex} and one \ix{half-duplex}.
 These may be switched between two modes: one where the host PC is always holding the bus to transmit
 constantly (or at least at will), and the other where the PC can turn the transmitter on or off by
 changing the state of the \acronym{DTR} line.
@@ -321,6 +325,7 @@ design.}
   \end{center}
   \caption{Lumos 24-Channel AC Relay}
 \end{figure}
+\index{Lumos 24-channel AC SSR}
 This board controls 24 output channels of 120\,V~AC, arranged in three separate blocks of 8~channels.
 Each block is separately powered and completely isolated from the other blocks and from the low-voltage
 logic side of the board (which connects to the controller).  Each block is designed to supply up to
@@ -336,6 +341,7 @@ design.}
   \end{center}
   \caption{Lumos 24-Channel DC Controller/Relay}
 \end{figure}
+\index{Lumos 24-channel DC SSR}
 This board controls 24 output channels for low-voltage~DC loads, arranged in three separate blocks 
 of 8~channels.  Each block is separately powered and completely isolated from the other blocks and 
 from the logic side of the board (i.e., the on-board controller or connection to an external
@@ -356,13 +362,13 @@ arrival of guests when a door sensor is opened.
 
 
 \chapter{Operating the Board Controls}
-\LLstart{T}{he}{Lumos controllers include} two front-panel buttons labeled ``Option'' and ``Reset.''
+\LLstart{T}{he}{Lumos controllers include} two front-panel \ix{buttons} labeled ``\acronym{OPTION}'' and ``\acronym{RESET}.''
 This chapter will describe how to use these buttons to control the board manually.  We will assume the
-Reset button is red and the Option button is green.  Depending on components chosen when building the
+\acronym{RESET} button is red and the \acronym{OPTION} button is green.  Depending on components chosen when building the
 board, these colors may vary.
 
 \section{Resetting the Board}
-The red Reset button is connected directly to the microcontroller's $\overline{\hbox{\mc{MCLR}}}$ input.
+The red \acronym{RESET} button is connected directly to the microcontroller's $\overline{\hbox{\mc{MCLR}}}$ input.
 As long as the button is pressed, the \acronym{CPU} will be halted.  No operations of the controller
 will be active at this time.  
 
@@ -373,14 +379,15 @@ clears all faults and error conditions, and re-initializes all the hardware
 and software components.
 
 \section{Entering Configuration Mode}\label{sec:configmode}
+\index{configuration mode}
 Some functions are only enabled when the controller is in a special ``configuration'' mode\footnote{In
 some places in other documentation, including the controller's firmware source code, this is also
 referred to as ``privileged mode''.  This term is deprecated. The preferred term is now
 ``configuration mode.''} to prevent potentially harmful effects such as accidentally changing
-the device's address, baud rate, or other configuraiton parameters.
+the device's address, \ix{baud rate}, or other configuraiton parameters.
 
-To initiate configuration mode, press and hold the green Option button until the \acronym{LED}s start
-flashing rapidly (approximately 2~seconds).  Then release the Option button until the \acronym{LED}s
+To initiate configuration mode, press and hold the green \acronym{OPTION} button until the \acronym{LED}s start
+flashing rapidly (approximately 2~seconds).  Then release the \acronym{OPTION} button until the \acronym{LED}s
 fade to a state where the green \acronym{LED}(s) are flashing rapidly.\footnote{In normal run mode,
 the green \acronym{LED}(s) are slowly fading up and down.}
 
@@ -388,14 +395,15 @@ The board is now in configuration mode and can be instructed by the host PC to c
 settings.
 
 To leave configuration mode, the host PC may issue a command to cancel the mode, or you may press
-the red Reset button (which also has the effect of rebooting the system).
+the red \acronym{RESET} button (which also has the effect of rebooting the system).
 
 \section{Running a Test Pattern}
+\index{test pattern}
 When setting up a board in the field, it may be helpful to manually have the board turn on its
 output channels as a test that everything is connected and working properly.
 
-To do this, first place the board in configuration mode as described in Section~\ref{sec:configmode}.
-After the green light is flashing rapidly and the others are off, press and hold the Option button
+To do this, first place the board in \ix{configuration mode} as described in Section~\ref{sec:configmode}.
+After the green light is flashing rapidly and the others are off, press and hold the \acronym{OPTION} button
 again %until the lights go off
 for another 2 seconds, then release.
 
@@ -554,18 +562,18 @@ codes.
   \caption{Test-mode Channel Indicators\label{fig:testbin}}
 \end{figure}
 
-If the Option buton is pressed briefly, the pulsing red \acronym{LED} freezes (steady on) and the cycle
-pauses on the current output channel.  Pressing the Option button again resumes the cycle.
+If the \acronym{OPTION} buton is pressed briefly, the pulsing red \acronym{LED} freezes (steady on) and the cycle
+pauses on the current output channel.  Pressing the \acronym{OPTION} button again resumes the cycle.
       
-\section{Restoring to Factory Settings}
+\section{Restoring to Factory Settings}\label{ss:factoryreset}
 If the board is unresponsive and cannot be reconfigured via the host PC (for example, if you configured
-it to use a baud rate your host PC can't match), follow these steps to reset the device to its 
+it to use a \ix{baud rate} your host PC can't match), follow these steps to reset the device to its 
 factory default settings:
 \begin{enumerate}
 	\item	Turn off the Lumos controller.
 	\item	Disconnect any input sensors and power supply control wire from the Lumos
 		controller.
-	\item	Install a jumper to short pins 4 and 5 of J11 (labeled ``\acronym{ICSP}''
+	\item	Install a \ix{jumper} to short pins 4 and 5 of J11 (labeled ``\acronym{ICSP}''
 		on the board).
 	\item	Power on the Lumos controller.
 	\item	When the red, green, and yellow \acronym{LED}s flash rapidly, pull the
@@ -584,6 +592,7 @@ Failure to perform each step at the right time will prevent the factory reset fr
 this is accomplished by using the \z{lumosctl} com\-mand-line program on the host PC.  The basic configuration
 options include such things as setting the device address, communication speed, etc.  These can be set
 directly on the command line with \z{lumosctl}.
+\index{lumosctl@\z{lumosctl}|(}
 
 In the following examples, the command-line prompt is represented by a `\z{\$}' character.
 Text that is typed literally as shown in printed in \z{fixed-width type}, while values which are
@@ -597,14 +606,14 @@ For every command, you need to include three values:
 		systems, it is enough to say ``\z{----port=0}'' or ``\z{----port=1}'' to specify the first
 		or second ``standard'' port.  A specific port name may be given, such as 
 		``\z{----port=COM1}'' or ``\z{----port=/dev/ttys0}''.
-	\item	The speed (baud rate) at which to communicate with the Lumos controller.  This is
+	\item	The speed (\ix{baud rate}) at which to communicate with the Lumos controller.  This is
 		the speed the controller is \emph{currently} using, not the one you want to change it
 		to.  This is given as ``\z{----speed=}\Var*{rate}'', such as ``\z{----speed=19200}''.
 	\item	The Lumos controller's address, given as ``\z{----address=}\Var*{addr}''.  For example,
 		``\z{----addr=0}''.
 \end{itemize}
 
-If you aren't sure what device addresses exist on the serial line, you can have \z{lumosctl} 
+If you aren't sure what device \ix{address}es exist on the serial line, you can have \z{lumosctl} 
 probe to discover them all:
 \begin{SourceCode}
 $ lumosctl --port=COM1 --speed=19200 --probe
@@ -641,7 +650,7 @@ confirm that the requested changes took effect, but if your PC is unable to rece
 from the Lumos board, \z{lumosctl} won't be able to work without the \z{----read-only} option.
 
 \section{Setting the Device Address}
-Set a new address by giving \z{----set--address=}\Var*{newaddr}.  Don't forget to include the
+Set a new \ix{address} by giving \z{----set--address=}\Var*{newaddr}.  Don't forget to include the
 device's current address with \z{----address=}\Var*{oldaddr}.  For example, to change a board
 from address 0 to 12:
 
@@ -652,6 +661,7 @@ $ lumosctl --address=0 --set-address=12
 Once the address is set, you'll need to use that value for \z{----address} from that point forward.
 
 \section{Setting the Device Speed}
+\index{baud rate}
 Set a new speed by giving \z{----set--baud-rate=}\Var*{newspeed}.  Don't forget to include the
 device's current speed with \z{----speed=}\Var*{oldspeed}, so it has any hope of seeing the command
 to change it.  For example, to change a board
@@ -665,7 +675,7 @@ Once the speed is set, you'll need to use that value for \z{----speed} from that
 
 \section{Sensors}\label{sec:sensors}
 
-If your board is built to accommodate sensor inputs, you need to set the \acronym{EEPROM}
+\index{sensors}If your board is built to accommodate sensor inputs, you need to set the \acronym{EEPROM}
 settings so the controller stops driving those lines as outputs and starts watching them as
 inputs.
 
@@ -764,7 +774,7 @@ where
 \Var*{c} is the starting slot number you wish the Lumos controller to use.  This will be 
 channel \#0 on this board.  
 
-To cause a 24-channel Lumos board to occupy \acronym{DMX} slots 200--247, this would be:
+To cause a 24-channel Lumos board to occupy \acronym*{DMX} slots 200--247, this would be:
 \begin{SourceCode}
 [lumos_device_settings]
 dmxchannel=200
@@ -790,6 +800,7 @@ $ lumosctl --forbid-configuration-mode
 Either of these returns the board to normal run mode.  The second goes a step further, forbidding
 the board from going back into configuration mode again, until the next time the board is reset or
 power cycled.
+\index{lumosctl@\z{lumosctl}|)}
 
 \chapter{Creating Programmed Sequences}\label{ch:sequences}
 \begin{NotImplemented*}{Stored programmed sequences are a planned feature for the Lumos boards but is not
@@ -2815,6 +2826,7 @@ ready for use.}
 \LLstart{T}{he}{protocol used by Lumos boards} to receive commands is designed to be compact (so as to 
 conserve the number of bytes transmitted to carry out common functions) while remaining 
 simple and fast for the controller to interpret.  It is also designed so that multiple devices can
+\index{command protocol|(}
 share the same \acronym{RS-485} network connection.  As long as they all implement this basic protocol, they can
 safely avoid misinterpreting each other's commands even if they do not know the details of each other's
 command structure.  This includes, for example, Lumos boards at different revision levels.  (There are
@@ -2838,6 +2850,7 @@ Any following data bytes in a multi-byte command always have their most signific
 	\bitbox{1}{\z0} & \bitbox{7}{\Var*{data}}
 \end{BF}
 
+\index{8-bit data, escaping}
 This suggests the following algorithm for devices listening to the data stream, upon the receipt
 of each byte:
 
@@ -3324,7 +3337,7 @@ The information contained in this packet describes several facts about the Lumos
 	\item[\acronym{DMX512} configuration:]
 		The bit \Var{d} indicates that the board is in normal Lumos mode (\Var{d}=0) or
 		\acronym{DMX512} mode (\Var{d}=1).  If in \acronym{DMX512} mode, its starting
-		\acronym{DMX} channel is \Var*{C}$+$1, which is a value in the range 1--512, sent
+		\acronym*{DMX} channel is \Var*{C}$+$1, which is a value in the range 1--512, sent
 		in two fields:
 
 		\begin{center}\begin{bytefield}{9}
@@ -3776,7 +3789,7 @@ Codes \z{0x776}--\z{0x77f} are reserved for future use as configuration-mode com
 Once the Lumos board has been placed in flash program mode via the 
 \z{0x775} ``Update Firmware Image'' command (see above), all other 
 normal operation of the Lumos board is suspended, including any of its
-command protocols (Lumos native or \acronym{DMX}).  In this mode, the
+command protocols (Lumos native or \index{DMX512@\acronym*{DMX512}}\acronym*{DMX}).  In this mode, the
 board communicates using a simple bidirectional serial protocol at a fixed
 speed of 9600~baud, 8 bits, no parity.  This protocol is designed solely
 for the purpose of uploading a new firmware image into the flash memory.
@@ -3940,6 +3953,7 @@ where:
 For example, after successfully burning block \z{0x045C}, the Lumos board
 will send the result ``\z{@DEL@@@@k}''.
 
+\index{command protocol|)}
 
 \chapter{DMX512 Command Structure}\label{ch:dmx}
 \begin{NotImplemented*}{Support for \acronym{DMX512} is included in the Lumos firmware but has not
@@ -3949,9 +3963,9 @@ this feature of Lumos further, contact the author.}
 When configured in \acronym{DMX512} mode, none of the Lumos commands documented in Chapter~\ref{ch:proto}
 are recognized. The Lumos controller will be only looking for \acronym{DMX512} command packets.
 To use the Lumos commands for configuration of the board (e.g., to turn off \acronym{DMX512} mode or change
-the starting channel number), activate configuration mode using the Option button.  That will disable \acronym{DMX512} mode for the time the device is in configuration mode.
+the starting channel number), activate configuration mode using the \acronym{OPTION} button.  That will disable \acronym{DMX512} mode for the time the device is in configuration mode.
 
-The \acronym{DMX} protocol always uses a fixed speed of 250,000 baud.  There is only one packet type 
+The \acronym*{DMX} protocol always uses a fixed speed of 250,000 baud.  There is only one packet type 
 recognized by a Lumos controller.  All other packets are silently ignored.
 
 A packet begins with a ``break'' condition on the line.  Immediately following the break is a sequence
@@ -4001,7 +4015,7 @@ channel numbers start with 1.
 \end{NotImplemented*}
 \chapter{Theory of Operation}\label{ch:too}
 \LLstart{T}{he}{Lumos controller boards} provide 256 levels of dimmer control on their
-output channels by using pulse width modification (\acronym{PWM}).  That is, each output
+output channels by using \ix{pulse width modification} (\acronym{PWM}).  That is, each output
 is always either fully ``on'' (0\,V output) or ``off'' (+5\,V output) at any instant in
 time, but cycles between on and off states so that, for example, if a channel is set
 to 50\%, it will be fully on half the time and fully off half the time.  This is
@@ -4079,7 +4093,7 @@ Note the green AC waveform as perceived by the zero-crossing detector vs.\ the b
 present at the loads.  The phase offset is compensating for this difference.
 \input timingchain
 
-When the zero-crossing detector senses 0\,V on the incoming power line, it triggers an interrupt
+When the \ix{zero-crossing} detector senses 0\,V on the incoming power line, it triggers an interrupt
 on the Lumos microcontroller (\mc{INT} on the diagram).  This starts the phase delay timer which
 counts down a number of slices equal to the ``phase offset'' setting (normally~2).  Once that many
 slices have gone by, the ``working slices'' begin.  During each of these slices, various output
@@ -4096,10 +4110,11 @@ settle as already described.  This is shown in Figure~\ref{fig:timingideal}.
 \section{Output Relay Circuits}
 The output solid-state relays (\acronym{SSR}s) used by the Lumos boards are variations of the standard
 \acronym{SSR} design used within the \acronym{DIY} animated lighting community over the years (see p.~\pageref{sec:legacy}).  For DC boards, this is a high-power \acronym{MOSFET} circuit, while for AC boards, this is a \acronym{TRIAC}.
-In both cases, the relay is intended to control a simple resistive load (typically incandescent and \acronym{LED}
+In both cases, the relay is intended to control a simple \index{load, resistive}resistive load 
+(typically incandescent and \acronym{LED}
 lights).  They are not designed to control inductive loads (e.g., motors or flourescent lights).  If you intend
 to use those types of loads with these \acronym{SSR}s, you will need to add protective circuitry (such as an
-additional, higher-power \acronym{SSR} or a ``snubber'' circuit) to the Lumos circuit, which is outside the
+additional, higher-power \acronym{SSR} or a ``\ix{snubber}'' circuit) to the Lumos circuit, which is outside the
 design scope of the Lumos board.  Such a modification requires qualified engineering design and should not be
 attempted by the end user.
 
@@ -4302,6 +4317,7 @@ References to other program manual entries look like ``\z{lumosctl}(1)'' which i
 \z{lumosctl} command is documented in section~1 of the manual, which is the section for general 
 user commands on Unix-like systems.
 \newpage
+\index{lumosasm@\z{lumosasm}}
 \begin{NotImplemented*}{The \z{lumosasm} program is used to assemble descriptions of stored
 sequences into the internal binary format recognized by the Lumos boards.  Since that feature is
 not yet supported by Lumos boards, this section of the manual is blank until that feature is
@@ -4309,77 +4325,131 @@ fully defined.}
 %\input lumosasm
 \end{NotImplemented*}
 \newpage
+\index{lumosctl@\z{lumosctl}}
 \input lumosctl
 \newpage
+\index{lumosupgrade@\z{lumosupgrade}}
 \label{man:lumosupgrade}
 \input lumosupgrade
 \chapter{Troubleshooting}
-factory reset
+While we anticipate the Lumos board will provide many hours of worry-free operation,
+as with any device (particularly one built as a \acronym{DIY} project), sometimes things don't go
+quite as planned.  Here are a few common problems and their solutions.
+
+\begin{longtable}{|p{1.5in}|p{1.5in}|p{2in}|}\hline
+\bfseries Symptom & \bfseries Likely Cause(s) & \bfseries Solution \\\hline\hline
+\endhead
+An entire block of outputs does not turn on 
+	& No power to the block 
+	& If the \mc{BLOCK PWR} light is off, check the fuse for that block, 
+	  the connection from the power supply to the block, and that the power supply is powered on.\\
+\cline{2-3}
+	& Power supply not told to wake up (\mc{ATX}-style supplies only).
+	& Check that the power supply's green wire is attached to the $\overline{\hbox{\mc{PWR CTL}}}$
+	  terminal on J9. \\
+\cline{3-3}
+	&& If the \acronym{LED}s on the board show that it is in sleep mode,  send it a ``wake'' command
+	from the PC or just command it to turn on any output channel.
+\\\hline
+Some outputs don't work, or are erratic.
+	& Loose % opto-isolator 
+chip.
+	& Lightly press chips U0--U5 back into their sockets.\\
+\cline{2-3}
+	& Bad solder connection or loose chip.
+	& Re-check all solder connections on the board, re-solder any which are cold, broken, or
+	  incomplete.\\\hline
+No units in serial network respond to commands.
+	& Missing terminator
+	& Replace terminators on both ends of the daisy chain (note the PC's RS485 converter
+	  may include a built-in terminator for that position).\\\hline
+One unit does not respond to commands.
+	& Wrong address.
+	& Use the \verb+lumosctl+ program to reconfigure the board to have
+	  the correct address.\\
+\cline{2-3}
+	& Blown communication fuse.
+	& Replace fuse F3.\\\hline
+\end{longtable}
+
+If all else fails, try performing a factory reset as described in section \ref{ss:factoryreset} (page~\pageref{ss:factoryreset}).
+
 \chapter{Glossary}\label{ch:glossary}
 \begin{description}
+	\item[Address:]
+		The \mc{ID} number assigned to a particular device to uniquely distinguish it from the other
+		devices plugged into the same serial connection.  The commands sent to Lumos boards all contain
+		a ``target address'' which identifies the particular Lumos board which is to act on that command.
+		All the other Lumos boards will ignore it.
+	\item[Baud Rate:]
+		The speed, in bits per second, of data that is transferred over a serial cable.  The term
+		``baud'' refers to the number of electrical state changes per second made to perform the signalling.
+		For the kind of signalling done by Lumos boards, the baud rate is the same as the bit-per-second rate,
+		although for other applications such as high-speed modems, it would be more correct to refer to the
+		bit-per-second (\acronym{BPS}) rate only.  Depending on the exact protocol settings used, one character
+		takes approximately 10~bits to send, so a data rate of 9600~baud would send about 960 characters (bytes)
+		per second.
+	\item[Active Low:]
+		A logic signal which is considered ``on'' when the signal is ``low'' (binary 0 or 0\,V),
+		and ``off'' when the signal is ``high'' (binary 1 or +5\,V).  Lumos relay circuits are 
+		triggered with active-low signals.
 	\item[\acronym{CLI}]
-%	\item[Active Low:]
-%		A logic signal which is considered ``on'' when the signal is ``low'' (binary 0 or 0\,V),
-%		and ``off'' when the signal is ``high'' (binary 1 or +5\,V).  Lumos relay circuits are 
-%		triggered with active-low signals.
-%	\item[Annular Ring:]
-%		The exposed ring of metal around a hole in a \acronym{PCB} where a component is to be 
-%		mounted.  The solder will flow across the component lead and onto the annular ring.
-%	\item[Daisy Chain:]
-%		The arrangement of wiring a number of devices together by connecting the first to the second,
-%		then adding another connection from the second to the third, and so forth.  The network
-%		connection diagram in Figure~\ref{fig:net} shows an example of a daisy chain.
-%	\item[\acronym{DIP} (Dual In-line Package):]
-%		The style of chip where the pins are laid out in two parallel rows.
-%	\item[\acronym{DIY}:] ``Do-It-Yourself.''
-%	\item[Duplex:]
-%		a feature of a serial line.  On a full-duplex connection, separate data wires are present
-%		to carry data in both directions, so one device can send and receive data at the same time.
-%		On a half-duplex connection, only a single set of data wires is present, so devices must
-%		take turns transmitting over them.
-%	\item[\acronym{ESD} (Electro-Static Discharge):]
-%		static electricity which builds on your skin and is then discharged into sensitive
-%		components when you touch them.  Invisible to the eye, this can punch microscopic holes
-%		in the inside of the components, severely damaging them.
-%	\item[Heat Protection:]
-%		A temporary heat sink applied to a component when soldering that component onto
-%		the \acronym{PCB}.  Typically used for heat-sens\-i\-tive components such as transistors
-%		and integrated circuit chips.
-%	\item[Jumper Block:]
-%		A series of pins mounted to the \acronym{PCB}.  Different options are configured for the
-%		circuit by placing a jumper over certain pairs of pins, shorting them together.
-%	\item[\acronym{LED} (Light Emitting Diode):]
-%		A special kind of diode which emits light when current passes from its anode to its cathode.
-%	\item[\acronym{MOSFET}:]
-%		The type of transistor which forms the major part of a Lumos DC relay channel.  The name
-%		is an acronym for Metal Oxide Semiconductor Field Effect Transistor.
-%	\item[\acronym{PCB} (Printed Circuit Board):]
-%		The board where electronic components are mounted to form a complete circuit.  Metal
-%		traces are ``printed'' (actually etched) onto the surface of the board itself to make the
-%		connections between components.
-	\item[Power cycle]
-%	\item[RS-232:]
-%		A standard hardware protocol for sending serial data between two devices (such as a computer
-%		and a modem or a single Lumos board).  Shielded cable should be used for best results, and
-%		the cable length should not exceed 25\,ft.
-%	\item[RS-485:]
-%		A standard hardware protocol for sending serial data between multiple devices on a single
-%		cable length (electrically it is a single cable which each device ``taps into'' along the
-%		line; physically it is typically a ``daisy chain'' arrangement where a short cable connects
-%		one device to the next, another cable to the next, and so on). Unshielded twisted-pair cable
-%		is used (like Ethernet cable), and the cable lengths should not exceed a total of 4,000\,ft
-%		(1,200\,m).
+		Command-line interface.  A program launched on the command-line, or ``shell,'' interface of the computer---the
+		\z{cmd} window on Microsoft Windows, or the shell in a Mac \acronym{OSX} or Unix/Linux terminal window or
+		\z{xterm}.  Typically \acronym{CLI} tools interact with the user via keyboard, often using a combination of
+		``options'' or ``switches'' to control the program's behavior rather than using a mouse or other graphical
+		interfaces.  Generally, \acronym{CLI} tools are easier to automate (to have the computer run them autonomously
+		on a schedule or as needed) since most of them are designed to be run unattended, specifying all of the parameters needed right on the command line.
+	\item[\acronym{DIY}:] ``Do-It-Yourself.''
+	\item[Duplex:]
+		a feature of a serial line.  On a full-duplex connection, separate data wires are present
+		to carry data in both directions, so one device can send and receive data at the same time.
+		On a half-duplex connection, only a single set of data wires is present, so devices must
+		take turns transmitting over them.
+	\item[Factory reset:]
+		The process of resetting all user-configurable options on a device to their original state, as the
+		device presumably was shipped ``in the box'' from its factory.  Lumos boards can be reset in this manner
+		as described on page~\pageref{ss:factoryreset}.
+	\item[Jumper Block:]
+		A series of pins mounted to the \acronym{PCB}.  Different options are configured for the
+		circuit by placing a \ix{jumper} over certain pairs of pins, shorting them together.
+	\item[\acronym{LED} (Light Emitting Diode):]
+		A special kind of diode which emits light when current passes from its anode to its cathode.
+	\item[\acronym{MOSFET}:]
+		The type of transistor which forms the major part of a Lumos DC relay channel.  The name
+		is an acronym for Metal Oxide Semiconductor Field Effect Transistor.
+	\item[\acronym{PCB} (Printed Circuit Board):]
+		The board where electronic components are mounted to form a complete circuit.  Metal
+		traces are ``printed'' (actually etched) onto the surface of the board itself to make the
+		connections between components.
+	\item[Power Cycle:]
+		To turn the power off, then on, thus resetting the state of the device.  On a Lumos board,
+		the same effect can be had by pressing the \acronym{RESET} button momentarily, although
+		power cycling works, too.  Note that this does not undo any permanent settings such as device
+		address or baud rate.  To return all settings to their original values, you must perform a
+		full factory reset.
+	\item[RS-232:]
+		A standard hardware protocol for sending serial data between two devices (such as a computer
+		and a modem or a single Lumos board).  Shielded cable should be used for best results, and
+		the cable length should not exceed 25\,ft.
+	\item[RS-485:]
+		A standard hardware protocol for sending serial data between multiple devices on a single
+		cable length (electrically it is a single cable which each device ``taps into'' along the
+		line; physically it is typically a ``daisy chain'' arrangement where a short cable connects
+		one device to the next, another cable to the next, and so on). Unshielded twisted-pair cable
+		is used (like Ethernet cable), and the cable lengths should not exceed a total of 4,000\,ft
+		(1,200\,m).
 	\item[\acronym{SSR} (Solid-State Relay):] A device which controls an external power load.  In
 		contrast to a mechanical relay, an \acronym{SSR} has no moving parts, but does its switching
 		electronically.
-%	\item[Terminator Plug:]
-%		An RS-485 network requires a terminator at each end.  This is a small plug which plugs into
-%		the last unit in the daisy chain.
-%	\item[\acronym{TTL} (Transistor-Transistor Logic):] One of the ways digital logic circuits can be
-%		constructed.  For our purposes here, we consider a ``\acronym{TTL}-level'' signal to be a
-%		logic input or output where a voltage near +5\,V is ``high'' (binary 1 or ``true'') and a
-%		voltage near 0\,V is ``low'' (binary 0 or ``false'').  The inputs should never be above
-%		+5 nor below 0 volts.
+	\item[Terminator Plug:]
+		An RS-485 network requires a terminator at each end.  This is a small plug which plugs into
+		the last unit in the daisy chain.
+	\item[\acronym{TTL} (Transistor-Transistor Logic):] One of the ways digital logic circuits can be
+		constructed.  For our purposes here, we consider a ``\acronym{TTL}-level'' signal to be a
+		logic input or output where a voltage near +5\,V is ``high'' (binary 1 or ``true'') and a
+		voltage near 0\,V is ``low'' (binary 0 or ``false'').  The inputs should never be above
+		+5 nor below 0 volts.
 \end{description}
 
 \input acknowledgements

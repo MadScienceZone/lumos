@@ -76,7 +76,7 @@ of your computer.  These outputs are arranged into three \ix{blocks} of eight \i
 Each block is electrically isolated from the logic control circuit and from each other,
 so each block may be separately powered at different voltages if desired.
 
-If Lumos boards are configured with the \ix{RS-485} network option, up to sixteen Lumos
+If Lumos boards are configured with the \acronym{RS-485} network option, up to sixteen Lumos
 boards may be ``daisy chained'' together (a total of 384 channels) and controlled from 
 the same PC serial port.
 By plugging DC-powered Christmas lights into the Lumos controller, your PC can orchestrate
@@ -491,16 +491,16 @@ into the procedure and are unable to complete it.
 		Vixen program (assuming compatible drivers are available and loaded), or a program which uses the
 		\acronym{DMX512} protocol (assuming the Lumos controller is configured for \acronym{DMX512} operation).
 		
-	\item	{\bfseries An \ix{RS-485 converter}.}
-		If your Lumos board is an RS-485-compatible model, it will be built for either full-duplex or half-duplex
-		operation.  Make sure the RS-485 converter you use matches the Lumos board in this respect.  RS-485
+	\item	{\bfseries An \acronym{RS-485 converter}.}
+		If your Lumos board is an \acronym{RS-485}-compatible model, it will be built for either full-duplex or half-duplex
+		operation.  Make sure the \acronym{RS-485} converter you use matches the Lumos board in this respect.  \acronym{RS-485}
 		converters are available from many vendors, and may plug into your computer's serial port or \acronym{USB}
 		\marginpar{\centerline{\LLimg[width=1.5in]{rs485conv}}}
-		port.  We also offer the plans to make your own RS-485 converter from scratch.
+		port.  We also offer the plans to make your own \acronym{RS-485} converter from scratch.
 		See \URL{www.alchemy.com/lumos/fp}.
 
 	\item	{\bfseries One or more Lumos controller boards.}  If more than one board will be used together,
-		they need to be RS-485 capable.  If your Lumos board uses regular RS-232 serial communications,
+		they need to be \acronym{RS-485} capable.  If your Lumos board uses regular \acronym{RS-232} serial communications,
 		see the special instructions starting on page~\pageref{sec:rs232}.
 		\marginpar{\centerline{\LLimg[width=1.5in]{lumosboard}}}
 
@@ -509,24 +509,24 @@ into the procedure and are unable to complete it.
 		is known to work with the Lumos boards, but choose an enclosure which is appropriate for your usage.
 		\marginpar{\centerline{\LLimg[width=1.5in]{cg1500-closed}}}
 
-	\item	{\bfseries Data cables.}  \emph{(RS-485 models only.)}
+	\item	{\bfseries Data cables.}  \emph{(\acronym{RS-485} models only.)}
 		You will need 8-pin modular cables (8p8c-type, such as Ethernet cables).  The 
 		wire may be \acronym{CAT3}, \acronym{CAT5}, or \acronym{CAT6} type, 
 		with twisted pairs on pins 1--2, 3--6, 4--5, and 7--8.
 		(This is the standard configuraiton for Ethernet cable---if you just use that kind of cable
-		it will work just fine.)  You will need one cable to connect the RS-485 converter to the
+		it will work just fine.)  You will need one cable to connect the \acronym{RS-485} converter to the
 		first Lumos board, another cable from that Lumos board to the next, and so forth.  
 		\marginpar{\centerline{\LLimg[width=1.5in]{8p8c}}}
 		%The total length of all 
 		%cables combined may not exceed 1,200\,m (about 4,000\,ft).
 
-	\item	{\bfseries \ix{RS-485} \ix{terminator plug}.}  \emph{(RS-485 models only.)}
-		Both ends of the RS-485 ``chain'' must end in a terminator.
-		Usually, your RS-485 converter will have a terminator built into it, so it can form one end of the chain
+	\item	{\bfseries \acronym{RS-485} \ix{terminator plug}.}  \emph{(\acronym{RS-485} models only.)}
+		Both ends of the \acronym{RS-485} ``chain'' must end in a terminator.
+		Usually, your \acronym{RS-485} converter will have a terminator built into it, so it can form one end of the chain
 		by itself.
 		\marginpar{\centerline{\LLimg[width=1.5in]{termplug}}}
 
-	\item	{\bfseries \ix{RS-232} cable.} \emph{(RS-232 models only.)}
+	\item	{\bfseries \acronym{RS-232} cable.} \emph{(\acronym{RS-232} models only.)}
 		A standard 9-pin male-to-female PC serial cable.
 		%\marginpar{\centerline{\LLimg[width=1.5in]{rs232cable}}}
 
@@ -575,15 +575,15 @@ To mount the circuit board,
 \end{figure}
 
 \section{Connecting the Lumos Controller to a Computer}
-The standard configuraiton for Lumos controllers is a ``daisy chain'' of up to 16 of them on an RS-485
-serial line.  One end of the chain is connected to a PC via an RS-485 converter. 
-A diagram of the RS-485 connection is shown in Figure~\ref{fig:net}.  
+The standard configuraiton for Lumos controllers is a ``daisy chain'' of up to 16 of them on an \acronym{RS-485}
+serial line.  One end of the chain is connected to a PC via an \acronym{RS-485} converter. 
+A diagram of the \acronym{RS-485} connection is shown in Figure~\ref{fig:net}.  
 
 %A special ``\ix{RS-485}'' adapter goes between the PC and the string of Lumos
 %controllers.  The total cable length, which consists of standard \ix{Ethernet-style cables} plugged from one device to the next,
 %can range up to 4,000\,ft (1,200\,m).
 
-If your Lumos controller uses a regular serial port (``\ix{RS-232}'') instead, see the instructions starting on page~\pageref{sec:rs232}.
+If your Lumos controller uses a regular serial port (``\acronym{RS-232}'') instead, see the instructions starting on page~\pageref{sec:rs232}.
 
 % XXX (The other two options...
 %
@@ -627,9 +627,9 @@ If your Lumos controller uses a regular serial port (``\ix{RS-232}'') instead, s
 
 To connect the controllers to your PC, follow these steps:
 \begin{enumerate}
-	\item	Connect the \ix{RS-485 converter} to your PC's serial port using the serial cable
+	\item	Connect the \ix{\acronym*{RS-485} converter} to your PC's serial port using the serial cable
 		which came with the converter unit.
-	\item	Connect one end of an Ethernet-style cable to the \ix{RS-485} converter.
+	\item	Connect one end of an Ethernet-style cable to the \acronym{RS-485} converter.
 	\item	Plug the free end of that cable into the connector labeled ``\mc{IN}'' (J12) on the first Lumos
 		board.  {\bfseries Note:} If you're using a weather-tight enclosure, you will need to route the cable through
 		the foam grommets at the bottom of the enclosure.
@@ -643,7 +643,7 @@ To connect the controllers to your PC, follow these steps:
 	\item	Insert a special ``\ix{terminator plug}'' into the last Lumos controller's ``\mc{OUT/THRU}'' (J13) connector.
 	\item	Refer to Figure~\ref{fig:netcables} to see how the serial network cables look
 		when connected.  The unit on the left has two cables attached.  The blue cable is the incoming data line
-		from the PC's RS-485 converter.  The orange cable is going out from this Lumos controller to the next one in the
+		from the PC's \acronym{RS-485} converter.  The orange cable is going out from this Lumos controller to the next one in the
 		chain, which is shown on the right of Figure~\ref{fig:netcables}.  Note that on the second unit, the orange cable
 		from the first unit is plugged in to the ``\mc{IN}'' jack, and a terminator plug is placed in the ``\mc{OUT}'' jack,
 		ending the chain at that point.
@@ -654,8 +654,8 @@ To connect the controllers to your PC, follow these steps:
 	\caption{Connected Network Cables (terminated unit on right)\label{fig:netcables}}
 \end{figure}
 
-\section{Special Instructions for RS-232 Serial Boards}\label{sec:rs232}
-If your Lumos controller is built for RS-232 communications, this means it can plug directly into
+\section{Special Instructions for \acronym{RS-232} Serial Boards}\label{sec:rs232}
+If your Lumos controller is built for \acronym{RS-232} communications, this means it can plug directly into
 your PC's standard serial port using a 9-pin serial cable.  The limitations of this kind of serial port
 mean that the cable must be shielded, and not longer than 25\,ft.  Only one Lumos board may be attached
 to a PC's serial port (you will need more serial ports or \mc{USB} serial adaptors to attach more Lumos
@@ -998,11 +998,11 @@ One unit does not respond to commands.
 		connection diagram in Figure~\ref{fig:net} shows an example of a daisy chain.
 %	\item[\acronym{DIP} (Dual In-line Package):]
 %		The style of chip where the pins are laid out in two parallel rows.
-	\item[\acronym{DCE} (Data Communications Equipment):]  In the realm of RS-232 devices, this is the peripheral
+	\item[\acronym{DCE} (Data Communications Equipment):]  In the realm of \acronym{RS-232} devices, this is the peripheral
 		device plugged into the main ``terminal'' (\acronym{DTE}) device.  Examples include
 		Lumos controllers and modems.
 	\item[\acronym{DIY}:] ``Do-It-Yourself.''
-	\item[\acronym{DTE} (Data Terminal Equipment):]  In the realm of RS-232 devices, this is the
+	\item[\acronym{DTE} (Data Terminal Equipment):]  In the realm of \acronym{RS-232} devices, this is the
 		main ``terminal'' device such as a PC or teletype.
 	\item[Duplex:]
 		a feature of a serial line.  On a full-duplex connection, separate data wires are present
@@ -1041,7 +1041,7 @@ One unit does not respond to commands.
 		is used (like Ethernet cable), and the cable lengths should not exceed a total of 4,000\,ft
 		(1,200\,m).
 	\item[Terminator Plug:]
-		An RS-485 network requires a terminator at each end.  This is a small plug which plugs into
+		An \acronym{RS-485} network requires a terminator at each end.  This is a small plug which plugs into
 		the last unit in the daisy chain.
 	\item[\acronym{TTL} (Transistor-Transistor Logic):] One of the ways digital logic circuits can be
 		constructed.  For our purposes here, we consider a ``\acronym{TTL}-level'' signal to be a
