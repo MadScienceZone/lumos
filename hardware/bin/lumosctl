@@ -329,7 +329,7 @@ def change_speed(target, io, new_speed):
         250000: 10,
     }
     if new_speed not in supported_speeds:
-        raise ValueError("New baud rate must be one of {0}".format(', '.join(supported_speeds.keys())))
+        raise ValueError("New baud rate must be one of {0}".format(', '.join(map(str, supported_speeds.keys()))))
     target.raw_control('__baud__', supported_speeds[new_speed])
     time.sleep(1)
     io.set_baud_rate(new_speed)
@@ -427,13 +427,16 @@ def load_configuration(target, filename):
 
     target.raw_configure_device(config.config)
     time.sleep(2)
-    verifystatus(target, {'config': config.config})
+    if not options.read_only: verifystatus(target, {'config': config.config})
 
-    if config.phase_offset != status_cache.phase_offset:
-        trace(1, "Changing phase offset from {0} to {1} (per {2})".format(status_cache.phase_offset,
-            config.phase_offset, filename))
-        target.raw_set_phase(config.phase_offset)
-        verifystatus(target, {'phase_offset': config.phase_offset})
+    try:
+        if config.phase_offset != status_cache.phase_offset:
+            trace(1, "Changing phase offset from {0} to {1} (per {2})".format(status_cache.phase_offset,
+                config.phase_offset, filename))
+            target.raw_set_phase(config.phase_offset)
+            if not options.read_only: verifystatus(target, {'phase_offset': config.phase_offset})
+    except:
+        trace(0, "WARNING: unable to read/update device phase offset (benign in read-only mode)")
 
         # XXX raw_sensor_trigger(sens_id, i, p, t, inverse, mode)
         # XXX 
@@ -489,13 +492,13 @@ def main():
         trace(1, "Baud rate reset to 19.2k due to factory setting reset")
         trace(1, "Device should now be at address 0 due to factory setting reset")
         trace(0, "** Verifying board settings...")
-        verifystatus(target, baseline=FACTORY_SETTINGS)
+        if not options.read_only: verifystatus(target, baseline=FACTORY_SETTINGS)
 
     if options.set_phase:
         assert_priv('--set-phase')
         trace(1, "Setting phase offset to {0}".format(options.set_phase))
         target.raw_set_phase(options.set_phase)
-        verifystatus(target, {'phase_offset': options.set_phase})
+        if not options.read_only: verifystatus(target, {'phase_offset': options.set_phase})
     #
     # Configuration Management
     #
@@ -518,7 +521,7 @@ def main():
         assert_priv('--drop-configuration-mode')
         trace(1, "dropping configuration mode")
         target.raw_control('noconfig')
-        verifystatus(target, {'in_config_mode': False})
+        if not options.read_only: verifystatus(target, {'in_config_mode': False})
     #
     # Sensor control
     #
@@ -542,7 +545,7 @@ def main():
                 parser.error("Sensors are A, B, C, and D.")
 
         target.raw_control('masksens', s)
-        verifystatus(target, {'sensors': expected})
+        if not options.read_only: verifystatus(target, {'sensors': expected})
 
     for sens_id, sens_opt, sens_pre, sens_trig, sens_post in sensor_triggers:
         old = status_cache.sensors
@@ -561,7 +564,7 @@ def main():
             inverse = not new[sens_id].active_low,
             mode = new[sens_id].trigger_mode
         )
-        verifystatus(trigger, {'sensors': new})
+        if not options.read_only: verifystatus(trigger, {'sensors': new})
 
     if options.disable_sensor: smask(target, options.disable_sensor, delete=True)
     if options.enable_sensor:  smask(target, options.enable_sensor)
@@ -619,12 +622,12 @@ def main():
     if options.sleep:
         trace(1, "Putting unit to sleep")
         target.raw_control('sleep')
-        verifystatus(target, {'in_sleep_mode' : True})
+        if not options.read_only: verifystatus(target, {'in_sleep_mode' : True})
 
     if options.wake:
         trace(1, "Waking up unit")
         target.raw_control('wake')
-        verifystatus(target, {'in_sleep_mode' : False})
+        if not options.read_only: verifystatus(target, {'in_sleep_mode' : False})
     #
     # kill the device if requested
     #

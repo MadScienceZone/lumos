@@ -154,7 +154,7 @@ EOF
 	pause
 }
 
-function test_(){
+function test_sensors(){
 	cat <<EOF
 ==============================================================================
 SENSOR TESTS           
@@ -193,6 +193,8 @@ EOF
 	$BIN/lumosctl $LUMOSOPTS -k
 	echo "Sequential ON/OFF test"
 	FULL_LIST="0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23"
+	FULL_LIST="8 9 10 11 12 13 14 15"
+	FULL_LIST="16 17 18 19 20 21 22 23"
 	for channel in $FULL_LIST; do
 		echo "Setting $channel"
 		$BIN/lumosctl $LUMOSOPTS ${channel}u

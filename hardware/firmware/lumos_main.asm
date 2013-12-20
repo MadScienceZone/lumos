@@ -1,14 +1,4 @@
 ; vim:set syntax=pic ts=8:
-; sublw k-W
-; subwf f-W
-; subfwb W-f-~C
-;
-; XXX  do i need to set RCON bits at power-up?
-; XXX  review logic flow for each chip type
-; XXX  cease transmission if more data received -- study this out more
-; XXX  sleep mode leaves I/O bits on; should tristate first
-; XXX  sleep mode seems never to get relinquished
-; XXX  first query malformed, sometimes
 ;
 		LIST n=90
 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -382,16 +372,6 @@
 ;
 ; BULK_UPD:  00cccccc 0nnnnnnn v0 v1 v2 ... vn 01010101
 ;	Updates <n>+1 channels starting at <c>, giving <v> values for each as per SET_LVL.
-;
-; XXX REPLACES THIS OBSOLETE VERSION XXX
-; BULK_UPD:  0mcccccc 0nnnnnnn (0vvvvvvv)*<n+1> 01010110 (0hhhhhhh)*[(<n>+6)/7] 01010101
-;             |                                 \_____________________________/
-;             |_______________________________________________| if <m>=1
-;
-;	Updates <n> channels starting at <c>, giving <v> values for each as per SET_LVL.
-;	If <m>=1, then the LSBs are given, packed into 7-bit values with bit 6 corresponding
-;	to the first output channel, bit 5 is the next, and so on.
-; XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX XXX
 ;
 ; RAMP_LVL:  0dcccccc 0sssssss 0ttttttt   Channel <c> up/down in <s>+1 steps every <t>+1/120 sec
 ;
@@ -890,8 +870,8 @@ _SYSTEM_MFG_DATA	EQU	0x16FF0
 ;
 ;
 __SYS__	CODE_PACK	_SYSTEM_MFG_DATA
-SYS_SNH	DE	0xff ;0xA4	; Device serial number
-SYS_SNL DE	0xff ;0x10	
+SYS_SNH	DE	0xFF	 	; Device serial number
+SYS_SNL DE	0xFF 
 
 _EEPROM	CODE_PACK	0xF00000
 	DE	0xFF		; 000: 0xFF constant
@@ -3114,57 +3094,6 @@ S6_DATA:
 	;                                                       <-- YY_BUF_IDX == n+1
 	;
 	;
-	; XXX this is obsolete XXX
-	; BULK_UPD:
-	;
-	;   ___7______6______5______4______3______2______1______0__
-	;  |                                  |                    |
-	;  |                0                 |          3         | YY_COMMAND
-	;  |______|______|______|______|______|______|______|______|
-	;  |NOT_MY|0=low |                                         |
-	;  | _SSR |1=high|           Channel ID (0-47)             | TARGET_SSR
-	;  |______|______|______|______|______|______|______|______|
-	;  |      |                                                |
-	;  |   0  |           Number of channels - 1 (0-47)        | YY_BUFFER+0
-	;  |______|______|______|______|______|______|______|______|
-	;  |      |                                                |
-	;  |   0  |           Value for SSR #c                     | YY_BUFFER+1
-	;  |______|______|______|______|______|______|______|______|
-	;  |      |                                                |
-	;  |   0  |           Value for SSR #c+1                   | YY_BUFFER+2
-	;  |______|______|______|______|______|______|______|______|
-	;				.
-	;				.
-	; IF LOW RES:			.
-	;   _______________________________________________________
-	;  |      |                                                |
-	;  |   0  |           Value for SSR #c+n-1                 | YY_BUFFER+n
-	;  |______|______|______|______|______|______|______|______|
-	;                                                       <-- YY_BUF_IDX == n+1
-	;
-	; ELSE:      
-	;   _______________________________________________________
-	;  |      |                                                |
-	;  |   0  |           Value for SSR #c+n-1                 | YY_BUFFER+n
-	;  |______|______|______|______|______|______|______|______|
-	;  |      |                                                |
-	;  |   0  |                   $56                          | YY_BUFFER+n+1
-	;  |______|______|______|______|______|______|______|______|
-	;  |      |LSB   |LSB   |LSB   |LSB   |LSB   |LSB   |LSB   |
-	;  |   0  |Ch#c  |Ch#c+1|Ch#c+2|Ch#c+3|Ch#c+4|Ch#c+5|Ch#c+6| YY_BUFFER+n+2
-	;  |______|______|______|______|______|______|______|______|
-	;  |      |LSB   |LSB   |LSB   |LSB   |LSB   |LSB   |LSB   |
-	;  |   0  |Ch#c+7|Ch#c+8|Ch#c+9|Chc+10|Chc+11|Chc+12|Chc+13| YY_BUFFER+n+3
-	;  |______|______|______|______|______|______|______|______|
-	;				.
-	;				.
-	;              		 	.
-	;   _______________________________________________________
-	;  |      |LSB   |LSB   |LSB   |LSB   |LSB   |LSB   |LSB   |
-	;  |   0  |      |      |      |      |      |      |      | YY_BUFFER+n+1+
-	;  |______|______|______|______|______|______|______|______|    int((n+6)/7)
-	;                                                        <-- YY_BUF_IDX = n+2+
-	;                                                               int((n+6)/7)
 	;
 S6_0_DATA:
 	CLRF	YY_STATE, ACCESS		; go ahead and signal end of command parsing
@@ -4199,7 +4128,7 @@ S6_14_DATA:
 
 S6_RESTART:
 	; We stopped too early -- resume now
-	RETURN					; XXX Nothing seems to call this anymore.
+	RETURN					; 
 
 S6_KEEP_LOOKING:
 	MOVF	YY_BUF_IDX, W, ACCESS		; Have we reached our limit (idx >= max)?

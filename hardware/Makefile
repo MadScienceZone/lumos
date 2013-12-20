@@ -18,9 +18,8 @@ buildpcb:
 	rm -rf Lumos24DC
 	mkdir Lumos24DC
 	cp firmware/dist/$(RELEASE)/LumosROM-$(RELEASE)-standalone.hex Lumos24DC_Firmware-$(RELEASE).hex
-	cp pcb/DC24SSR.pcb Lumos24DC
-
-	
+	cp pcb/*.pdf pcb/*.gbr pcb/*.cnc pcb/*.png Lumos24DC
+	cp schematics/*.pdf Lumos24DC
 
 test:
 	(cd Test && $(MAKE))
