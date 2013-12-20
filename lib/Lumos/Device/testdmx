@@ -1,0 +1,209 @@
+#!/usr/local/bin/python
+# vi:set ai sm nu ts=4 sw=4 expandtab:
+#
+import optparse, time, sys, re
+import ConfigParser
+import Lumos
+from   Lumos.Network.SerialNetwork      import SerialNetwork, DeviceTimeoutError
+from   Lumos.Device.UltraDMXMicroControllerUnit import UltraDMXMicroControllerUnit, UltraDMXMicroControllerStatus
+from   Lumos.Show                       import Show
+from   Lumos.PowerSource                import PowerSource
+
+
+class NotImplemenetedError (Exception): pass
+
+def parse_arguments():
+    global options
+    parser = optparse.OptionParser(usage='%prog [-hkRrv] [-B SPD] [-b SPD] [-L LVL] [-m mS] [-p PORT] [-T MODE] [-x DPX] [channel-levels...]', version='%prog, version 1.0')
+    parser.add_option('-x', '--duplex', metavar='DPX', action='store', choices=['full', 'half'], help='Serial duplex mode [%default]')
+    parser.add_option('-k', '--kill-all', action='store_true', help='Turn off all channel outputs')
+    parser.add_option('-p', '--port', metavar='PORT', help='Serial I/O port to use [%default]')
+    parser.add_option('-R', '--report', action='store_true', help='Report device status to standard output.')
+    parser.add_option('-r', '--read-only', action='store_true', help="Don't read device status")
+    parser.add_option('-B', '--set-baud-rate', metavar='SPD', type='int', help='Change unit baud rate.')
+    parser.add_option('-b', '--speed', metavar='SPD', type='int', help='Baud rate to use to talk to device. [%default]')
+    parser.add_option('-m', '--txdelay', metavar='mS', type='int', help='Transmitter control delay (mS) [%default]')
+    parser.add_option('-L', '--txlevel', metavar='LVL', type='int', help='Transmitter control logic level (0-1) [%default]')
+    parser.add_option('-T', '--txmode', metavar='MODE', action='store', choices=['dtr', 'rts'], help='Transmitter control line [%default]')
+    parser.add_option('-v', '--verbose', action='count', help='Increase output level.')
+    parser.set_defaults(duplex='full', port=0, speed=9600, txmode='dtr', txlevel=1, txdelay=2)
+
+    (options, operations) = parser.parse_args()
+
+    #
+    # validate options
+    #
+    if options.duplex not in ['full', 'half']:
+        parser.error('--duplex value must be "full" or "half".')
+
+    if options.txmode not in ['dtr', 'rts']:
+        parser.error('--txmode value must be "dtr" or "rts".')
+
+    if not 0 <= options.txlevel <= 1:
+        parser.error('--txlevel value must be 0 or 1.')
+
+    if not 0 <= options.txdelay <= 127:
+        parser.error('--txdelay value must be 0-127.')
+
+    return options, operations, parser
+
+def setup_lumos(options):
+    #
+    # Build Lumos context
+    #
+    show = Show()
+    show.title = 'testdmx'
+    show.description = 'DMX Test Utility'
+
+    ps = PowerSource('power')
+
+    io = SerialNetwork(
+        description='Serial port for DMX devices',
+        port = options.port,
+        baudrate = options.speed,
+        bits = 8,
+        parity = 'none',
+        stop = 1,
+        xonxoff = False,
+        rtscts = False,
+        duplex = options.duplex,
+        txmode = options.txmode,
+        txlevel = options.txlevel,
+        txdelay = options.txdelay,
+    )
+
+    target = UltraDMXMicroControllerUnit(
+        id = 'target',
+        power_source = ps,
+        network = io
+    )
+
+    show.add_network('io', io)
+    show.add_controller('io', target)
+    for channel_id in range(1,513):
+        target.add_channel(channel_id, load=0)
+
+    return target, io
+
+def getstatus(target):
+    "Get current device state and return it."
+
+    try:
+        devstatus = target.raw_query_device_status(timeout=5)
+    except DeviceTimeoutError as e:
+        raise IOError("No response received from device (read {0} byte{1} before timeout)".format(len(e.read_so_far), '' if not e.read_so_far else 's'))
+
+    return devstatus
+
+def trace(level, msg, stream=sys.stderr, eol=True):
+    global options
+    if options.verbose >= level:
+        stream.write(msg)
+        if eol:
+            stream.write('\n')
+        else:
+            stream.flush()
+
+
+def report_on(device):
+    print """DMX Transmitter Status:
+  Serial number:     {0.serial_number}
+  Firmware revision: {0.revision}
+  Break time:        {0.break_us} microseconds
+  M-A-B time:        {0.mab_us} microseconds
+  DMX speed:         {0.packet_speed} frames/second
+  User data:         {1} bytes
+""".format(device, len(device.user_data))
+        
+class DeviceConfigurationError (Exception): pass
+
+#def change_speed(target, io, new_speed):
+#    global options
+#
+#    trace(1, "Changing baud rate to {0}".format(new_speed))
+#    target.raw_control('__baud__', new_speed)
+#    time.sleep(1)
+#    io.set_baud_rate(new_speed)
+#    time.sleep(1)
+#    getstatus(target)   # try talking to it at the new speed
+#    options.speed = options.set_baud_rate
+
+
+def main():
+    options, operations, parser = parse_arguments()
+    target, io = setup_lumos(options)
+    target.initialize_device()
+
+    if options.verbose > 2:
+        io.set_verbose(sys.stderr)
+
+    if options.report:
+        report_on(getstatus(target))
+
+    #target.status.packet_speed = 40
+    #target.commit_status()
+    #target.update_status()
+    #report_on(target.status)
+    #
+    # Apply device changes
+    #
+#    if options.set_address is not None:
+#        assert_priv('--set-address')
+#        target.raw_set_address(options.set_address)
+
+#    if options.set_baud_rate is not None:
+#        assert_priv('--set-baud-rate')
+#        change_speed(target, io, options.set_baud_rate)
+
+    #
+    # Misc
+    #
+    if options.kill_all:
+        trace(1, 'Killing all channel outputs')
+        target.kill_all_channels(force=True)
+
+    #
+    # carry out the requested level changes
+    #
+    for action in operations:
+        m = re.match(r'^(\d+)@(\d+(,\d+)*)$', action)
+        if m:
+            # <channel>@<level>[,<level>...]
+            start_chan = int(m.group(1))
+            levels = [int(x) for x in m.group(2).split(',')]
+
+            for idx, level in enumerate(levels):
+                if not 1 <= start_chan + idx <= 512:
+                    parser.error("{0}: channel number {1} does not exist for this controller model (valid range is [1,512])".format(
+                        action, start_chan + idx))
+                target.set_channel(start_chan + idx, level)
+                target.flush()
+
+        else:
+            m = re.match(r'^\d+$', action)
+            # <channel>
+            if m:
+                channel = int(action)
+                if not 1 <= channel <= 512:
+                    parser.error("{0}: channel number {1} does not exist for this controller model (valid range is [1,512])".format(
+                        action, channel))
+                target.set_channel(channel, 255)
+                target.flush()
+            else:
+                m = re.match(r'^p(\d*\.\d+|\d+\.?)(s(ec(onds?)?)?)?$', action)
+                if m:
+                    wait_for = float(m.group(1))
+                    trace(1, "pausing {0} sec...".format(wait_for))
+                    time.sleep(wait_for)
+                    trace(2, "resuming after pause")
+                else:
+                    parser.error("{0}: Unrecognized action".format(action))
+
+
+
+if __name__ == '__main__':
+    #try:
+        main()
+    #except Exception as e:
+        #sys.stderr.write("{0}: fatal error: {1}\n".format(sys.argv[0], e))
+        #sys.exit(1)
