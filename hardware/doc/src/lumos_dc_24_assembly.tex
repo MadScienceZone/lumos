@@ -449,7 +449,7 @@ and~\ref{tbl:bom2}.
 %so J9 is no longer used.
 %}}
 \end{tabular}
-\\{\footnotesize *Some of these are not used to make room for sensor input lines.}
+\\{\footnotesize *Some of these are omitted in order to make room for sensor input lines.}
 \caption{Lumos Bill of Materials (Components)\label{tbl:bom}}
 \end{table}
 
@@ -957,10 +957,20 @@ Perform the following steps:
 	into place.
 \item	Install a 120\,$\Omega$ resistor (``brown-red-brown'') between holes \#5 and \#7.  Solder
 	into place.
-\item 	The board should now look like Figure~\ref{fig:terminator-pcb-wired}.
+\item 	The board should now look like Figure~\ref{fig:terminator-construction} (left side).
 \begin{figure}
- \centerfloat{\LLimg[height=\textheight]{IMG404}}
- \caption{Fully Wired Terminator (Colors Vary from Text)\label{fig:terminator-pcb-wired}}
+ \centerfloat
+ \LLimg[height=2in]{term-soldered}
+ \LLimg[height=2in]{term-cutwires}
+ \caption{Constructing the Terminator\label{fig:terminator-construction}}
+\end{figure}
+\begin{figure}
+ %\centerfloat{\LLimg[height=\textheight]{IMG404}}
+ \centerfloat
+ \LLimg[width=\textwidth]{term-top}
+ \LLimg[width=\textwidth]{term-side}
+ \LLimg[width=\textwidth]{term-back}
+ \caption{Fully Wired Terminator\label{fig:terminator-pcb-wired}}
 \end{figure}
 \item	Arrange all the wires in a row so they are straight and parallel, with the colors in
 	the following order:
@@ -980,6 +990,7 @@ Perform the following steps:
 	wires extend about 1$''$ (25\,mm) from the
 	end of the \acronym{PCB}.  Be sure to make the 
 	cut so you leave a clean, straight edge to the flat bundle of wires.
+	See Figure~\ref{fig:terminator-construction} (right side).
 \item	Carefully, so as not to disturb the order of the wires, insert them into an 8p8c male plug
 	shell, with the first orange wire at pin~1 of the plug and the last green wire at pin~6.
 	Note that pins~7 and~8 will have no connection.  Push the wires all the way to the end so they
@@ -1015,6 +1026,11 @@ perform the following steps to add this capability to the basic \acronym{CPU} ci
 \end{enumerate}
 
 This completes the installation of the \acronym{RS-232} serial option.
+\begin{figure}
+ \centerfloat
+ \LLimg{rs232-parts}
+ \caption{Lumos Board with RS-232 Option\label{fig:rs232-parts}}
+\end{figure}
 
 \bigskip\noindent{\bfseries Continue} to the next chapter to install more options, if desired.
 
@@ -1057,6 +1073,12 @@ so they will default high unless explicitly pulled low by the input.  It may be 
 or high by the sensor.  The Lumos board may, however, be programmed to respond to the inputs as if
 they were active-high or active-low.  There shouldn't therefore be a need to invert an active-high
 input for use with a Lumos board.
+\begin{figure}
+ \centerfloat
+ \LLimg{no-sensors}
+ \LLimg{2-sensors}
+ \caption{Board with No Sensors (above) and Two Sensors (below)\label{fig:pcbsensors}}
+\end{figure}
 
 \section{What If I Want to Keep All My LEDs?}
 A natural question to ask here is, ``Can I keep the \acronym{LED}s installed \emph{and} 

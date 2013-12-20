@@ -29,7 +29,7 @@ lumosctl.tex: ../../man/man1/lumosctl.1
 	./man2latex ../../man/man1/lumosctl.1 lumosctl.tex
 
 clean:
-	rm -f *.aux *.idx *.ilg *.ind *.log *.synctex.gz *.toc
+	rm -f *.aux *.idx *.ilg *.ind *.log *.synctex.gz *.toc *.lof *.lot *.out
 
 distclean: clean
 
