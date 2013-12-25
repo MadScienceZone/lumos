@@ -285,13 +285,13 @@ class LumosControllerUnitTest (unittest.TestCase):
     # ----------- ----------- ----------- ----------- 
     # sensor a    sensor b    sensor c    sensor d    
     #
-    # 12 34 00 02 33
-    # ----- ----- --
-    # fault phase sentinel
+    # 12 34 00 02 12 34 33
+    # ----- ----- ----- --
+    # fault phase  S/N  sentinel
     #
     def test_query(self):
         self.n.input_data('\xFC\x1F\x30\x50\x00\x00\x40\x02\x00\x4f\x01\x27\x00\x00'
-            + '\x00\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x12\x34\x00\x02\x33')
+            + '\x00\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x12\x34\x00\x02\x12\x34\x33')
         reply = self.ssr.raw_query_device_status()
         self.assertEqual(self.n.buffer, "=FC=03$T")
         self.assertEqual(reply.config.configured_sensors, ['A','C'])
@@ -299,17 +299,17 @@ class LumosControllerUnitTest (unittest.TestCase):
         #self.assertEqual(reply.config.resolution, 256)
         #self.assertEqual(reply.enabled_sensors, [])
         self.assertEqual(reply.rom_version, (3, 0))
-        self.assertEqual(reply.sensors['A'].enabled, False)
-        self.assertEqual(reply.sensors['B'].enabled, False)
-        self.assertEqual(reply.sensors['C'].enabled, False)
-        self.assertEqual(reply.sensors['D'].enabled, False)
-        self.assertEqual(reply.sensors['A'].on, True)
-        self.assertEqual(reply.sensors['B'].on, False)
-        self.assertEqual(reply.sensors['C'].on, False)
-        self.assertEqual(reply.sensors['D'].on, False)
-        self.assertEqual(reply.in_config_mode, False)
-        self.assertEqual(reply.in_sleep_mode, False)
-        self.assertEqual(reply.err_memory_full, False)
+        self.assertEqual(reply.sensors['A'].enabled, True, 'sensor A enabled')
+        self.assertEqual(reply.sensors['B'].enabled, True, 'sensor B enabled')
+        self.assertEqual(reply.sensors['C'].enabled, True, 'sensor C enabled')
+        self.assertEqual(reply.sensors['D'].enabled, True, 'sensor D enabled')
+        self.assertEqual(reply.sensors['A'].on, True, 'sensor A on')
+        self.assertEqual(reply.sensors['B'].on, False, 'sensor B on')
+        self.assertEqual(reply.sensors['C'].on, False, 'sensor C on')
+        self.assertEqual(reply.sensors['D'].on, False, 'sensor D on')
+        self.assertEqual(reply.in_config_mode, False, 'config')
+        self.assertEqual(reply.in_sleep_mode, False, 'sleep')
+        self.assertEqual(reply.err_memory_full, False, 'memfull')
         #self.assertEqual(reply.sensors_on, ['A'])
         self.assertEqual(reply.phase_offset, 2)
         self.assertEqual(reply.eeprom_memory_free, 0x4f)
@@ -319,10 +319,11 @@ class LumosControllerUnitTest (unittest.TestCase):
         self.assertEqual(reply.last_error, 0x12)
         self.assertEqual(reply.last_error2, 0x34)
         self.assertEqual(reply.phase_offset2, 2)
+        self.assertEqual(reply.serial_number, 0x1234)
 
     def test_query_phase_mismatch(self):
         self.n.input_data('\xFC\x1F\x30\x50\x00\x00\x40\x02\x00\x4f\x01\x27\x00\x00'
-            + '\x00\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x12\x34\x00\x03\x33')
+            + '\x00\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x12\x34\x00\x03\x12\x34\x33')
         self.assertRaises(InternalDeviceError, self.ssr.raw_query_device_status)
 
 

@@ -401,7 +401,7 @@ def load_configuration(target, filename):
     if baud_rate != options.speed:
         trace(1, "** Changing baud rate of device from {0} to {1}".format(
             options.speed, baud_rate))
-        change_speed(target, io, baud_rate)
+        change_speed(target, target.network, baud_rate)
     
     # XXX default values from config file??
 

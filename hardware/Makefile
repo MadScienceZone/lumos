@@ -20,6 +20,7 @@ buildpcb:
 	cp firmware/dist/$(RELEASE)/LumosROM-$(RELEASE)-standalone.hex Lumos24DC-$(RELEASEDC)/Lumos24DC_Firmware-$(RELEASE).hex
 	cp pcb/*.pdf pcb/*.gbr pcb/*.cnc pcb/*.png Lumos24DC-$(RELEASEDC)
 	cp schematics/*.pdf Lumos24DC-$(RELEASEDC)
+	mkdir Lumos24DC-$(RELEASEDC)/bin
 
 test:
 	(cd Test && $(MAKE))
@@ -35,6 +36,7 @@ distclean: clean
 
 dist: distclean builddocs buildasm buildpcb
 	(mkdir -p dist_bin && cd bin && for file in *; do sed -e 's/@@RELEASE@@/$(RELEASE)/g' -e 's/^#@@REL@@//' < $$file > ../dist_bin/$$file; done)
-	tar cvfz dist/Lumos24DC-$(RELEASEDC).tar.gz Lumos24DC-$(RELEASEDC)
-	tar cvfz dist/LumosROM-$(RELEASE).tar.gz 
+	cp dist_bin/* Lumos24DC-$(RELEASEDC)/bin
+	tar cvfz dist/Lumos24DC-$(RELEASEDC).tar.gz Lumos24DC-$(RELEASEDC) -C .. man
+	tar cvfz dist/LumosROM-$(RELEASE).tar.gz LumosROM-$(RELEASE)
 	rm -rf Lumos24DC-$(RELEASEDC) LumosROM-$(RELEASE)

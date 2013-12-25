@@ -1,5 +1,5 @@
 ______________________________________________________________________________
-Lumos 0.5 "RELEASE_NOTES"
+Lumos 0.6 "RELEASE_NOTES"
 
 CONTENTS
   Current Release
@@ -10,7 +10,7 @@ CONTENTS
 ______________________________________________________________________________
 CURRENT RELEASE:
 
-  Lumos 0.6 [TBD]
+  Lumos 0.6 [20 December 2013]
         Bug Fixes:
 
 	  * Fixed numerous small bugs and inconsistencies.  All unit tests
@@ -27,7 +27,11 @@ CURRENT RELEASE:
 
 	New Features:
 
-	  * Added GUI configuration profile editor.
+          * Support for new 24-Channel DC Lumos controller hardware.
+
+	  * GUI configuration editor in the works (still a work in progress,
+            not ready for use yet, but some code supporting it appears in
+            this release).
 
 	  * Removed GFCI attribute from PowerSource objects.  Lumos really
 	    never does anything with this except try to encourage you to use
