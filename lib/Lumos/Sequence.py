@@ -257,6 +257,61 @@ class Sequence (object):
 
         return self._event_list[timestamp]
 
+    def compile_stream(self, event_list=None, keep_state=False, force=False, skew=0):
+        '''Compile the sequence all the way into a list of bytes to transmit
+        to the output networks, avoiding the need to interpret events in real time.
+        
+        If the sequence has already been compiled to an event list, pass that list
+        to this method's event_list parameter:
+            sequence.compile_stream(sequence.compile(...))
+
+        Otherwise, calling compile_stream will invoke compile() for you.  In this
+        case, you may use the keep_state, force, and skew parameters in the same
+        way the compile() method uses them.
+
+        The return value from compile_stream() is a list in the same format as
+        that returned from compile(), however the bound methods will be to network
+        objects, and their argument lists will be ready-to-send strings of data bytes,
+        so each scheduled action will be nothing more than blasting blocks of bits
+        out into the networks.
+
+        N.B.: In order to accomplish this, the compile_stream() method takes control
+        of the controllers and networks, "playing" the sequences but diverting their
+        output internally.  This means you can't compile a stream at the same time as
+        you're running a show with those networks and/or controllers.
+
+        It is assumed that the input event_list will be sorted in order of increasing
+        timestamp values (which is the way compile() generates it).
+        '''
+
+        if event_list is None: 
+            event_list = self.compile(keep_state, force, skew)
+
+        # build list of events by time and priority
+        event_blocks = {}
+        for timestamp, method, arglist, priority in event_list:
+            if timestamp not in event_blocks:
+                event_blocks[timestamp] = {}
+            if priority not in event_blocks[timestamp]:
+                event_blocks[timestamp][priority] = []
+            event_blocks[timestamp][priority].append((method,arglist))
+
+        # "play" them (with output diverted) in time/priority order
+        network_list = set([c['obj'].network for c in self._controllers])
+        ev_list = []
+        for timestamp in sorted(event_blocks):
+            for network in network_list:
+                network.divert_output()
+            for priority in sorted(event_blocks[timestamp]):
+                for method, arglist in event_blocks[timestamp][priority]:
+                    method(*arglist)
+            for network in network_list:
+                bytes_to_send = network.end_divert_output()
+                if bytes_to_send:
+                    ev_list.append((timestamp, network.send, (bytes_to_send,), 1))
+
+        return ev_list
+
     def compile(self, keep_state=False, force=False, skew=0):
         '''Compile the sequence into a ready-to-execute list of
         device updates.  This will return a list of discrete,
@@ -339,12 +394,16 @@ class Sequence (object):
                                 if fade_steps == 1:
                                     ev_list.append((timestamp + skew + event.delta, target_unit.set_channel,
                                         (channel, end_raw_value, force), 1))
+                                    ev_list.append((timestamp + skew + event.delta, target_unit.flush, (), 2))
 
                                 elif fade_steps > 1:
                                     for i in range(fade_steps):
                                         ev_list.append((timestamp + skew + ((event.delta * i) / (fade_steps - 1)),
                                             target_unit.set_channel,
                                             (channel, start_raw_value + (fade_incr * (i + 1)), force), 1))
+                                        ev_list.append((timestamp + skew +
+                                        ((event.delta * i) / (fade_steps - 1)),
+                                        target_unit.flush, (), 2))
 
                                 elif force:
                                     ev_list.append((timestamp + skew, target_unit.set_channel, (channel, end_raw_value, force), 1))

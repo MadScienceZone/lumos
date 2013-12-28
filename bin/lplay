@@ -34,7 +34,6 @@ from Lumos.TimeRange import TimeRange
 from optparse        import OptionParser
 
 import sys, sched, time
-import pygame
 #@@REL@@sys.tracebacklimit=0
 
 #========================================================================
@@ -42,7 +41,7 @@ import pygame
 #========================================================================
 
 parser = OptionParser(
-        usage="%prog [-hTv] [-c config] [-s skew] sequence-files...", 
+        usage="%prog [-hTvx] [-c config] [-s skew] sequence-files...", 
         version='@@RELEASE@@',
         description='''\
 Plays one or more sequence files, with audio if the files include an 
@@ -59,16 +58,23 @@ sequence-file in the list:
 ] must be separate arguments by themselves).  Likewise, [@mm ... ]
 repeats all the files between brackets until the clock reads mm (as for @mm above)
 at the start of a loop iteration.
+
++r resets the Lumos controllers by running them through a sleep/wake
+cycle.
 '''
 )
 parser.add_option('-c', '--config',  metavar='FILE', help='Specify config file [./lumos.conf]')
 parser.add_option('-D', '--debug',   metavar='FILE', help='Dump debugging information to FILE')
 parser.add_option('-s', '--skew',    metavar='mS', type='int', help='Delay sequence times vs. audio')
 parser.add_option('-T', '--test',    action='store_true', help="Describe playback, don't actually do it")
-parser.add_option('-v', '--verbose', action='store_true', help='Enable more descriptive output')
+parser.add_option('-v', '--verbose', action='count', help='Enable more descriptive output')
+parser.add_option('-x', '--no-audio', action='store_true', help='Do not load audio support')
+
 parser.set_defaults(config='lumos.conf', skew=0, verbose=0)
 (options, files) = parser.parse_args()
 
+if not options.no_audio:
+    import pygame
 #========================================================================
 # Create show object from config file
 #========================================================================
@@ -104,7 +110,7 @@ ACTUAL------ SCHEDULED--- CONTROLLER----- ACTION------------------------
             obj_name = 'unknown'
 
     return "%s %15s %s%s" % (
-        trace_time_stamp(expected_time), obj_name, func.__name__, arglist)
+        trace_time_stamp(expected_time), obj_name, func.__name__, `arglist`)
     
 
 def trace_event_header():
@@ -143,9 +149,10 @@ if options.debug:
         debug_file.write("Tracing I/O for network {0} ({1})\n".format(
             network_ID, show.networks[network_ID].description))
 
-pygame.mixer.pre_init(22050, -16, 2, 4096)
-pygame.mixer.init()
-pygame.init()
+if not options.no_audio:
+    pygame.mixer.pre_init(22050, -16, 2, 4096)
+    pygame.mixer.init()
+    pygame.init()
 
 if not options.test:
     for unit_ID in show.controllers:
@@ -186,6 +193,8 @@ def wait_for(minutes, query=False):
 
 while file_next < len(files):
     file = files[file_next]
+    if options.verbose > 1:
+        print "At #{0}: {1}".format(file_next, file)
     file_next += 1
 
     #
@@ -267,6 +276,27 @@ while file_next < len(files):
         wait_for(file[1:])
         continue
 
+    elif file == '+r':
+        for controller in show.controllers.values():
+            try:
+		if controller.type.startswith("Lumos"):
+                    if options.verbose: print "Sleeping {0}".format(controller)
+                    controller.flush()
+		    controller.kill_all_channels()
+                    controller.raw_control('sleep')
+                    controller.flush()
+            except Exception as e:
+                print "Could not reset controller {0} ({1})".format(controller, e)
+        time.sleep(1)
+        for controller in show.controllers.values():
+            try:
+                if controller.type.startswith("Lumos"):
+                    if options.verbose: print "Waking   {0}".format(controller)
+                    controller.raw_control('wake')
+                    controller.flush()
+            except Exception as e:
+                print "Could not reset controller {0} ({1})".format(controller, e)
+
     elif file.startswith('+'):
         try:
             delay = float(file[1:])
@@ -283,11 +313,13 @@ while file_next < len(files):
     else:
         sequence = Sequence()
         sequence.load_file(file, show.controllers)
-        if sequence.audio is not None:
-            pygame.mixer.init(sequence.audio.frequency,
+        if not options.no_audio and sequence.audio is not None:
+            pygame.mixer.pre_init(sequence.audio.frequency,
                     sequence.audio.bits,
                     sequence.audio.channels,
-                    sequence.audio.bufsize)
+                    256)
+                    #sequence.audio.bufsize)
+            pygame.mixer.init()
             pygame.mixer.music.load(sequence.audio.filename)
             pygame.mixer.music.set_volume(sequence.audio.volume / 100.0)
 
@@ -307,7 +339,7 @@ while file_next < len(files):
         schedule = sched.scheduler(time.time, time.sleep)
         if options.test:
             # queue up event trace calls, paying as much runtime penalty
-            # as possibe NOW instead of during playback
+            # as possible NOW instead of during playback
             print trace_event_header()
             for time_stamp, method, arglist, priority in sequence.compile(keep_state=True, skew=options.skew):
                 schedule.enter(time_stamp / 1000.0, priority, trace_event, 
@@ -315,28 +347,28 @@ while file_next < len(files):
             start_point = time.time()
         else:
             last_timestamp = None
-            for time_stamp, method, arglist, priority in sequence.compile(keep_state=True, skew=options.skew):
+            for time_stamp, method, arglist, priority in sequence.compile_stream(keep_state=True, skew=options.skew):
                 if options.debug and last_timestamp != time_stamp:
                     schedule.enter(time_stamp / 1000.0, 0, debug_event, (time_stamp,))
                     last_timestamp = time_stamp
                 schedule.enter(time_stamp / 1000.0, priority, method, arglist)
 
-        if sequence.audio is not None:
+        if not options.no_audio and sequence.audio is not None:
             pygame.mixer.music.play()
 
         schedule.run()
 
-        if sequence.audio is not None:
+        if not options.no_audio and sequence.audio is not None:
             pygame.mixer.music.stop()
 
-        print "Dumping stats"
-        for cid in show.controllers:
-            print "--", cid
-            try:
-                show.controllers[cid].dumpstats('/tmp/lumosstats.'+cid)
-            except Exception, e:
-                print "Can't dump stats for {} ({})".format(cid, e)
-
+#        print "Dumping stats"
+#        for cid in show.controllers:
+#            print "--", cid
+#            try:
+#                show.controllers[cid].dumpstats('/tmp/lumosstats.'+cid)
+#            except Exception, e:
+#                print "Can't dump stats for {} ({})".format(cid, e)
+#
 if options.verbose:
     print "Scene complete."
 

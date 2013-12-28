@@ -8,6 +8,8 @@ b096548652b558208e7eab85881e02bb  Lumos-0.5a1.tar.gz
 b1d7c3e77c0a3d0210bb19bf002cc618  Lumos-0.5.zip
 9cd58fb3ba650342b5aaa2e1c46b0cf6  Lumos-0.6a1.tar.gz
 abc691cbbfd1bf9b0b937dc179e4a916  Lumos-0.6a1.zip
+64940b0c9cd74b39cd90531204d4ae4f  Lumos-0.6.1.tar.gz
+f33de22c915aa5a6e5a12ff69f7ed269  Lumos-0.6.1.zip
 
 
 
@@ -21,3 +23,5 @@ SHA-256 Checksums of Lumos Distributions:
 0f53853df9827aefd7bd21c160cce4961f6b8f7b507ebc69b6cc28d452f91dc9  Lumos-0.5.zip
 b5cee7fd6cc6ec67c3429f4088185aa2e0ce904a43ee39dafb36548042453ee6  Lumos-0.6a1.tar.gz
 4d64474209845296c533cad62b4ecb45028d4d3519566c2a9255af630c7b086f  Lumos-0.6a1.zip
+7c813589e97565fcaf20427345ace69d84e82269916173aacfc3343e9cd76a9b  Lumos-0.6.1.tar.gz
+2633628ed2318a295f6d7d14b8d2a25e74f4c5674c83910f24575f477d1eb9df  Lumos-0.6.1.zip

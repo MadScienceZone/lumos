@@ -25,15 +25,19 @@
 lplay \- Play a Lumos sequence file
 .SH SYNOPSIS
 .B lplay
+.RB [ \-\-config=\fIfile\fP ]
+.RB [ \-\-debug=\fIfile\fP ]
+.RB [ \-\-no\-audio ]
+.RB [ \-\-skew=\fImS\fP ]
 .RB [ \-\-test ]
 .RB [ \-\-verbose ]
-.RB [ \-\-config=\fIfile\fP ]
-.RB [ \-\-skew=\fImS\fP ]
 .IR files ...
 .br
 .B lplay
-.RB [ \-hTv ]
+.RB [ \-hTvx ]
 .RB [ \-c
+.IR file ]
+.RB [ \-D
 .IR file ]
 .RB [ \-s
 .IR mS ]
@@ -161,6 +165,14 @@ or
 (note that this must be by itself as a command argument; you cannot
 simply append a bracket to the end of a file name or to another
 bracket).
+.TP 
+.B +r
+Reset all the Lumos controllers configured in the show.  This turns off
+all outputs on all Lumos controllers, puts the board in \*(lqsleep\*(rq
+mode (which puts the load power supplies into standby if configured to do so), 
+waits one second, then tells the boards to resume normal operation.
+(Currently only works for Lumos controllers but may be generalized in the
+future.)
 .LP
 Note that it is recommended to run
 .BR lcheck (1)
@@ -203,6 +215,12 @@ This is necessary for Lumos programs such as
 to know what hardware is part of the show, how to communicate with it, and
 therefore how to interpret what the sequence files are describing.
 .TP
+.BI \-D " file"
+.RB ( \-\-debug=\fIfile\fP )
+Write debugging information to the specified
+.IR file .
+This is probably only interesting to Lumos developers and maintainers.
+.TP
 .B \-h
 .RB ( \-\-help )
 Print a basic help message and exit.
@@ -229,11 +247,23 @@ supposedly interesting facts about the scene playback operation.
 .TP
 .B \-\-version
 Prints the version number of the program and exits.
+.TP
+.B \-x
+.RB ( \-\-no\-audio )
+If no audio tracks will be used with any of the sequences named on the command line,
+this option can be used to tell 
+.B lplay
+not to even bother loading up the sound support libraries or initializing the audio
+subsystem interface.
 .SH "SEE ALSO"
 .LP
 .BR lcheck (1),
 .BR lumos (1),
 .BR lumos-sequence (5).
+.SH VERSION
+.LP
+This document describes version @@VERSION@@ of
+.BR lplay .
 .SH HISTORY
 .LP
 This utility appeared in Lumos version 0.1, but was originally called

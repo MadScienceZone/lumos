@@ -1,10 +1,10 @@
 ________________________________________________________________________________
-Lumos 0.5 Installation Notes
+Lumos 0.6.1 Installation Notes
 
 Installing Lumos is usually a straightforward task.  Before beginning, check
 that your system includes the following software which Lumos requires:
 
-   * Python 2.5 or later (Lumos has not yet been tested for Python 3.x.  A
+   * Python 2.7 or later (Lumos has not yet been tested for Python 3.x.  A
      2.x version of Python is recommended.)
 
    * PySerial 2.4 or later
@@ -37,10 +37,10 @@ ________________________________________________________________________________
 (1) Unpack the Lumos distribution into a temporary working directory, and 
     change to that directory.  
 	
-	For a typical Linux/Unix system, this would look something like this:
+	For a typical Linux/Unix/OSX system, this would look something like this:
 
-	   $ tar xvzf Lumos-0.5.tar.gz
-	   $ cd Lumos-0.5
+	   $ tar xvzf Lumos-0.6.1.tar.gz
+	   $ cd Lumos-0.6.1
 
 ________________________________________________________________________________
 (2) If you wish to validate Lumos, you may run the unit tests which will

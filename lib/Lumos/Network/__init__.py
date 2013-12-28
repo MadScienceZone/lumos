@@ -132,11 +132,11 @@ class NullNetwork (Network):
         if self.diversion is not None:
             self.diversion.append(cmd)
         else:
-            raise HardwareNotAvailable("Cannot send to {1} network ({0}): support for that device is not found on this compueter (install pyserial/pyparallel?)".format(
+            raise HardwareNotAvailable("Cannot send to {1} network ({0}): support for that device is not found on this computer (install pyserial/pyparallel?)".format(
                 self.description, self.type))
 
     def latch(self):
-        raise HardwareNotAvailable("Cannot latch {1} network ({0}): support for that device is not found on this compueter (install pyserial/pyparallel?)".format(
+        raise HardwareNotAvailable("Cannot latch {1} network ({0}): support for that device is not found on this computer (install pyserial/pyparallel?)".format(
             self.description, self.type))
 
     def divert_output(self):
@@ -152,7 +152,7 @@ class NullNetwork (Network):
         return output
 
     def open(self):
-        raise HardwareNotAvailable("Cannot open {1} network ({0}): support for that device is not found on this compueter (install pyserial/pyparallel?)".format(
+        raise HardwareNotAvailable("Cannot open {1} network ({0}): support for that device is not found on this computer (install pyserial/pyparallel?)".format(
             self.description, self.type))
 
     def close(self):

@@ -243,6 +243,9 @@ output.
 .BR lumos-channel-map (5),
 .BR lumos-config (5),
 .BR lumos-sequence (5).
+.SH VERSION
+This document describes version @@VERSION@@ of
+.BR vixen2lumos .
 .SH HISTORY
 .LP
 The

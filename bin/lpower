@@ -119,7 +119,7 @@ for file in files:
     # all in and then sort them before playing them back.
     #
 
-    for current_time, method, arglist in sequence.compile(keep_state = True):
+    for current_time, method, arglist, priority in sequence.compile(keep_state = True):
         if current_time not in events:
             events[current_time] = []
         events[current_time].append((method, arglist))
@@ -155,7 +155,7 @@ for file in files:
             D("... total W mS + {0} ({1}) = {2}",
                 sum([load_W[ps_id] for ps_id in show.top_power_sources]) * elapsed_mS,
                 [(ps_id, load_W[ps_id]) for ps_id in show.top_power_sources],
-                total_W_ms
+                total_W_mS
             )
 
             #
@@ -249,8 +249,8 @@ for file in files:
 
                     load_W[source.id] += watts
                     load_A[source.id] += watts / source.volts
-                    source = source.parent_source
                     D('... {0} now at {1} W, {2} A ({3} V)', source.id, load_W[source.id], load_A[source.id], source.volts)
+                    source = source.parent_source
         if options.throughput:
             sample_data_size = {}
             D("Calculating throughput for this event")
@@ -260,7 +260,7 @@ for file in files:
                 if options.verbose > 3:
                     hexdump(data_sent)
                 sample_data_size[net_id] = len(data_sent)
-                D("...{0} byte{1}, total {2}", len(data_sent), '' if len(data_sent) == 1 else 's')
+                #D("...{0} byte{1}, total {2}", len(data_sent), '' if len(data_sent) == 1 else 's')
 
         if options.graph_data:
             graph.writerow([(current_time+offset)/1000.0] + [load_A.get(i,0) for i in sorted(show.all_power_sources)] + [load_W.get(i, 0) for i in sorted(show.all_power_sources)])
@@ -321,7 +321,7 @@ if options.throughput:
     print ("{0:<"+str(max_net_id)+"} PEAK    AVERAGE").format('NETWORK')
     #      xxxxxx[15]xxxxx 999.99% 999.99%
     for net_id in sorted(peak_tp):
-        print "{0:<"+str(max_net_id)+"} {1:7.2%} {2:7.2%}".format(
+        print ("{0:<"+str(max_net_id)+"} {1:7.2%} {2:7.2%}").format(
             net_id, peak_tp[net_id], average_tp[net_id]
         )
     for net_id in sorted(exceeds_tp):

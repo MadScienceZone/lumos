@@ -173,7 +173,7 @@ could be used:
 .RE
 .SH VERSION
 .LP
-This documents the Lumos mapping file version 1, for software version 0.5.
+This documents the Lumos mapping file version 1, for software version @@VERSION@@.
 .SH "SEE ALSO"
 .LP
 .BR lumos (1),

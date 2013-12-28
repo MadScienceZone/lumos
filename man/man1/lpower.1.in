@@ -148,6 +148,9 @@ The default is 120 volts.
 .BR lplay (1),
 .BR lumos (1),
 .BR lumos-sequence (5).
+.SH VERSION
+This document describes version @@VERSION@@ of
+.BR lpower .
 .SH HISTORY
 .LP
 This utility appeared in Lumos version 0.5.
