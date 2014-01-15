@@ -158,8 +158,10 @@ B32__FSR1H	RES	1	; Temporary FSR1H storage
 B32__FSR1L	RES	1	; Temporary FSR1L storage
 B32__BCD_ASC	RES	5	; Storage for BCD conversion routines
 B32__BIN	RES	4	; **MUST** follow B32__BCD_ASC
-
-	
+;                      --
+;                      27       ; ***DO NOT ADD MORE*** without checking
+; 				; elsewhere; on some small chips we have
+;				; had to locate this in tiny corners of RAM.
 
 ;==============================================================================
 ;

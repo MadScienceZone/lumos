@@ -81,6 +81,14 @@ class PowerSource (object):
                 self.subordinates = None
 
 
+    def full_id(self):
+        "Return full (dotted) ID name of this power source."
+        if self.parent_source is None:
+            return self.id
+
+        return self.parent_source.full_id() + '.' + self.id
+
+
 #
 # $Log: not supported by cvs2svn $
 # Revision 1.3  2008/12/30 22:58:02  steve

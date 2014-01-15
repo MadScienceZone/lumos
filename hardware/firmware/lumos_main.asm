@@ -1,3 +1,4 @@
+; OSCCON:SCS=00;HS;
 ; vim:set syntax=pic ts=8:
 ;
 		LIST n=90
@@ -53,9 +54,8 @@
 ;
 ; Main implementation module.
 ;
-	PROCESSOR 	18F4685
+#include "lumos_config.inc"
 	RADIX		DEC
-#include <p18f4685.inc>
 #include "lumos_init.inc"
 #include "serial-io.inc"
 #include "flash_update.inc"
@@ -663,6 +663,10 @@ CYCLE_TMR_PERIOD	 EQU	0x5D3D
 ; HARDWARE DESCRIPTION
 ;-----------------------------------------------------------------------------
 ;
+; The 48-channel and 24-channel boards use the 18F4685 microcontroller 
+; (LUMOS_ARCH == "4685"), while the 4-channel boards use the smaller
+; 18F14K50 chip (LUMOS_ARCH == "14K50").
+;
 ;  PIC18F4685 Microcontroller I/O pin assignments:
 ;
 ; 24-CH   48-CH          ________   _________         48-CH   24-CH
@@ -746,61 +750,88 @@ CYCLE_TMR_PERIOD	 EQU	0x5D3D
 ; 
 ;     4 ---/\/\/---- 5
 ;         120 ohms
-; 
+;------------------------------------------------------------------------ 
+;
+;  PIC18F14K50 Microcontroller I/O pin assignments:
+;
+;         4-CH           ________   _________         4-CH
+;         BOARD:        |o       \_/         |        BOARD: 
+;            +5V ---  1 | Vdd            Vss | 20 --- GND    
+;           XTAL ---  2 | OSC1       PGD RA0 | 19 --> /PWRCTL
+;           XTAL ---  3 | OSC2       PGC RA1 | 18 <-- /OPTION
+;          /MCLR -->  4 | /MCLR         Vusb | 17 
+;    /A  ACT LED <->  5 | RC5            RC0 | 16 --> /SSR3
+;        GRN LED <--  6 | RC4            RC1 | 15 --> /SSR2
+;    /C  YEL LED <->  7 | RC3            RC2 | 14 --> /SSR1
+;    /B  RED LED <->  8 | RC6            RB4 | 13 --> /SSR0
+;    /D          -->  9 | RC7        RxD RB5 | 12 <-- RxD
+;            TxD <-- 10 | RB7 TxD        RB6 | 11 --> T/R
+;                       |____________________|
+;
+;
 ;
 ; ========================================================================
 ; PROGRAM MEMORY MAP
 ; ______________________________________________________________________________
 ;
-;         _________________ ___
-; $00000 | RESET Vector    | V_RST
-; $00007 |_________________|___
-; $00008 | High Int Vector | V_INT_H
-; $00017 |_________________|___
-; $00018 | Low Int Vector  | V_INT_L
-; $0001F |_________________|
-; $00020 |/////////////////|
-; $000FF |/////////////////|___
-; $00100 | Boot code       | _BOOT
-;        |.................|___
-;        | Interrupt hand- | _INT
-;        |  lers           |      
-;        |/////////////////|
-; $007FF |/////////////////|___
-; $00800 | Mainline code   | _MAIN
-;        |.................|___
-;    ??? | Device init     | LUMOS_CODE_INIT
-;        |_________________|___
-;    ??? | Serial I/O      | _SIO_CODE
-;        | Module          |
-;        |_________________|___
-;        |/////////////////|
-;        |/////////////////|
-;        |/////////////////|
-;        |/////////////////|
-;        |/////////////////|___
-; $14000 | EEPROM defaults | _MAIN_EEPROM_TBL
-; $14FFF |_________________|___
-; $15000 |Serial I/O Mod   | _SIO_LOOKUP_TABLES
-;        |lookup tables    |
-; $150FF |_________________|___
-; $15100 |                 |
-;        |                 |
-; $16FEF |_________________|___
-; $16FF0 |System Mfg Data  | _SYSTEM_MFG_DATA
-; $16FFF |_________________|___
-; $17000 |Flash Loader Code| _FLASH_UPDATE_LOADER
-; $17FFF |_________________|___
-;        |/////////////////|
-;        |/////////////////|
-;$1FFFFF |/////////////////|___
+; 14K50 4685    _________________ ___
+; $00000 $00000 | RESET Vector    | V_RST
+; $00007 $00007 |_________________|___
+; $00008 $00008 | High Int Vector | V_INT_H
+; $00017 $00017 |_________________|___
+; $00018 $00018 | Low Int Vector  | V_INT_L
+; $0001F $0001F |_________________|
+; $00020 $00020 |/////////////////|
+; $000FF $000FF |/////////////////|___
+; $00100 $00100 | Boot code       | _BOOT
+;               |.................|___
+;               | Interrupt hand- | _INT
+;               |  lers           |      
+;               |/////////////////|
+; $007FF $007FF |/////////////////|___
+; $00800 $00800 | Mainline code   | _MAIN
+;               |.................|___
+;           ??? | Device init     | LUMOS_CODE_INIT
+;               |_________________|___
+;           ??? | Serial I/O      | _SIO_CODE
+;               | Module          |
+;               |_________________|___
+;               |/////////////////|
+;               |/////////////////|
+;               |/////////////////|
+;               |/////////////////|
+;               |/////////////////|___
+; $02E00 $14000 | EEPROM defaults | _MAIN_EEPROM_TBL
+; $02EFF $14FFF |_________________|___
+; $02F00 $15000 |Serial I/O Mod   | _SIO_LOOKUP_TABLES
+;               |lookup tables    |
+;        $150FF |_________________|___
+;        $15100 |                 |
+;               |                 |
+; $02FEF $16FEF |_________________|___
+; $02FF0 $16FF0 |System Mfg Data  | _SYSTEM_MFG_DATA
+; $02FFF $16FFF |_________________|___
+; $03000 $17000 |Flash Loader Code| _FLASH_UPDATE_LOADER
+; $03FFF $17FFF |_________________|___
+;               |/////////////////|
+;               |/////////////////|
+;$1FFFFF$1FFFFF |/////////////////|___
 ;
+IF LUMOS_ARCH == "4685"
 _MAIN_EEPROM_TBL	EQU	0x14000
 _SYSTEM_MFG_DATA	EQU	0x16FF0
+ELSE
+ IF LUMOS_ARCH == "14K50"
+_MAIN_EEPROM_TBL	EQU	0x02E00
+_SYSTEM_MFG_DATA	EQU	0x02FE0
+ ELSE
+  ERROR "Invalid architecture switch"
+ ENDIF
+ENDIF
 ;
 ;
 ; ========================================================================
-; DATA MEMORY MAP
+; DATA MEMORY MAP (4685)
 ;
 ;       _________________ ___ ___ ___ ___ ___ ___ ___ ___
 ; $000 | global state,   | _ADATA            BANK 0
@@ -840,6 +871,49 @@ _SYSTEM_MFG_DATA	EQU	0x16FF0
 ;      | Lumos)          |___ ___ ___ ___ ___ ___ ___ ___
 ; $F00 |                 |                   BANK F
 ;      |                 |
+; $F5F |.................|...............................
+; $F60 | Special Function|                (ACCESS AREA)
+;      | (device) regis- |
+;      | ters            |
+; $FFF |_________________|___ ___ ___ ___ ___ ___ ___ ___
+;
+; ------------------------------------------------------------------------
+; DATA MEMORY MAP (14K50)
+;
+;       _________________ ___ ___ ___ ___ ___ ___ ___ ___
+; $000 | global state,   | _ADATA            BANK 0
+; $022 | ISR data, etc.  |                (ACCESS AREA)
+;      |.................|
+; $023 |                 |                   
+;      |                 |                   
+; $05F |_________________|...............................
+; $060 | SSR state data  | _SSR_DATA         BANK 0
+;      |                 |                (BANKED AREA)
+; $07F |_________________|
+; $088 | Parser buffer   | _MAINDATA
+; $0E1 |.................|
+; $0E2 |    [unused]     |
+; $0E3 |_________________|
+; $0E4 | Serial I/O mod  | _SIO_VAR_DATA
+;      | variable space  |
+; $0FF |_________________|___ ___ ___ ___ ___ ___ ___ ___
+; $100 | Serial I/O TxD  | _SIO_TXBUF_DATA   BANK 1
+;      | ring buffer     |
+; $1FF |_________________|___ ___ ___ ___ ___ ___ ___ ___
+; $200 | Serial I/O RxD  | _SIO_RXBUF_DATA   BANK 2
+;      | ring buffer     |
+; $2FF |_________________|___ ___ ___ ___ ___ ___ ___ ___
+; $300 |/////////////////|///////////////////////////////
+;      |/////////////////|
+;              .
+;              .                 
+;              .                DOES NOT EXIST
+;      |/////////////////|
+;      |/////////////////|
+; $EFF |/////////////////|///////////////////////////////
+; $F00 |/////////////////|                   
+; $F52 |/////////////////|
+; $F53 | Special Function|
 ; $F5F |.................|...............................
 ; $F60 | Special Function|                (ACCESS AREA)
 ;      | (device) regis- |
@@ -938,6 +1012,8 @@ EEPROM_USER_END		EQU	0x3FF
 ; PORT RA --- --- T/R /08 /10 /12 /14 /16    48-Board AC/DC slave
 ; PORT RA --- --- ACT /19 /20 /21 /22 /23    24-Board DC    standalone
 ;          <OSC>   O   O   O   O   O   O
+; PORT RA /////// --- --- --- /// /OP /PS     4-Board DC
+;         ///////  <OSC>   I  ///  I   O
 ;
 ;          7   6   5   4   3   2   1   0
 ; PORT RB /PS /OP /15 /13 /11 /09 /07 ---    48-Board AC/DC master
@@ -945,20 +1021,26 @@ EEPROM_USER_END		EQU	0x3FF
 ; PORT RB /PS --- /15 /13 /11 /09 /07 ---    48-Board AC/DC slave
 ;          O   O   O   O   O   O   O  INT
 ; PORT RB /PS /OP /00 /01 /02 /03 /04 T/R    24-Board DC    standalone
-;          O   I   O   O   O   O   O   O 
+;          O   I_  O   O   O   O   O   O 
+; PORT RB --- T/R --- /00 ///////////////     4-Board DC
+;         <O>  O  <I>  O  ///////////////
 ;
 ;          7   6   5   4   3   2   1   0
 ; PORT RC --- --- /02 /00 /01 /03 /19 /04    48-Board AC/DC master/slave
 ; PORT RC --- --- /09 /10 /15 /16 /17 /18    24-Board DC    standalone
 ;          <I/O>   O   O   O   O   O   O
+; PORT RC /D  RED ACT GRN YEL /01 /02 /03     4-Board DC
+;          I   O   O   O   O   O   O   O
 ;
 ;          7   6   5   4   3   2   1   0
 ; PORT RD /17 /06 /05 /18 /22 /20 /21 /23    48-Board AC/DC master/slave
 ; PORT RD /05 /06 /07 /08 /11 /12 /13 /14    24-Board DC    standalone
+;         ///////////////////////////////     4-Board DC
 ;          O   O   O   O   O   O   O   O
 ;
 ;          7   6   5   4   3   2   1   0
 ; PORT RE --- --- --- --- --- RED YEL GRN    All boards
+;         ///////////////////////////////     4-Board DC
 ;                              O   O   O
 ;
 ;------------------------------------------------------------------------------
@@ -1182,121 +1264,128 @@ INVALID_SSR	EQU	6		; MUST be bit 6
 TARGET_SSR_MSK	EQU	0x3F
 
 
-PORT_RX		EQU	PORTC
-BIT_RX		EQU	7
+;
+; CHIP-SPECIFIC PORT/PIN MAPPINGS
+;
+; 48-Channel board (master CPU)
+;
+		IF LUMOS_CHIP_TYPE == LUMOS_CHIP_MASTER
+PORT_RX		 EQU	PORTC
+BIT_RX		 EQU	7
 
-		IF LUMOS_CHIP_TYPE==LUMOS_CHIP_MASTER || LUMOS_CHIP_TYPE==LUMOS_CHIP_STANDALONE
+HAS_T_R		 EQU	0
 HAS_ACTIVE	 EQU	1
 HAS_SENSORS	 EQU	1
+HAS_OPTION	 EQU	1
+
+TRIS_SENS_A	 EQU	TRISE	; Sensor A == RED LED
+PORT_SENS_A	 EQU	PORTE	; Sensor A == RED LED
+BIT_SENS_A	 EQU	2	; Sensor A == RED LED
+TRIS_SENS_B	 EQU	TRISE	; Sensor B == GREEN LED
+PORT_SENS_B	 EQU	PORTE	; Sensor B == GREEN LED
+BIT_SENS_B	 EQU	0	; Sensor B == GREEN LED
 TRIS_SENS_C	 EQU	TRISA	; Sensor C == ACTIVE LED
 PORT_SENS_C	 EQU	PORTA	; Sensor C == ACTIVE LED
-PLAT_ACTIVE	 EQU	LATA
-BIT_ACTIVE	 EQU	5
 BIT_SENS_C	 EQU	5	; Sensor C == ACTIVE LED
+TRIS_SENS_D	 EQU	TRISE	; Sensor D == YELLOW LED
+PORT_SENS_D	 EQU	PORTE	; Sensor D == YELLOW LED
+BIT_SENS_D	 EQU	1	; Sensor D == YELLOW LED
 
-HAS_OPTION	 EQU	1
+PLAT_ACTIVE	 EQU	LATA
+PLAT_RED	 EQU	LATE
+PLAT_YELLOW	 EQU	LATE
+PLAT_GREEN	 EQU	LATE
+BIT_ACTIVE	 EQU	5
+BIT_RED		 EQU	2
+BIT_YELLOW	 EQU	1
+BIT_GREEN	 EQU	0
+
 PORT_OPTION	 EQU	PORTB
 BIT_OPTION	 EQU	6
 
- 		 IF LUMOS_CHIP_TYPE==LUMOS_CHIP_STANDALONE
-HAS_T_R		  EQU	1
-PLAT_T_R	  EQU	LATB
-PORT_T_R	  EQU	PORTB
-TRIS_T_R	  EQU	TRISB
-BIT_T_R		  EQU	0
-		 ELSE
-HAS_T_R		  EQU	0
- 		 ENDIF
+PLAT_PWR_ON	 EQU	LATB
+BIT_PWR_ON	 EQU	7
 
+PLAT_0		 EQU	LATC
+PLAT_1		 EQU	LATC
+PLAT_2		 EQU	LATC
+PLAT_3		 EQU	LATC
+PLAT_4		 EQU	LATC
+PLAT_5		 EQU	LATD
+PLAT_6		 EQU	LATD
+PLAT_7		 EQU	LATB
+PLAT_8		 EQU	LATA
+PLAT_9		 EQU	LATB
+PLAT_10		 EQU	LATA
+PLAT_11		 EQU	LATB
+PLAT_12		 EQU	LATA
+PLAT_13		 EQU	LATB
+PLAT_14		 EQU	LATA
+PLAT_15		 EQU	LATB
+PLAT_16		 EQU	LATA
+PLAT_17		 EQU	LATD
+PLAT_18		 EQU	LATD
+PLAT_19		 EQU	LATC
+PLAT_20		 EQU	LATD
+PLAT_21		 EQU	LATD
+PLAT_22		 EQU	LATD
+PLAT_23		 EQU	LATD
+
+BIT_0		 EQU	4
+BIT_1		 EQU	3
+BIT_2		 EQU	5
+BIT_3		 EQU	2
+BIT_4		 EQU	0
+BIT_5		 EQU	5
+BIT_6		 EQU	6
+BIT_7		 EQU	1
+BIT_8		 EQU	4
+BIT_9		 EQU	2
+BIT_10		 EQU	3
+BIT_11		 EQU	3
+BIT_12		 EQU	2
+BIT_13		 EQU	4
+BIT_14		 EQU	1
+BIT_15		 EQU	5
+BIT_16		 EQU	0
+BIT_17		 EQU	7
+BIT_18		 EQU	4
+BIT_19		 EQU	1
+BIT_20		 EQU	2
+BIT_21		 EQU	1
+BIT_22		 EQU	3
+BIT_23		 EQU	0
+
+SSR_LIGHTS	 EQU	24	; first light ID (as opposed to SSR)
 		ELSE
- 		 IF LUMOS_CHIP_TYPE==LUMOS_CHIP_SLAVE
+ 		 IF LUMOS_CHIP_TYPE == LUMOS_CHIP_SLAVE
+;
+; 48-Channel Board (slave CPU)
+;
+PORT_RX		  EQU	PORTC
+BIT_RX		  EQU	7
+
 HAS_T_R		  EQU	1
 HAS_ACTIVE	  EQU	0
 HAS_SENSORS	  EQU	0
 HAS_OPTION	  EQU	0
+
 PLAT_T_R	  EQU	LATA
 PORT_T_R	  EQU	PORTA
 TRIS_T_R	  EQU	TRISA
 BIT_T_R		  EQU	5
- 		 ELSE
-  		  ERROR "LUMOS_CHIP_TYPE invalid"
-   		 ENDIF
-		ENDIF
 
-PLAT_PWR_ON	EQU	LATB
-BIT_PWR_ON	EQU	7
+PLAT_RED	  EQU	LATE
+PLAT_YELLOW	  EQU	LATE
+PLAT_GREEN	  EQU	LATE
 
-		IF LUMOS_CHIP_TYPE==LUMOS_CHIP_MASTER || LUMOS_CHIP_TYPE==LUMOS_CHIP_STANDALONE
-TRIS_SENS_A	 EQU	TRISE	; Sensor A == RED LED
-PORT_SENS_A	 EQU	PORTE	; Sensor A == RED LED
-TRIS_SENS_B	 EQU	TRISE	; Sensor B == GREEN LED
-PORT_SENS_B	 EQU	PORTE	; Sensor B == GREEN LED
-TRIS_SENS_D	 EQU	TRISE	; Sensor D == YELLOW LED
-PORT_SENS_D	 EQU	PORTE	; Sensor D == YELLOW LED
-BIT_SENS_A	 EQU	2	; Sensor A == RED LED
-BIT_SENS_B	 EQU	0	; Sensor B == GREEN LED
-BIT_SENS_D	 EQU	1	; Sensor D == YELLOW LED
-		ENDIF
-PLAT_RED	EQU	LATE
-PLAT_YELLOW	EQU	LATE
-PLAT_GREEN	EQU	LATE
+BIT_RED		  EQU	2
+BIT_YELLOW	  EQU	1
+BIT_GREEN	  EQU	0
 
-BIT_RED		EQU	2
-BIT_YELLOW	EQU	1
-BIT_GREEN	EQU	0
- 
-		IF LUMOS_CHIP_TYPE==LUMOS_CHIP_STANDALONE
-PLAT_0		 EQU	LATB
-PLAT_1		 EQU	LATB
-PLAT_2		 EQU	LATB
-PLAT_3		 EQU	LATB
-PLAT_4		 EQU	LATB
-PLAT_5		 EQU	LATD
-PLAT_6		 EQU	LATD
-PLAT_7		 EQU	LATD
-PLAT_8		 EQU	LATD
-PLAT_9		 EQU	LATC
-PLAT_10		 EQU	LATC
-PLAT_11		 EQU	LATD
-PLAT_12		 EQU	LATD
-PLAT_13		 EQU	LATD
-PLAT_14		 EQU	LATD
-PLAT_15		 EQU	LATC
-PLAT_16		 EQU	LATC
-PLAT_17		 EQU	LATC
-PLAT_18		 EQU	LATC
-PLAT_19		 EQU	LATA
-PLAT_20		 EQU	LATA
-PLAT_21		 EQU	LATA
-PLAT_22		 EQU	LATA
-PLAT_23		 EQU	LATA
+PLAT_PWR_ON	  EQU	LATB
+BIT_PWR_ON	  EQU	7
 
-BIT_0		 EQU	5
-BIT_1		 EQU	4
-BIT_2		 EQU	3
-BIT_3		 EQU	2
-BIT_4		 EQU	1
-BIT_5		 EQU	7
-BIT_6		 EQU	6
-BIT_7		 EQU	5
-BIT_8		 EQU	4
-BIT_9		 EQU	5
-BIT_10		 EQU	4
-BIT_11		 EQU	3
-BIT_12		 EQU	2
-BIT_13		 EQU	1
-BIT_14		 EQU	0
-BIT_15		 EQU	3
-BIT_16		 EQU	2
-BIT_17		 EQU	1
-BIT_18		 EQU	0
-BIT_19		 EQU	4
-BIT_20		 EQU	3
-BIT_21		 EQU	2
-BIT_22		 EQU	1
-BIT_23		 EQU	0
-		ELSE
- 		 IF LUMOS_CHIP_TYPE==LUMOS_CHIP_MASTER || LUMOS_CHIP_TYPE==LUMOS_CHIP_SLAVE
 PLAT_0		  EQU	LATC
 PLAT_1		  EQU	LATC
 PLAT_2		  EQU	LATC
@@ -1346,8 +1435,166 @@ BIT_20		  EQU	2
 BIT_21		  EQU	1
 BIT_22		  EQU	3
 BIT_23		  EQU	0
+
+SSR_LIGHTS  	  EQU	24	; first light ID (as opposed to SSR)
 		 ELSE
-  		  ERROR "LUMOS_CHIP_TYPE invalid"
+		  IF LUMOS_CHIP_TYPE == LUMOS_CHIP_STANDALONE
+;
+; 24-Channel board (Standalone CPU)
+;
+PORT_RX		   EQU	PORTC
+BIT_RX		   EQU	7
+
+HAS_T_R		   EQU	1
+HAS_ACTIVE	   EQU	1
+HAS_SENSORS	   EQU	1
+HAS_OPTION	   EQU	1
+
+TRIS_SENS_A	   EQU	TRISE	; Sensor A == RED LED
+PORT_SENS_A	   EQU	PORTE	; Sensor A == RED LED
+BIT_SENS_A	   EQU	2	; Sensor A == RED LED
+TRIS_SENS_B	   EQU	TRISE	; Sensor B == GREEN LED
+PORT_SENS_B	   EQU	PORTE	; Sensor B == GREEN LED
+BIT_SENS_B	   EQU	0	; Sensor B == GREEN LED
+TRIS_SENS_C	   EQU	TRISA	; Sensor C == ACTIVE LED
+PORT_SENS_C	   EQU	PORTA	; Sensor C == ACTIVE LED
+BIT_SENS_C	   EQU	5	; Sensor C == ACTIVE LED
+TRIS_SENS_D	   EQU	TRISE	; Sensor D == YELLOW LED
+PORT_SENS_D	   EQU	PORTE	; Sensor D == YELLOW LED
+BIT_SENS_D	   EQU	1	; Sensor D == YELLOW LED
+
+PLAT_T_R	   EQU	LATB
+PORT_T_R	   EQU	PORTB
+TRIS_T_R	   EQU	TRISB
+BIT_T_R		   EQU	0
+
+PLAT_ACTIVE	   EQU	LATA
+PLAT_RED	   EQU	LATE
+PLAT_YELLOW	   EQU	LATE
+PLAT_GREEN	   EQU	LATE
+BIT_ACTIVE	   EQU	5
+BIT_RED		   EQU	2
+BIT_YELLOW	   EQU	1
+BIT_GREEN	   EQU	0
+
+PORT_OPTION	   EQU	PORTB
+BIT_OPTION	   EQU	6
+
+PLAT_PWR_ON	   EQU	LATB
+BIT_PWR_ON	   EQU	7
+
+PLAT_0		   EQU	LATB
+PLAT_1		   EQU	LATB
+PLAT_2		   EQU	LATB
+PLAT_3		   EQU	LATB
+PLAT_4		   EQU	LATB
+PLAT_5		   EQU	LATD
+PLAT_6		   EQU	LATD
+PLAT_7		   EQU	LATD
+PLAT_8		   EQU	LATD
+PLAT_9		   EQU	LATC
+PLAT_10		   EQU	LATC
+PLAT_11		   EQU	LATD
+PLAT_12		   EQU	LATD
+PLAT_13		   EQU	LATD
+PLAT_14		   EQU	LATD
+PLAT_15		   EQU	LATC
+PLAT_16		   EQU	LATC
+PLAT_17		   EQU	LATC
+PLAT_18		   EQU	LATC
+PLAT_19		   EQU	LATA
+PLAT_20		   EQU	LATA
+PLAT_21		   EQU	LATA
+PLAT_22		   EQU	LATA
+PLAT_23		   EQU	LATA
+
+BIT_0		   EQU	5
+BIT_1		   EQU	4
+BIT_2		   EQU	3
+BIT_3		   EQU	2
+BIT_4		   EQU	1
+BIT_5		   EQU	7
+BIT_6		   EQU	6
+BIT_7		   EQU	5
+BIT_8		   EQU	4
+BIT_9		   EQU	5
+BIT_10		   EQU	4
+BIT_11		   EQU	3
+BIT_12		   EQU	2
+BIT_13		   EQU	1
+BIT_14		   EQU	0
+BIT_15		   EQU	3
+BIT_16		   EQU	2
+BIT_17		   EQU	1
+BIT_18		   EQU	0
+BIT_19		   EQU	4
+BIT_20		   EQU	3
+BIT_21		   EQU	2
+BIT_22		   EQU	1
+BIT_23		   EQU	0
+
+SSR_LIGHTS	   EQU	24	; first light ID (as opposed to SSR)
+		  ELSE
+    		   IF LUMOS_CHIP_TYPE == LUMOS_4CHANNEL
+;
+; 4-Channel Board (Mini Standalone CPU)
+;
+PORT_RX		    EQU	PORTB
+BIT_RX		    EQU	5
+
+HAS_T_R		    EQU	1
+HAS_ACTIVE	    EQU	1
+HAS_SENSORS	    EQU	1
+HAS_OPTION	    EQU	1
+
+TRIS_SENS_A	    EQU	TRISC	; Sensor A == ACTIVE LED
+PORT_SENS_A	    EQU	PORTC	; Sensor A == ACTIVE LED
+BIT_SENS_A	    EQU	5	; Sensor A == ACTIVE LED
+TRIS_SENS_B	    EQU	TRISC	; Sensor B == RED LED
+PORT_SENS_B	    EQU	PORTC	; Sensor B == RED LED
+BIT_SENS_B	    EQU	6	; Sensor B == RED LED
+TRIS_SENS_C	    EQU	TRISC	; Sensor C == YELLOW LED
+PORT_SENS_C	    EQU	PORTC	; Sensor C == YELLOW LED
+BIT_SENS_C	    EQU	3	; Sensor C == YELLOW LED
+TRIS_SENS_D	    EQU	TRISC	; Sensor D
+PORT_SENS_D	    EQU	PORTC	; Sensor D
+BIT_SENS_D	    EQU	7	; Sensor D
+
+PLAT_T_R	    EQU	LATB
+PORT_T_R	    EQU	PORTB
+TRIS_T_R	    EQU	TRISB
+BIT_T_R		    EQU	6
+
+PLAT_ACTIVE	    EQU	LATC
+PLAT_RED	    EQU	LATC
+PLAT_YELLOW	    EQU	LATC
+PLAT_GREEN	    EQU	LATC
+BIT_ACTIVE	    EQU	5
+BIT_RED		    EQU	6
+BIT_YELLOW	    EQU	3
+BIT_GREEN	    EQU	4
+
+PORT_OPTION	    EQU	PORTA
+BIT_OPTION	    EQU	1
+
+PLAT_PWR_ON	    EQU	LATA
+BIT_PWR_ON	    EQU	0
+
+PLAT_0		    EQU	LATB
+PLAT_1		    EQU	LATC
+PLAT_2		    EQU	LATC
+PLAT_3		    EQU	LATC
+
+BIT_0		    EQU	4
+BIT_1		    EQU	2
+BIT_2		    EQU	1
+BIT_3		    EQU	0
+
+SSR_LIGHTS	    EQU	4	; first light ID (as opposed to SSR)
+                   ELSE
+     		    ERROR "Invalid platform select"
+   		   ENDIF
+  		  ENDIF
  		 ENDIF
 		ENDIF
 ;
@@ -1361,11 +1608,10 @@ BIT_23		  EQU	0
 ; others as far as timed patterns and display refreshes and the like.
 ;
 ; Offsets for panel lights
+SSR_GREEN	EQU	SSR_LIGHTS+0	; NOTE These are positive-logic, not negative like SSRs
+SSR_YELLOW	EQU	SSR_LIGHTS+1
+SSR_RED		EQU	SSR_LIGHTS+2
 ;
-SSR_LIGHTS	EQU	24	; first light ID (as opposed to SSR)
-SSR_GREEN	EQU	24	; NOTE These are positive-logic, not negative like SSRs
-SSR_YELLOW	EQU	25
-SSR_RED		EQU	26
 ;
 ; Aliases for macro expansion (continues SSR numbering into these too)
 ;
@@ -1378,12 +1624,12 @@ BIT_#v(SSR_GREEN) 	EQU	BIT_GREEN
 ;
 ;
 		IF HAS_ACTIVE
-SSR_ACTIVE	 EQU	27
+SSR_ACTIVE	 EQU	SSR_LIGHTS+3
 PLAT_#v(SSR_ACTIVE) EQU	PLAT_ACTIVE
 BIT_#v(SSR_ACTIVE) EQU	BIT_ACTIVE
-SSR_MAX		 EQU	27
+SSR_MAX		 EQU	SSR_LIGHTS+3
 		ELSE
-SSR_MAX		 EQU	26
+SSR_MAX		 EQU	SSR_LIGHTS+2
 		ENDIF
 
 WAIT_FOR_SENTINEL MACRO MAX_LEN, SENTINEL_VALUE, NEXT_STATE
@@ -2227,11 +2473,26 @@ J               RES	1
 K               RES	1
 KK              RES	1
 TR_I		RES	1
+;                      --
+;                      35
 
 ;==============================================================================
 ; DATA BANK 4
 ;______________________________________________________________________________
+IF LUMOS_ARCH == "4685"
 SSR_DATA_BANK	EQU	0x400
+MAIN_DATA	EQU	0x500
+YY_BUF_LEN	EQU	.200
+ELSE
+ IF LUMOS_ARCH == "14K50"
+SSR_DATA_BANK	EQU	0x060
+MAIN_DATA	EQU	0x088
+YY_BUF_LEN	EQU	.90 
+ ELSE
+  ERROR "Invalid architecture switch for SSR_DATA_BANK"
+ ENDIF
+ENDIF
+
 _SSR_DATA	UDATA	SSR_DATA_BANK
 ;
 ; *** THE FOLLOWING BLOCKS *MUST* BE THE SAME SIZE AS EACH OTHER ***
@@ -2248,15 +2509,13 @@ SSR_00_COUNTER	RES	SSR_BLOCK_LEN
 ;==============================================================================
 ; DATA BANK 5: MAIN CODE DATA STORAGE
 ;______________________________________________________________________________
-MAIN_DATA	EQU	0x500
 _MAINDATA	UDATA	MAIN_DATA
-YY_BUF_LEN	EQU	.200
 YY_BUFFER	RES	YY_BUF_LEN
 
 ;==============================================================================
 ; DATA BANKS 6-: SEQUENCE STORAGE
 ;______________________________________________________________________________
-SEQ_DATA	EQU	0x600
+SEQ_DATA	EQU	0x600			; XXX NOT on 14K50!!!
 _SEQ_DATA	UDATA	SEQ_DATA
 
 ;==============================================================================

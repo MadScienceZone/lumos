@@ -88,7 +88,7 @@ for file in files:
                 net.stop if hasattr(net, 'stop') else '-',
                 X, R, str(net.port), net.description)
 
-    maxwidth_pi = max(max([len(w.power_source.id) for n in s.networks.values() for w in n.units.values()]), 5)
+    maxwidth_pi = max(max([len(w.power_source.full_id()) for n in s.networks.values() for w in n.units.values()]), 5)
     if options.verbose:
         maxwidth_id = max(max([len(w) for w in s.networks]), 7)
         maxwidth_ui = max(max([len(w) for n in s.networks.values() for w in n.units]), 4)

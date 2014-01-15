@@ -26,14 +26,52 @@
 ; details.
 ;
 ;
+IF LUMOS_CHIP_TYPE == LUMOS_CHIP_4CHANNEL
+		PROCESSOR	18F14K50
+#include <p18f14k50.inc>
+ELSE
 		PROCESSOR 	18F4685
-		RADIX		DEC
 #include <p18f4685.inc>
+ENDIF
+		RADIX		DEC
 #include "lumos_config.inc"
 ;
 ;==============================================================================
 ; CONFIGURATION FUSES
 ;==============================================================================
+;
+IF LUMOS_CHIP_TYPE == LUMOS_CHIP_4CHANNEL
+;
+;	18F14K50 fuses
+;
+	CONFIG	CPUDIV=NOCLKDIV		; No CPU clock divide [NOCLKDIV,CLKDIV[234]]
+	CONFIG  USBDIV=OFF		; USB clock from OSC oscillator block
+	CONFIG	FOSC=HS			; Oscillator selection [LP,XT,HS,ERCCLKOUT,ECCLKOUTH,ECH,ERC,IRC,IRCCLKOUT,ECCLKOUTM,ECM,ECCLKOUTL,ECL]
+	CONFIG	PLLEN=ON		; Oscillator x4
+	CONFIG	PCLKEN=ON		; Primary clock enabled
+	CONFIG	FCMEN=OFF		; Fail-safe clock monitor off
+	CONFIG  IESO=OFF		; no oscillator switchover
+	CONFIG	PWRTEN=OFF		; no power-up timer
+	CONFIG	BOREN=OFF		; no brown-out reset
+	CONFIG	WDTEN=ON		; watchdog timer enabled
+	CONFIG	WDTPS=16384		; Watchdog timer postscale 1:16K (~65.5s) [1,2,4,8,...,32768]
+	CONFIG	HFINTOSC=OFF		; System clock waits for HFINTOSC to stabilize
+	CONFIG	MCLRE=ON		; /MCLR pin is for /MCLR, not I/O
+	CONFIG	STVREN=ON		; enable stack over/under-flow reset
+	CONFIG	LVP=OFF			; disable low-voltage programming mode
+	CONFIG	BBSIZ=OFF		; 1kW boot block [OFF=1k,ON=2k]
+	CONFIG	CP0=OFF, CP1=OFF	; no code protection on pages 0, 1
+	CONFIG	CPB=OFF, CPD=OFF	; ... nor on boot block and data EEPROM
+	CONFIG	WRT0=OFF, WRT1=OFF	; ... nor table writes
+	CONFIG	WRTB=OFF, WRTD=OFF	; ... nor boot block, EEPROM
+	CONFIG	EBTRB=OFF		; Bootblk ($00000-$007FF) unprotected TBL RD
+	CONFIG	EBTR0=OFF		; Block 0 ($00800-$03FFF) unprotected TBL RD
+	CONFIG	EBTR1=OFF		; Block 1 ($04000-$07FFF) unprotected TBL RD
+;
+;
+ELSE
+;
+;	18F4685 fuses
 ;
 ;	CONFIG	OSC=HS		; OSC is HS mode (4-20MHz)
 	CONFIG	OSC=HSPLL	; PLL mode (10MHz xtal -> 40MHz clock)
@@ -67,6 +105,7 @@
 	CONFIG	EBTR4=OFF	; Block 4 ($10000-$13FFF) unprotected TBL RD
 	CONFIG	EBTR5=OFF	; Block 5 ($14000-$17FFF) unprotected TBL RD
 ; 
+ENDIF
 ; 
 ;==============================================================================
 ; PUBLIC ENTRY POINTS
@@ -89,6 +128,11 @@ LUMOS_INIT:
 		; ----XX--	; not used (status bits)
 		; ------00	; system clock from primary osc
 	MOVWF	OSCCON, ACCESS
+IF LUMOS_ARCH == "14K50"
+	MOVLW	b'00000000'
+		; --------	;
+	MOVWF	OSCCON2, ACCESS
+ENDIF
 ;
 ; Reset Control
 ;

@@ -25,20 +25,23 @@
 ; Configuration options.  Set these as desired and then re-assemble the
 ; code to produce the desired version of the ROM.
 ;
-		PROCESSOR 18F4685
 ; 
 ;==============================================================================
 ; CONFIGURATION OPTIONS
 ;==============================================================================
-#define LUMOS_CHIP_MASTER	0x41
-#define LUMOS_CHIP_SLAVE	0x42
-#define LUMOS_CHIP_STANDALONE	0x43
+#ifndef LUMOS_CONFIG_INC
+#define LUMOS_CONFIG_INC
+#define LUMOS_CHIP_MASTER	0x41	; 48-channel master CPU
+#define LUMOS_CHIP_SLAVE	0x42	; 48-channel slave CPU
+#define LUMOS_CHIP_STANDALONE	0x43	; 24-channel CPU
+#define LUMOS_CHIP_4CHANNEL	0x44	; 4-channel CPU
 ;
 ; Un-comment one of these to select board type for this ROM image:
 ;
 ;#define LUMOS_CHIP_TYPE		LUMOS_CHIP_MASTER
 ;#define LUMOS_CHIP_TYPE		LUMOS_CHIP_SLAVE
-#define LUMOS_CHIP_TYPE		LUMOS_CHIP_STANDALONE
+;#define LUMOS_CHIP_TYPE		LUMOS_CHIP_STANDALONE
+#define LUMOS_CHIP_TYPE			LUMOS_CHIP_4CHANNEL
 ;
 ;
 ;
@@ -48,10 +51,10 @@
  IF LUMOS_CHIP_TYPE == LUMOS_CHIP_MASTER || LUMOS_CHIP_TYPE == LUMOS_CHIP_SLAVE
   #define LUMOS_SLICE_TIMER LUMOS_ZC
  ELSE
-  IF LUMOS_CHIP_TYPE == LUMOS_CHIP_STANDALONE
+  IF LUMOS_CHIP_TYPE == LUMOS_CHIP_STANDALONE || LUMOS_CHIP_TYPE == LUMOS_CHIP_4CHANNEL
    #define LUMOS_SLICE_TIMER LUMOS_INTERNAL
   ELSE
-   ERROR "LUMOS_CHIP_TYPE must be set to MASTER, SLAVE, or STANDALONE"
+   ERROR "LUMOS_CHIP_TYPE must be set to MASTER, SLAVE, 4CHANNEL, or STANDALONE"
   ENDIF
  ENDIF
  
@@ -78,7 +81,29 @@
     #define ROLE_STANDALONE (1)
     #define NUM_CHANNELS    (.24)
    ELSE
-    ERROR "Invalid LUMOS_CHIP_TYPE"
+    IF LUMOS_CHIP_TYPE == LUMOS_CHIP_4CHANNEL
+     #define ROLE_MASTER     (0)
+     #define ROLE_SLAVE      (0)
+     #define ROLE_STANDALONE (1)
+     #define NUM_CHANNELS    (.4)
+    ELSE
+     ERROR "Invalid LUMOS_CHIP_TYPE"
+    ENDIF
    ENDIF
   ENDIF
  ENDIF
+
+IF LUMOS_CHIP_TYPE == LUMOS_CHIP_MASTER || LUMOS_CHIP_TYPE == LUMOS_CHIP_SLAVE || LUMOS_CHIP_TYPE == LUMOS_STANDALONE
+ #define LUMOS_ARCH "4685"
+ PROCESSOR 18F4685
+ #include <p18f4685.inc>
+ELSE
+ IF LUMOS_CHIP_TYPE == LUMOS_CHIP_4CHANNEL
+  #define LUMOS_ARCH "14K50"
+  PROCESSOR 18F14K50
+  #include <p18f14k50.inc>
+ ELSE
+  ERROR "Invalid LUMOS_CHIP_TYPE"
+ ENDIF
+ENDIF
+#endif
