@@ -1,3 +1,5 @@
+; ** OBSOLETE **
+ERROR "sio-user.inc should not be used."
 ;
 ; To use the serial I/O module, you need to edit this
 ; include file to suit your application.

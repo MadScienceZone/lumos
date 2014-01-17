@@ -26,15 +26,8 @@
 ; details.
 ;
 ;
-IF LUMOS_CHIP_TYPE == LUMOS_CHIP_4CHANNEL
-		PROCESSOR	18F14K50
-#include <p18f14k50.inc>
-ELSE
-		PROCESSOR 	18F4685
-#include <p18f4685.inc>
-ENDIF
-		RADIX		DEC
 #include "lumos_config.inc"
+		RADIX		DEC
 ;
 ;==============================================================================
 ; CONFIGURATION FUSES
@@ -129,9 +122,6 @@ LUMOS_INIT:
 		; ------00	; system clock from primary osc
 	MOVWF	OSCCON, ACCESS
 IF LUMOS_ARCH == "14K50"
-	MOVLW	b'00000000'
-		; --------	;
-	MOVWF	OSCCON2, ACCESS
 ENDIF
 ;
 ; Reset Control

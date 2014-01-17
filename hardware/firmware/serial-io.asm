@@ -21,7 +21,6 @@
 ; General serial console I/O handling
 ; This module manages the TXIE interrupt masks as needed
 ;
-	PROCESSOR 	18F4685
 	RADIX		DEC
 ; 
 ;==============================================================================
@@ -29,8 +28,10 @@
 ;==============================================================================
 ;	SIO_INIT	Initialize module (call this once first)
 ;
-#include <p18f4685.inc>
 #include "serial-io-bits.inc"
+#ifndef LUMOS_ARCH
+	ERROR "Architecture not configured"
+#endif
 
 ;==============================================================================
 ; REGISTERS USED

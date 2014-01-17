@@ -106,4 +106,39 @@ ELSE
   ERROR "Invalid LUMOS_CHIP_TYPE"
  ENDIF
 ENDIF
+
+;
+; The following public symbols can be used after this file is
+; included (and this file should be included everywhere before
+; anything else is included, and in lieu of PROCESSOR directives
+; or #includes which bring in processor-specific bits--this file
+; will do that for you):
+;
+; LUMOS_CHIP_TYPE:  Will be one of the following, to show what the intent
+;	            of the target chip will be and what its particular 
+;                   I/O pin assignments are, role in the overall circuit, etc.
+;		    (use the ROLE_* values where possible, though, in your logic)
+;
+;	LUMOS_CHIP_MASTER	- 48-channel (2-CPU) controller, master CPU
+;	LUMOS_CHIP_SLAVE	- 48-channel (2-CPU) controller, slave CPU
+;	LUMOS_CHIP_STANDALONE	- 24-channel (1-CPU) controller, sole CPU
+;	LUMOS_CHIP_4CHANNEL	- 4-channel  (1-CPU) controller, sole CPU
+;
+; LUMOS_SLICE_TIMER: Will be one of the following, to specify where the PWM
+;		    slice timer sync pulse is coming from:
+;
+;	LUMOS_ZC	- Hardware zero-crossing detector to PIC interrupt pin
+;	LUMOS_INTERNAL	- Internal timing system (using PIC timer module)
+;
+; LUMOS_ARCH:       Will be one of the following, to show what PIC device
+;		    is targeted, strictly to determine chip-specific details,
+;                   not how Lumos is using it.
+;
+;	"14K50"	    	- The PIC18F14K50
+;	"4685"      	- The PIC18F4685
+;
+; ROLE_MASTER		- (bool) true if this chip is the master in master/slave arrangement
+; ROLE_SLAVE		- (bool) true if this chip is the slave in master/slave arrangement
+; ROLE_STANDALONE	- (bool) true if this is the only chip, must run entire board function
+; NUM_CHANNELS		- (int) number of output SSR channels
 #endif

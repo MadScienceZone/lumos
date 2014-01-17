@@ -50,8 +50,6 @@
 ;  $17000 | Flash loader code  | This module
 ;  $17FFF |____________________|
 ;
-	PROCESSOR 	18F4685
-	RADIX		DEC
 ; 
 ;==============================================================================
 ; PUBLIC ENTRY POINTS
@@ -61,8 +59,10 @@
 	GLOBAL		FLASH_UPDATE_NEXT_BLOCK	; Accept next block or end marker
 	GLOBAL		FLASH_UPDATE_END	; Revert to run mode
 ;
-#include <p18f4685.inc>
 #include "flash_update_bits.inc"
+#ifndef LUMOS_ARCH
+	ERROR "Architecture not configured"
+#endif
 
 ;==============================================================================
 ; REGISTERS USED

@@ -25,7 +25,6 @@
 ; Device initialization code.  See lumos_main.asm for hardware implementation
 ; details.
 ;
-		PROCESSOR 18F4685
 #include "lumos_config.inc"
 ; 
 ;==============================================================================
