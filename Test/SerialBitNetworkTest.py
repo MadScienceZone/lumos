@@ -30,6 +30,7 @@ import os
 from Lumos.Network                  import NullNetwork
 from Lumos.Network.Networks         import network_factory
 from Lumos.Network.SerialBitNetwork import SerialBitNetwork
+from Test                           import warn_once
 
 class SerialBitNetworkTest (unittest.TestCase):
     def testCons(self):

@@ -503,6 +503,42 @@ If this value is not present, it defaults to
 Whether to use RTS/CTS (hardware) flow control on the line. 
 If this value is not present, it defaults to
 .BR no .
+.TP
+.BR duplex=full | half
+Specifies whether this network operates in full- or half-duplex.  For
+an RS-232 (standard) serial port, this would be full-duplex, which is
+the default if this field is left unspecified.  Full-duplex networks
+are assumed to be able to receive and transmit data at the same time
+without any particular special handling.  Half-duplex networks, on
+the other hand, require control actions to switch the hardware between
+transmit and receive mode.  This requires the 
+.BR txmode ,
+.BR txlevel ,
+and
+.B txdelay
+fields (q.v.).
+.TP
+.BR txmode=dtr | rts
+For half-duplex networks, the transmitter is controlled by either the
+DTR (data terminal ready) or RTS (request to send) lines on the serial
+port.  By default, DTR is assumed if this field is not specified.
+.TP
+.BR txlevel=1 | 0
+For half-duplex networks, the transmitter control on the DTR or RTS line
+is set so that the transmitter is active with the line is asserted (if
+.BR txlevel = 1 )
+or deasserted (if
+.BR txleve = 0 ).
+The default is 
+.B 1
+if this field is not specified.
+.TP
+.BI txdelay= n
+For half-duplex networks, Lumos will pause for
+.I n
+milliseconds before and after changing the transmitter control line (DTR or RTS)
+when switching between transmit and receive modes.  The default is 2 ms if 
+this field is not specified.
 .RE
 .TP
 .B serialbit
@@ -570,7 +606,7 @@ section named
 .IB tag ]\fR\*(rq\fP,
 which contains the following paramters:
 .TP
-.BI power= tag
+.BI power_source= tag
 The 
 .I tag
 ID (see \*(lqPower Sources\*(rq) for the power circuit supplying the
@@ -872,7 +908,7 @@ A short, descriptive name of the load plugged into this channel.
 .BI load= real
 The number of amps this load will consume.
 .TP
-.BI power= tag
+.BI power_source= tag
 Normally, channels all get power from the single power source supplying their
 controller unit.  If a channel happens to get power from some other source,
 that is specified here by adding a 

@@ -1,5 +1,5 @@
 ________________________________________________________________________________
-Lumos 0.6.1 Installation Notes
+Lumos 0.6.2 Installation Notes
 
 Installing Lumos is usually a straightforward task.  Before beginning, check
 that your system includes the following software which Lumos requires:
@@ -39,8 +39,8 @@ ________________________________________________________________________________
 	
 	For a typical Linux/Unix/OSX system, this would look something like this:
 
-	   $ tar xvzf Lumos-0.6.1.tar.gz
-	   $ cd Lumos-0.6.1
+	   $ tar xvzf Lumos-0.6.2.tar.gz
+	   $ cd Lumos-0.6.2
 
 ________________________________________________________________________________
 (2) If you wish to validate Lumos, you may run the unit tests which will

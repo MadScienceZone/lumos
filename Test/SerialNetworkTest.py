@@ -27,6 +27,7 @@
 # vi:set ai sm nu ts=4 sw=4 expandtab:
 import unittest
 import os
+from Test                        import warn_once
 from Lumos.Network               import NullNetwork
 from Lumos.Network.Networks      import network_factory
 from Lumos.Network.SerialNetwork import SerialNetwork

@@ -81,8 +81,8 @@ class Olsen595ControllerUnit (ControllerUnit):
 
         ControllerUnit.__init__(self, id, power_source, network)
         self.type = 'Olsen595 Controller'
-        self.channels = [0] * num_channels
-        self.num_channels = num_channels
+        self.num_channels = int(num_channels)
+        self.channels = [0] * self.num_channels
         self.needs_update = False
 
     def __str__(self):

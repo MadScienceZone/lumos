@@ -1,5 +1,5 @@
 ______________________________________________________________________________
-Lumos 0.6.1 "RELEASE_NOTES"
+Lumos 0.6.2 "RELEASE_NOTES"
 
 CONTENTS
   Current Release
@@ -9,6 +9,19 @@ CONTENTS
 
 ______________________________________________________________________________
 CURRENT RELEASE:
+
+  Lumos 0.6.2 [17 January 2013]
+    Bug Fixes:
+
+      * num_channels field in some types of controllers was not being correctly
+        parsed from the show configuration file, resulting in a runtime exception
+        about type mismatches.
+
+      * Added missing description of serial network driver support for half-
+        duplex network hardware in the LUMOS-CONFIG(5) manpage.
+
+______________________________________________________________________________
+PREVIOUS VERSIONS:
 
   Lumos 0.6.1 [27 December 2013]
     Bug Fixes:
@@ -37,8 +50,6 @@ CURRENT RELEASE:
       * Added -x option to lplay to avoid even loading pygame's sound drivers if
         there is no need for sound support.
 
-______________________________________________________________________________
-PREVIOUS VERSIONS:
 
   Lumos 0.6 [20 December 2013]
         Bug Fixes:

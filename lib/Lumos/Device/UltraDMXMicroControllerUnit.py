@@ -59,11 +59,11 @@ class UltraDMXMicroControllerUnit (ControllerUnit):
         """
 
         ControllerUnit.__init__(self, id, power_source, network, 256)
-        self.num_channels = num_channels
+        self.num_channels = int(num_channels)
         self.type = 'Ultra DMX Micro ({0} channels)'.format(self.num_channels)
         self._changed_channels = False
         self.status = None
-        self.channels = [None] * (num_channels+1)
+        self.channels = [None] * (self.num_channels+1)
 
     def iter_channels(self):
         return range(1, self.num_channels+1)

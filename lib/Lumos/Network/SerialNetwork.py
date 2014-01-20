@@ -66,7 +66,7 @@ else:
         bytes sent at a particular baud rate and flow control.
         """
         
-        def __init__(self, description=None, port=0, baudrate=9600, bits=8, parity='none', stop=1, xonxoff=False, rtscts=False, duplex='full', txmode='rts', txlevel=1, txdelay=2, open_device=True):
+        def __init__(self, description=None, port=0, baudrate=9600, bits=8, parity='none', stop=1, xonxoff=False, rtscts=False, duplex='full', txmode='dtr', txlevel=1, txdelay=2, open_device=True):
             """
             Constructor for the SerialNetwork class.
 

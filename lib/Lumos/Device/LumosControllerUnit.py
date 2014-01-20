@@ -59,7 +59,7 @@ class LumosControllerUnit (ControllerUnit):
 
         ControllerUnit.__init__(self, id, power_source, network, resolution)
         self.address = int(address)
-        self.num_channels = num_channels
+        self.num_channels = int(num_channels)
         self.type = 'Lumos {0}-Channel SSR Controller'.format(self.num_channels)
         #self.iter_channels = self._iter_non_null_channel_list
         self._changed_channels = set()
