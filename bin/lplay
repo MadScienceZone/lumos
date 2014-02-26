@@ -191,6 +191,9 @@ def wait_for(minutes, query=False):
                     compare_point.tm_hour, compare_point.tm_min, 
                     compare_point.tm_sec, mm)
 
+for c in show.controllers:
+    print "{}".format(c)
+sys.exit(0)
 while file_next < len(files):
     file = files[file_next]
     if options.verbose > 1:
