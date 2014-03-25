@@ -1,0 +1,64 @@
+\chapter{Glossary}\label{ch:glossary}
+\begin{description}
+	\item[Active High:]
+		A logic signal which is considered ``on'' when the signal is ``high'' (binary 1 or +5\,V),
+		and ``off'' when the signal is ``low'' (binary 0 or 0\,V).  Lumos relay circuits are 
+		triggered with active-low signals.
+	\item[Active Low:]
+		A logic signal which is considered ``on'' and ``off'' at the opposite signal levels
+		to an ``active high'' signal (q.v.).
+	\item[Annular Ring:]
+		The exposed ring of metal around a hole in a \acronym{PCB} where a component is to be 
+		mounted.  The solder will flow across the component lead and onto the annular ring.
+%	\item[Daisy Chain:]
+%		The arrangement of wiring a number of devices together by connecting the first to the second,
+%		then adding another connection from the second to the third, and so forth.  The network
+%		connection diagram in Figure~\ref{fig:net} shows an example of a daisy chain.
+	\item[\acronym{DIP} (Dual In-line Package):]
+		The style of chip where the pins are laid out in two parallel rows.
+	\item[\acronym{DIY}:] ``Do-It-Yourself.''
+	\item[Duplex:]
+		a feature of a serial line.  On a full-duplex connection, separate data wires are present
+		to carry data in both directions, so one device can send and receive data at the same time.
+		On a half-duplex connection, only a single set of data wires is present, so devices must
+		take turns transmitting over them.
+	\item[\acronym{ESD} (Electro-Static Discharge):]
+		static electricity which builds on your skin and is then discharged into sensitive
+		components when you touch them.  Invisible to the eye, this can punch microscopic holes
+		in the inside of the components, severely damaging them.
+	\item[Heat Protection:]
+		A temporary heat sink applied to a component when soldering that component onto
+		the \acronym{PCB}.  Typically used for heat-sens\-i\-tive components such as transistors
+		and integrated circuit chips.
+	\item[Jumper Block:]
+		A series of pins mounted to the \acronym{PCB}.  Different options are configured for the
+		circuit by placing a jumper over certain pairs of pins, shorting them together.
+	\item[\acronym{LED} (Light Emitting Diode):]
+		A special kind of diode which emits light when current passes from its anode to its cathode.
+	\item[\acronym{MOSFET}:]
+		The type of transistor which forms the major part of a Lumos DC relay channel.  The name
+		is an acronym for Metal Oxide Semiconductor Field Effect Transistor.
+	\item[\acronym{PCB} (Printed Circuit Board):]
+		The board where electronic components are mounted to form a complete circuit.  Metal
+		traces are ``printed'' (actually etched) onto the surface of the board itself to make the
+		connections between components.
+	\item[RS-232:]
+		A standard hardware protocol for sending serial data between two devices (such as a computer
+		and a modem or a single Lumos board).  Shielded cable should be used for best results, and
+		the cable length should not exceed 25\,ft.
+	\item[RS-485:]
+		A standard hardware protocol for sending serial data between multiple devices on a single
+		cable length (electrically it is a single cable which each device ``taps into'' along the
+		line; physically it is typically a ``daisy chain'' arrangement where a short cable connects
+		one device to the next, another cable to the next, and so on). Unshielded twisted-pair cable
+		is used (like Ethernet cable), and the cable lengths should not exceed a total of 4,000\,ft
+		(1,200\,m).
+	\item[Terminator Plug:]
+		An \acronym{RS-485} network requires a terminator at each end.  This is a small plug which plugs into
+		the last unit in the daisy chain.
+	\item[\acronym{TTL} (Transistor-Transistor Logic):] One of the ways digital logic circuits can be
+		constructed.  For our purposes here, we consider a ``\acronym{TTL}-level'' signal to be a
+		logic input or output where a voltage near +5\,V is ``high'' (binary 1 or ``true'') and a
+		voltage near 0\,V is ``low'' (binary 0 or ``false'').  The inputs should never be above
+		+5 nor below 0 volts.
+\end{description}

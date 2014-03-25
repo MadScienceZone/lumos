@@ -1,0 +1,52 @@
+\section{What If I Want to Keep All My LEDs?}
+A natural question to ask here is, ``Can I keep the \acronym{LED}s installed \emph{and} 
+have sensor inputs, deciding at different times to configure the Lumos board to treat them
+as inputs or \acronym{LED}s as needed at that moment?''
+
+The answer is ``maybe.''  It depends on what you plug into the sensor inputs and how much
+current it can supply, since it would have to power the \acronym{LED}s too.  
+
+Normally, the sensor inputs have the effective circuit shown in Figure~\ref{fig:input-normal}.
+However, if the \acronym{LED} is physically present on the board at the same time, the effective
+circuit becomes the one shown in Figure~\ref{fig:input-led}.  Consider whether your input source
+can tolerate that circuit configuration before proceeding.  If it can't, you need to remove the
+\acronym{LED}(s) corresponding to the input lines you'll use.
+\begin{figure}[htb]
+  \begin{circuitikz}
+    \node [left] at (0,0) {Sensor Input};
+    \draw (0,0) -- (1,0) -- (.8,.2) -- (1,0) -- (.8,-.2);
+    \draw (1,.2) -- (1.2,0) -- (1,-.2);
+    \draw (1.2,0) -- (6,0);
+    \draw [thick] (8,3) -- (6,3) -- (6,-1) -- (8,-1);
+    \node [right] at (6,2) {Microcontroller};
+    \node [right] at (6,0) {I/O port};
+    \node [below] at (1,-.2) {J16};
+    \draw (2,1) to [R, l={10\,K}] (2,3);
+    \draw (2,1) -- (2,0);
+    \draw (1.6,3) -- (2.4,3);
+    \node [above] at (2,3) {+5\,V};
+    \draw [fill] (2,0) circle (.1);
+  \end{circuitikz}
+  \caption{\label{fig:input-normal}Sensor Input Circuit}
+\end{figure}
+\begin{figure}[htb]
+  \begin{circuitikz}
+    \node [left] at (0,0) {Sensor Input};
+    \draw (0,0) -- (1,0) -- (.8,.2) -- (1,0) -- (.8,-.2);
+    \draw (1,.2) -- (1.2,0) -- (1,-.2);
+    \draw (1.2,0) -- (6,0);
+    \draw [thick] (8,3) -- (6,3) -- (6,-1) -- (8,-1);
+    \node [right] at (6,2) {Microcontroller};
+    \node [right] at (6,0) {I/O port};
+    \node [below] at (1,-.2) {J16};
+    \draw (2,1) to [R, l={10\,K}] (2,3);
+    \draw (2,1) -- (2,0);
+    \draw (1.6,3) -- (2.4,3);
+    \node [above] at (2,3) {+5\,V};
+    \draw [fill] (2,0) circle (.1);
+    \draw [fill] (3,0) circle (.1);
+    \draw (3,0) to [full led] (3,-2);
+    \draw (3,-2) to [R, l={220\,$\Omega$}] (3,-4) node[ground] {};
+  \end{circuitikz}
+  \caption{\label{fig:input-led}Sensor Input Circuit with \acronym{LED} Present}
+\end{figure}
