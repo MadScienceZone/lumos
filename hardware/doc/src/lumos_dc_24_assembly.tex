@@ -99,113 +99,11 @@ use by experienced hobbyists and professionals who possess the skill to construc
 \marginpar{\centerline{\LLimg[height=.5in]{danger-sign}}}
 circuits, to understand how they function, troubleshoot problems with them, and to use them safely.
 
-\section{Limitation of Warranty}
-\index{danger warnings}
-\index{warnings}
-\index{warranty, limitation of}
-Since this is a do-it-yourself project, the quality of the final product, and whether it 
-functions as intended, is largely a result of your own efforts in building it.  As such, we
-cannot offer to troubleshoot, repair, or replace a board we did not assemble for you.  Accordingly,
-\marginpar{\centerline{\LLimg[height=.5in]{danger-sign}}}
-these instructions, and all accompanying plans, schematics, software, hardware, and other
-project materials are provided to you ``\mc{AS-IS}'' at no cost, as a courtesy between 
-\acronym{DIY} hobbyists with \mc{NO WARRANTY} of any kind expressed or implied.  If you proceed
-to build and/or use this unit, you do so \mc{ENTIRELY AT YOUR OWN RISK}.
-
-If you purchased hardware materials from us (such as a PC board or programmed controller chip),
-we will---at our sole discretion---replace, repair, or refund the cost of those materials if they were defective in manufacture
-as shipped to you, up to 90~days from the date they were shipped to you,
-but are not liable for damage caused by your handling or assembly of the unit.
-Otherwise, we make no representation of suitability or fitness for any particular purpose and disclaim
-all other warranty or liability of any kind to the full extent permitted by law.
-
-\section{How to Use this Manual}
-Please begin by reviewing the safety information in Chapter~\ref{ch:safety}.  
-
-When you are ready to begin assembling your Lumos controller, gather the required tools and materials
-as explained in Chapter~\ref{ch:materials}.  
-
-Then read carefully the \emph{entire} set of instructions in the following chapters before
-beginning any actual work.  Begin assembly \emph{only} if you understand all the steps you will need
-to carry out.
-
-Once your controller is complete and ready to use, refer to the separate manual,
-\emph{Using the Lumos SSR Controllers} for full instructions on how to program
-and use your controller.
-
-\section{The Name of the Game}
-The name ``Lumos'' is a combination of \emph{lumen}, the Latin word for ``light,''
-and the initial letters of ``Orchestration System.''  Hence, ``Light Orchestration System''
-which is the most common application for which the Lumos hardware and software are used---running
-computerized lighting displays.
-
-\section{Getting Additional Help}
-The \ix{product website} at \URL{www.alchemy.com/lumos} contains additional documentation,
-\index{website}
-pointers, hints, and tips to assist you further.  If that doesn't answer all your questions,
-there is an \ix{online forum} where you may submit questions for help.
-
-
-\chapter{Safety Information}\label{ch:safety}
-
-\LLstart{B}{efore}{you begin building} your Lumos controller, please take the time to
-carefully read the following \ix{safety precautions}.  Failure to follow this advice could
-result in death or serious injury, damage to the Lumos controller unit, and/or damage
-to the other devices plugged into the controller.
-\index{danger warnings}
-\index{warnings}
-
-\section{Hazardous Materials}
-While assembling this unit you may come in contact with \ix{hazardous chemicals}.  The Lumos
-product contains no hazardous parts \emph{per se} but if you choose to assemble it using
-lead-based solder, you may expose yourself to risk of \ix{lead poisoning}.  The main cause of lead
-\marginpar{\centerline{\LLimg[height=.5in]{poison_sign}}}
-poisoning due to soldering is by ingesting lead particles left on your hands or work surface.
-To avoid this, keep food away from your work area, and thoroughly wash your hands and work
-surfaces before handling food.
-
-In addition, if you choose to use other chemical agents (e.g., to clean excess flux from your
-soldered board), be sure to read and follow their precautions and instructions carefully.
-
-\section{Small Part Danger}
-This board contains small parts which could pose a \ix{choking hazard} to small children.
-This product is not a toy and is not intended for use by children in any circumstance.
-The small parts on the product can be swallowed by children under 4~years of age. Keep
-\marginpar{\centerline{\LLimg[height=.5in]{danger-generic}}}
-out of reach of children.
-
-\section{Hazardous Voltage}
-Exercise care when working with any electrical system, including one such as the Lumos DC
-controllers (even though in theory they deal with low voltages).  The power supplies of the
-loads plugged into the Lumos controller, and even the power loads being controlled, may present
-\marginpar{\centerline{\LLimg[width=.5in]{danger-shock}}}
-a \ix{shock hazard} if not wired and handled using standard safety protocols.  Never touch or work
-with live circuits. Always disconnect the power source before working on your Lumos controller.
-
-When working with loads outdoors, be sure all supplies are plugged into \acronym{GFIC}-protected
-circuits.
-
-\section{Physical Hazards}
-While assembling the unit, always wear \acronym{ANSI}-approved \ix{eye protection} gear.  When soldering,
-always be aware of---and in control of---the location of your soldering iron (it will be 300$^\circ$F--500$^\circ$F---any slight 
-\marginpar{\centerline{\LLimg[height=.5in]{danger-generic}}}
-mistake can be costly, painful, or dangerous)! Bits of molten metal or flux can spatter onto your
-skin or in your eyes during soldering.  When cutting leads, sharp metal wires may be launched into the
-air, and could hit your eyes.
-
-\section{Electrostatic Discharge (ESD) Warning}
-Many of the components used in this project are sensitive to static electricity.  Always use a proper
-\acronym{ESD}-safe work environment when handling them, or these parts may be permanently damaged.  If
-a part is damaged in this way, 
-\marginpar{\centerline{\LLimg[height=.5in]{esd_symbol_l}}}
-it is impossible to tell by looking at the part, and you won't necessarily
-feel the \ix{static discharge} which caused the damage.  Never take the risk of handling sensitive components
-without \acronym{ESD} protection in place.
-\index{danger warnings}
-\index{warnings}
-
-These parts include all transistors (Q0--Q23), voltage regulators (U6--U8 and U11), diodes (D0--D11),
-and integrated circuits (U0--U5, U9--U10, and U12--U13).
+\input{warranty}
+\input{howtousemanual}
+\input{nameofthegame}
+\input{additionalhelp}
+\input{safety}
 
 \section{Circuit Loading}
 Always respect the maximum voltage and current capacity of the board and your wiring.  Overloading any
@@ -373,6 +271,9 @@ If you need to make any \acronym{RS-485} terminators, you will also need the mat
 Referring back to the set of options you selected in Chapter~\ref{ch:before}, add up the quantity of
 parts needed for each option in the bill of materials in Tables~\ref{tbl:bom}
 and~\ref{tbl:bom2}.
+Note that the board is designed for miniature-size resistors and capacitors.  See the
+ordering information in Chapter~\ref{ch:ordering} (p.~\pageref{ch:ordering}) for example part numbers of
+components known to work with this board.
 
 \begin{table}
 \centerfloat
@@ -559,32 +460,7 @@ Figure~\ref{fig:hsdrill}.
 \end{figure}
 
 \chapter{Assembling the PC Board}\label{ch:assembly}
-\LLstart{W}{ITH}{all the parts} and tools at hand as described in the previous chapter, you
-are now ready to begin assembly of the Lumos controller PC board.  The order of installation
-presented here is intended to make assembly as convenient as possible.  Generally this means
-progressing from the shortest to the tallest components, allowing the board to be laid flat
-face-down on the work surface while soldering the component leads.
-
-\begin{itemize}
-\item[\HandRight] \bfseries{Note:} 
-Take care to make good, solid \ix{solder connections} when installing components.
-Hold your soldering iron to the part's lead \emph{and} the \ix{annular ring} of the \acronym{PCB}
-until both are hot, then apply just enough solder to cover the ring, withdraw the solder, then 
-remove the heat.  Good solder connections should be shiny and smooth.
-
-\item[\HandRight] \bfseries{Note:} 
-The board layout is quite compact, with many components in a small space.  Take
-care when soldering that you don't accidentally heat the wrong component or form solder bridges between
-nearby contact points.
-
-\item[\HandRight] \bfseries{Note:} 
-We will point out a few places where \acronym{ESD} protection is needed, but
-that is intended to call attention to the issue at some key points, not to be a comprehensive list of
-\emph{every} case where it is needed.  You are expected to use appropriate handling protocols for all
-parts, which includes the use of \acronym{ESD} protection when working with semiconductors (e.g., all
-chips, voltage regulators, transistors, etc.).
-\end{itemize}
-
+\input{assy1}
 
 \section{Building the Relay Section}
 Refer to Figure~\ref{fig:placement} throughout these instructions to see where the components are 
@@ -1080,59 +956,7 @@ input for use with a Lumos board.
  \caption{Board with No Sensors (above) and Two Sensors (below)\label{fig:pcbsensors}}
 \end{figure}
 
-\section{What If I Want to Keep All My LEDs?}
-A natural question to ask here is, ``Can I keep the \acronym{LED}s installed \emph{and} 
-have sensor inputs, deciding at different times to configure the Lumos board to treat them
-as inputs or \acronym{LED}s as needed at that moment?''
-
-The answer is ``maybe.''  It depends on what you plug into the sensor inputs and how much
-current it can supply, since it would have to power the \acronym{LED}s too.  
-
-Normally, the sensor inputs have the effective circuit shown in Figure~\ref{fig:input-normal}.
-However, if the \acronym{LED} is physically present on the board at the same time, the effective
-circuit becomes the one shown in Figure~\ref{fig:input-led}.  Consider whether your input source
-can tolerate that circuit configuration before proceeding.  If it can't, you need to remove the
-\acronym{LED}(s) corresponding to the input lines you'll use.
-\begin{figure}[htb]
-  \begin{circuitikz}
-    \node [left] at (0,0) {Sensor Input};
-    \draw (0,0) -- (1,0) -- (.8,.2) -- (1,0) -- (.8,-.2);
-    \draw (1,.2) -- (1.2,0) -- (1,-.2);
-    \draw (1.2,0) -- (6,0);
-    \draw [thick] (8,3) -- (6,3) -- (6,-1) -- (8,-1);
-    \node [right] at (6,2) {Microcontroller};
-    \node [right] at (6,0) {I/O port};
-    \node [below] at (1,-.2) {J16};
-    \draw (2,1) to [R, l={10\,K}] (2,3);
-    \draw (2,1) -- (2,0);
-    \draw (1.6,3) -- (2.4,3);
-    \node [above] at (2,3) {+5\,V};
-    \draw [fill] (2,0) circle (.1);
-  \end{circuitikz}
-  \caption{\label{fig:input-normal}Sensor Input Circuit}
-\end{figure}
-\begin{figure}[htb]
-  \begin{circuitikz}
-    \node [left] at (0,0) {Sensor Input};
-    \draw (0,0) -- (1,0) -- (.8,.2) -- (1,0) -- (.8,-.2);
-    \draw (1,.2) -- (1.2,0) -- (1,-.2);
-    \draw (1.2,0) -- (6,0);
-    \draw [thick] (8,3) -- (6,3) -- (6,-1) -- (8,-1);
-    \node [right] at (6,2) {Microcontroller};
-    \node [right] at (6,0) {I/O port};
-    \node [below] at (1,-.2) {J16};
-    \draw (2,1) to [R, l={10\,K}] (2,3);
-    \draw (2,1) -- (2,0);
-    \draw (1.6,3) -- (2.4,3);
-    \node [above] at (2,3) {+5\,V};
-    \draw [fill] (2,0) circle (.1);
-    \draw [fill] (3,0) circle (.1);
-    \draw (3,0) to [full led] (3,-2);
-    \draw (3,-2) to [R, l={220\,$\Omega$}] (3,-4) node[ground] {};
-  \end{circuitikz}
-  \caption{\label{fig:input-led}Sensor Input Circuit with \acronym{LED} Present}
-\end{figure}
-    
+\input{keepleds}
 
 \section{Installing the Option Hardware}
 
@@ -1223,10 +1047,6 @@ plugged in to J11.  An example front panel circuit is shown in Figure~\ref{sch:f
 %        |     |         |
 %  J11-2-*-----*---------*---*---_*----*
 %
-% SMART PHONE RECHECK
-% intel free press
-% CRK togo mobile
-% visual ranking app -- monday
 %
 
 \begin{figure}
@@ -1302,13 +1122,13 @@ supplier should work as well.
   \midrule
 XJ0--7	      & 571-8815452		& Jumper, 2-pos., 0.1\,in pitch				&	&.12	\\
   \midrule
-XU0--5	      &	517-4816-3004-CP	& IC socket, \acronym{DIP}, 16-pin			&	&.29	\\
-XU9   	      &	517-4840-6000-CP	& IC socket, \acronym{DIP}, 40-pin			&	&.54	\\
-XU10   	      &	517-4808-3000-CP	& IC socket, \acronym{DIP},  8-pin			&	&.28	\\
-XU12   	      &	517-4820-3004-CP	& IC socket, \acronym{DIP}, 20-pin			&	&.42	\\
-XU13   	      &	517-4814-3004-CP	& IC socket, \acronym{DIP}, 14-pin			&	&.36	\\
+XU0--5	      &	517-4816-3004-CP	& \acronym{IC} socket, \acronym{DIP}, 16-pin			&	&.29	\\
+XU9   	      &	517-4840-6000-CP	& \acronym{IC} socket, \acronym{DIP}, 40-pin			&	&.54	\\
+XU10   	      &	517-4808-3000-CP	& \acronym{IC} socket, \acronym{DIP},  8-pin			&	&.28	\\
+XU12   	      &	517-4820-3004-CP	& \acronym{IC} socket, \acronym{DIP}, 20-pin			&	&.42	\\
+XU13   	      &	517-4814-3004-CP	& \acronym{IC} socket, \acronym{DIP}, 14-pin			&	&.36	\\
 \bottomrule
-	\multicolumn{5}{p{6in}}{\footnotesize *This is not a price quote and we do not represent Mouser.com in any way. This is
+	\multicolumn{5}{p{5in}}{\footnotesize *This is not a price quote and we do not represent Mouser.com in any way. This is
 simply the price \emph{we} paid in 2012, offered for general budgetary reference.  The prices shown
 were for each unit, but may reflect quantity discounts we were given.}\\
  \end{tabular}
@@ -1336,9 +1156,9 @@ C3--5, 8, 12  & 810-FK18X7R1H104K	& Capacitor, ceramic, 0.1\,$\mu$F, 50\,V, $\pm
 	C13   & 667-EEA-GA1H1R0H	& Capacitor, electrolytic, aluminum, 1\,$\mu$F, 50\,V	&	&.32 \\
   \midrule
       D0--2, 6& 512-1N4004		& Diode, 1N4004						&	&.079\\
-  D3--5, 7, 8 & 604-WP132XGD		& LED, green						&	&.07 \\
-	D9, 11& 604-WP132XYD		& LED, yellow						&	&.06 \\
-	D10   & 604-WP132XID		& LED, red						&	&.07 \\
+  D3--5, 7, 8 & 604-WP132XGD		& \acronym{LED}, green						&	&.07 \\
+	D9, 11& 604-WP132XYD		& \acronym{LED}, yellow						&	&.06 \\
+	D10   & 604-WP132XID		& \acronym{LED}, red						&	&.07 \\
   \midrule
 	F0--2 & 576-0297010.WXNV	& Fuse, 32\,V, 10\,A, fast-acting			&	&.526\\
 	F3    & 504-SR-5F-800MA-AP	& Fuse, 250\,V, 800\,mA, SR-5F				& 1	&.17 \\
@@ -1375,13 +1195,13 @@ R33--56, 58, 62& 660-CFS1/4C103J   	& Resistor, 10K, \sfrac14\,W, mini, $\pm$5\%
  S0	      & 611-D6R40F1LFS		& Switch, tactile key, N.O., SPDT, 0.01\,A, red		& 1	&.00 \\
  S1	      & 611-D6R50F1LFS		& Switch, tactile key, N.O., SPDT, 0.01\,A, green	&  	&.90 \\
   \midrule
- U0--5	      & 782-K847PH		& K847PH quad optocoupler, phototransistor output	&	&.827\\
- U6--8	      & 512-LM78L05ACZXA	& LM78L05 linear +5\,V regulator, 0.1\,A		&	&.216\\
-	U9    &	579-PIC18F4685-I/P	& PIC18F4685 microcontroller				& 10	&.15 \\
-	U10   &	595-SN75176BP		& SN75176 \acronym{RS-485} transceiver, half-duplex	&	&.88 \\
- U11	      & 511-L7805ABV		& L7805 linear +5\,V regulator, 1.0\,A			&	&.46 \\
- U12	      & 700-MAX233ACPPG36	& MAX233ACPP \acronym{RS-232} driver/receiver		& 12	&.46 \\
-	U13   &	700-MAX489EPD		& MAX489 \acronym{RS-485} transceiver, full-duplex	& 4	&.11 \\
+ U0--5	      & 782-K847PH		& \acronym{K847PH} quad optocoupler, phototransistor output	&	&.827\\
+ U6--8	      & 512-LM78L05ACZXA	& \acronym{LM78L05} linear +5\,V regulator, 0.1\,A		&	&.216\\
+	U9    &	579-PIC18F4685-I/P	& \acronym{PIC18F4685} microcontroller				& 10	&.15 \\
+	U10   &	595-SN75176BP		& \acronym{SN75176} \acronym{RS-485} transceiver, half-duplex	&	&.88 \\
+ U11	      & 511-L7805ABV		& \acronym{L7805} linear +5\,V regulator, 1.0\,A			&	&.46 \\
+ U12	      & 700-MAX233ACPPG36	& \acronym{MAX233ACPP} \acronym{RS-232} driver/receiver		& 12	&.46 \\
+	U13   &	700-MAX489EPD		& \acronym{MAX489} \acronym{RS-485} transceiver, full-duplex	& 4	&.11 \\
   \midrule
  X0	      & 774-MP101		& Crystal, 10\,MHz, 30\,pF				&	&.60 \\
   \bottomrule
@@ -1417,71 +1237,7 @@ a Lumos 24-channel DC controller.
 \centerfloat{\LLimg[height=\textheight]{24ssr-dc-panel}}
 \end{figure}
 
-\chapter{Glossary}\label{ch:glossary}
-\begin{description}
-	\item[Active High:]
-		A logic signal which is considered ``on'' when the signal is ``high'' (binary 1 or +5\,V),
-		and ``off'' when the signal is ``low'' (binary 0 or 0\,V).  Lumos relay circuits are 
-		triggered with active-low signals.
-	\item[Active Low:]
-		A logic signal which is considered ``on'' and ``off'' at the opposite signal levels
-		to an ``active high'' signal (q.v.).
-	\item[Annular Ring:]
-		The exposed ring of metal around a hole in a \acronym{PCB} where a component is to be 
-		mounted.  The solder will flow across the component lead and onto the annular ring.
-%	\item[Daisy Chain:]
-%		The arrangement of wiring a number of devices together by connecting the first to the second,
-%		then adding another connection from the second to the third, and so forth.  The network
-%		connection diagram in Figure~\ref{fig:net} shows an example of a daisy chain.
-	\item[\acronym{DIP} (Dual In-line Package):]
-		The style of chip where the pins are laid out in two parallel rows.
-	\item[\acronym{DIY}:] ``Do-It-Yourself.''
-	\item[Duplex:]
-		a feature of a serial line.  On a full-duplex connection, separate data wires are present
-		to carry data in both directions, so one device can send and receive data at the same time.
-		On a half-duplex connection, only a single set of data wires is present, so devices must
-		take turns transmitting over them.
-	\item[\acronym{ESD} (Electro-Static Discharge):]
-		static electricity which builds on your skin and is then discharged into sensitive
-		components when you touch them.  Invisible to the eye, this can punch microscopic holes
-		in the inside of the components, severely damaging them.
-	\item[Heat Protection:]
-		A temporary heat sink applied to a component when soldering that component onto
-		the \acronym{PCB}.  Typically used for heat-sens\-i\-tive components such as transistors
-		and integrated circuit chips.
-	\item[Jumper Block:]
-		A series of pins mounted to the \acronym{PCB}.  Different options are configured for the
-		circuit by placing a jumper over certain pairs of pins, shorting them together.
-	\item[\acronym{LED} (Light Emitting Diode):]
-		A special kind of diode which emits light when current passes from its anode to its cathode.
-	\item[\acronym{MOSFET}:]
-		The type of transistor which forms the major part of a Lumos DC relay channel.  The name
-		is an acronym for Metal Oxide Semiconductor Field Effect Transistor.
-	\item[\acronym{PCB} (Printed Circuit Board):]
-		The board where electronic components are mounted to form a complete circuit.  Metal
-		traces are ``printed'' (actually etched) onto the surface of the board itself to make the
-		connections between components.
-	\item[RS-232:]
-		A standard hardware protocol for sending serial data between two devices (such as a computer
-		and a modem or a single Lumos board).  Shielded cable should be used for best results, and
-		the cable length should not exceed 25\,ft.
-	\item[RS-485:]
-		A standard hardware protocol for sending serial data between multiple devices on a single
-		cable length (electrically it is a single cable which each device ``taps into'' along the
-		line; physically it is typically a ``daisy chain'' arrangement where a short cable connects
-		one device to the next, another cable to the next, and so on). Unshielded twisted-pair cable
-		is used (like Ethernet cable), and the cable lengths should not exceed a total of 4,000\,ft
-		(1,200\,m).
-	\item[Terminator Plug:]
-		An \acronym{RS-485} network requires a terminator at each end.  This is a small plug which plugs into
-		the last unit in the daisy chain.
-	\item[\acronym{TTL} (Transistor-Transistor Logic):] One of the ways digital logic circuits can be
-		constructed.  For our purposes here, we consider a ``\acronym{TTL}-level'' signal to be a
-		logic input or output where a voltage near +5\,V is ``high'' (binary 1 or ``true'') and a
-		voltage near 0\,V is ``low'' (binary 0 or ``false'').  The inputs should never be above
-		+5 nor below 0 volts.
-\end{description}
-
+\input{gloss-assy}
 \input acknowledgements
 
 \indexintoc

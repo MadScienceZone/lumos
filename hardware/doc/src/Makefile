@@ -1,6 +1,9 @@
-DOCS=lumos_dc_24_assembly.pdf lumos_dc_24_installation.pdf lumos_ssr_user_manual.pdf
-BASENAMES=lumos_dc_24_assembly lumos_dc_24_installation lumos_ssr_user_manual
-COMMONS=lumos_common.tex indent.sty acknowledgements.tex colophon.tex pinouts.tex dutycycle.tex 
+DOCS=lumos_dc_24_assembly.pdf lumos_dc_24_installation.pdf lumos_ssr_user_manual.pdf lumos_dc_4_assembly.pdf
+BASENAMES=lumos_dc_24_assembly lumos_dc_24_installation lumos_ssr_user_manual lumos_dc_4_assembly
+COMMONS=lumos_common.tex indent.sty acknowledgements.tex colophon.tex pinouts.tex dutycycle.tex \
+	warranty.tex howtousemanual.tex nameofthegame.tex additionalhelp.tex safety.tex
+IVCOMMON=4pinouts.tex assy1.tex keepleds.tex gloss-assy.tex
+XXIVCOMMON=assy1.tex keepleds.tex gloss-assy.tex
 
 
 all: $(DOCS)
@@ -8,7 +11,10 @@ all: $(DOCS)
 #
 # Quick reformat of document
 #
-lumos_dc_24_assembly.pdf: lumos_dc_24_assembly.tex $(COMMONS)
+lumos_dc_4_assembly.pdf: lumos_dc_4_assembly.tex $(COMMONS) $(IVCOMMON)
+	pdflatex lumos_dc_4_assembly
+
+lumos_dc_24_assembly.pdf: lumos_dc_24_assembly.tex $(COMMONS) $(XXIVCOMMON)
 	pdflatex lumos_dc_24_assembly
 
 lumos_dc_24_installation.pdf: lumos_dc_24_installation.tex $(COMMONS)
