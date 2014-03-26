@@ -817,17 +817,17 @@ CYCLE_TMR_PERIOD	 EQU	0x5D3D
 ;               |/////////////////|
 ;$1FFFFF$1FFFFF |/////////////////|___
 ;
-IF LUMOS_ARCH == "4685"
+ IF LUMOS_ARCH == LUMOS_ARCH_4685
 _MAIN_EEPROM_TBL	EQU	0x14000
 _SYSTEM_MFG_DATA	EQU	0x16FF0
-ELSE
- IF LUMOS_ARCH == "14K50"
+ ELSE
+  IF LUMOS_ARCH == LUMOS_ARCH_14K50
 _MAIN_EEPROM_TBL	EQU	0x02E00
 _SYSTEM_MFG_DATA	EQU	0x02FE0
- ELSE
-  ERROR "Invalid architecture switch"
+  ELSE
+   ERROR "Invalid architecture switch"
+  ENDIF
  ENDIF
-ENDIF
 ;
 ;
 ; ========================================================================
@@ -944,8 +944,8 @@ ENDIF
 ;
 ;
 __SYS__	CODE_PACK	_SYSTEM_MFG_DATA
-SYS_SNH	DE	0xFF	 	; Device serial number
-SYS_SNL DE	0xFF
+SYS_SNH	DE	0xA4	 	; Device serial number
+SYS_SNL DE	0x45
 
 _EEPROM	CODE_PACK	0xF00000
 	DE	0xFF		; 000: 0xFF constant
@@ -2479,19 +2479,19 @@ TR_I		RES	1
 ;==============================================================================
 ; DATA BANK 4
 ;______________________________________________________________________________
-IF LUMOS_ARCH == "4685"
+ IF LUMOS_ARCH == LUMOS_ARCH_4685
 SSR_DATA_BANK	EQU	0x400
 MAIN_DATA	EQU	0x500
 YY_BUF_LEN	EQU	.200
-ELSE
- IF LUMOS_ARCH == "14K50"
+ ELSE
+  IF LUMOS_ARCH == LUMOS_ARCH_14K50
 SSR_DATA_BANK	EQU	0x060
 MAIN_DATA	EQU	0x088
 YY_BUF_LEN	EQU	.90 
- ELSE
-  ERROR "Invalid architecture switch for SSR_DATA_BANK"
+  ELSE
+   ERROR "Invalid architecture switch for SSR_DATA_BANK"
+  ENDIF
  ENDIF
-ENDIF
 
 _SSR_DATA	UDATA	SSR_DATA_BANK
 ;

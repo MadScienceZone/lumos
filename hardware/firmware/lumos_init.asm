@@ -33,7 +33,7 @@
 ; CONFIGURATION FUSES
 ;==============================================================================
 ;
-IF LUMOS_CHIP_TYPE == LUMOS_CHIP_4CHANNEL
+ IF LUMOS_CHIP_TYPE == LUMOS_CHIP_4CHANNEL
 ;
 ;	18F14K50 fuses
 ;
@@ -62,7 +62,7 @@ IF LUMOS_CHIP_TYPE == LUMOS_CHIP_4CHANNEL
 	CONFIG	EBTR1=OFF		; Block 1 ($04000-$07FFF) unprotected TBL RD
 ;
 ;
-ELSE
+ ELSE
 ;
 ;	18F4685 fuses
 ;
@@ -98,7 +98,7 @@ ELSE
 	CONFIG	EBTR4=OFF	; Block 4 ($10000-$13FFF) unprotected TBL RD
 	CONFIG	EBTR5=OFF	; Block 5 ($14000-$17FFF) unprotected TBL RD
 ; 
-ENDIF
+ ENDIF
 ; 
 ;==============================================================================
 ; PUBLIC ENTRY POINTS
@@ -121,8 +121,9 @@ LUMOS_INIT:
 		; ----XX--	; not used (status bits)
 		; ------00	; system clock from primary osc
 	MOVWF	OSCCON, ACCESS
-IF LUMOS_ARCH == "14K50"
-ENDIF
+ IF LUMOS_ARCH == LUMOS_ARCH_14K50
+  ERROR "Missing 14K50 initialization code"
+ ENDIF
 ;
 ; Reset Control
 ;

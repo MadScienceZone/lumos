@@ -208,6 +208,7 @@ def report_on(device):
 
     print "Device Type:              {0} ({1} channels)".format(device.hardware_type, device.channels)
     print "Serial Number:            {0}".format(device.serial_number or 'N/A')
+    print "ROM Revision:             {0[0]}.{0[1]}".format(device.rom_version)
     print "Configuration mode:       {0}".format('ON' if device.in_config_mode else 'OFF')
     print "Sleep mode:               {0}".format('ON' if device.in_sleep_mode else 'OFF')
     print "Currently Executing:      {0}".format(device.current_sequence or 'Nothing')
