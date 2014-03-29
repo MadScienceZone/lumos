@@ -44,12 +44,12 @@ The author makes \mc{NO} representation as to suitability or fitness for any pur
 \index{warnings}
 
 \strut\vfill
-\noindent Edition 1.0, for Lumos 24-Channel DC Controller circuit version 1.0.8.
+\noindent Edition 1.0.1, for Lumos 24-Channel DC Controller circuit version 1.0.8.
 
 \smallskip
 
 
-\noindent Copyright \copyright\ 2013 by Steven L. Willoughby,
+\noindent Copyright \copyright\ 2013, 2014 by Steven L. Willoughby,
 Aloha, Oregon, USA.  All Rights Reserved.  
 This document is released under the terms and conditions of the 
 Creative Commons ``Attribution-NoDerivs 3.0 Unported'' license.  
@@ -320,14 +320,14 @@ components known to work with this board.
 \midrule
 24&  &  &  &  &  &  & Q0--23& Transistor, \acronym{MOSFET}, FQPF13N06L \\
 \midrule
-6 &  &  &  &  &  &  & R0--5 & Resistor network, 680\,$\Omega\times$5 \\
+6 &  &  &  &  &  &  & R0--5 & Resistor network, 680\,$\Omega\times$5, bussed \\
 4 &$-$1&  &  &  &  &  & R6--8 & Resistor, 220\,$\Omega$, \sfrac{1}{4}\,W \\
 24&  &  &  &  &  &  & R9--32& Resistor, 470\,$\Omega$, \sfrac{1}{4}\,W \\
 24& 1& 1& 1&  &$-$1&  &R33--56, 58, 62& Resistor, 10\,K, \sfrac{1}{4}\,W\\
   &  & 1& 1&  &  &  & R63 & Resistor, 100\,$\Omega$, \sfrac{1}{4}\,W\\
   & 1&  &  &  &  &  & R57    & Resistor, 33\,K, \sfrac{1}{4}\,W \\
-  &  &  &  &  & 1&  & R59    & Resistor network, 10\,K$\times$5; \emph{replaces R58}\\
-  & 1&  &  &  &  &  & R60    & Resistor network, 220\,$\Omega\times$5, \sfrac{1}{4}\,W \\
+  &  &  &  &  & 1&  & R59    & Resistor network, 10\,K$\times$5, bussed; \emph{replaces R58}\\
+  & 1&  &  &  &  &  & R60    & Resistor network, 220\,$\Omega\times$5, \sfrac{1}{4}\,W, bussed \\
   & 1&  &  &  &  &  & R61    & Resistor, 330\,$\Omega$, \sfrac{1}{4}\,W \\
 \midrule
   & 1&  &  &  &  &  & S0     & Push-button, red, ``reset'' \\
@@ -388,9 +388,6 @@ components known to work with this board.
 \end{tabular}
 \caption{Lumos Bill of Materials (Sockets and Hardware)\label{tbl:bom2}}
 \end{table}
-
-Note that all resistors and capacitors are miniature-size.  Check the dimensions of the parts
-you order to ensure they will fit properly on the board and will go through the holes.
 
 IC sockets XU0--XU5 need to be open-frame type so they don't interfere with the pins of
 resistor arrays R0--R5.
@@ -618,6 +615,11 @@ do the following if you will be adding the intelligent on-board controller (``\a
 	lead (cathode) goes into the round hole.  Solder into place.
 \end{enumerate}
 
+\begin{figure}
+\centerfloat{\LLimg[height=3in]{r60single}}
+\caption{R60 Substitution for Relay-Only Board\label{fig:R60-singleton}}
+\end{figure}
+
 Your relay-only board is now complete and ready to plug into the controlling circuit which will
 be driving it.  For details on how to plug it in, see the connector pinout diagrams in the appendices,
 and the theory of operation section of \emph{Using the Lumos SSR Controllers} as it applies to the way
@@ -644,7 +646,7 @@ Follow these steps to add the \acronym{CPU} to your Lumos board:
 \item	Install a 40-pin \acronym{DIP} socket at U9. Solder into place.
 
 \item	Install (2) 33\,pF capacitors at positions C6 and C7. Solder into place.
-\item	Install a 0.1\,$\mu$F (100\,nF) capacitor at C8 and C12.  Solder into place.
+\item	Install (2) 0.1\,$\mu$F (100\,nF) capacitors at C8 and C12.  Solder into place.
 \item	Install a 0.01\,$\mu$F (10\,nF) capacitor at C9. Solder into place.
 \item	Install a 0.33\,$\mu$F (330\,nF) capacitor at C11.  Solder into place.
 \item	Install a 220\,$\Omega\times$5 resistor network at R60.  Ensure the dot on the resistor package
@@ -727,6 +729,10 @@ Perform each in the order shown here.
 	\item   Repeat Step~\ref{s:diagLED} to install (2) yellow \acronym{LED}s at D9 and D11.
 	\end{enumerate}
 \end{description}
+\begin{figure}
+\centerfloat{\LLimg[width=\textwidth]{r58}}
+\caption{R58 Placement\label{fig:R58}}
+\end{figure}
 
 This completes the installation of the \acronym{CPU} option.  
 
@@ -772,6 +778,11 @@ Perform the following steps to add {\bfseries full-duplex} \acronym{RS-485} capa
 \item	Install a MAX489 driver/receiver chip into its socket at U13, noting the marked location
 	of pin~1 (see Step~\ref{s:u13pin1}).  Press carefully down into place.
 \end{enumerate}
+\begin{figure}
+ \centerfloat
+ \LLimg{fdx-pcb}
+ \caption{Lumos Board with Full-Duplex RS-485 Option\label{fig:fdx485}}
+\end{figure}
 
 \bigskip\noindent{\bfseries Skip} to the section on \acronym{RS-485} terminators below.
 
@@ -880,7 +891,7 @@ Perform the following steps:
 \end{enumerate}
 
 This completes the assembly of an \acronym{RS-485} full-duplex terminator with cable-check pins, suitable
-for use with full-duplex or half-duplex Lumos boards.  It may nor may not be compatible with other
+for use with full-duplex or half-duplex Lumos boards.  It may or may not be compatible with other
 \acronym{RS-485} gear.
 
 \bigskip\noindent{\bfseries Skip} to the next chapter to install more options, if desired.

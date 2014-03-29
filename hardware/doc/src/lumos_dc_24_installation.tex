@@ -40,12 +40,12 @@ The author makes \mc{NO} representation as to suitability or fitness for any pur
 \index{warnings}
 
 \strut\vfill
-\noindent Edition 1.0, for Lumos 24-Channel DC Controller circuit version 1.0.8.
+\noindent Edition 1.0.1, for Lumos 24-Channel DC Controller circuit version 1.0.8.
 
 \smallskip
 
 
-\noindent Copyright \copyright\ 2013 by Steven L. Willoughby,
+\noindent Copyright \copyright\ 2013, 2014 by Steven L. Willoughby,
 Aloha, Oregon, USA.  All Rights Reserved.  
 This document is released under the terms and conditions of the 
 Creative Commons ``Attribution-NoDerivs 3.0 Unported'' license.  
@@ -513,7 +513,7 @@ into the procedure and are unable to complete it.
 		You will need 8-pin modular cables (8p8c-type, such as Ethernet cables).  The 
 		wire may be \acronym{CAT3}, \acronym{CAT5}, or \acronym{CAT6} type, 
 		with twisted pairs on pins 1--2, 3--6, 4--5, and 7--8.
-		(This is the standard configuraiton for Ethernet cable---if you just use that kind of cable
+		(This is the standard configuration for Ethernet cable---if you just use that kind of cable
 		it will work just fine.)  You will need one cable to connect the \acronym{RS-485} converter to the
 		first Lumos board, another cable from that Lumos board to the next, and so forth.  
 		\marginpar{\centerline{\LLimg[width=1.5in]{8p8c}}}
@@ -884,11 +884,10 @@ This verifies that everything is working and that the lights are plugged into th
 	\item	Power on the board but leave the cover open, allowing access to the control buttons.
 		{\bfseries Caution:} Exercise care when working with the live board.  Don't touch anything
 		\marginpar{\centerline{\LLimg[height=.5in]{danger-sign}}}
-		other than the control buttons.  (Unlike the Lumos AC relay boards, your Lumos DC board
-		should not normally have lethal voltages present on it, as it most often is used for small
-		\mc{LED} lights powered by a few milliamps at 5 or 12 volts; however, your specific application
-		may involve plugging in more dangerous levels of current, even at low voltages.  We still 
-		advise caution in all cases.)
+		other than the control buttons.  Even when used  to control low-voltage loads such as 
+		\mc{LED} lights, your specific application
+		may involve hazardous current levels, which can result in personal injury or death if not
+		handled appropriately.
 
 	\item	Check that the green \mc{LED} on the Lumos controller is slowly fading on and off.  This indicates
 		that the controller is in its normal operating mode and is functioning correctly.

@@ -7,7 +7,7 @@
 \frontmatter
 
 \thispagestyle{empty}
-\ThisLLCornerWallPaper{1}{images/cover}
+\ThisLLCornerWallPaper{1}{images/4cover}
 %\strut 
 \vfill
 \begin{center}
@@ -204,12 +204,12 @@ components known to work with this board.
 \midrule
 %B  F  H  SI 
 2  &  &  &  & C0--1 & Capacitors, 30\,pF or 33\,pF ceramic \\
-2  &  &  &  & C2--3 & Capacitor, 0.01\,$\mu$F \\
-3  &  &  &  & C4,5,7 & Capacitor, 0.1\,$\mu$F \\
+2  &  &  &  & C2--3 & Capacitors, 0.01\,$\mu$F \\
+3  &  &  &  & C4,5,7 & Capacitors, 0.1\,$\mu$F \\
 2  &  &  &  & C6,8   & Capacitors, 0.33\,$\mu$F \\
 \midrule
-2  &  &&$-x$& D0,2  & \mc{LED}, yellow, 3\,mm* \\
-2  &  &&    & D1,4  & \mc{LED}, green, 3\,mm\\
+2  &  &&$-x$& D0,2  & \mc{LED}s, yellow, 3\,mm* \\
+2  &  &&    & D1,4  & \mc{LED}s, green, 3\,mm\\
 1  &  &&$-x$& D3    & \mc{LED}, red, 3\,mm*\\
 2  &  &  &  & D5,6  & Diodes, \acronym{1N4004} \\
 \midrule
@@ -217,20 +217,20 @@ components known to work with this board.
 \midrule
 5  &  &  &  & HS0--4& Heat sinks, TO-220, if needed\\
 \midrule
-2  &  &  & 1& J0,1,8& Terminal block, 5-position, Altech \mc{MBE}-155 \\
+2  &  &  & 1& J0,1,8& Terminal blocks, 5-position, Altech \mc{MBE}-155 \\
 1  &  &  &  & J2    & Jumper block header, 6-position \\
-3  &  &  &  & J3--5 & Jumper block header, 4-position \\
-2  &  &  &  & J6,7  & Terminal block, 2-position, Altech \mc{MBE}-152\\
+3  &  &  &  & J3--5 & Jumper block headers, 4-position \\
+2  &  &  &  & J6,7  & Terminal blocks, 2-position, Altech \mc{MBE}-152\\
 \midrule
-4  &  &  &  & Q0--3 & Transistor, \acronym{MOSFET}, FQPF13N06L \\
+4  &  &  &  & Q0--3 & Transistors, \acronym{MOSFET}, FQPF13N06L \\
 \midrule
 1  &  &  &  & R0    & Resistor, 330\,$\Omega$, \sfrac{1}{4}\,W \\
 1  &  &  &  & R1    & Resistor network, 470\,$\Omega\times$5, bus type \\
    &  &  & 1& R2    & Resistor network, 10\,K$\times$5, bus type\\
-5  &  &  &  & R3,6--9&Resistor, 10\,K, \sfrac{1}{4}\,W \\
+5  &  &  &  & R3,6--9&Resistors, 10\,K, \sfrac{1}{4}\,W \\
 1  &  &  &  & R4    & Resistor, 33\,K, \sfrac{1}{4}\,W \\
 1  &  &  &  & R5    & Resistor network, 680\,$\Omega\times$5, bus type \\
-4  &  &  &  & R10--13&Resistor, 470\,$\Omega$, \sfrac{1}{4}\,W\\
+4  &  &  &  & R10--13&Resistors, 470\,$\Omega$, \sfrac{1}{4}\,W\\
 1  &  &  &  & R14   & Resistor network, 120\,$\Omega\times$2, isolated type \\
 \midrule
 1  &  &  &  & U0    & \acronym{PIC18F14K50} microcontroller, Lumos programmed \\
@@ -242,7 +242,7 @@ components known to work with this board.
 \midrule
 1  &  &  &  & X0    & Crystal, 10\,MHz \\
 1  &  &  &  & XF0   & Fuse holder, Littelfuse 01530008Z, for F0 \\
-6  &  &  &  & XJ0--5& Jumper, 2-pos, 0.1$''$ pitch\\
+6  &  &  &  & XJ0--5& Jumpers, 2-pos, 0.1$''$ pitch\\
 1  &  &  &  & XR14  & \mc{SIP} socket, 4-pin, for R14\\
 1  &  &  &  & XU0   & \mc{DIP} socket, 20-pin, for U0\\
    &  & 1&  & XU1   & \mc{DIP} socket, 8-pin, for U1\\
@@ -261,11 +261,11 @@ throughout these instructions to see where the components are
 located on the \acronym{PCB}.  The locations are also labeled on the \acronym{PCB} itself.
 
 \begin{figure}
-\centerline{\LLimg{4dc-parts-placement}}
+\centerline{\LLimg{4SSR-DC-front}}
 \caption{Lumos Board Parts Placement Diagram\label{fig:placement}}
 \end{figure}
 \begin{figure}
-\centerline{\LLimg{4dc-parts-placement-back}}
+\centerline{\LLimg{4SSR-DC-back}}
 \caption{Lumos Board Parts Placement (Reverse Side)\label{fig:placement-back}}
 \end{figure}
 
@@ -285,6 +285,14 @@ located on the \acronym{PCB}.  The locations are also labeled on the \acronym{PC
 	to install (4) 470\,$\Omega$ \ix{resistors} (``yellow-violet-brown'') at R10--R13.
 \item	Continue in the same way to install and solder the remaining discrete
 resistor, 33\,K at position R4.
+\item	{\bfseries If you will \emph{not} be installing sensor inputs,} you will not
+	install the 10\,K resistor network at R2.  However, you will instead install a single
+	10\,K resistor between pins 1 and 2 of R2.  See Figure~\ref{fig:r2-single} for a photo
+	of what this looks like.
+\begin{figure}
+	\centerline{\LLimg[height=3in]{r2-single}}
+	\caption{Discrete R2 Resistor If No Sensor Inputs Are Used\label{fig:r2-single}}
+\end{figure}
 \item	In the same fashion, install and solder (2) 30\,pF or 33\,pF \ix{capacitors} into positions marked C0--C1.
 \item	Install and solder (2) 0.01\,$\mu$F capacitors into positions 
 	C2--C3.
@@ -361,11 +369,10 @@ resistor, 33\,K at position R4.
 	in Figure~\ref{fig:mosfet} and should fit
 	easily into the holes at Q0 on the \acronym{PCB}.
 \begin{figure}
-	\centerline{\LLimg[height=3in]{mosfet-side} \LLimg[height=3in]{mosfet-board}}
-	\caption{Bending the Pins of the M\mc{OSFET}s\label{fig:mosfet}}
+	\centerline{\LLimg[height=3in]{mosfet-side} \LLimg[height=3in]{7805-board}}
+	\caption{Bending the Pins of the M\mc{OSFET}s and 7805\label{fig:mosfet}}
 \end{figure}
 \item	If using a heat sink, apply a \emph{small} dab of \ix{heat sink} grease on the back side of the transistor and attach the heat sink.
-\item
 \item	Using appropriate heat protection and/or limiting soldering time to 4 seconds or less per
 	pin, install and solder transistors Q0--Q3 onto the board.
 \item\label{s:MOSFET2}
@@ -377,7 +384,7 @@ resistor, 33\,K at position R4.
 	Install resistor network R1 onto the board, noting that pin~1 (marked
 	with a dot on the resistor as was the case with R5) goes into the
 	square hole marked with an arrow on the board.  Solder into place.
-\item	Install and solder socket XR14.
+\item	Install and solder socket XR14 at position R14.
 \item	Install fuse F0 into its socket.
 \item 	Install crystal X0 onto the board without allowing it to short
 	against any other component leads.  It is fine if the crystal
@@ -471,12 +478,12 @@ so they will default high unless explicitly pulled low by the input.  It may be 
 or high by the sensor.  The Lumos board may, however, be programmed to respond to the inputs as if
 they were active-high or active-low.  There shouldn't therefore be a need to invert an active-high
 input for use with a Lumos board.
-\begin{figure}
- \centerfloat
- \LLimg{no-sensors-4DC}
- \LLimg{2-sensors-4DC}
- \caption{Board with No Sensors (above) and Two Sensors (below)\label{fig:pcbsensors}}
-\end{figure}
+%\begin{figure}
+% \centerfloat
+% \LLimg{no-sensors-4DC}
+% \LLimg{2-sensors-4DC}
+% \caption{Board with No Sensors (above) and Two Sensors (below)\label{fig:pcbsensors}}
+%\end{figure}
 
 \input{keepleds}
 
@@ -706,16 +713,10 @@ The following pages contain the schematic diagrams for all the various options t
 a Lumos 4-channel DC controller.
 
 \begin{figure}
-\centerfloat{\LLimg[height=\textheight]{4ssr-dc-relays}}
-\end{figure}
-\begin{figure}
 \centerfloat{\LLimg[height=\textheight]{4ssr-dc-controller}}
 \end{figure}
 \begin{figure}
-\centerfloat{\LLimg[height=\textheight]{4ssr-dc-controller-options}}
-\end{figure}
-\begin{figure}
-\centerfloat{\LLimg[height=\textheight]{4ssr-dc-panel}}
+\centerfloat{\LLimg[height=\textheight]{4ssr-dc-relay}}
 \end{figure}
 
 \input{gloss-assy}

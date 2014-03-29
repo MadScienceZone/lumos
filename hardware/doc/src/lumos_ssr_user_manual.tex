@@ -108,12 +108,12 @@ The author makes \mc{NO} representation as to suitability or fitness for any pur
 \index{warnings}
 
 \strut\vfill
-\noindent Edition 2.0, for Lumos controllers with \acronym{ROM} version 3.0.
+\noindent Edition 2.1, for Lumos controllers with \acronym{ROM} version 3.0.
 
 \smallskip
 
 
-\noindent Copyright \copyright\ 2013 by Steven L. Willoughby,
+\noindent Copyright \copyright\ 2013, 2014 by Steven L. Willoughby,
 Aloha, Oregon, USA.  All Rights Reserved.  
 This document is released under the terms and conditions of the 
 Creative Commons ``Attribution-NoDerivs 3.0 Unported'' license.  
@@ -197,6 +197,16 @@ The \ix{product website} at \URL{www.alchemy.com/lumos} contains additional docu
 pointers, hints, and tips to assist you further.  If that doesn't answer all your questions,
 there is an \ix{online forum} where you may submit questions for help.
 
+\section{DMX Compatibility Warning}
+These boards do not support the \acronym{DMX512} protocol, although we have experimented with
+this as a feature.  As such, the firmware includes a ``\acronym{DMX512} mode'' which the board
+and accompanying software will recognize.  However, this is still experimental and does not yet
+function enough for actual production use.  While this feature may be ready for use in a future
+upgrade to these boards, at present the Lumos boards will only work in native Lumos (not \acronym{DMX512})
+mode.
+
+{\bfseries Any and all references in the Lumos manuals to ``\acronym{DMX}'' modes should
+be regarded as describing experimental features not yet ready for actual production use.}
 
 \chapter{Safety Information}\label{ch:safety}
 
@@ -263,7 +273,7 @@ which would be a custom modification to the Lumos circuit requiring qualified en
 Do not plug any load into a Lumos board which cannot be dimmed.
 
 \chapter{Overview of the Lumos Controller Models}
-\LLstart{T}{here}{are currently} four different hardware projects which are part of the Lumos
+\LLstart{T}{here}{are currently} five different hardware projects which are part of the Lumos
 family of controllers, which are the subject of this manual:
 \section{48-Channel Controller}
 \begin{figure}
@@ -360,6 +370,30 @@ monitored by the controller, triggering user-programmed actions.  This allows fo
 a light sensor to trigger nighttime lighting which turns off in the daytime, or to announce the
 arrival of guests when a door sensor is opened.
 
+\section{4-Channel DC Controller}
+\begin{figure}
+  \begin{center}
+    \LLimg{4cover}
+  \end{center}
+  \caption{Lumos 4-Channel DC Controller}
+\end{figure}
+\index{Lumos 4-channel DC SSR}
+This board controls four output channels for low-voltage~DC loads.
+The controlled channel block is separately powered and completely isolated from the
+logic side of the board 
+It may be powered with +5\,V~DC or a voltage from +8 to +24\,V~DC and
+is designed to supply up to 5\,A per channel, with a maximum of 10\,A total at any 
+given time.
+
+It uses one address for Lumos-protocol communication, or 4 \acronym{DMX512} slots.
+Communications options (selected permanently at the time the controller is assembled) include
+full- and half-duplex RS-485.
+
+By sacrificing one or more of the on-board diagnostic \acronym{LED}s, 1--4 input signals may be 
+monitored by the controller, triggering user-programmed actions.  This allows for things like
+a light sensor to trigger nighttime lighting which turns off in the daytime, or to announce the
+arrival of guests when a door sensor is opened.
+
 
 \chapter{Operating the Board Controls}
 \LLstart{T}{he}{Lumos controllers include} two front-panel \ix{buttons} labeled ``\acronym{OPTION}'' and ``\acronym{RESET}.''
@@ -378,24 +412,42 @@ to enter configuration mode, resets all output channels to be fully off,
 clears all faults and error conditions, and re-initializes all the hardware
 and software components.
 
+Four-channel boards don't include this button.  To reset one of these boards, insert a jumper across pins 
+2--3 of J2 as shown in Figure~\ref{fig:4dc-reset}.  This will halt the board.  Then remove the jumper,
+which will reset and restart the board.
+\begin{figure}
+  \centerfloat{\LLimg[width=3in]{4dc-j2-23}}
+  \caption{Resetting a 4-Channel DC Lumos Board Via Jumper on J2-2 and J2-3\label{fig:4dc-reset}}
+\end{figure}
+
 \section{Entering Configuration Mode}\label{sec:configmode}
 \index{configuration mode}
 Some functions are only enabled when the controller is in a special ``configuration'' mode\footnote{In
 some places in other documentation, including the controller's firmware source code, this is also
 referred to as ``privileged mode''.  This term is deprecated. The preferred term is now
 ``configuration mode.''} to prevent potentially harmful effects such as accidentally changing
-the device's address, \ix{baud rate}, or other configuraiton parameters.
+the device's address, \ix{baud rate}, or other configuration parameters.
 
 To initiate configuration mode, press and hold the green \acronym{OPTION} button until the \acronym{LED}s start
 flashing rapidly (approximately 2~seconds).  Then release the \acronym{OPTION} button until the \acronym{LED}s
 fade to a state where the green \acronym{LED}(s) are flashing rapidly.\footnote{In normal run mode,
 the green \acronym{LED}(s) are slowly fading up and down.}
 
+The four-channel boards do not have \acronym{OPTION} and \acronym{RESET} buttons directly (unless off-board
+buttons were used, connected to the board at J2).  These boards are controlled by inserting jumpers onto
+header J2, as follows:
+\begin{enumerate}
+	\item	Insert a jumper across pins 5--6 of J2.  \marginpar{\centerline{\LLimg[width=1.5in]{4dc-j2-56a}}}
+	\item	Wait until the \acronym{LED}s start flashing rapidly (approximately 2~seconds).
+	\item	Remove the jumper.
+\end{enumerate}
+
 The board is now in configuration mode and can be instructed by the host PC to change critical
 settings.
 
 To leave configuration mode, the host PC may issue a command to cancel the mode, or you may press
 the red \acronym{RESET} button (which also has the effect of rebooting the system).
+(For four-channel boards, follow the instructions in the previous section to reset the board.)
 
 \section{Running a Test Pattern}
 \index{test pattern}
@@ -405,7 +457,9 @@ output channels as a test that everything is connected and working properly.
 To do this, first place the board in \ix{configuration mode} as described in Section~\ref{sec:configmode}.
 After the green light is flashing rapidly and the others are off, press and hold the \acronym{OPTION} button
 again %until the lights go off
-for another 2 seconds, then release.
+for another 2 seconds, then release.  (For four-channel boards, insert and remove the jumper across pins
+5--6 again, leaving the jumper in place for about 2~seconds, as you did to place the board in configuration
+mode.)
 
 The red \acronym{LED} will now be slowly fading up and down (instead of the green \acronym{LED} doing that
 as it does in normal run mode).  The controller will turn off all output channels, and turn channel \#0
@@ -416,7 +470,7 @@ each channel turning on in its turn each second.  The panel \acronym{LED}s will 
 channel number in binary.  Note that 24-channel boards only show the least significant 3 bits, so you
 will see which channel within the block (0--7) is active, but not which block.  48-channel controllers
 show the entire channel number.  See Figure~\ref{fig:testbin} for a reference chart of the output
-codes.
+codes.  Four-channel boards use the same display pattern as the 24-channel boards.
 \begin{figure}
   \begin{center}
     \begin{tikzpicture}
@@ -562,22 +616,37 @@ codes.
   \caption{Test-mode Channel Indicators\label{fig:testbin}}
 \end{figure}
 
-If the \acronym{OPTION} buton is pressed briefly, the pulsing red \acronym{LED} freezes (steady on) and the cycle
+If the \acronym{OPTION} button is pressed briefly, the pulsing red \acronym{LED} freezes (steady on) and the cycle
 pauses on the current output channel.  Pressing the \acronym{OPTION} button again resumes the cycle.
+Four-channel boards may be paused by briefly inserting and then removing a jumper across pins 5--6 of J2.
       
 \section{Restoring to Factory Settings}\label{ss:factoryreset}
 If the board is unresponsive and cannot be reconfigured via the host PC (for example, if you configured
 it to use a \ix{baud rate} your host PC can't match), follow these steps to reset the device to its 
-factory default settings:
+factory default settings.  Disconnect any input sensors and power supply control wires from the Lumos
+controller before beginning.
+\subsection{24-Channel Boards}
 \begin{enumerate}
-	\item	Turn off the Lumos controller.
-	\item	Disconnect any input sensors and power supply control wire from the Lumos
-		controller.
+%	\item	Turn off the Lumos controller.
+%	\item	Disconnect any input sensors and power supply control wire from the Lumos
+%		controller.
+	\item	Turn off the Lumos controller or press and hold the red \acronym{RESET} button.
 	\item	Install a \ix{jumper} to short pins 4 and 5 of J11 (labeled ``\acronym{ICSP}''
 		on the board).
-	\item	Power on the Lumos controller.
+	\item	Power on the Lumos controller or release the \acronym{RESET} button.
 	\item	When the red, green, and yellow \acronym{LED}s flash rapidly, pull the
 		jumper out.
+\end{enumerate}
+\subsection{4-Channel Boards}
+\begin{enumerate}
+	\item	Turn off the Lumos controller or insert a jumper across pins 2--3 of J2.
+		\marginpar{\centerline{\LLimg[width=1.5in]{4dc-j2-23}}}
+	\item	Install a \ix{jumper} across pins 4--5 of J2.
+		\marginpar{\centerline{\LLimg[width=1.5in]{4dc-j2-2345}}}
+	\item	Power on the Lumos controller or remove the jumper from pins 2--3.
+		\marginpar{\centerline{\LLimg[width=1.5in]{4dc-j2-45}}}
+	\item	When the red, green, and yellow \acronym{LED}s flash rapidly, pull the
+		jumper off pins 4--5.
 \end{enumerate}
 
 If those steps were carried out exactly as described, %the \acronym{LED}s will all flash rapidly and 
@@ -3076,8 +3145,9 @@ this chapter (see p.~\pageref{escapebytes} for details about this escape mechani
   \wordbox{1}{\Var*{steps}$-1$}\\
   \wordbox{1}{\Var*{time}$-1$}
 \end{BF}
-Smoothly increases (\Var{d}=1) or decreases (\Var{d}=0) the output level of the specified
-\Var*{channel} by the specified number of \Var*{steps}, with a delay of \Var*{time}/120
+Smoothly increases (\Var{d}=1) the brightness of \Var*{channel} from its current value until it reaches the
+maximum level, or decreases (\Var{d}=0) it until it is fully off,
+changing it in increments of \Var*{steps} each time, with a delay of \Var*{time}/120
 seconds between each change.  Since the values passed are actually \Var*{steps}$-$1 and \Var*{time}$-$1,
 the effective ranges for each of those values is 1--256.
 
@@ -4139,7 +4209,8 @@ performed.  If the device gets stuck during that process, the \acronym{LED} patt
 where the problem occurred.  During normal runtime operation, they inform the user of the
 mode and status of the system, errors encountered, etc.
 
-The various codes are summarized in Figure~\ref{fig:leds}.
+The various codes are summarized in Figure~\ref{fig:leds}.  4-channel controllers use the same 
+pattern as the 24-channel controllers.
 \begin{figure}
  \begin{tikzpicture}
   \node [above right] at (2,11) {\strut Description of Condition/Fault Indicated};
@@ -4318,6 +4389,11 @@ References to other program manual entries look like ``\z{lumosctl}(1)'' which i
 user commands on Unix-like systems.
 \newpage
 \index{lumosasm@\z{lumosasm}}
+\section{NAME}
+\noindent lumosasm -- Assemble stored sequences for download to a Lumos board
+
+\medskip
+
 \begin{NotImplemented*}{The \z{lumosasm} program is used to assemble descriptions of stored
 sequences into the internal binary format recognized by the Lumos boards.  Since that feature is
 not yet supported by Lumos boards, this section of the manual is blank until that feature is
@@ -4346,7 +4422,7 @@ An entire block of outputs does not turn on
 \cline{2-3}
 	& Power supply not told to wake up (\mc{ATX}-style supplies only).
 	& Check that the power supply's green wire is attached to the $\overline{\hbox{\mc{PWR CTL}}}$
-	  terminal on J9. \\
+	  terminal. \\
 \cline{3-3}
 	&& If the \acronym{LED}s on the board show that it is in sleep mode,  send it a ``wake'' command
 	from the PC or just command it to turn on any output channel.
@@ -4354,7 +4430,7 @@ An entire block of outputs does not turn on
 Some outputs don't work, or are erratic.
 	& Loose % opto-isolator 
 chip.
-	& Lightly press chips U0--U5 back into their sockets.\\
+	& Lightly press chips back into their sockets.\\
 \cline{2-3}
 	& Bad solder connection or loose chip.
 	& Re-check all solder connections on the board, re-solder any which are cold, broken, or
@@ -4369,7 +4445,7 @@ One unit does not respond to commands.
 	  the correct address.\\
 \cline{2-3}
 	& Blown communication fuse.
-	& Replace fuse F3.\\\hline
+	& Replace fuse F3 (24-channel boards).\\\hline
 \end{longtable}
 
 If all else fails, try performing a factory reset as described in section \ref{ss:factoryreset} (page~\pageref{ss:factoryreset}).
