@@ -1,0 +1,230 @@
+\section*{NAME}
+lumosupgrade -- Download new firmware image into Lumos controller hardware
+\section*{SYNOPSIS}
+\codetype{lumosupgrade}
+[\codetype{--fhNnRv}]
+\codetype{--a}
+\Var*{addr}
+[\codetype{--b}
+\Var*{speed}]
+[\codetype{--L}
+\Var*{txlvl}]
+[\codetype{--m}
+\Var*{txdelay}]
+[\codetype{--p}
+\Var*{port}]
+[\codetype{--T}
+\Var*{mode}]
+\Var*{image-file}
+\section*{DESCRIPTION}
+
+
+This command places the target Lumos controller device into
+``flash program mode'' and downloads a new firmware image
+onto it.  This is used in order to upgrade the Lumos firmware
+to a new version.
+
+
+To upgrade your controller's firmware, perform the following steps:
+\begin{enumerate}
+% tagged paragraph, width=3
+\item
+Connect your Lumos controller board to the host PC (all by itself,
+not sharing a serial connection with other devices). The connection
+must be bidirectional as the Lumos board needs to be able to acknowledge
+receipt of the new image.  (This may require setting your PC's RS-485 
+interface appropriately so it may send and receive data.  Pay attention
+to whether your Lumos board is full- or half-duplex.)
+% tagged paragraph, width=4
+\item
+Place the Lumos board into configuration mode (previously called
+``privileged mode'').
+% tagged paragraph, width=4
+\item
+Invoke the
+\codetype{lumosupgrade}
+program to load a new firmware image onto it, as explained in
+the remainder of this manual page.
+\end{enumerate}
+
+
+Once started, this process must run to successful completion
+before the Lumos board may be used for normal operations again.
+If anything goes amiss, the Lumos board may be reset and the 
+\codetype{lumosupgrade}
+program restarted using the
+\codetype{----resume}
+option.  (Upon reset, the Lumos board will stay in
+flash program mode until a new image has been loaded into it.  Should the
+board reset/reboot for any reason during the process, the 
+\codetype{lumosupgrade}
+process must be started over to ensure a complete image is loaded.)
+\section*{OPTIONS}
+
+
+Each of the following options may be specified by either a long
+option (like
+``\codetype{----verbose}'')
+or a shorter option letter (like
+``\codetype{--v}'').
+If an option takes a parameter, it may follow the option as
+``\codetype{--a12}'',
+``\codetype{--a 12}'',
+``\codetype{----address 12}'',
+or
+``\codetype{----address=12}''.
+
+
+Long option names may be abbreviated to any unambiguous initial substring.
+\begin{list}{}{}
+% tagged paragraph, width=19
+\item[{\codetype{----address=}\Var*{addr}}]\hfill\\
+(\codetype{--a}
+\Var*{addr})
+Specifies the address of the target controller unit.  The
+\Var*{addr}
+value is an integer from 0 to 15, inclusive.  
+Note that downloading a new firmware image must be done when the
+target unit is the
+only
+device plugged in to the computer.  Once the download operation is
+underway, the low-level protocol used to transmit the image to the
+device is not necessarily compatible with other units.  This option
+is required because the command to place the device into flash program
+mode must be addressed to the unit.
+% tagged paragraph, width=4
+\item[{\codetype{----dry--run}}]\hfill\\
+(\codetype{--n})
+Do everything except actually burn the new firmware into the unit.
+This checks that the 
+\Var*{image-file}
+is reasonably sane-looking (not a thorough check of correctness),
+and communicates with the Lumos controller up to the point where
+it would put it into flash program mode.
+% tagged paragraph, width=4
+\item[{\codetype{----force}}]\hfill\\
+(\codetype{--f})
+Force upgrade of the board without asking the user for confirmation.
+% tagged paragraph, width=4
+\item[{\codetype{----help}}]\hfill\\
+(\codetype{--h})
+Print a summary of these options and exit.
+% tagged paragraph, width=4
+\item[{\codetype{----null--device}}]\hfill\\
+(\codetype{--N})
+Don't actually communicate with the serial port, but still carry out the other
+actions including sanity checks on 
+\Var*{image-file}.
+Implies
+\codetype{----dry--run}.
+% tagged paragraph, width=4
+\item[{\codetype{----port=}\Var*{dev}}]\hfill\\
+(\codetype{--p}
+\Var*{dev})
+Specifies the I/O port the Lumos device is connected to.  This may be a simple integer 0, 1, 2, etc.
+to refer to the first, second, third, etc, standard serial port on the system, or a device name appropriate
+to the system such as 
+\codetype{COM1},
+\codetype{ttys1},
+or 
+\codetype{/dev/ttys1}.
+% tagged paragraph, width=4
+\item[{\codetype{----resume}}]\hfill\\
+(\codetype{--R})
+Indicates that the Lumos board was reset prematurely while attempting an upgrade.  Since the
+Lumos board will still be in flash programming mode (and therefore won't
+be in a position to recognize the Lumos-protocol command to begin a flash
+programming operation), this option tells 
+\codetype{lumosupgrade}
+to simply start downloading the image onto it, and to not try to put it 
+into programming mode first.
+% tagged paragraph, width=4
+\item[{\codetype{----speed=}\Var*{rate}}]\hfill\\
+(\codetype{--b}
+\Var*{rate})
+Set the serial port to the given
+baud
+\Var*{rate}.
+This is the speed the Lumos board is already configured to use, and will be used for the initial
+command to enter flash programming mode.  Once in flash programming mode, however, a fixed speed of 9600
+baud will be used.
+[Default is 19200 baud.]
+% tagged paragraph, width=4
+\item[{\codetype{----txdelay=}\Var*{t}}]\hfill\\
+(\codetype{--m}
+\Var*{ms})
+Delay
+\Var*{ms}
+milliseconds after changing the transmitter control line for half-duplex networks.
+% tagged paragraph, width=4
+\item[{\codetype{----txlevel=}\{\codetype{0}|\codetype{1}\}}]\hfill\\
+(\codetype{--L}
+\{\codetype{0}|\codetype{1}\})
+Specifies the logic level used to signal transmit mode for half-duplex networks. A 
+\codetype{1}
+indicates that the DTR or RTS line (as selected by the
+\codetype{----txmode}
+option) is asserted to transmit, while a
+\codetype{0}
+means the line is deasserted to transmit.
+% tagged paragraph, width=4
+\item[{\codetype{----txmode=}\{\codetype{dtr}|\codetype{rts}\}}]\hfill\\
+(\codetype{--T}
+\{\codetype{dtr}|\codetype{rts}\})
+Specifies which I/O line is used to signal transmit mode on half-duplex networks.
+% tagged paragraph, width=4
+\item[{\codetype{----verbose}}]\hfill\\
+(\codetype{--v})
+Output messages to the standard output.  Additional 
+\codetype{----verbose}
+options increase verbosity.  High levels of verbosity include a dump
+of every bit sent or received on the serial network.
+\end{list}
+\section*{FILE FORMAT}
+
+
+The firmware
+\Var*{image-file}
+is expected to be in standard Intel Hex format.  Attempts to change memory
+addresses outside the supported range will be ignored, including configuration
+fuses and EEPROM area.  Actually, only a reasonable subset of the Intel Hex
+format is supported; specifically, record types
+\codetype{00}
+(data record),
+\codetype{01}
+(end of file),
+and
+\codetype{04}
+(extended address)
+are recognized.
+\section*{AUTHOR}
+
+
+Steve Willoughby,
+Software Alchemy / support@alchemy.com
+\section*{COMPATIBILITY}
+
+
+This version of 
+\codetype{lumosupgrade}
+is compatible with the following boards:
+\begin{itemize}
+% tagged paragraph, width=2
+\item
+Lumos 24-channel DC controller version 1.0 (boards with ID markings beginning with
+``LUMOS-24SSR-DC-1.0'').
+% tagged paragraph, width=4
+\item
+Lumos 4-channel DC controller version 1.0 (boards with ID markings beginning with
+``LUMOS-4SSR-DC-1.0'').
+\end{itemize}
+
+
+\emph{The 48-channel controllers are not compatible with this program.}
+\emph{These boards must be reprogrammed using a microcontroller programmer.}
+\section*{HISTORY}
+
+
+This program first appeared to support Lumos ROM version 3.0.
+\section*{SEE ALSO}
+\codetype{lumosctl}(1).

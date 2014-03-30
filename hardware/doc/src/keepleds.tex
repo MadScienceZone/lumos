@@ -20,7 +20,7 @@ can tolerate that circuit configuration before proceeding.  If it can't, you nee
     \draw [thick] (8,3) -- (6,3) -- (6,-1) -- (8,-1);
     \node [right] at (6,2) {Microcontroller};
     \node [right] at (6,0) {I/O port};
-    \node [below] at (1,-.2) {J16};
+    \node [below] at (1,-.2) {\SensorConnectorID};
     \draw (2,1) to [R, l={10\,K}] (2,3);
     \draw (2,1) -- (2,0);
     \draw (1.6,3) -- (2.4,3);
@@ -38,7 +38,7 @@ can tolerate that circuit configuration before proceeding.  If it can't, you nee
     \draw [thick] (8,3) -- (6,3) -- (6,-1) -- (8,-1);
     \node [right] at (6,2) {Microcontroller};
     \node [right] at (6,0) {I/O port};
-    \node [below] at (1,-.2) {J16};
+    \node [below] at (1,-.2) {\SensorConnectorID};
     \draw (2,1) to [R, l={10\,K}] (2,3);
     \draw (2,1) -- (2,0);
     \draw (1.6,3) -- (2.4,3);
@@ -46,7 +46,7 @@ can tolerate that circuit configuration before proceeding.  If it can't, you nee
     \draw [fill] (2,0) circle (.1);
     \draw [fill] (3,0) circle (.1);
     \draw (3,0) to [full led] (3,-2);
-    \draw (3,-2) to [R, l={220\,$\Omega$}] (3,-4) node[ground] {};
+    \draw (3,-2) to [R, l={\LEDresistorValue\,$\Omega$}] (3,-4) node[ground] {};
   \end{circuitikz}
   \caption{\label{fig:input-led}Sensor Input Circuit with \acronym{LED} Present}
 \end{figure}

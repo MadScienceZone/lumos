@@ -66,6 +66,7 @@ set of licensing terms.
 \newpage
 \tableofcontents
 \listoffigures
+\newpage
 \listoftables
 
 \mainmatter
@@ -194,7 +195,7 @@ Sensor inputs \index{sensors} may be added to an intelligent Lumos board to allo
 sensors to trigger pre-programmed relay actions.  The host PC may also monitor the
 sensors.
 
-{\bfseries At the present time, pre-programmed actions are not implemented.  The host PC
+{\bfseries At the present time, pre-programmed actions are not yet implemented.  The host PC
 may query the Lumos board to see the status of its sensors, then command the board to do
 something in response.}
 
@@ -970,6 +971,8 @@ input for use with a Lumos board.
  \caption{Board with No Sensors (above) and Two Sensors (below)\label{fig:pcbsensors}}
 \end{figure}
 
+\newcommand\SensorConnectorID{J16}
+\newcommand\LEDresistorValue{220}
 \input{keepleds}
 
 \section{Installing the Option Hardware}
