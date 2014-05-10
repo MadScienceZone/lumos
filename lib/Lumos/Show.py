@@ -4,7 +4,7 @@
 # $Header: /tmp/cvsroot/lumos/lib/Lumos/Show.py,v 1.7 2009-01-23 16:33:29 steve Exp $
 #
 # Lumos Light Orchestration System
-# Copyright (c) 2005, 2006, 2007, 2008 by Steven L. Willoughby, Aloha,
+# Copyright (c) 2005, 2006, 2007, 2008, 2014 by Steven L. Willoughby, Aloha,
 # Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
 # License version 3.0.
 #
@@ -25,24 +25,34 @@
 # USE THIS PRODUCT AT YOUR OWN RISK.
 # 
 import ConfigParser, inspect
-from Lumos.PowerSource        import PowerSource
-from Lumos.Network.Networks   import network_factory, supported_network_types
-from Lumos.Device.Controllers import controller_unit_factory, supported_controller_types
+from Lumos.PowerSource             import PowerSource
+from Lumos.Network.Networks        import network_factory, supported_network_types
+from Lumos.Device.Controllers      import controller_unit_factory, supported_controller_types
+from Lumos.VirtualChannels.Factory import virtual_channel_factory, supported_virtual_channel_types
 
 def get_config_dict(conf, section, typemap, objlist=None):
-    dict = {}
+    a_dict = {}
     for k in conf.options(section):
         if k in typemap:
-            if   typemap[k] == 'int':     dict[k] = conf.getint(section, k)
-            elif typemap[k] == 'float':   dict[k] = conf.getfloat(section, k)
-            elif typemap[k] == 'bool':    dict[k] = conf.getboolean(section, k)
-            elif typemap[k] == 'objlist': dict[k] = objlist[conf.get(section, k)]
+            if   typemap[k] == 'int':     a_dict[k] = conf.getint(section, k)
+            elif typemap[k] == 'float':   a_dict[k] = conf.getfloat(section, k)
+            elif typemap[k] == 'bool':    a_dict[k] = conf.getboolean(section, k)
+            elif typemap[k] == 'objlist': a_dict[k] = objlist[conf.get(section, k)]
             elif typemap[k] == 'ignore':  pass
+            elif typemap[k] == 'objarray':
+                a_dict[k] = []
+                for index in conf.get(section, k).split():
+                    if index in objlist:
+                        a_dict.append(objlist[index])
+                        del objlist[index]
+                    else:
+                        raise KeyError('Value "{0}" in [{1}] field {2} not expected or valid'.format(
+                            index, section, k))
             else:
                 raise ValueError, "Invalid typemap value for %s" % section
         else:
-            dict[k] = conf.get(section, k)
-    return dict
+            a_dict[k] = conf.get(section, k)
+    return a_dict
 
 class Show (object):
     '''
@@ -64,6 +74,9 @@ class Show (object):
 
         title:              The show title.
         description:        The show's descriptive text.
+
+        virtual_channels:   A dictionary of VirtualChannel objects, indexed by
+                            the channel ID string.
     '''
     def __init__(self):
         self._clear()
@@ -71,6 +84,7 @@ class Show (object):
     def _clear(self):
         self.all_power_sources = {}
         self.top_power_sources = []
+        self.virtual_channels = {}
         self.networks = {}
         self.controllers = {}
         self.title = None
@@ -114,6 +128,7 @@ class Show (object):
     def _load_from_config(self, show, open_device):
         self.title = show.get('show', 'title')
         self.description = show.get('show', 'description')
+        unvirtualized_channels = {}
         #
         # POWER SOURCES
         #
@@ -164,11 +179,79 @@ class Show (object):
                         c_ID = channel_ID[len(unit_ID)+6:]
                         self.networks[net_ID].units[unit_ID].add_channel(c_ID, 
                             **get_config_dict(show, channel_ID, {
-                                'load':   'float',
-                                'dimmer': 'bool',
-                                'warm':   'int',
-                                'power_source':  'objlist',
+                                'load':         'float',
+                                'dimmer':       'bool',
+                                'warm':         'int',
+                                'virtual':      'ignore',
+                                'color':        'ignore',
+                                'power_source': 'objlist',
                             }, self.all_power_sources))
+
+                        u_obj = self.networks[net_ID].units[unit_ID]
+                        c_obj = u_obj.channels[u_obj.channel_id_from_string(c_ID)]
+                        if show.has_option(channel_ID, 'virtual'):
+                            # this hardware channel is declaring its own virtual channel
+                            v_id = show.get(channel_ID, 'virtual')
+                            if v_id in self.virtual_channels or show.has_section('virtual '+v_id):
+                                raise KeyError('virtual channel {0} defined in [{1}] already exists'.format(
+                                    v_id, channel_ID))
+
+                            v_name = c_obj.name
+                            sequence = 0
+                            while not v_name or v_name in self.virtual_channels or show.has_section('virtual '+v_name):
+                                v_name = 'channel {0}.{1}#{2}'.format(unit_ID, c_ID, sequence)
+                                sequence += 1
+
+                            self.virtual_channels[v_id] = virtual_channel_factory(
+                                ('dimmer' if c_obj.dimmer else 'toggle'),
+                                id=v_id,
+                                channel=c_obj,
+                                name=v_name,
+                                color=(show.get(channel_ID, 'color') if show.has_option(channel_ID, 'color') else None),
+                            )
+                        else:
+                            # we'll have to wait until later to match it up with a virtual channel
+                            unvirtualized_channels[unit_ID + '.' + c_ID] = c_obj
+
+        #
+        # VIRTUAL CHANNELS
+        #
+        for stanza in show.sections():
+            if stanza.startswith('virtual '):
+                if len(stanza) < 9:
+                    raise ValueError('virtual stanza must be [virtual <id>]')
+
+                v_id = stanza[8:]
+                if v_id in self.virtual_channels:
+                    raise KeyError('duplicate virtual channel definition [{0}]'.format(stanza))
+
+                v_type = show.get(stanza, 'type')
+                v_args = get_config_dict(show, stanza, {
+                    'type':     'ignore',
+                    'channel':  'objarray',
+                }, unvirtualized_channels)
+                self.virtual_channels[v_id] = virtual_channel_factory(v_type, id=v_id, **v_args)
+        # 
+        # create virtual channels for any still left out
+        #
+        for c_ID in unvirtualized_channels:
+            c_obj = unvirtualized_channels[c_ID]
+            v_name = c_obj.name
+            v_id = 'v{0}'.format(c_ID)
+            channel_ID = 'chan ' + c_ID
+            sequence = 0
+            while not v_name or v_id in self.virtual_channels or show.has_section('virtual '+v_id):
+                sequence += 1
+                v_name = 'channel {0}#{1}'.format(c_ID, sequence)
+                v_id = 'v{0}_{1}'.format(c_ID, sequence)
+
+            self.virtual_channels[v_id] = virtual_channel_factory(
+                ('dimmer' if c_obj.dimmer else 'toggle'),
+                id=v_id,
+                name=v_name,
+                color=(show.get(channel_ID, 'color') if show.has_option(channel_ID, 'color') else None),
+                channel=c_obj,
+            )
 
     def load_file(self, filename, open_device=True):
         self.load(open(filename), open_device)
@@ -200,7 +283,7 @@ class Show (object):
 ; Show Configuration Profile
 ;
 ; Edit this file directly (instructions are provided in-line below, and are
-; also explained in the product documentation; see SHOW.CONF(5)), or use
+; also explained in the product documentation; see LUMOS-CONFIG(5)), or use
 ; the lconfig GUI application to edit it in a more friendly and interactive
 ; manner.
 ;___________________________________________________________________________
@@ -338,10 +421,10 @@ class Show (object):
 ;   description=...  A longer description of the show.
 ;
 [show]'''
-        print >>file, "powersources=" + ' '.join(self.top_power_sources)
-        print >>file, "networks="     + ' '.join(sorted(self.networks))
         print >>file, "title="        + multiline(self.title)
         print >>file, "description="  + multiline(self.description)
+        print >>file, "powersources=" + ' '.join(self.top_power_sources)
+        print >>file, "networks="     + ' '.join(sorted(self.networks))
         print >>file, '''
 ;___________________________________________________________________________
 ;POWER SOURCES
@@ -394,6 +477,7 @@ class Show (object):
 ;   type=...        The type of network being defined.  As of the time this
 ;                   file was written, the currently-defined set of network
 ;                   types include:
+;                       parallel    byte-at-a-time strobed port
 ;                       parbit      bit-at-a-time on a parallel port
 ;                       serial      RS-232 byte-at-a-time stream
 ;                       serialbit   bit-at-a-time on a serial port
@@ -490,6 +574,7 @@ class Show (object):
 
         global_controller_list = {}
         unit_network_id = {}
+        channel_full_id = {}
         for netID, o in sorted(self.networks.iteritems()):
             print >>file, "[net %s]" % netID
             dump_object_constructor(file, o, supported_network_types, skip=('open_device',))
@@ -521,9 +606,10 @@ class Show (object):
 ;                      renard     Renard DIY controller, serial protocol
 ;                      olsen595   Olsen595/Grinch DIY controllers, parallel
 ;                      firegod    FireGod DIY controller
+;                      udmx       Micro DMX USB controller
 ;
 ;   address=...     Unit address.  (not all unit types use addresses)
-;                   (firegod, renard, 48ssr)
+;                   (firegod, renard, lumos)
 ;
 ;   resolution=n    How many dimmer levels are supported.  If a channel may
 ;                   go from 0 to 63, its resolution is 64.
@@ -531,7 +617,7 @@ class Show (object):
 ;
 ;   channels=n      For controllers with variable numbers of channels,
 ;                   specify how many are attached to this controller unit.
-;                   (firegod, olsen595, renard)
+;                   (firegod, olsen595, renard, lumos)
 ;'''
         global_channel_list = {}
         for unitID, o in sorted(global_controller_list.iteritems()):
@@ -588,7 +674,41 @@ class Show (object):
                 if o.power_source is not None and o.power_source is not unitObj.power_source:
                     print >>file, 'power_source=%s' % o.power_source.id
                 dump_object_constructor(file, o, None, skip=('id', 'warm', 'power_source'), method=unitObj.add_channel)
+                channel_full_id[id(o)] = '{0}.{1}'.format(unitID, channelID)
                 print >>file
+        print >>file, ''';
+;___________________________________________________________________________
+;VIRTUAL CHANNELS
+;
+; The following sections, each named [virtual ID], where ID is some unique
+; identifier, describe each virtual channel in the system.  These are the
+; higher-level abstraction of the hardware channels and are what the user
+; actually works with in the sequence editor.
+;
+;   name=...        User-friendly name for the virtual channel.
+;
+;   type=...        Channel type.  For example:
+;                   dimmer    Channels with dimmer capability
+;                   toggle    Channels which can only be turned on or off
+;                   rgb       Multi-color channels
+;
+;   channel=ID      ID (as defined in [chan ID] stanza) of the hardware
+;                   channel which corresponds to this virtual channel.  For
+;                   some devices, such as RGB-type, this is a space-separated
+;                   list of channels.
+;
+;   color=#rrggbb   Color to use when representing the channel to the user.
+;'''
+        for v_id, v_obj in sorted(self.virtual_channels.iteritems()):
+            print >>file, "[virtual {0}]".format(v_id)
+            dump_object_constructor(file, v_obj, supported_virtual_channel_types, skip=('id','channel'))
+            if isinstance(v_obj.channel, (list,tuple)):
+                print >>file, "channel={0}".format(' '.join([channel_full_id[id(o)] for o in v_obj.channel]))
+            else:
+                print >>file, "channel={0}".format(channel_full_id[id(v_obj.channel)])
+                    
+            print >>file
+
         print >>file, ''';
 ; End Configuration Profile.
 ;'''

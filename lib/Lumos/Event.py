@@ -36,6 +36,8 @@ class Event:
         self.level   = level
         self.delta   = delta
 
+        raise NotImplementedError('Event objects are now deprecated.  Congratulations, you found a bug!')
+
     def __eq__(self, other):
         #if not isinstance(other, Event):
             #return False

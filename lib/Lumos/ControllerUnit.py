@@ -76,7 +76,7 @@ class ControllerUnit (object):
 
         if resolution is None: resolution = self.resolution
         if power_source is None: power_source = self.power_source
-        self.channels[id] = Channel(id, name, load, dimmer, warm, resolution, power_source)
+        self.channels[id] = Channel(id, self, name, load, dimmer, warm, resolution, power_source)
 
     def set_channel(self, id, level, force=False):
         raise NotImplementedError("Subclasses of ControllerUnit must define their own set_channel method.")
@@ -143,9 +143,3 @@ class ControllerUnit (object):
             (k,self.channels[k].current_load()) 
                 for k in self.iter_channels()
             ])
-#
-# $Log: not supported by cvs2svn $
-# Revision 1.5  2008/12/30 22:58:02  steve
-# General cleanup and updating before 0.3 alpha release.
-#
-#

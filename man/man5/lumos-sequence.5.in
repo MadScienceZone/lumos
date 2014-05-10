@@ -26,17 +26,21 @@
 Lumos Sequence File \- script for light displays run by Lumos
 .SH SYNOPSIS
 .LP
-.BI V3, comments
+.BI V4, comments
 .br
-.BI U, id , channels...
+.BI A, filename , volume , channels , frequency , bits , buffer
+\&...
 .br
-.BI A, file , vol , chans , freq , bits , buffer
+.BI C, type , channels
 \&...
 .br
 .BI T, timestamp
 .br
-.BI E, unit |*, channel |*, value , interval
+.BI EV, channel |*, value , interval
 .br
+\&...
+.br
+.BI #, comments
 \&...
 .SH DESCRIPTION
 .LP
@@ -48,8 +52,245 @@ The overall file format is standard CSV (comma-separated value).
 This allows you to edit the file using a spreadsheet program
 (e.g., OpenOffice Calc*, GNU Gnumeric*, or Microsoft Office Excel*) if that's 
 preferred, so long as you save the file into CSV format.
+Specific details about the CSV file format as used here are provided below
+under
+.RB \*(lq "CSV FILE FORMAT" .\*(rq
 .LP
-Specifically:
+Each line in the file is a \*(lqrecord\*(rq which describes a discrete bit of 
+information of interest. Records are themselves composed of \*(lqfields\*(rq 
+which are separated from each other by commas.
+'\".SS Comments
+'\".LP
+'\"This file format does not support comments other than
+'\"as described for the initial record (See the \*(lqV\*(rq
+'\"record type description below).
+.SS "Record Types"
+.LP
+The first field of every record specifies the record's type, and may have one of 
+the following values:
+.TP
+.B #
+Comment.  Any record whose first field begins with a pound sign is ignored on input.
+The comments are not tracked within Lumos, so if the sequence is re-saved from Lumos,
+the comments will be gone.
+.TP
+.B A
+Audio track.  This record describes the audio to be played with the sequence, if any.
+If there is no audio, this record should not appear in the file at all. The following
+fields occur after the record type field.  Any of them may be left empty to take
+the default value.  If not all fields are present at all, defaults are assumed for
+the remaining missing fields to the end of the record.
+.RS
+.TP 10
+.I filename
+The name of the audio file.  The pathname should be written such that the player
+program can locate it (e.g., if it is a pathname relative to a certain directory,
+that should be the current directory from the point of view of the player process).
+The file may be in any audio format supported by PyGame, but safe options include
+WAV and OGG.  If maximum platform compatibility is desired, OGG would be a good choice.
+.TP
+.I volume
+The playback volume, as a percentage from 0 (quiet) to 100 (full volume).  
+[Default: 100]
+.TP
+.I channels
+The number of audio channels to use.  Should be 1 for mono or 2 for stereo.
+[Default: 2]
+.TP
+.I frequency
+The sample frequency in Hz. 
+[Default: 44100]
+.TP
+.I bits
+The number of bits per sample.  Negative values indicate signed data (e.g., \-12 would mean 12-bit signed values), while positive ones indicate unsigned data (e.g., 8 would mean 8-bit unsigned data).
+[Default: \-16]
+.TP
+.I buffer
+The buffer size to maintain for playback, which should be a power of 2.
+[Default: 4096]
+.RE
+.TP
+.B C
+Channel declaration.
+This record describes one or more virtual channels which are being sequenced in the
+subsequent records of the file.  The 
+.B C
+records must appear before any event records.  Each 
+.B C
+record contains at a minimum two more fields:
+.RS
+.TP 10
+.I type
+The virtual channel type.  May be any type understood by the Lumos system,
+for example:
+.RS
+.TP 8
+.B dimmer
+This is the basic channel type, capable of dimming its load across some range of
+values from 0\-100%.
+.TP
+.B toggle
+This is not dimmable, but is always either \*(lqon\*(rq or \*(lqoff\*(rq.
+.TP
+.B rgb
+A full-color device which is controlled at a hardware level by mixing discrete
+levels of red, green, and blue colors together.
+.RE
+.TP
+.I channel
+The name by which this channel is to be known.  This must be unique in the list
+of all channels in the show, and must match a channel definition in the Lumos show
+configuration file.  Multiple channel names may be given in successive fields
+following this one.  They are assumed to all be of the same
+.I type
+(this is for convenience; the effect is the same as if several separate 
+.B C
+records were listed in a row).
+.RE
+.\".TP
+.\".B E
+.\"Event.  This record describes a channel value change event.  This includes 
+.\"four more fields, as follows:
+.\".RS
+.\".TP
+.\".I u
+.\"The controller unit index, as an integer value (0 being the controller described
+.\"by the first 
+.\".B U
+.\"record encountered in the file, 1 being the next, etc.) or the special value
+.\".RB \*(lq * \*(rq
+.\"which means the event applies to 
+.\".I all
+.\"controllers in the system.
+.\".TP
+.\".I ch
+.\"The channel index, as an integer value (0 being the first channel listed for
+.\"this controller in the corresponding
+.\".B U
+.\"record, 1 being the next channel listed, etc.; these may not be the same
+.\"as the device's channel numbers if not all channels are being used), or the
+.\"special value
+.\".RB \*(lq * \*(rq
+.\"which means the event applies to
+.\".I all
+.\"channels of this controller.  If the unit index for this event was
+.\".RB \*(lq * \*(rq,
+.\"then the channel must also be
+.\".RB \*(lq * \*(rq.
+.\".TP
+.\".I v
+.\"The value to change the channel to, as a floating-point percentage, where 0
+.\"represents fully off, and 100 represents fully on.  Device channels incapable
+.\"of dimming should be set to 0 or 100.
+.\".TP
+.\".I dT
+.\"The amount of time over which the transition to the value
+.\".I v
+.\"is to be made.  If an instant change is required, this value would be 0.
+.\"This is an integer value measured in milliseconds.
+.\".RE
+.TP
+.B EV
+Value-change Event.  This record describes a channel value change event.  This includes 
+three more fields, as follows:
+.RS
+.TP 10
+.I channel
+The channel index, as an integer value (0 being the first channel described
+by the first 
+.B C
+record encountered in the file, 1 being the next, etc.) or the special value
+.RB \*(lq * \*(rq
+which means the event applies to 
+.I all
+channels in the system.  In this case, the
+.I value
+specified 
+.B must
+be something that is understood by all virtual channels.
+.TP
+.I value
+The value to change the channel to.  The format for this field depends on the channel
+type:
+.RS
+.TP 8
+.B toggle
+The simplest channel type, toggles may only be on or off.  The 
+.I value 
+given for it in the sequence file is either 
+.RB \*(lq on \*(rq
+or
+.RB \*(lq off. \*(rq
+Numeric values are not permitted for these channels to avoid accidental confusion
+with dimmers.
+.TP
+.B dimmer
+A dimmer channel accepts a floating-point percentage, where 
+.RB \*(lq 0 \*(rq
+represents fully off, and 
+.RB \*(lq 100 \*(rq
+represents fully on.  Device channels incapable
+of dimming should be specified as toggles instead.  Dimmer channels
+also accept the values 
+.RB \*(lq on \*(rq
+and
+.RB \*(lq off. \*(rq
+.TP
+.B rgb
+An RGB channel accepts the same values as dimmer channels, in which
+case all color subchannels are set to the same value (i.e., the value is assumed
+to be the intensity of white light to display).  Otherwise, the special value
+.BI # rrggbb
+is used, where 
+.I rr
+specifies a two-digit hexadecimal value 
+.RB ( 00 \- FF ) 
+to indicate the level of red
+to mix into the output 
+.RB ( 00 =0%, 
+.BR FF =100%), 
+and likewise with 
+.I gg
+and
+.I bb
+indicating the level of green and blue respectively.  Either upper- or lower-case
+may be used.
+.RE
+.TP 
+.I interval
+The amount of time over which the transition to the 
+.I value
+is to be made.  If an instant change is required, this value should be 0 or omitted
+entirely.
+This is an integer value measured in milliseconds.
+[Default: 0]
+.RE
+.TP
+.B T
+Timestamp.  The next field is an (integer) number of milliseconds measured from the
+start of the sequence.  All event records listed after this point will occur at
+that time in the sequence.  These do not need to appear in chronological order,
+and in fact a later
+.B T
+record may duplicate the time value of a previous one (in which case their events
+will be merged and all take place at that time in the sequence).
+.\".TP
+.\".B U
+.\"Controller unit declaration.  The next field is the ID tag for a controller unit
+.\"used in this sequence.  Following this are one or more fields giving the ID tags
+.\"for each channel used in this sequence.  This record must appear before any event
+.\"record referencing this controller unit.
+.TP
+.BI V n
+This must be the first record in the sequence.  The number
+.I n
+specifies what version of this format is being used for this file.  This document
+describes version 4.
+The remainder of the record is ignored.
+.SH "CSV FILE FORMAT"
+.LP
+The specific dialect of comma-separated value (CSV) file used by 
+this program follows these rules:
 .TP 
 (1)
 The file is organized into a sequential collection of records,
@@ -92,161 +333,53 @@ Blank space around commas should
 be included in the file unless you intend for the field
 contents to include those spaces as part of the data
 field.
-.SS Comments
-.LP
-This file format does not support comments other than
-as described for the initial record (See the \*(lqV\*(rq
-record type description below).
-.SS "Record Types"
-.LP
-The first field of every record specifies the record's type, and may have one of 
-the following values:
-.TP
-.B A
-Audio track.  This record describes the audio to be played with the sequence, if any.
-If there is no audio, this record should not appear in the file at all. The following
-fields occur after the record type field.  Any of them may be left empty to take
-the default value.  If not all fields are present at all, defaults are assumed for
-the remaining missing fields to the end of the record.
-.RS
-.TP 10
-.I filename
-The name of the audio file.  The pathname should be written such that the player
-program can locate it (e.g., if it is a pathname relative to a certain directory,
-that should be the current directory from the point of view of the player process).
-The file may be in any audio format supported by PyGame, but safe options include
-WAV and OGG.  If maximum platform compatibility is desired, OGG would be a good choice.
-.TP
-.I volume
-The playback volume, as a percentage from 0 (quiet) to 100 (full volume).  
-[Default: 100]
-.TP
-.I channels
-The number of audio channels to use.  Should be 1 for mono or 2 for stereo.
-[Default: 2]
-.TP
-.I frequency
-The sample frequency in Hz. 
-[Default: 44100]
-.TP
-.I bits
-The number of bits per sample.  Negative values indicate signed data (e.g., \-12 would mean 12-bit signed values), while positive ones indicate unsigned data (e.g., 8 would mean 8-bit unsigned data).
-[Default: \-16]
-.TP
-.I buffer
-The buffer size to maintain for playback, which should be a power of 2.
-[Default: 4096]
-.RE
-.TP
-.B E
-Event.  This record describes a channel value change event.  This includes 
-four more fields, as follows:
-.RS
-.TP
-.I u
-The controller unit index, as an integer value (0 being the controller described
-by the first 
-.B U
-record encountered in the file, 1 being the next, etc.) or the special value
-.RB \*(lq * \*(rq
-which means the event applies to 
-.I all
-controllers in the system.
-.TP
-.I ch
-The channel index, as an integer value (0 being the first channel listed for
-this controller in the corresponding
-.B U
-record, 1 being the next channel listed, etc.; these may not be the same
-as the device's channel numbers if not all channels are being used), or the
-special value
-.RB \*(lq * \*(rq
-which means the event applies to
-.I all
-channels of this controller.  If the unit index for this event was
-.RB \*(lq * \*(rq,
-then the channel must also be
-.RB \*(lq * \*(rq.
-.TP
-.I v
-The value to change the channel to, as a floating-point percentage, where 0
-represents fully off, and 100 represents fully on.  Device channels incapable
-of dimming should be set to 0 or 100.
-.TP
-.I dT
-The amount of time over which the transition to the value
-.I v
-is to be made.  If an instant change is required, this value would be 0.
-This is an integer value measured in milliseconds.
-.RE
-.TP
-.B T
-Timestamp.  The next field is an (integer) number of milliseconds measured from the
-start of the sequence.  All event records listed after this point will occur at
-that time in the sequence.  These do not need to appear in chronological order,
-and in fact a later
-.B T
-record may duplicate the time value of a previous one (in which case their events
-will be merged and all take place at that time in the sequence).
-.TP
-.B U
-Controller unit declaration.  The next field is the ID tag for a controller unit
-used in this sequence.  Following this are one or more fields giving the ID tags
-for each channel used in this sequence.  This record must appear before any event
-record referencing this controller unit.
-.TP
-.BI V n
-This must be the first record in the sequence.  The number
-.I n
-specifies what version of this format is being used for this file.  This document
-describes version 3.
-The remainder of the record is ignored.
 .SH EXAMPLE
 .LP
-A file which controls channel C7 of the controller called \*(lqfloods\*(rq,
-and four channels (0, 1, 2, and 3) of the controller called \*(lqtree\*(rq,
-which ramps up the floods over 2 seconds, then at 7s in drops them to half
-brightness; sequences each tree channel for 1s each in turn, then ramps each
+A file which controls channels called floods,
+tree0, tree1, tree2, and tree3,
+which ramps up the white floods over 2 seconds, then at 7s in drops them to half
+brightness and changes their color to blue; 
+sequences each tree channel for 1s each in turn, then ramps each
 up from off to on in 1s each and holds them there, then at 00:00:10.000 fades
 everything to black over a 1s period, would look like this:
 .RS
 .na
 .nf
-V3,Lumos sequence file,test.lseq
+V4,Lumos sequence file,test.lseq
 A,test.ogg,100
-U,floods,C7
-U,tree,0,1,2,3
+C,rgb,floods
+C,dimmer,tree0,tree1,tree2,tree3
 T,0
-E,*,*,0,0
+EV,*,0
 T,1000
-E,0,0,100,2000
-E,1,0,100,0
+EV,0,100,2000
+EV,1,100
 T,2000
-E,1,0,0,0
-E,1,1,100,0
+EV,1,0
+EV,2,100
 T,3000
-E,1,1,0,0
-E,1,2,100,0
+EV,2,0
+EV,3,100
 T,4000
-E,1,2,0,0
-E,1,3,100,0
+EV,3,0
+EV,4,100
 T,5000
-E,1,0,100,1000
+EV,1,100,1000
 T,6000
-E,1,1,100,1000
+EV,2,100,1000
 T,7000
-E,1,2,100,1000
-E,0,0,50,0
+EV,3,100,1000
+EV,0,#000080
 T,8000
-E,1,3,100,1000
+EV,4,100,1000
 T,10000
-E,*,*,0,1000
+EV,*,0,1000
 .fi
 .ad
 .RE
 .SH VERSION
 .LP
-This documents the Lumos sequence file version 3, for the Lumos software version @@VERSION@@.
+This documents the Lumos sequence file version 4, for the Lumos software version @@VERSION@@.
 .SH COPYRIGHT
 .LP
 Lumos Light Orchestration System,
@@ -258,11 +391,43 @@ Steve Willoughby / steve@alchemy.com
 .LP
 Version 1 file format created 6 September 2005 for Lumos 0.1.  This version is deprecated and
 no longer supported by Lumos (this was never in a released version of the software).
-.br
+.LP
 Version 2 file format created 25 September 2008.  This differed from V3 files only in that
 it did not include an \*(lqA\*(rq (audio) record type.
-.br
-Version 3 file format created 29 November 2011 (described here).
+.LP
+Version 3 file format created 29 November 2011.  This version of the sequence file
+dealt with hardware controller channels directly.  It included the following obsolete
+record types:
+.TP
+.BI U, id , channels...
+This has been replaced by the new 
+.B C
+record type.  Each 
+.B U
+record described a hardware controller, giving its 
+.I id
+as listed in the Lumos show configuration file, and listed all the channel IDs for
+that controller which are mentioned in this sequence file.  The event records
+referenced these units and channels.
+.TP
+.BI E, unit |*, channel |*, value , interval
+This has been replaced by the new
+.B EV
+record.  This specified a level-change event for the given
+.I unit
+and
+.IR channel .
+Those were identified by integers starting with 0, following the order
+in which they were declared in the
+.B U
+record(s) at the beginning of the sequence file.  As such, they were local ID
+numbers in the context of the sequence file only.
+.LP
+Version 4 file format created 28 April 2014 for Lumos 1.0 (described here).
+.LP
+Versions 2, 3, and 4 are currently recognized by Lumos but files should be moved to
+current formats as soon as possible as legacy support for older file formats will
+eventually be phased out.
 .SH BUGS
 .LP
 We still need to work out a more sophisticated repeat block protocol.

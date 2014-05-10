@@ -1,12 +1,17 @@
 #!/usr/local/bin/python
 # vi:set ai sm nu ts=4 sw=4 expandtab:
 #
-# Simple assembler for Lumos sequence bytecodes.
+# Simple assembler for Lumos program bytecodes.
 #
 # Requires: Python 2.6 or later
 #
 import optparse, time, sys, re, os.path
 from LumosHexFile import LumosHexFile
+
+ALIASES = {
+    'ifclr':    'ifnone',
+    'ifset':    'ifall',
+}
 
 OPCODES = {
     'add':     ((0x13, ['$','$']),        (0x53, ['$','#'])),
@@ -21,15 +26,15 @@ OPCODES = {
     'exch':    ((0x11, None),),
     'exit':    ((0x00, None),),
     'fade':    ((0x04, ['$','$','$']),    (0x44, ['#','#','#'])),
-    'fadeout': ((0x8d, None),),
-    'ifeq':    ((0x0c00, ['int','$']), (0x4c00, ['int','#'])),
-    'iflt':    ((0x0c40, ['int','$']), (0x4c40, ['int','#'])),
-    'iflt':    ((0x0c80, ['int','$']), (0x4c80, ['int','#'])),
+    'fadeout': ((0x8d, None), (0xcd, ['#','#']), (0xed, ['#','#1'])),
+    'ifeq':    ((0x0c00, ['int','$','$']), (0x6c00, ['int','$','#0']), (0x4c00, ['int','$','#'])), 
+    'iflt':    ((0x0c40, ['int','$','$']), (0x6c40, ['int','$','#0']), (0x4c40, ['int','$','#'])), 
+    'ifgt':    ((0x0c80, ['int','$','$']), (0x6c80, ['int','$','#0']), (0x4c80, ['int','$','#'])), 
     'ifany':   ((0x0cc0, ['int','flags']),),
     'ifall':   ((0x4cc0, ['int','flags']),),
-    'ifne':    ((0x8c00, ['int','$']), (0xcc00, ['int','#'])),
-    'iflt':    ((0x8c40, ['int','$']), (0xcc40, ['int','#'])),
-    'iflt':    ((0x8c80, ['int','$']), (0xcc80, ['int','#'])),
+    'ifne':    ((0x8c00, ['int','$','$']), (0xec00, ['int','$','#0']), (0xcc00, ['int','$','#'])), 
+    'ifge':    ((0x8c40, ['int','$','$']), (0xec40, ['int','$','#0']), (0xcc40, ['int','$','#'])), 
+    'ifle':    ((0x8c80, ['int','$','$']), (0xec80, ['int','$','#0']), (0xcc80, ['int','$','#'])), 
     'ifnone':  ((0x8cc0, ['int','flags']),),
     'ifnall':  ((0xccc0, ['int','flags']),),
     'incr':    ((0x33, ['$']),),
@@ -46,8 +51,8 @@ OPCODES = {
     'pop':     ((0x90, ['[$]']),          (0xb0, ['[0]']),   (0x70, ['{0}']), (0xf0, ['{$}'])),
     'push':    ((0x8f, ['[$]']),          (0x2f, ['#0']),    (0xaf, ['[0]']), (0x4f, ['#']), 
                                           (0xcf, ['[int]']), (0x6f, ['{0}']), (0xef, ['{$}'])),
-    'ramp':    ((0x84, ['$','$','$']),    (0xc4, ['int','#','#'])),
-    'resfade': ((0x86, None),),
+    'ramp':    ((0x84, ['$','$','$']),    (0xc4, ['#','#','#'])),
+    'resfade': ((0x86, None), (0xc6, ['#','#']), (0xe6, ['#','#1'])),
     'resume':  ((0x06, None),),
     'sleep':   ((0x07, None),),
     'ssfb':    ((0x40, ['#']),),
@@ -71,6 +76,7 @@ FLAGS = {
 class NotImplemenetedError (Exception): pass
 class CompilerError (Exception): pass
 class SignatureMismatch (Exception): pass
+class FatalAssemblerError (Exception): pass
 
 def parse_arguments():
     global options
@@ -93,27 +99,89 @@ def trace(level, msg, stream=sys.stderr, eol=True):
         else:
             stream.flush()
 
-class CompiledSequence (object):
-    def __init__(self, sequence_id):
-        self.sequence_id = sequence_id
+class SymbolTable (object):
+    def __init__(self):
+        self.forward_references = {}
         self.symbol_table = {}
+        self.next_id = -1
+
+    def __getitem__(self, label):
+        if label in self.symbol_table:
+            return self.symbol_table[label]
+
+        if label not in self.forward_references:
+            self.forward_references[label] = self.next_id
+            self.next_id -= 1
+        return self.forward_references[label]
+
+    def __setitem__(self, label, address):
+        if label in self.symbol_table:
+            raise CompilerError("Duplicate symbol {0} (previous definition={1})".format(label, self.symbol_table[label]))
+
+        self.symbol_table[label] = address
+
+    def __iter__(self):
+        return self.symbol_table.__iter__()
+
+    def cleanup(self, binary_list):
+        labels = self.forward_references.keys()
+        unresolved = 0
+
+        trace(2, "Fixing forward references")
+
+        for label in labels:
+            if label not in self.symbol_table:
+                trace(1, "Label {0} not resolved by end of program".format(label))
+                unresolved += 1
+            else:
+                placeholder = self.forward_references[label]
+                address = self.symbol_table[label]
+
+                if placeholder >= 0:
+                    raise FatalAssemblerError("ASSEMBLER BUG: bad placeholder value {0} for label {1}".format(
+                        placeholder, label))
+
+                trace(3, "Searching for instances of {0} (placeholder {1}->address {2})".format(label, placeholder, 
+                    address))
+
+                for i in range(len(binary_list)):
+                    if binary_list[i] == placeholder:
+                        trace(5, "Patched at {0}".format(i))
+                        binary_list[i] = address
+
+                del self.forward_references[label]
+
+        if unresolved:
+            raise CompilerError("{0} unresolved symbol{1}".format(unresolved, ('' if unresolved==1 else 's')))
+
+        trace(2, "Checking for orphaned placeholders")
+        for i,v in enumerate(binary_list):
+            if not 0 <= v <= 255:
+                raise FatalAssemblerError("ASSEMBLER BUG: orphaned placeholder left in binary at {0}: {1}".format(
+                    i, v))
+
+
+class CompiledProgram (object):
+    def __init__(self, program_id):
+        self.program_id = program_id
+        self.symbol_table = SymbolTable()
         self.current_address = 0
         self.binary = []
         self.source_code = {}
 
     def assemble(self, label, instruction, args, src, line_number):
-        trace(4, "sequence {0}: assemble({1}, {2}, {3}) from {4}".format(self.sequence_id, label, instruction, args, src))
+        trace(4, "program {0}: assemble({1}, {2}, {3}) from {4}".format(self.program_id, label, instruction, args, src))
         if self.current_address not in self.source_code:
             self.source_code[self.current_address] = []
         self.source_code[self.current_address].append((line_number, src.rstrip()))
 
         if label:
-            if label in self.symbol_table:
-                raise CompilerError("Duplicate symbol {0} (previous definition={1})".format(label, self.symbol_table[label]))
             self.symbol_table[label] = self.current_address
             trace(4, "Symbol {0} <- {1}".format(label, self.current_address))
 
         if instruction:
+            if instruction.lower() in ALIASES:
+                instruction = ALIASES[instruction.lower()]
             if instruction.lower() not in OPCODES:
                 raise CompilerError("Unknown instruction {0}".format(instruction))
 
@@ -140,22 +208,25 @@ class CompiledSequence (object):
 
     def write_hex(self, fileobj):
         hf = LumosHexFile()
-        fileobj.write(hf.sequence_header(self.sequence_id) + "\n")
+        fileobj.write(hf.program_header(self.program_id) + "\n")
         for i in range(0, len(self.binary), 16):
             fileobj.write(hf.data_record(self.binary[i:i+16]) + "\n")
 
     def write_listing(self, fileobj):
-        fileobj.write("SEQUENCE #{0} ASSEMBLY LISTING\n".format(self.sequence_id))
+        fileobj.write("PROGRAM #{0} ASSEMBLY LISTING\n".format(self.program_id))
         fileobj.write("ADDR BYTES          LINE SOURCE CODE\n")
         fileobj.write("---- -------------- ---- ----------------------------------------------------\n")
         #              --4- -------15------ --4- 
         addr = 0
-        while addr < len(self.binary):
+        while addr <= len(self.binary):
             for line in self.source_code[addr][:-1]:
-                fileobj.write(" "*21 + "{0:04} {1}\n".format(line[0], line[1]))
+                fileobj.write(" "*20 + "{0:04} {1}\n".format(line[0], line[1]))
             src_line = self.source_code[addr][-1]
             b = 4
-            fileobj.write("{0:04X} {1:02X} ".format(addr, self.binary[addr]))
+            if addr < len(self.binary):
+                fileobj.write("{0:04X} {1:02X} ".format(addr, self.binary[addr]))
+            else:
+                fileobj.write("{0:04X}    ".format(addr))
             addr += 1
             while addr not in self.source_code and addr < len(self.binary):
                 fileobj.write("{0:02X} ".format(self.binary[addr]))
@@ -170,9 +241,9 @@ class CompiledSequence (object):
             fileobj.write("{0:04X} {1}\n".format(self.symbol_table[key], key))
         fileobj.write("\n")
 
-class SequenceCollection (object):
+class ProgramCollection (object):
     def __init__(self):
-        self.sequences = []
+        self.programs = []
         self.error_count = 0
 
     def read_source(self, source_file_name):
@@ -181,7 +252,7 @@ class SequenceCollection (object):
 
         with open(source_file_name, 'r') as source:
             trace(1, "Reading source file {0}".format(source_file_name))
-            current_sequence = None
+            current_program = None
             for line in source:
                 line_number += 1
                 trace(3, "Source line {0}: {1}".format(line_number, line.strip()))
@@ -207,39 +278,52 @@ class SequenceCollection (object):
                     trace(2, "instruction='{0}', args={1}".format(instruction, args))
                 elif not label:
                     trace(2, "empty line")
+                    if current_program:
+                        current_program.assemble(None, None, None, line, line_number)
                     continue
 
                 try:
                     #
                     # pseudo-ops
                     #
-                    if instruction.lower() == 'sequence':
+                    if instruction.lower() == 'program':
+                        if current_program:
+                            current_program.symbol_table.cleanup(current_program.binary)
+
                         args = expect_args(instruction, args, ['int'])
-                        current_sequence = CompiledSequence(args[0])
-                        self.sequences.append(current_sequence)
+                        current_program = CompiledProgram(args[0])
+                        self.programs.append(current_program)
+                        current_program.assemble(None, None, None, line, line_number)
                     elif instruction.lower() == 'end':
+                        if current_program:
+                            current_program.assemble(None, None, None, line, line_number)
+                            current_program.symbol_table.cleanup(current_program.binary) # not convinced this is good
                         return
                     #
-                    # sequence code
+                    # program code
                     #
                     else:
-                        if not current_sequence:
-                            raise CompilerError("Statement encountered outside sequence body: {0}".format(line))
-                        current_sequence.assemble(label, instruction, args, line, line_number)
+                        if not current_program:
+                            raise CompilerError("Statement encountered outside program body: {0}".format(line.strip()))
+                        current_program.assemble(label, instruction, args, line, line_number)
 
                 except CompilerError as e:
                     print "{0}, line {1}: ERROR: {2}".format(source_file_name, line_number, e)
                     self.error_count += 1
 
+        if current_program:
+            trace(1, "Warning: missing END statement")
+            current_program.symbol_table.cleanup(current_program.binary)
+
     def write_hex(self, fileobj):
         hf = LumosHexFile()
-        for sequence in self.sequences:
-            sequence.write_hex(fileobj)
+        for program in self.programs:
+            program.write_hex(fileobj)
         fileobj.write(hf.eof() + "\n")
 
     def write_listing(self, fileobj):
-        for sequence in self.sequences:
-            sequence.write_listing(fileobj)
+        for program in self.programs:
+            program.write_listing(fileobj)
 
 def expect_args(cmd, arglist, typelist, symbol_table=None):
     trace(3,"Checking arguments {0} against types {1}".format(arglist, typelist))
@@ -321,8 +405,6 @@ def parse_int_value(v, symbol_table):
         else:
             m = re.match(r'^\s*([a-zA-Z_]\w*)\s*$', v)
             if m:
-                if m.group(1) not in symbol_table:
-                    raise CompilerError("Undefined symbol {0}".format(m.group(1)))
                 return symbol_table[m.group(1)]
             
             return (int(v))
@@ -351,7 +433,7 @@ def main():
     if options.listing:
         list_file = open(options.listing, 'w')
 
-    print "Lumos Sequence Assembler version 1.0"
+    print "Lumos Program Assembler version 1.0"
 
     if options.list_opcodes:
         for instruction in sorted(OPCODES):
@@ -362,28 +444,32 @@ def main():
                     print "{2:02X}   {0:8}{1}".format(instruction, '' if mode[1] is None else ','.join(mode[1]), mode[0])
         sys.exit(0)
 
+    if not inputs:
+        print "No input files given"
+        sys.exit(1)
+
     for source_file in inputs:
         if not hex_file:
             output_name = options.output or os.path.splitext(source_file)[0] + '.hex'
             trace(1,"Writing to {0}".format(output_name))
             hex_file = open(output_name, 'w')
 
-        sequences = SequenceCollection()
-        sequences.read_source(source_file)
+        programs = ProgramCollection()
+        programs.read_source(source_file)
 
     trace(1,"Writng hex output...")
-    sequences.write_hex(hex_file)
+    programs.write_hex(hex_file)
     hex_file.close()
 
     if list_file:
         trace(1,"Writing listing...")
-        sequences.write_listing(list_file)
+        programs.write_listing(list_file)
         list_file.close()
 
 
 
-    print "SEQUENCES: {0:03}".format(len(sequences.sequences))
-    print "ERRORS:    {0:03}".format(sequences.error_count)
+    print "PROGRAMS: {0:03}".format(len(programs.programs))
+    print "ERRORS:   {0:03}".format(programs.error_count)
 
 if __name__ == '__main__':
     main()

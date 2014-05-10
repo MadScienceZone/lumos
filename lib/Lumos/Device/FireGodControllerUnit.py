@@ -74,7 +74,7 @@ class FireGodControllerUnit (ControllerUnit):
 
         ControllerUnit.__init__(self, id, power_source, network, resolution)
         self.address = int(address)
-	self.num_channels = int(num_channels)
+        self.num_channels = int(num_channels)
         self.type = 'FireGod SSR Controller (%d channels)' % self.num_channels
         self.channels = [None] * self.num_channels
         self.update_pending = False

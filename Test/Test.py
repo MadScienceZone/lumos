@@ -66,7 +66,8 @@ def suite():
 	  'ControllersTest',
       'ControllerUnitTest',
 	  'DeviceTest',
-	  'EventTest',
+      'DimmerVirtualChannelTest',
+#	  'EventTest',              # DEPRECATED CLASS
 	  'FirecrackerX10ControllerUnitTest',
 	  'FireGodControllerUnitTest',
 	  'LCheckTest',
@@ -77,6 +78,7 @@ def suite():
 	  'Olsen595ControllerUnitTest',
 	  'PowerSourceTest',
 	  'RenardControllerUnitTest',
+      'RGBVirtualChannelTest',
 	  'ShowTest',
 	  'SerialNetworkTest',        # XXX device tests?
 	  'ParallelBitNetworkTest',   # XXX device tests?
@@ -87,6 +89,9 @@ def suite():
 	  'TestNetworkTest',
 	  'TestParallelNetworkTest',
       'TimeRangeTest',
+      'ValueEventTest',
+      'VirtualChannelTest',
+      'ToggleVirtualChannelTest',
 	  'VixenSequenceTest',
       'X10ControllerUnitTest'
     )

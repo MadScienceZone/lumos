@@ -1,10 +1,9 @@
 # vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS CHANNEL CLASS
-# $Header: /tmp/cvsroot/lumos/lib/Lumos/Channel.py,v 1.4 2008-12-31 00:25:19 steve Exp $
 #
 # Lumos Light Orchestration System
-# Copyright (c) 2005, 2006, 2007, 2008 by Steven L. Willoughby, Aloha,
+# Copyright (c) 2005, 2006, 2007, 2008, 2014 by Steven L. Willoughby, Aloha,
 # Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
 # License version 3.0.
 #
@@ -40,11 +39,11 @@ class Channel (object):
     of channels.
     """
 
-    def __init__(self, id, name=None, load=None, dimmer=True, warm=None, resolution=100, power_source=None):
+    def __init__(self, id, controller, name=None, load=None, dimmer=True, warm=None, resolution=100, power_source=None):
         """
         Constructor for Channel objects:
 
-        Channel(id, [name], load, [dimmer], [warm], [resolution], power_source)
+        Channel(id, controller, [name], load, [dimmer], [warm], [resolution], power_source)
 
         id:           unique (within a given controller) ID 
                       for this channel.
@@ -63,6 +62,8 @@ class Channel (object):
         resolution:   number of discrete dimmer steps supported.  
                       [default=100]
         power_source: PowerSource object supplying power to this channel
+        controller:   Reference to the controller object to which this 
+                      channel belongs.
         """
 
         if name is None:
@@ -75,11 +76,13 @@ class Channel (object):
             raise ValueError("Channel %s power_source parameter is required" % id)
 
 
+        self.id = id
         self.load = float(load)
         self.dimmer = bool(dimmer)
         self.resolution = int(resolution)
         self.level = None
         self.power_source = power_source
+        self.controller = controller
         if warm is not None:
             self.warm = self.raw_dimmer_value(warm)
             if not 0 <= self.warm < self.resolution:
@@ -91,6 +94,7 @@ class Channel (object):
                 raise DimmerError, "Channel %s specifies warm value but is not dimmable." % id
         else:
             self.warm = None
+
 
     def raw_dimmer_value(self, n):
         '''Translate brightness percentage to device-specific "raw"
@@ -193,9 +197,3 @@ class Channel (object):
     def current_load(self):
         "Report the load assigned to this channel as a tuple (amps, PowerSource)"
         return (self.load, self.power_source)
-#
-# $Log: not supported by cvs2svn $
-# Revision 1.3  2008/12/30 22:58:02  steve
-# General cleanup and updating before 0.3 alpha release.
-#
-#

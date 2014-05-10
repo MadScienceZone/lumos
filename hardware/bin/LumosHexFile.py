@@ -24,11 +24,11 @@
 # USE THIS PRODUCT AT YOUR OWN RISK.
 # 
 class LumosHexFile (object):
-    def sequence_header(self, sequence_id):
-        if not 0 <= sequence_id < 128:
-            raise ValueError("sequence_id {0} out of range 0-127".format(sequence_id))
+    def program_header(self, program_id):
+        if not 0 <= program_id < 128:
+            raise ValueError("program_id {0} out of range 0-127".format(program_id))
         self.current_address = 0
-        return self._record(type=4, data=[00,sequence_id])
+        return self._record(type=4, data=[00,program_id])
 
     def eof(self):
         return self._record(type=1)
