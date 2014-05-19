@@ -461,11 +461,11 @@ inputs coming in on the same pins of the microcontroller.
 The correspondence of \acronym{LED}s to inputs is shown in Table~\ref{tbl:led-inputs}.
 \begin{table}[htb]
  \begin{center}
-  \begin{tabular}{|c|ll|}\hline
-    \bfseries Sensor & \multicolumn{2}{c|}{\bfseries Diagnostic \acronym{LED}} \\\hline\hline
-    {\LARGE\strut}$\overline{\hbox{A}}$ & D0  & ``Activity'' (yellow) \\\hline
-    {\LARGE\strut}$\overline{\hbox{B}}$ & D3  & ``Status'' (red) \\\hline
-    {\LARGE\strut}$\overline{\hbox{C}}$ & D2  & ``Status'' (yellow) \\\hline
+  \begin{tabular}{cll}\toprule
+    \bfseries Sensor & \multicolumn{2}{c}{\bfseries Diagnostic \acronym{LED}} \\\midrule
+    {\LARGE\strut}$\overline{\hbox{A}}$ & D0  & ``Activity'' (yellow) \\
+    {\LARGE\strut}$\overline{\hbox{B}}$ & D3  & ``Status'' (red) \\
+    {\LARGE\strut}$\overline{\hbox{C}}$ & D2  & ``Status'' (yellow) \\\bottomrule
   \end{tabular}
  \end{center}
  \caption{\label{tbl:led-inputs}Mapping of Diagnostic \acronym{LED}s to Input Sensors}
@@ -591,6 +591,52 @@ plugged in to J2.  An example front panel circuit is shown in Figure~\ref{sch:fp
  \caption{\label{sch:fpex}Example of a Front Panel Circuit for a Lumos Board}
 \end{figure}
 
+\chapter{Assembling a Relay-Only Controller}
+Although not explicitly supported by the design, the Lumos 4-Channel DC controller
+may be modified to be a simple four-channel DC solid-state relay unit with on on-board
+intelligent controller.  This would then require an external TTL-level logic input to
+drive each relay output.
+
+To do this, omit everything between U3 and J0.  Install four jumper wires across the 
+holes where the following pins of U0 would have gone:
+%             A   C B D
+%             |   | | |
+%     0 0 0 0 0 0 0 0 0 1 
+%     1 2 3 4 5 6 7 8 9 0
+%       (bottom view)
+%     2 1 1 1 1 1 1 1 1 1
+%     0 9 8 7 6 5 4 3 2 1
+%             | | | |
+%             | | | |
+%             0 1 2 3  SSRs
+\begin{center}
+ \begin{tabular}{c}
+  U0 pin 9---13 \\
+  U0 pin 8---14 \\
+  U0 pin 7---15 \\
+  U0 pin 5---16 \\
+ \end{tabular}
+\end{center}
+This connects the SSR inputs directly to the pins at terminal strip J0.  The inputs
+are listed in Table~\ref{tbl:relayonly}.
+\begin{table}
+ \begin{center}
+  \begin{tabular}{cc}\toprule
+   \bfseries Input & \bfseries Channel \\\midrule
+   $\overline{\textrm{A}}$ & 0 \\
+   $\overline{\textrm{B}}$ & 2 \\
+   $\overline{\textrm{C}}$ & 1 \\
+   $\overline{\textrm{D}}$ & 3 \\
+  \bottomrule
+  \end{tabular}
+  \caption{Relay-Only Logic-level Inputs\label{tbl:relayonly}}
+ \end{center}
+\end{table}
+
+Additionally, you'll need to provide a positive \SI{5}{\volt} supply along with the
+logic inputs.  This can be done by completing the voltage regulator circuit around U5,
+or omitting that regulator ciruit (U5, D6, C7, C8, J4, J5, and J6) and instead attaching
+a \SI{+5}{\volt} lead at J2 pin 1.
 \chapter{Going On From Here}\label{ch:goingon}
 \LLstart{N}{OW}{that your Lumos controller} board is assembled, go on to read the manual
 \emph{Installing the Lumos 4-Channel DC Controller} for help in setting up your controller

@@ -19,5 +19,5 @@ distclean: clean
 	rm -rf dist_bin
 
 dist: distclean builddocs
-	(mkdir -p dist_bin && cd bin && for file in *; do sed -e 's/@@RELEASE@@/$(RELEASE)/g' -e 's/^#@@REL@@//' < $$file > ../dist_bin/$$file; done)
+	(mkdir -p dist_bin && cd bin && for file in *; do sed -e 's/@@RELEASE@@/$(RELEASE)/g' -e 's/^#@@REL@@//' -e '/@@DEV-ONLY@@/d'< $$file > ../dist_bin/$$file; done)
 	./setup.py sdist --formats=gztar,zip

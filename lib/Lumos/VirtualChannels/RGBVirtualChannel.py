@@ -48,6 +48,18 @@ class RGBVirtualChannel (VirtualChannel):
     def all_hardware_channels(self):
         return self.channel
 
+    def set_raw_value(self, value, subidx=0):
+        if not 0 <= subidx <= 2:
+            raise ValueError('subidx "{1}" for RGB virtual channel "{0}" out of range'.format(
+                self.id, subidx))
+        newvalue = self.current_raw_value
+        newvalue[subidx] = value
+        self.current_raw_value = self.normalize_level_value(self.denormalize_level_value(newvalue))
+        
+    def denormalize_level_value(self, value):
+        return "#{0[0]:02x}{0[1]:02x}{0[2]:02x}".format(
+            map(lambda x: max(min(int((x/100.0)*255),255),0), value))
+
     def normalize_level_value(self, value, permissive=False):
         """
         Levels for RGB devices are a string in the form #rrggbb,

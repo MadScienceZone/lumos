@@ -42,6 +42,16 @@ class DimmerVirtualChannel (VirtualChannel):
         self.type = 'dimmer'
         self.current_raw_value = 0
 
+    def denormalize_level_value(self, value):
+        v = float(value)
+        if v.is_integer():
+            return int(v)
+
+        if not 0 < v < 100:
+            raise ValueError("Dimmer values of {0} are out of range (0-100%)".format(v))
+
+        return v
+
     def normalize_level_value(self, value, permissive=False):
         """
         Levels for dimmers can be a floating-point value from 0 to 100,

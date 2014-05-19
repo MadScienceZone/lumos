@@ -42,6 +42,9 @@ class ToggleVirtualChannel (VirtualChannel):
         self.type = 'toggle'
         self.current_raw_value = 0
 
+    def denormalize_level_value(self, value):
+        return 'on' if value else 'off'
+            
     def normalize_level_value(self, value, permissive=False):
         """
         Levels for toggles can be 'on' or 'off'.  To normalize that, 

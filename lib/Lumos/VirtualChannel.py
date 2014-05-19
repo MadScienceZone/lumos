@@ -50,8 +50,19 @@ class VirtualChannel (object):
         self.id = id
         self.type = None
 
+    def set_raw_value(self, value, subidx=0):
+        if subidx != 0:
+            raise ValueError('Virtual channel "{0}" ("{1}") does not have a sub-channel "{2}".'.format(
+                self.id, self.name, subidx))
+
+        # this will throw an exception if value is out of bounds for this type of virtual channel
+        self.current_raw_value = self.normalize_level_value(self.denormalize_level_value(value))
+
     def normalize_level_value(self, value, permissive=False):
         raise NotImplementedError("VirtualChanel is an abstract base class.  Derived sub-classes must implement their own normalize_level_value() method.")
+
+    def denormalize_level_value(self, value):
+        raise NotImplementedError("VirtualChanel is an abstract base class.  Derived sub-classes must implement their own denormalize_level_value() method.")
 
     def compile_level_change(self, base_timestamp, base_priority, new_raw_level, time_delta, force=False):
         raise NotImplementedError("VirtualChanel is an abstract base class.  Derived sub-classes must implement their own compile_level_change() method.")

@@ -3,7 +3,7 @@
 # LUMOS GUI SEQUENCE EDITOR CANVAS WIDGET
 #
 # Lumos Light Orchestration System
-# Copyright (c) 2013 by Steven L. Willoughby, Aloha,
+# Copyright (c) 2013, 2014 by Steven L. Willoughby, Aloha,
 # Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
 # License version 3.0.
 #
@@ -188,12 +188,9 @@ class SequencerCanvas (Tkinter.Frame):
     def draw_channels(self):
         self.canvas.delete('chan')
         
-        for controller in self.show.controllers.values():
-            print controller.id
-            for channel_id in controller.iter_channels():
-                name = controller.channels[channel_id].name or "{0}.{1}".format(
-                    controller.id, channel_id)
-                print name
+        for vchan in self.show.virtual_channels.values():
+            print vchan.id
+
                 # .id .name .dimmer
 
 #    def draw_controllers(self):
@@ -813,109 +810,110 @@ class SequencerCanvas (Tkinter.Frame):
 #        self.master.destroy()
 #            
 #
-if __name__ == "__main__":
-    from Lumos.Show     import Show
-    from Lumos.Sequence import Sequence
-    import argparse
+from Lumos.Show     import Show
+from Lumos.Sequence import Sequence
+import argparse
 
-    class Application (SequencerCanvas):
-        def __init__(self, *a, **k):
-            SequencerCanvas.__init__(self, *a, **k)
-            self.file_name = None
+class Application (SequencerCanvas):
+    def __init__(self, *a, **k):
+        SequencerCanvas.__init__(self, *a, **k)
+        self.file_name = None
 
-            menu_bar = Tkinter.Menu(self)
-            self.master.config(menu=menu_bar)
+        menu_bar = Tkinter.Menu(self)
+        self.master.config(menu=menu_bar)
 
-            file_menu = Tkinter.Menu(menu_bar, tearoff=False)
-            menu_bar.add_cascade(label="File", menu=file_menu)
-            file_menu.add_command(label="New Sequence", command=self.new_file)
-            file_menu.add_command(label="Open Sequence...", command=self.open_file)
-            file_menu.add_command(label="Save Sequence", command=self.save_file)
-            file_menu.add_command(label="Save Sequence As...", command=self.save_file_as)
-            file_menu.add_separator()
-            file_menu.add_command(label="Quit", command=self.on_quit)
+        file_menu = Tkinter.Menu(menu_bar, tearoff=False)
+        menu_bar.add_cascade(label="File", menu=file_menu)
+        file_menu.add_command(label="New Sequence", command=self.new_file)
+        file_menu.add_command(label="Open Sequence...", command=self.open_file)
+        file_menu.add_command(label="Save Sequence", command=self.save_file)
+        file_menu.add_command(label="Save Sequence As...", command=self.save_file_as)
+        file_menu.add_separator()
+        file_menu.add_command(label="Quit", command=self.on_quit)
 
-        def on_quit(self):
-            if self.check_unsaved_first(): return
-            self.quit()
+        parser = argparse.ArgumentParser(description="Test of the SequenceCanvas widget.")
+        parser.add_argument('--config',   '-c', help='Show configuration file')
+        parser.add_argument('--sequence', '-s', help='Sequence file')
+        self.options = parser.parse_args()
 
-        def check_unsaved_first(self):
-            return self.modified_since_saved and not tkMessageBox.askokcancel('Unsaved Changes', '''
+        if self.options.config:
+            show.load_file(self.options.config, open_device=False)
+
+        if self.options.sequence:
+            seq.load_file(self.options.sequence)
+
+    def on_quit(self):
+        if self.check_unsaved_first(): return
+        self.quit()
+
+    def check_unsaved_first(self):
+        return self.modified_since_saved and not tkMessageBox.askokcancel('Unsaved Changes', '''
 You have made changes which haven't been saved.  Are you sure?
 If you continue, you will lose those changes!
 ''', default=tkMessageBox.CANCEL)
-            
-        def new_file(self):
-            if self.check_unsaved_first(): return
-            self.show = Show()
-            self.file_name = None
-            self.refresh()
+        
+    def new_file(self):
+        if self.check_unsaved_first(): return
+        self.show = Show()
+        self.file_name = None
+        self.refresh()
 
-        def open_file(self):
-            if self.check_unsaved_first(): return
-            file_name = tkFileDialog.askopenfilename(
-                filetypes=(('Lumos Configuration Profile', '.conf'), ('All Files', '*')),
-                defaultextension=".lseq",
-                initialdir=os.getcwd(),
-                parent=self,
-                title="Open Sequence"
-            )
-            if file_name is not None and file_name.strip() != '':
-                try:
-                    show = Show()
-                    show.load_file(file_name, open_device=False)
-                except Exception as err:
-                    tkMessageBox.showerror("Unable to load file", "Error: {0}".format(traceback.format_exc(TBLIM)))
-                else:
-                    self.show = show
-                    self.file_name = file_name
-                    self.refresh()
-
-        def save_file(self):
-            if self.file_name is None:
-                self.save_file_as()
+    def open_file(self):
+        if self.check_unsaved_first(): return
+        file_name = tkFileDialog.askopenfilename(
+            filetypes=(('Lumos Configuration Profile', '.conf'), ('All Files', '*')),
+            defaultextension=".lseq",
+            initialdir=os.getcwd(),
+            parent=self,
+            title="Open Sequence"
+        )
+        if file_name is not None and file_name.strip() != '':
+            try:
+                show = Show()
+                show.load_file(file_name, open_device=False)
+            except Exception as err:
+                tkMessageBox.showerror("Unable to load file", "Error: {0}".format(traceback.format_exc(TBLIM)))
             else:
-                try:
-                    #  self.show.save_file(self.file_name)
-                    raise NotImplementedError('no save funtion')
-                except Exception as err:
-                    tkMessageBox.showerror("Error Saving Sequence", "Error writing {1}: {0}".format(traceback.format_exc(0), self.file_name))
-                else:
-                    self.modified_since_saved = False
+                self.show = show
+                self.file_name = file_name
+                self.refresh()
 
-        def save_file_as(self):
-            if self.file_name is None:
-                f_dir = os.getcwd()
-                f_name = None
+    def save_file(self):
+        if self.file_name is None:
+            self.save_file_as()
+        else:
+            try:
+                #  self.show.save_file(self.file_name)
+                raise NotImplementedError('no save funtion')
+            except Exception as err:
+                tkMessageBox.showerror("Error Saving Sequence", "Error writing {1}: {0}".format(traceback.format_exc(0), self.file_name))
             else:
-                f_dir, f_name = os.path.split(self.file_name)
+                self.modified_since_saved = False
 
-            file_name = tkFileDialog.asksaveasfilename(
-                defaultextension='.lseq',
-                filetypes=(('Lumos Sequence ', '*.lseq'), ('All Files', '*')),
-                initialdir=f_dir,
-                initialfile=f_name,
-                parent=self,
-                title="Save Sequence As"
-            )
-            if file_name is not None and file_name.strip() != '':
-                self.file_name = file_name.strip()
-                self.save_file()
+    def save_file_as(self):
+        if self.file_name is None:
+            f_dir = os.getcwd()
+            f_name = None
+        else:
+            f_dir, f_name = os.path.split(self.file_name)
 
-    parser = argparse.ArgumentParser(description="Test of the SequenceCanvas widget.")
-    parser.add_argument('--config',   '-c', help='Show configuration file')
-    parser.add_argument('--sequence', '-s', help='Sequence file')
-    options = parser.parse_args()
+        file_name = tkFileDialog.asksaveasfilename(
+            defaultextension='.lseq',
+            filetypes=(('Lumos Sequence ', '*.lseq'), ('All Files', '*')),
+            initialdir=f_dir,
+            initialfile=f_name,
+            parent=self,
+            title="Save Sequence As"
+        )
+        if file_name is not None and file_name.strip() != '':
+            self.file_name = file_name.strip()
+            self.save_file()
 
+    
+if __name__ == "__main__":
     root = Tkinter.Tk()
     show = Show()
-    if options.config:
-        show.load_file(options.config, open_device=False)
-
     seq = Sequence()
-    if options.sequence:
-        seq.load_file(options.sequence)
-
     app = Application(show, seq, master=root)
     app.pack(fill=BOTH, expand=True)
     app.mainloop()
@@ -923,4 +921,3 @@ If you continue, you will lose those changes!
         root.destroy()
     except:
         pass
-

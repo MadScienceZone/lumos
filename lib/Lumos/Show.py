@@ -43,7 +43,7 @@ def get_config_dict(conf, section, typemap, objlist=None):
                 a_dict[k] = []
                 for index in conf.get(section, k).split():
                     if index in objlist:
-                        a_dict.append(objlist[index])
+                        a_dict[k].append(objlist[index])
                         del objlist[index]
                     else:
                         raise KeyError('Value "{0}" in [{1}] field {2} not expected or valid'.format(

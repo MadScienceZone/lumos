@@ -45,11 +45,11 @@ class ValueEvent:
         attribute ev.level will remain in the high-level form given here as
         <level>, and will wait to be interpreted by every channel when the
         event is actually compiled.  This value therefore must be something that
-        every virtual channel can understand.
+        every virtual channel can understand.  (ev.raw_level will be None)
 
         Otherwise, <level> is immediately interpreted by <vchannel> and converted
         to a normalized value appropriate to <vchannel>.  This normalized value will
-        be stored in ev.level.
+        be stored in ev.raw_level.
         """
         self.vchannel = vchannel
         self.level    = level
@@ -105,11 +105,12 @@ class ValueEvent:
                 self.raw_level, self.delta, force=force)
 
         return for_vchannel.compile_level_change(base_timestamp, base_priority, 
-            for_vchannel.normalize_level_value(self.raw_level), self.delta, force=force)
+            for_vchannel.normalize_level_value(self.level), self.delta, force=force)
 
     def __eq__(self, other):
         return self.vchannel is other.vchannel \
            and self.raw_level == other.raw_level \
+           and self.level == other.level \
            and self.delta == other.delta
 
     def __repr__(self):
