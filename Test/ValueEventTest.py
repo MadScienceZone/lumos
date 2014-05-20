@@ -41,14 +41,14 @@ class ValueEventTest(unittest.TestCase):
     def testCons(self):
         e = ValueEvent(DummyVirtualChannel(44), level='31', delta=100)
         self.assertEqual(e.vchannel.id, 44)
-	self.assertEqual(e.level, '31')
+	self.assertEqual(e.level, 31)
         self.assertEqual(e.delta, 100)
 	self.assertEqual(e.raw_level, 31)
 
     def test_on(self):
         e = ValueEvent(DummyVirtualChannel(44), level='100')
         self.assertEqual(e.vchannel.id, 44)
-        self.assertEqual(e.level, '100')
+        self.assertEqual(e.level, 100)
         self.assertEqual(e.raw_level, 100)
         self.assertEqual(e.delta, 0)
 

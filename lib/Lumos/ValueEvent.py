@@ -55,6 +55,19 @@ class ValueEvent:
         self.level    = level
         self.delta    = delta
 
+        # normalize the value a bit
+        if isinstance(level, str):
+            try:
+                self.level = int(level)
+            except ValueError:
+                try:
+                    self.level = float(level)
+                except ValueError:
+                    self.level = level.strip().lower()
+        else:
+            self.level = level
+
+
         if vchannel is None:
             self.raw_level = None
         else:
@@ -108,14 +121,17 @@ class ValueEvent:
             for_vchannel.normalize_level_value(self.level), self.delta, force=force)
 
     def __eq__(self, other):
-        return self.vchannel is other.vchannel \
-           and self.raw_level == other.raw_level \
-           and self.level == other.level \
-           and self.delta == other.delta
+        return (
+            (other.vchannel is None if self.vchannel is None else self.vchannel is other.vchannel)
+               and self.raw_level == other.raw_level 
+               and self.level == other.level 
+               and self.delta == other.delta
+        )
 
     def __repr__(self):
-        return "<ValueEvent %s->%s (%dmS)>" % (
+        return "<ValueEvent %s(%s)->%s(%s) (%dmS)>" % (
             '*' if self.vchannel is None else self.vchannel.id,
-            self.level,
+            '*' if self.vchannel is None else id(self.vchannel),
+            `self.level`, `self.raw_level`,
             self.delta
         )

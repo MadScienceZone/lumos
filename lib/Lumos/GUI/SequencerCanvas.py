@@ -26,7 +26,7 @@
 ########################################################################
 import ttk, Tkinter, tkFont
 import tkMessageBox, tkFileDialog
-import os.path
+import os.path, math
 #import Lumos.GUI.Icons as Icons
 import traceback
 TBLIM=5
@@ -48,18 +48,20 @@ class SequencerCanvas (Tkinter.Frame):
         self.show = show
         self.sequence = sequence
         self['bg']='yellow'
-        vsb = ttk.Scrollbar(self, orient=VERTICAL)
-        hsb = ttk.Scrollbar(self, orient=HORIZONTAL)
         self.modified_since_saved = False
-        self.canvas = Tkinter.Canvas(self, height=600, width=1000, xscrollcommand=hsb.set, yscrollcommand=vsb.set)
-        vsb['command'] = self.canvas.yview
-        hsb['command'] = self.canvas.xview
-        vsb.pack(side=RIGHT, fill=Y, expand=False)
-        self.canvas.pack(side=TOP, fill=BOTH, expand=True)
+#        vsb = ttk.Scrollbar(self, orient=VERTICAL)
+#        hsb = ttk.Scrollbar(self, orient=HORIZONTAL)
+#        self.canvas = Tkinter.Canvas(self, height=600, width=1000, xscrollcommand=hsb.set, yscrollcommand=vsb.set)
+#        vsb['command'] = self.canvas.yview
+#        hsb['command'] = self.canvas.xview
+#        vsb.pack(side=RIGHT, fill=Y, expand=False)
+#        self.canvas.pack(side=TOP, fill=BOTH, expand=True)
 #        self.canvas.bind('<Button-2>', self._canvas_menu)
 #        self.canvas.bind('<Double-Button-1>', self._canvas_menu)
-        hsb.pack(side=BOTTOM, fill=X, expand=False)
+#        hsb.pack(side=BOTTOM, fill=X, expand=False)
         #bb = self.canvas.bbox('elements') or [0,0,0,0]
+        self.timespan = 10
+        self.gui_setup()
         self.refresh()
 
 ##    def ps_box(self):
@@ -126,6 +128,7 @@ class SequencerCanvas (Tkinter.Frame):
 #
     def refresh(self):
         self.draw_channels()
+        self.draw_event_grid()
 #        self.draw_power_sources()
 #        self.draw_networks()
 #        self.draw_controllers()
@@ -185,11 +188,118 @@ class SequencerCanvas (Tkinter.Frame):
 #                self.canvas.tag_bind(w, '<Button-2>',        lambda e, n=net_id: self._net_menu(e, n))
 #                self.canvas.tag_bind(w, '<Double-Button-1>', lambda e, n=net_id: self.add_network(net_id=n))
 #
+    def gui_setup(self):
+        self.grid_frame = ttk.Frame(self)
+        self.grid_frame.pack(expand=True, fill=BOTH)
+        self.grid_frame.rowconfigure(1, weight=2)
+        self.grid_frame.columnconfigure(1, weight=2)
+        self.vc_canvas = Tkinter.Canvas(self.grid_frame)
+        self.vc_canvas.grid(column=0, row=1, sticky=N+S+W+E)
+        self.tl_canvas = Tkinter.Canvas(self.grid_frame)
+        self.tl_canvas.grid(column=1, row=0, sticky=N+S+W+E)
+        self.ev_canvas = Tkinter.Canvas(self.grid_frame)
+        self.ev_canvas.grid(column=1, row=1, sticky=N+S+W+E)
+        self.vsb = ttk.Scrollbar(self.grid_frame, orient=VERTICAL)
+        self.hsb = ttk.Scrollbar(self.grid_frame, orient=HORIZONTAL)
+        self.vsb.grid(column=2, row=1, sticky=N+S)
+        self.hsb.grid(column=1, row=2, sticky=E+W)
+
+        def locked_y_scroll(*args):
+            self.ev_canvas.yview(*args)
+            self.vc_canvas.yview(*args)
+
+        def locked_x_scroll(*args):
+            self.ev_canvas.xview(*args)
+            self.tl_canvas.xview(*args)
+
+        self.vsb['command'] = locked_y_scroll
+        self.hsb['command'] = locked_x_scroll
+
+        self.ev_canvas['xscrollcommand'] = self.hsb.set
+        self.ev_canvas['yscrollcommand'] = self.vsb.set
+        self.tl_canvas['xscrollcommand'] = self.hsb.set
+        self.vc_canvas['yscrollcommand'] = self.vsb.set
+#        self.canvas = Tkinter.Canvas(self, height=600, width=1000, xscrollcommand=hsb.set, yscrollcommand=vsb.set)
+#        vsb['command'] = self.canvas.yview
+#        hsb['command'] = self.canvas.xview
+#        vsb.pack(side=RIGHT, fill=Y, expand=False)
+#        self.canvas.pack(side=TOP, fill=BOTH, expand=True)
+#        self.canvas.bind('<Button-2>', self._canvas_menu)
+#        self.canvas.bind('<Double-Button-1>', self._canvas_menu)
+#        hsb.pack(side=BOTTOM, fill=X, expand=False)
+
+    def draw_event_grid(self):
+        self.tl_canvas.delete('time')
+
+        gfx_tl_height = 20
+        gfx_tl_major  = 3
+        gfx_tl_minor  = 1
+        gfx_tl_minor_h= 5
+        gfx_tl_margin = 5
+        gfx_tl_1sec_w = 100
+        gfx_vc_height = 20
+        gfx_vc_width  = 140
+        gfx_vc_margin = 5
+        gfx_vc_pad    = 2
+        gfx_ev_hr     = 1
+
+        self.tl_canvas['height'] = gfx_tl_height + gfx_tl_margin * 2
+        self.tl_canvas['width']  = math.ceil(self.timespan) * gfx_tl_1sec_w + gfx_tl_margin * 2
+        self.ev_canvas['height'] = len(self.show.virtual_channels) * gfx_vc_height + 2 * gfx_vc_margin
+        self.ev_canvas['width']  = math.ceil(self.timespan) * gfx_tl_1sec_w + gfx_tl_margin * 2
+        self.ev_canvas['scrollregion'] = (0, 0, 
+         math.ceil(self.timespan) * gfx_tl_1sec_w + gfx_tl_margin * 2,
+         len(self.show.virtual_channels) * gfx_vc_height + 2 * gfx_vc_margin)
+        self.tl_canvas['scrollregion'] = (0, 0, 
+         math.ceil(self.timespan) * gfx_tl_1sec_w + gfx_tl_margin * 2,
+         gfx_tl_height + gfx_tl_margin * 2)
+
+        for t in range(int(math.ceil(self.timespan))):
+            self.tl_canvas.create_text(t * gfx_tl_1sec_w + gfx_tl_major + gfx_tl_margin, gfx_tl_margin, 
+                text="{0:02d}:{1:06.3f}".format(0, t), anchor=NW, tags="time")
+            self.tl_canvas.create_line(t * gfx_tl_1sec_w + gfx_tl_margin, gfx_tl_margin,
+                t * gfx_tl_1sec_w + gfx_tl_margin, gfx_tl_height + gfx_tl_margin,
+                width=gfx_tl_major, tags='time');
+            self.ev_canvas.create_line(t * gfx_tl_1sec_w + gfx_tl_margin, gfx_vc_margin,
+                t * gfx_tl_1sec_w + gfx_tl_margin, len(self.show.virtual_channels) * gfx_vc_height + gfx_vc_margin,
+                width=gfx_tl_major, tags='time');
+            for minor in range(1,10):
+                self.tl_canvas.create_line(t * gfx_tl_1sec_w + gfx_tl_margin +
+                        minor * (gfx_tl_1sec_w / 10.0), gfx_tl_margin + gfx_tl_height - gfx_tl_minor_h,
+                    t * gfx_tl_1sec_w + gfx_tl_margin + minor * (gfx_tl_1sec_w / 10.0), gfx_tl_height + gfx_tl_margin,
+                    width=gfx_tl_minor, tags='time');
+                self.ev_canvas.create_line(t * gfx_tl_1sec_w + gfx_tl_margin + 
+                        minor * (gfx_tl_1sec_w / 10.0), gfx_vc_margin,
+                    t * gfx_tl_1sec_w + gfx_tl_margin +
+                        minor * (gfx_tl_1sec_w / 10.0), len(self.show.virtual_channels) * gfx_vc_height + gfx_vc_margin,
+                    width=gfx_tl_minor, tags='time');
+        for row in range(len(self.show.virtual_channels)+1):
+            self.ev_canvas.create_line(gfx_tl_margin, row * gfx_vc_height + gfx_vc_margin,
+                gfx_tl_margin + gfx_tl_1sec_w * math.ceil(self.timespan), row * gfx_vc_height + gfx_vc_margin,
+                tags='time', width=gfx_ev_hr)
+
+
+
     def draw_channels(self):
-        self.canvas.delete('chan')
+        self.vc_canvas.delete('chan')
         
-        for vchan in self.show.virtual_channels.values():
-            print vchan.id
+        gfx_vc_height = 20
+        gfx_vc_width  = 140
+        gfx_vc_margin = 5
+        gfx_vc_pad    = 2
+
+        self.vc_canvas['height'] = len(self.show.virtual_channels) * gfx_vc_height + 2 * gfx_vc_margin
+        self.vc_canvas['width']  = gfx_vc_width + 2 * gfx_vc_margin
+        self.vc_canvas['scrollregion'] = (0, 0,
+             gfx_vc_width + 2 * gfx_vc_margin,
+             len(self.show.virtual_channels) * gfx_vc_height + 2 * gfx_vc_margin)
+
+        for idx, vchan in enumerate(self.show.virtual_channels.values()):
+            self.vc_canvas.create_rectangle(0+gfx_vc_margin, idx * gfx_vc_height + gfx_vc_margin, 
+                gfx_vc_width, (idx+1) * gfx_vc_height + gfx_vc_margin, fill=None, tags='chan')
+            self.vc_canvas.create_text(0+gfx_vc_margin + gfx_vc_pad, idx * gfx_vc_height + gfx_vc_margin + gfx_vc_pad, 
+                anchor=NW, text=vchan.name, tags='chan')
+            print vchan.name
 
                 # .id .name .dimmer
 
@@ -837,10 +947,12 @@ class Application (SequencerCanvas):
         self.options = parser.parse_args()
 
         if self.options.config:
-            show.load_file(self.options.config, open_device=False)
+            self.show.load_file(self.options.config, open_device=False, virtual_only=True)
 
         if self.options.sequence:
-            seq.load_file(self.options.sequence)
+            self.seq.load_file(self.options.sequence)
+
+        self.refresh()
 
     def on_quit(self):
         if self.check_unsaved_first(): return

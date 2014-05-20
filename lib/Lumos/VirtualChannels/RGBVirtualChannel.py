@@ -39,7 +39,7 @@ class RGBVirtualChannel (VirtualChannel):
 
     def __init__(self, id, channel, name=None, color=None):
         VirtualChannel.__init__(self, id, None, name, color)
-        if not isinstance(channel, (list, tuple)) or len(channel) != 3:
+        if channel is not None and (not isinstance(channel, (list, tuple)) or len(channel) != 3):
             raise ValueError('RGB virtual channel requires three underlying hardware channel objects (red, green, blue)')
         self.channel = channel
         self.type = 'rgb'

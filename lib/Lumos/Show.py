@@ -90,17 +90,21 @@ class Show (object):
         self.title = None
         self.description = None
 
-    def load(self, file, open_device=True):
+    def load(self, file, open_device=True, virtual_only=False):
         '''Load up a show configuration file.  This will instantiate and
         initialize a set of power sources, networks and controllers, ready
         to begin running show sequences.  Pass in a file-like object holding
         the configuration data for the show.
+
+        If <virtual_only> is True, we only load up virtual channel
+        definitions and don't expect any content which describes real
+        hardware yet.
         '''
         self._clear()
 
         show = ConfigParser.SafeConfigParser()
         show.readfp(file)
-        self._load_from_config(show, open_device)
+        self._load_from_config(show, open_device, virtual_only)
 
     def _search_for_sub_sources(self, show, parent_ID, parent_obj):
         #
@@ -125,94 +129,94 @@ class Show (object):
                     self._search_for_sub_sources(show, source_ID, source_obj)
 
 
-    def _load_from_config(self, show, open_device):
+    def _load_from_config(self, show, open_device, virtual_only):
         self.title = show.get('show', 'title')
         self.description = show.get('show', 'description')
         unvirtualized_channels = {}
         #
         # POWER SOURCES
         #
-        for source_ID in show.get('show', 'powersources').split():
-            source_obj = PowerSource(source_ID, 
-                **get_config_dict(show, 'power '+source_ID, {
-                    'amps': 'float',
-                    'gfci': 'ignore',   # no longer used
-                }))
-            self.add_power_source(source_obj)
-            self._search_for_sub_sources(show, source_ID, source_obj)
+        if not virtual_only:
+            for source_ID in show.get('show', 'powersources').split():
+                source_obj = PowerSource(source_ID, 
+                    **get_config_dict(show, 'power '+source_ID, {
+                        'amps': 'float',
+                        'gfci': 'ignore',   # no longer used
+                    }))
+                self.add_power_source(source_obj)
+                self._search_for_sub_sources(show, source_ID, source_obj)
+                #
+                # sort subordinates
+                #
+                source_obj.subordinates.sort(key=lambda x: show.getint('power '+x.id, 'disp_order') if show.has_option('power '+x.id, 'disp_order') else 0)
             #
-            # sort subordinates
+            # NETWORKS
             #
-            source_obj.subordinates.sort(key=lambda x: show.getint('power '+x.id, 'disp_order') if show.has_option('power '+x.id, 'disp_order') else 0)
-        #
-        # NETWORKS
-        #
-        for net_ID in show.get('show', 'networks').split():
-            net_type = show.get('net '+net_ID, 'type')
-            net_args = get_config_dict(show, 'net '+net_ID, {
-                'units': 'ignore',
-                'type':  'ignore',
-            })
-            if not open_device:
-                net_args['open_device'] = False
-            self.networks[net_ID] = network_factory(net_type, **net_args)
-            #
-            # CONTROLLER UNITS
-            #
-            for unit_ID in show.get('net '+net_ID, 'units').split():
-                unit_type = show.get('unit '+unit_ID, 'type')
-                unit_args = get_config_dict(show, 'unit '+unit_ID, {
-                    'power_source': 'objlist',
+            for net_ID in show.get('show', 'networks').split():
+                net_type = show.get('net '+net_ID, 'type')
+                net_args = get_config_dict(show, 'net '+net_ID, {
+                    'units': 'ignore',
                     'type':  'ignore',
-                    'resolution': 'int',
-                    'channels': 'int',
-                }, self.all_power_sources)
-                unit_args['id'] = unit_ID
-                self.networks[net_ID].add_unit(unit_ID, controller_unit_factory(
-                    unit_type, network=self.networks[net_ID], **unit_args))
-                self.controllers[unit_ID] = self.networks[net_ID].units[unit_ID]
+                })
+                if not open_device:
+                    net_args['open_device'] = False
+                self.networks[net_ID] = network_factory(net_type, **net_args)
                 #
-                # CHANNELS IN CONTROLLER UNIT
+                # CONTROLLER UNITS
                 #
-                for channel_ID in show.sections():
-                    if channel_ID.startswith('chan '+unit_ID+'.'):
-                        c_ID = channel_ID[len(unit_ID)+6:]
-                        self.networks[net_ID].units[unit_ID].add_channel(c_ID, 
-                            **get_config_dict(show, channel_ID, {
-                                'load':         'float',
-                                'dimmer':       'bool',
-                                'warm':         'int',
-                                'virtual':      'ignore',
-                                'color':        'ignore',
-                                'power_source': 'objlist',
-                            }, self.all_power_sources))
+                for unit_ID in show.get('net '+net_ID, 'units').split():
+                    unit_type = show.get('unit '+unit_ID, 'type')
+                    unit_args = get_config_dict(show, 'unit '+unit_ID, {
+                        'power_source': 'objlist',
+                        'type':  'ignore',
+                        'resolution': 'int',
+                        'channels': 'int',
+                    }, self.all_power_sources)
+                    unit_args['id'] = unit_ID
+                    self.networks[net_ID].add_unit(unit_ID, controller_unit_factory(
+                        unit_type, network=self.networks[net_ID], **unit_args))
+                    self.controllers[unit_ID] = self.networks[net_ID].units[unit_ID]
+                    #
+                    # CHANNELS IN CONTROLLER UNIT
+                    #
+                    for channel_ID in show.sections():
+                        if channel_ID.startswith('chan '+unit_ID+'.'):
+                            c_ID = channel_ID[len(unit_ID)+6:]
+                            self.networks[net_ID].units[unit_ID].add_channel(c_ID, 
+                                **get_config_dict(show, channel_ID, {
+                                    'load':         'float',
+                                    'dimmer':       'bool',
+                                    'warm':         'int',
+                                    'virtual':      'ignore',
+                                    'color':        'ignore',
+                                    'power_source': 'objlist',
+                                }, self.all_power_sources))
 
-                        u_obj = self.networks[net_ID].units[unit_ID]
-                        c_obj = u_obj.channels[u_obj.channel_id_from_string(c_ID)]
-                        if show.has_option(channel_ID, 'virtual'):
-                            # this hardware channel is declaring its own virtual channel
-                            v_id = show.get(channel_ID, 'virtual')
-                            if v_id in self.virtual_channels or show.has_section('virtual '+v_id):
-                                raise KeyError('virtual channel {0} defined in [{1}] already exists'.format(
-                                    v_id, channel_ID))
+                            u_obj = self.networks[net_ID].units[unit_ID]
+                            c_obj = u_obj.channels[u_obj.channel_id_from_string(c_ID)]
+                            if show.has_option(channel_ID, 'virtual'):
+                                # this hardware channel is declaring its own virtual channel
+                                v_id = show.get(channel_ID, 'virtual')
+                                if v_id in self.virtual_channels or show.has_section('virtual '+v_id):
+                                    raise KeyError('virtual channel {0} defined in [{1}] already exists'.format(
+                                        v_id, channel_ID))
 
-                            v_name = c_obj.name
-                            sequence = 0
-                            while not v_name or v_name in self.virtual_channels or show.has_section('virtual '+v_name):
-                                v_name = 'channel {0}.{1}#{2}'.format(unit_ID, c_ID, sequence)
-                                sequence += 1
+                                v_name = c_obj.name
+                                sequence = 0
+                                while not v_name or v_name in self.virtual_channels or show.has_section('virtual '+v_name):
+                                    v_name = 'channel {0}.{1}#{2}'.format(unit_ID, c_ID, sequence)
+                                    sequence += 1
 
-                            self.virtual_channels[v_id] = virtual_channel_factory(
-                                ('dimmer' if c_obj.dimmer else 'toggle'),
-                                id=v_id,
-                                channel=c_obj,
-                                name=v_name,
-                                color=(show.get(channel_ID, 'color') if show.has_option(channel_ID, 'color') else None),
-                            )
-                        else:
-                            # we'll have to wait until later to match it up with a virtual channel
-                            unvirtualized_channels[unit_ID + '.' + c_ID] = c_obj
-
+                                self.virtual_channels[v_id] = virtual_channel_factory(
+                                    ('dimmer' if c_obj.dimmer else 'toggle'),
+                                    id=v_id,
+                                    channel=c_obj,
+                                    name=v_name,
+                                    color=(show.get(channel_ID, 'color') if show.has_option(channel_ID, 'color') else None),
+                                )
+                            else:
+                                # we'll have to wait until later to match it up with a virtual channel
+                                unvirtualized_channels[unit_ID + '.' + c_ID] = c_obj
         #
         # VIRTUAL CHANNELS
         #
@@ -226,35 +230,43 @@ class Show (object):
                     raise KeyError('duplicate virtual channel definition [{0}]'.format(stanza))
 
                 v_type = show.get(stanza, 'type')
-                v_args = get_config_dict(show, stanza, {
-                    'type':     'ignore',
-                    'channel':  'objarray',
-                }, unvirtualized_channels)
+                if virtual_only:
+                    v_args = get_config_dict(show, stanza, {
+                        'type':     'ignore',
+                        'channel':  'ignore',
+                    })
+                    v_args['channel'] = None
+                else:
+                    v_args = get_config_dict(show, stanza, {
+                        'type':     'ignore',
+                        'channel':  'objarray',
+                    }, unvirtualized_channels)
                 self.virtual_channels[v_id] = virtual_channel_factory(v_type, id=v_id, **v_args)
         # 
         # create virtual channels for any still left out
         #
-        for c_ID in unvirtualized_channels:
-            c_obj = unvirtualized_channels[c_ID]
-            v_name = c_obj.name
-            v_id = 'v{0}'.format(c_ID)
-            channel_ID = 'chan ' + c_ID
-            sequence = 0
-            while not v_name or v_id in self.virtual_channels or show.has_section('virtual '+v_id):
-                sequence += 1
-                v_name = 'channel {0}#{1}'.format(c_ID, sequence)
-                v_id = 'v{0}_{1}'.format(c_ID, sequence)
+        if not virtual_only:
+            for c_ID in unvirtualized_channels:
+                c_obj = unvirtualized_channels[c_ID]
+                v_name = c_obj.name
+                v_id = 'v{0}'.format(c_ID)
+                channel_ID = 'chan ' + c_ID
+                sequence = 0
+                while not v_name or v_id in self.virtual_channels or show.has_section('virtual '+v_id):
+                    sequence += 1
+                    v_name = 'channel {0}#{1}'.format(c_ID, sequence)
+                    v_id = 'v{0}_{1}'.format(c_ID, sequence)
 
-            self.virtual_channels[v_id] = virtual_channel_factory(
-                ('dimmer' if c_obj.dimmer else 'toggle'),
-                id=v_id,
-                name=v_name,
-                color=(show.get(channel_ID, 'color') if show.has_option(channel_ID, 'color') else None),
-                channel=c_obj,
-            )
+                self.virtual_channels[v_id] = virtual_channel_factory(
+                    ('dimmer' if c_obj.dimmer else 'toggle'),
+                    id=v_id,
+                    name=v_name,
+                    color=(show.get(channel_ID, 'color') if show.has_option(channel_ID, 'color') else None),
+                    channel=c_obj,
+                )
 
-    def load_file(self, filename, open_device=True):
-        self.load(open(filename), open_device)
+    def load_file(self, filename, open_device=True, virtual_only=False):
+        self.load(open(filename), open_device, virtual_only)
 
     def _dump_ps_tree(self, file, parent):
         if parent.subordinates:
