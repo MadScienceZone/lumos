@@ -38,7 +38,7 @@ class SerialNetworkTest (unittest.TestCase):
                             baudrate=1200, bits=7, parity='even', stop=2,
                             xonxoff=True, rtscts=True, open_device=False)
         if isinstance(n, NullNetwork):
-            warn_once('NOSERIAL', "Skipping tests of Serial networks: this machine does not support them (intall PySerial?)")
+            warn_once('NOSERIAL', "Skipping tests of Serial networks: this machine does not support them (install PySerial?)")
         else:
             self.assertEqual(n.description, 'desc')
             self.assertEqual(n.port, 1)
@@ -52,7 +52,7 @@ class SerialNetworkTest (unittest.TestCase):
     def testDefaults(self):
         n = network_factory(type='serial', open_device=False)
         if isinstance(n, NullNetwork):
-            warn_once('NOSERIAL', "Skipping tests of Serial networks: this machine does not support them (intall PySerial?)")
+            warn_once('NOSERIAL', "Skipping tests of Serial networks: this machine does not support them (install PySerial?)")
         else:
             self.assertEqual(n.description, 'Unnamed Network')
             self.assertEqual(str(n), 'Unnamed Network')
@@ -67,7 +67,7 @@ class SerialNetworkTest (unittest.TestCase):
     def test_no_open(self):
         n = network_factory(type='serial', open_device=False)
         if isinstance(n, NullNetwork):
-            warn_once('NOSERIAL', "Skipping tests of Serial networks: this machine does not support them (intall PySerial?)")
+            warn_once('NOSERIAL', "Skipping tests of Serial networks: this machine does not support them (install PySerial?)")
         else:
             self.assertEqual(n.dev, None)
             #n = network_factory(type='serial', open_device=False)

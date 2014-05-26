@@ -24,11 +24,26 @@
 #
 # USE THIS PRODUCT AT YOUR OWN RISK.
 # 
-import ConfigParser, inspect
+import ConfigParser, inspect, sys
 from Lumos.PowerSource             import PowerSource
 from Lumos.Network.Networks        import network_factory, supported_network_types
 from Lumos.Device.Controllers      import controller_unit_factory, supported_controller_types
 from Lumos.VirtualChannels.Factory import virtual_channel_factory, supported_virtual_channel_types
+
+class GUIConfiguration (object):
+    def __init__(self):
+        self.virtual_channel_display_order = []
+        if sys.platform == 'darwin':
+            self.menu_button = '<Button-2>'
+        else:
+            self.menu_button = '<Button-3>'
+
+
+    def load(self, config_obj):
+        if config_obj.has_section('gui'):
+            if config_obj.has_option('gui', 'virtual_channel_display_order'):
+                for vc_id in config_obj.get('gui', 'virtual_channel_display_order').split('\n'):
+                    self.virtual_channel_display_order.append(vc_id.strip())
 
 def get_config_dict(conf, section, typemap, objlist=None):
     a_dict = {}
@@ -77,6 +92,8 @@ class Show (object):
 
         virtual_channels:   A dictionary of VirtualChannel objects, indexed by
                             the channel ID string.
+
+        gui:                General GUI display settings.
     '''
     def __init__(self):
         self._clear()
@@ -89,6 +106,7 @@ class Show (object):
         self.controllers = {}
         self.title = None
         self.description = None
+        self.gui = GUIConfiguration()
 
     def load(self, file, open_device=True, virtual_only=False):
         '''Load up a show configuration file.  This will instantiate and
@@ -132,6 +150,7 @@ class Show (object):
     def _load_from_config(self, show, open_device, virtual_only):
         self.title = show.get('show', 'title')
         self.description = show.get('show', 'description')
+        self.gui.load(show)
         unvirtualized_channels = {}
         #
         # POWER SOURCES
@@ -722,8 +741,28 @@ class Show (object):
             print >>file
 
         print >>file, ''';
-; End Configuration Profile.
+;___________________________________________________________________________
+;GUI CONTROLS
+;
+; Settings to customize the appearance and behavior of GUI tools
+; in general (these are shared between all tools).  If tool-specific
+; settings are needed, they will go into a separate section for that
+; tool).
+;
+;   virtual_channel_display_order:
+;                   Newline-separated list of virtual channel IDs in the
+;                   order in which they should appear on-screen.
 ;'''
+        if self.gui.virtual_channel_display_order:
+            print >>file, "virtual_channel_display_order:"
+            for vc_id in self.gui.virtual_channel_display_order:
+                print >>file, "    {0}".format(vc_id)
+        
+        print >>file, ''';
+;___________________________________________________________________________
+;
+; End Configuration Profile.
+;___________________________________________________________________________'''
 
     def save_file(self, filename):
         output = open(filename, "w")

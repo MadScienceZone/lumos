@@ -36,14 +36,14 @@ class SerialBitNetworkTest (unittest.TestCase):
     def testCons(self):
         n = network_factory(type='serialbit', description='desc', port=1, open_device=False)
         if isinstance(n, NullNetwork):
-            warn_once('NOSERBIT', "Skipping tests of SerialBit networks: this machine does not support them (intall PySerial?)")
+            warn_once('NOSERBIT', "Skipping tests of SerialBit networks: this machine does not support them (install PySerial?)")
         else:
             self.assertEqual(n.description, 'desc')
 
     def testDefaults(self):
         n = network_factory(type='serialbit', open_device=False)
         if isinstance(n, NullNetwork):
-            warn_once('NOSERBIT', "Skipping tests of SerialBit networks: this machine does not support them (intall PySerial?)")
+            warn_once('NOSERBIT', "Skipping tests of SerialBit networks: this machine does not support them (install PySerial?)")
         else:
             self.assertEqual(n.description, "Unnamed Network")
             self.assertEqual(str(n), 'Unnamed Network')
@@ -52,7 +52,7 @@ class SerialBitNetworkTest (unittest.TestCase):
     def test_no_open(self):
         n = network_factory(type='serialbit', open_device=False)
         if isinstance(n, NullNetwork):
-            warn_once('NOSERBIT', "Skipping tests of SerialBit networks: this machine does not support them (intall PySerial?)")
+            warn_once('NOSERBIT', "Skipping tests of SerialBit networks: this machine does not support them (install PySerial?)")
         else:
             self.assertEqual(n.dev, None)
             #n = network_factory(type='serialbit')

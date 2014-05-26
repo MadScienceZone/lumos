@@ -241,7 +241,7 @@ class Sequence (object):
             #
             elif record[0] == 'EV':
                 if version < 4:
-                    raise InvalidFileFormat('EV records are only available in sequence file format version 2 and 3.')
+                    raise InvalidFileFormat('EV records are only available in sequence file format version 4 and above.')
 
                 try:
                     delta = int(record[3])
@@ -252,9 +252,6 @@ class Sequence (object):
 
                     if timestamp not in self._event_list:
                         self._event_list[timestamp] = []
-
-#                    if record[1] == '*':
-#                        raise NotImplementedError("Lumos does not currently support wildcards in sequence files")
 
                     self._event_list[timestamp].append(
                         ValueEvent(None if record[1] == '*' else self._vchannels[int(record[1])], 
@@ -330,7 +327,8 @@ class Sequence (object):
                     vchannel.id, vchannel.name))
             self._vchannel_index[id(vchannel)] = i
 
-        self._all_controllers = set([c.controller for v in self._vchannels for c in v.all_hardware_channels()])
+        all_hardware_channels = [c for v in self._vchannels for c in (v.all_hardware_channels() or [])]
+        self._all_controllers = set([c.controller for c in all_hardware_channels if c is not None])
         self._all_networks = set([c.network for c in self._all_controllers])
 
 #    def _build_controller_list(self):
@@ -402,6 +400,15 @@ class Sequence (object):
         "Retrieve list of Event objects occurring at specified time."
 
         return self._event_list[timestamp]
+
+    def delete_event_at(self, timestamp, event_object):
+        """Remove an event object at a particular timestamp.
+        
+        Raises KeyError if timestamp is not found in the sequence.
+        Raises ValueError if event_object is not found at that timestamp.
+        """
+
+        self._event_list[timestamp].remove(event_object)
 
     def compile_stream(self, event_list=None, keep_state=False, force=False, skew=0):
         '''Compile the sequence all the way into a list of bytes to transmit
@@ -606,3 +613,5 @@ class Sequence (object):
     def __getattr__(self, name):
         if name == 'intervals':
             return sorted(self._event_list)
+
+# XXX TODO add methods to modify sequences, make sure self.total_time is adjusted too

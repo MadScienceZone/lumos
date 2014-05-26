@@ -26,12 +26,13 @@
 ########################################################################
 import ttk, Tkinter, tkFont
 import tkMessageBox, tkFileDialog
-import os.path, math
+import os.path, math, sys
 #import Lumos.GUI.Icons as Icons
 import traceback
 TBLIM=5
 
 from Tkconstants              import *
+from Lumos.VirtualChannel     import VirtualChannel
 #from Lumos.PowerSource        import PowerSource
 #from Lumos.Network.Networks   import network_factory, supported_network_types
 #from Lumos.Device.Controllers import controller_unit_factory, supported_controller_types
@@ -40,15 +41,18 @@ from Tkconstants              import *
 def debug(message):
     print "DEBUG:", message
 
-class SequencerCanvas (Tkinter.Frame):
+class SequencerCanvas (ttk.Frame):
     '''Display a drawing surface to visualize the sequence of events.'''
 
     def __init__(self, show, sequence, *args, **kwargs):
-        Tkinter.Frame.__init__(self, *args, **kwargs)
+        ttk.Frame.__init__(self, *args, **kwargs)
         self.show = show
+        self.zoom = 1.0
         self.sequence = sequence
-        self['bg']='yellow'
-        self.modified_since_saved = False
+        self.file_name = None
+        self.clear_changes()
+        self.event_clipboard = None
+        self._displayed_objects = {}
 #        vsb = ttk.Scrollbar(self, orient=VERTICAL)
 #        hsb = ttk.Scrollbar(self, orient=HORIZONTAL)
 #        self.canvas = Tkinter.Canvas(self, height=600, width=1000, xscrollcommand=hsb.set, yscrollcommand=vsb.set)
@@ -60,8 +64,19 @@ class SequencerCanvas (Tkinter.Frame):
 #        self.canvas.bind('<Double-Button-1>', self._canvas_menu)
 #        hsb.pack(side=BOTTOM, fill=X, expand=False)
         #bb = self.canvas.bbox('elements') or [0,0,0,0]
-        self.timespan = 10
         self.gui_setup()
+        self.refresh()
+
+    def zoom_in(self, *a):
+        self.zoom /= 2.0
+        self.refresh()
+
+    def zoom_out(self, *a):
+        self.zoom *= 2.0
+        self.refresh()
+
+    def zoom_to(self, factor):
+        self.zoom = float(factor)
         self.refresh()
 
 ##    def ps_box(self):
@@ -127,6 +142,7 @@ class SequencerCanvas (Tkinter.Frame):
 #        self.modified_since_saved = True
 #
     def refresh(self):
+        self.timespan = 10000 + self.sequence.total_time
         self.draw_channels()
         self.draw_event_grid()
 #        self.draw_power_sources()
@@ -204,6 +220,25 @@ class SequencerCanvas (Tkinter.Frame):
         self.vsb.grid(column=2, row=1, sticky=N+S)
         self.hsb.grid(column=1, row=2, sticky=E+W)
 
+        # graphics preferences (styling)
+        self.gfx_tl_height = 20
+        self.gfx_tl_major  = 3
+        self.gfx_tl_minor  = 1
+        self.gfx_tl_minor_h= 5
+        self.gfx_tl_margin = 5
+        self.gfx_tl_1sec_w = 100
+        self.gfx_vc_height = 20
+        self.gfx_vc_width  = 140
+        self.gfx_vc_margin = 5
+        self.gfx_vc_pad    = 2
+        self.gfx_ev_hr     = 1
+        self.gfx_ev_gridclr= '#9999ff'
+        self.gfx_ev_bg     = '#777777'
+        self.gfx_ev_outline= '#ffffff'
+
+
+        self.ev_canvas.bind(self.show.gui.menu_button, self.on_grid_menu)
+
         def locked_y_scroll(*args):
             self.ev_canvas.yview(*args)
             self.vc_canvas.yview(*args)
@@ -228,78 +263,325 @@ class SequencerCanvas (Tkinter.Frame):
 #        self.canvas.bind('<Double-Button-1>', self._canvas_menu)
 #        hsb.pack(side=BOTTOM, fill=X, expand=False)
 
+    def cut_event_object(self, at_timestamp, target_event_object):
+        self.copy_event_object(target_event_object)
+        self.delete_event_object(at_timestamp, target_event_object)
+        
+    def copy_event_object(self, target_event_object):
+        self.event_clipboard = target_event_object.copy()
+
+    def paste_event_object(self, at_timestamp, to_replace_object=None, for_vchannel=None):
+        if self.event_clipboard is not None:
+            new_copy = self.event_clipboard.copy()
+            if to_replace_object is not None:
+                try:
+                    new_copy.change_channel(to_replace_object.vchannel, permissive=True)
+                    self.delete_event_object(at_timestamp, to_replace_object)
+                    self.sequence.add(at_timestamp, new_copy)
+                except ValueError as e:
+                    tkMessageBox.showerror("Can't Paste (Replace) Event", "Unable to paste that kind of event here: {0}".format(e))
+                finally:
+                    self.refresh()
+            else:
+                try:
+                    print "changing channel in {0} to {1}".format(new_copy, for_vchannel.id)
+                    new_copy.change_channel(for_vchannel, permissive=True)
+                    self.sequence.add(at_timestamp, new_copy)
+                    self.note_changed()
+                except ValueError as e:
+                    tkMessageBox.showerror("Can't Paste Event", "Unable to paste event into that space: {0}".format(e))
+                finally:
+                    self.refresh()
+
+    def on_grid_menu(self, e):
+        # context menu for general areas in the grid
+        eventx = self.ev_canvas.canvasx(e.x)
+        eventy = self.ev_canvas.canvasy(e.y)
+
+        #
+        # Is this an area where there's already an event?
+        #
+        for element_id in self.ev_canvas.find_overlapping(eventx, eventy, eventx, eventy):
+            print "on_grid_menu(): trying {0}".format(element_id)
+            for tag in self.ev_canvas.gettags(element_id):
+                print "   trying tag {0}".format(tag)
+                if tag.startswith('EV:'):
+                    timestamp, event_obj_id = [int(i) for i in tag.split(':')[1:3]]
+                    print "      Found timestamp={0} ({1}), object={2}".format(
+                        timestamp, self.timestamp_to_text(timestamp), event_obj_id
+                    )
+                    try:
+                        for event_obj in self.sequence.events_at(timestamp):
+                            print "         Sequence event {0} vs {1}".format(id(event_obj), event_obj_id)
+                            if id(event_obj) == event_obj_id:
+                                print "            Matched! executing on_event_menu({0}, {1}, {2}, {3})".format(
+                                    e, element_id, event_obj, timestamp)
+                                return self.on_event_menu(e, element_id, event_obj, timestamp)
+                        tkMessageBox.showerror("Error posting context menu",
+                            "Can't find that event at time {0}".format(self.timestamp_to_text(timestamp)))
+                        return
+                    except KeyError:
+                        tkMessageBox.showerror("Error posting context menu",
+                            "Can't find any events for time mark {0}".format(self.timestamp_to_text(timestamp)))
+                        return
+                    except ValueError as e:
+                        tkMessageBox.showerror("Error processing context menu",
+                            "Error handling context menu for event: {0}".format(e))
+                        return
+        #
+        # No appropriate tags found
+        # so we're clicking on an empty part of the board.
+        # 
+        print "Context menu in open space at ({0},{1})".format(eventx, eventy)
+        print "_xcoord_to_time({0}) -> {1}".format(eventx, self._xcoord_to_time(eventx))
+        print "_ycoord_to_vchannel({0}) -> {1}".format(eventy, self._ycoord_to_vchannel(eventy))
+
+        timestamp = self._xcoord_to_time(eventx)
+        time_string = self.timestamp_to_text(timestamp)
+        target_channel = self._ycoord_to_vchannel(eventy)
+
+        cx = Tkinter.Menu(self, tearoff=False)
+        time_string = self.timestamp_to_text(timestamp)
+        cx.add_command(label="New event @{0}...".format(time_string), command=lambda t=timestamp, c=target_channel: self.add_event(t, c))
+        if self.event_clipboard is not None:
+            cx.add_separator()
+            cx.add_command(label="Paste", command=lambda t=timestamp, c=target_channel[1]: self.paste_event_object(t, for_vchannel=c))
+
+        cx.post(e.x+self.winfo_rootx(), e.y+self.winfo_rooty())
+        return "break"
+
+    def on_event_menu(self, e, widget_id, event_obj, event_time):
+        # context menu for an event object
+        cx = Tkinter.Menu(self, tearoff=False)
+        time_string = self.timestamp_to_text(event_time) #'{0:02d}:{1:06.3f}'.format(int(event_time // 60), event_time % 60)
+
+        cx.add_command(label="Change Event {0}@{1}...".format(
+            ('*' if event_obj.vchannel is None else event_obj.vchannel.name),
+            time_string,
+            ), command=lambda ev=event_obj: self.edit_event_object(ev))
+
+        cx.add_separator()
+        cx.add_command(label="Cut", command=lambda ev=event_obj, t=event_time: self.cut_event_object(t, ev))
+        cx.add_command(label="Copy", command=lambda ev=event_obj: self.copy_event_object(ev))
+        if self.event_clipboard is not None:
+            cx.add_command(label="Paste (Replace)", command=lambda ev=event_obj, t=event_time: self.paste_event_object(t, ev))
+        cx.add_separator()
+        cx.add_command(label="Delete", command=lambda ev=event_obj, t=event_time: self.delete_event_object(t, ev))
+        cx.post(e.x+self.winfo_rootx(), e.y+self.winfo_rooty())
+        return "break"
+
+    def timestamp_to_text(self, t):
+        return '{0:2d}:{1:06.3f}'.format(int(t // 60000.0), (t % 60000.0) / 1000.0)
+
+    def _xcoord_to_time(self, x):
+        "Compute timestamp based on canvas x coordinate and current zoom factor."
+
+        snap = self.zoom / 10.0
+        return int((((((x - self.gfx_tl_margin) / self.gfx_tl_1sec_w) * self.zoom) // snap) * snap) * 1000)
+
+    def _ycoord_to_vchannel(self, y):
+        "Compute and return index and vchannel object based on canvas y coordinate."
+
+        vc_index = int(((y - self.gfx_vc_margin) / self.gfx_vc_height))
+        return vc_index, self.displayed_channels[vc_index]
+
+    def add_event(self, target_time, target_vchannel_obj):
+        "Prompt the user to add a new event"
+        print "add_event(time={0}, channel={1}".format(target_time, target_vchannel_obj)
+        EventEditorDialog(self, self, target_time, vchannel=target_vchannel_obj[1])
+
+    def delete_event_object(self, target_time, target_event_obj):
+        try:
+            self.sequence.delete_event_at(target_time, target_event_obj)
+        except KeyError:
+            tkMessageBox.showerror("Can't Delete Event", 
+                "Time {0} was not found in the sequence.".format(self.timestamp_to_text(target_time)))
+        except ValueError:
+            tkMessageBox.showerror("Can't Delete Event", "Unable to locate this event in the sequence.")
+        else:
+            self.note_changed()
+            self.refresh()
+
+    def edit_event_object(self, target_event_obj):
+        print "Edit {0}".format(target_event_obj)
+
     def draw_event_grid(self):
         self.tl_canvas.delete('time')
 
-        gfx_tl_height = 20
-        gfx_tl_major  = 3
-        gfx_tl_minor  = 1
-        gfx_tl_minor_h= 5
-        gfx_tl_margin = 5
-        gfx_tl_1sec_w = 100
-        gfx_vc_height = 20
-        gfx_vc_width  = 140
-        gfx_vc_margin = 5
-        gfx_vc_pad    = 2
-        gfx_ev_hr     = 1
 
-        self.tl_canvas['height'] = gfx_tl_height + gfx_tl_margin * 2
-        self.tl_canvas['width']  = math.ceil(self.timespan) * gfx_tl_1sec_w + gfx_tl_margin * 2
-        self.ev_canvas['height'] = len(self.show.virtual_channels) * gfx_vc_height + 2 * gfx_vc_margin
-        self.ev_canvas['width']  = math.ceil(self.timespan) * gfx_tl_1sec_w + gfx_tl_margin * 2
-        self.ev_canvas['scrollregion'] = (0, 0, 
-         math.ceil(self.timespan) * gfx_tl_1sec_w + gfx_tl_margin * 2,
-         len(self.show.virtual_channels) * gfx_vc_height + 2 * gfx_vc_margin)
-        self.tl_canvas['scrollregion'] = (0, 0, 
-         math.ceil(self.timespan) * gfx_tl_1sec_w + gfx_tl_margin * 2,
-         gfx_tl_height + gfx_tl_margin * 2)
+        ev_ticks = math.ceil((self.timespan/1000.0)/self.zoom)
+        ev_w = ev_ticks * self.gfx_tl_1sec_w
 
-        for t in range(int(math.ceil(self.timespan))):
-            self.tl_canvas.create_text(t * gfx_tl_1sec_w + gfx_tl_major + gfx_tl_margin, gfx_tl_margin, 
-                text="{0:02d}:{1:06.3f}".format(0, t), anchor=NW, tags="time")
-            self.tl_canvas.create_line(t * gfx_tl_1sec_w + gfx_tl_margin, gfx_tl_margin,
-                t * gfx_tl_1sec_w + gfx_tl_margin, gfx_tl_height + gfx_tl_margin,
-                width=gfx_tl_major, tags='time');
-            self.ev_canvas.create_line(t * gfx_tl_1sec_w + gfx_tl_margin, gfx_vc_margin,
-                t * gfx_tl_1sec_w + gfx_tl_margin, len(self.show.virtual_channels) * gfx_vc_height + gfx_vc_margin,
-                width=gfx_tl_major, tags='time');
+        self.ev_canvas['bg'] = self.gfx_ev_bg
+        self.tl_canvas['height'] = self.gfx_tl_height + self.gfx_tl_margin * 2
+        self.tl_canvas['width']  = min(800, ev_w + self.gfx_tl_margin * 2)
+        self.ev_canvas['height'] = min(800, len(self.show.virtual_channels) * self.gfx_vc_height + 2 * self.gfx_vc_margin)
+        self.ev_canvas['width']  = min(800, ev_w + self.gfx_tl_margin * 2)
+        self.ev_canvas['scrollregion'] = (0, 0, ev_w + self.gfx_tl_margin * 2,
+         len(self.show.virtual_channels) * self.gfx_vc_height + 2 * self.gfx_vc_margin)
+        self.tl_canvas['scrollregion'] = (0, 0, ev_w + self.gfx_tl_margin * 2,
+         self.gfx_tl_height + self.gfx_tl_margin * 2)
+
+        for t in range(int(ev_ticks)):
+            tm = t * self.zoom
+            self.tl_canvas.create_text(t * self.gfx_tl_1sec_w + self.gfx_tl_major + self.gfx_tl_margin, self.gfx_tl_margin, 
+                text="{0:02d}:{1:06.3f}".format(int(tm // 60), tm % 60), anchor=NW, tags="time")
+            self.tl_canvas.create_line(t * self.gfx_tl_1sec_w + self.gfx_tl_margin, self.gfx_tl_margin,
+                t * self.gfx_tl_1sec_w + self.gfx_tl_margin, self.gfx_tl_height + self.gfx_tl_margin,
+                width=self.gfx_tl_major, tags='time');
+            self.ev_canvas.create_line(t * self.gfx_tl_1sec_w + self.gfx_tl_margin, self.gfx_vc_margin,
+                t * self.gfx_tl_1sec_w + self.gfx_tl_margin, len(self.show.virtual_channels) * self.gfx_vc_height + self.gfx_vc_margin,
+                width=self.gfx_tl_major, tags='time', fill=self.gfx_ev_gridclr);
             for minor in range(1,10):
-                self.tl_canvas.create_line(t * gfx_tl_1sec_w + gfx_tl_margin +
-                        minor * (gfx_tl_1sec_w / 10.0), gfx_tl_margin + gfx_tl_height - gfx_tl_minor_h,
-                    t * gfx_tl_1sec_w + gfx_tl_margin + minor * (gfx_tl_1sec_w / 10.0), gfx_tl_height + gfx_tl_margin,
-                    width=gfx_tl_minor, tags='time');
-                self.ev_canvas.create_line(t * gfx_tl_1sec_w + gfx_tl_margin + 
-                        minor * (gfx_tl_1sec_w / 10.0), gfx_vc_margin,
-                    t * gfx_tl_1sec_w + gfx_tl_margin +
-                        minor * (gfx_tl_1sec_w / 10.0), len(self.show.virtual_channels) * gfx_vc_height + gfx_vc_margin,
-                    width=gfx_tl_minor, tags='time');
+                self.tl_canvas.create_line(t * self.gfx_tl_1sec_w + self.gfx_tl_margin +
+                        minor * (self.gfx_tl_1sec_w / 10.0), self.gfx_tl_margin + self.gfx_tl_height - self.gfx_tl_minor_h,
+                    t * self.gfx_tl_1sec_w + self.gfx_tl_margin + minor * (self.gfx_tl_1sec_w / 10.0), self.gfx_tl_height + self.gfx_tl_margin,
+                    width=self.gfx_tl_minor, tags='time');
+                self.ev_canvas.create_line(t * self.gfx_tl_1sec_w + self.gfx_tl_margin + 
+                        minor * (self.gfx_tl_1sec_w / 10.0), self.gfx_vc_margin,
+                    t * self.gfx_tl_1sec_w + self.gfx_tl_margin +
+                        minor * (self.gfx_tl_1sec_w / 10.0), len(self.show.virtual_channels) * self.gfx_vc_height + self.gfx_vc_margin,
+                    width=self.gfx_tl_minor, tags='time', fill=self.gfx_ev_gridclr);
+
         for row in range(len(self.show.virtual_channels)+1):
-            self.ev_canvas.create_line(gfx_tl_margin, row * gfx_vc_height + gfx_vc_margin,
-                gfx_tl_margin + gfx_tl_1sec_w * math.ceil(self.timespan), row * gfx_vc_height + gfx_vc_margin,
-                tags='time', width=gfx_ev_hr)
+            self.ev_canvas.create_line(self.gfx_tl_margin, row * self.gfx_vc_height + self.gfx_vc_margin,
+                self.gfx_tl_margin + ev_w, row * self.gfx_vc_height + self.gfx_vc_margin,
+                tags='time', width=self.gfx_ev_hr, fill=self.gfx_ev_gridclr)
+
+        display_data = {}
+        for vc in self.displayed_channels:
+            display_data[vc.id] = []
+            vc.display_level_change(vc.normalize_level_value('off'))
+
+        for start_time in self.sequence.intervals:
+            for event in self.sequence.events_at(start_time):
+                if event.vchannel is None:
+                    affected_channels = self.displayed_channels
+                else:
+                    affected_channels = [event.vchannel]
+
+                for vchannel in affected_channels:
+                    if event.raw_level is None:
+                        before, after = vchannel.display_level_change(vchannel.normalize_level_value(event.level, permissive=True))
+                    else:
+                        before, after = vchannel.display_level_change(event.raw_level)
+
+                    display_data[vchannel.id].append((start_time, 
+                        start_time+(event.delta if vchannel.is_dimmable else 0), before, after, event))
+
+        self.ev_canvas.delete('events')
+        self._displayed_objects = {}
+        def t_xcoord(t, hedge=False):
+            "start and end x coordinates for area which contains time t (ms)"
+            s = math.floor(t/100.0/self.zoom)
+            e = math.ceil(t/100.0/self.zoom)
+            if hedge and s == e:
+                e += 1
+            return s * (self.gfx_tl_1sec_w / 10.0) + self.gfx_tl_margin, e * (self.gfx_tl_1sec_w / 10.0) + self.gfx_tl_margin
 
 
+        for idx, vc in enumerate(self.displayed_channels):
+            last_time = 0
+            last_color = '#000000'
+            for start_time, end_time, start_color, end_color, event_obj in display_data[vc.id]:
+                if last_time < start_time and last_color != '#000000':
+                    wid = None
+                    self.ev_canvas.create_rectangle(
+                        t_xcoord(last_time)[0], self.gfx_vc_margin + idx*self.gfx_vc_height + self.gfx_vc_height*0.3,
+                        t_xcoord(start_time)[0], self.gfx_vc_margin + idx*self.gfx_vc_height + self.gfx_vc_height*0.7,
+                        fill=last_color, outline=self.gfx_ev_outline, tags=('events','cont'))
+
+                identity = 'EV:{0}:{1}'.format(start_time, id(event_obj))
+                if start_time == end_time:
+                    s, e = t_xcoord(start_time, hedge=True)
+                    wid = self.ev_canvas.create_rectangle(
+                        s, self.gfx_vc_margin + idx*self.gfx_vc_height,
+                        e, self.gfx_vc_margin + (idx+1)*self.gfx_vc_height,
+                        fill=end_color, outline=self.gfx_ev_outline, tags=('events','point',identity))
+                elif start_color == end_color:
+                    wid = self.ev_canvas.create_rectangle(
+                        t_xcoord(start_time)[0], self.gfx_vc_margin + idx*self.gfx_vc_height,
+                        t_xcoord(end_time)[1], self.gfx_vc_margin + (idx+1)*self.gfx_vc_height,
+                        fill=end_color, outline=self.gfx_ev_outline, tags=('events','point',identity))
+                else:
+                    # build gradients
+                    s = t_xcoord(start_time)[0]
+                    e = t_xcoord(end_time)[1]
+                    v = VirtualChannel(None, None)
+
+                    step_size = self.gfx_tl_1sec_w / 30.0
+                    steps = int(math.ceil((e - s) / step_size))
+
+                    if steps > 60:
+                        step_size = (e-s) / 32.0 
+                        steps = int(math.ceil((e - s) / step_size))
+
+                    gs=s
+                    ge=gs+step_size
+                    sc=v._to_raw_color(start_color)
+                    ec=v._to_raw_color(end_color)
+                    gc=start_color
+                    wid = 'EV#{0}'.format(id(event_obj))
+                    for i in range(steps):
+                        self.ev_canvas.create_rectangle(
+                            gs, self.gfx_vc_margin + idx*self.gfx_vc_height,
+                            ge, self.gfx_vc_margin + (idx+1)*self.gfx_vc_height,
+                            fill=gc, outline=gc, tags=('events','point',identity))
+                        gc = '#{0:02x}{1:02x}{2:02x}'.format(
+                            int((sc[0] + i*(float(ec[0]-sc[0])/steps)) * 2.55) & 0xff,
+                            int((sc[1] + i*(float(ec[1]-sc[1])/steps)) * 2.55) & 0xff,
+                            int((sc[2] + i*(float(ec[2]-sc[2])/steps)) * 2.55) & 0xff,
+                        )
+                        gs = ge
+                        ge += step_size
+                    
+                last_time = end_time
+                last_color = end_color
+
+#                if wid is not None:
+#                    self.ev_canvas.tag_bind(wid, self.show.gui.menu_button, 
+#                        lambda e, wid=wid, event_obj=event_obj, start_time=start_time: self.on_event_menu(e, wid, event_obj, start_time))
+
+            if last_color != '#000000':
+                self.ev_canvas.create_rectangle(
+                    t_xcoord(last_time)[0], self.gfx_vc_margin + idx*self.gfx_vc_height + self.gfx_vc_height*0.3,
+                    t_xcoord(self.timespan)[1], self.gfx_vc_margin + idx*self.gfx_vc_height + self.gfx_vc_height*0.7,
+                    fill=last_color, tags=('events','cont'))
+
+            try:
+                self.ev_canvas.tag_raise('point','cont')
+            except Tkinter.TclError:
+                pass
 
     def draw_channels(self):
         self.vc_canvas.delete('chan')
         
-        gfx_vc_height = 20
-        gfx_vc_width  = 140
-        gfx_vc_margin = 5
-        gfx_vc_pad    = 2
-
-        self.vc_canvas['height'] = len(self.show.virtual_channels) * gfx_vc_height + 2 * gfx_vc_margin
-        self.vc_canvas['width']  = gfx_vc_width + 2 * gfx_vc_margin
+        self.vc_canvas['height'] = min(800, len(self.show.virtual_channels) * self.gfx_vc_height + 2 * self.gfx_vc_margin)
+        self.vc_canvas['width']  = self.gfx_vc_width + 2 * self.gfx_vc_margin
         self.vc_canvas['scrollregion'] = (0, 0,
-             gfx_vc_width + 2 * gfx_vc_margin,
-             len(self.show.virtual_channels) * gfx_vc_height + 2 * gfx_vc_margin)
+             self.gfx_vc_width + 2 * self.gfx_vc_margin,
+             len(self.show.virtual_channels) * self.gfx_vc_height + 2 * self.gfx_vc_margin)
 
-        for idx, vchan in enumerate(self.show.virtual_channels.values()):
-            self.vc_canvas.create_rectangle(0+gfx_vc_margin, idx * gfx_vc_height + gfx_vc_margin, 
-                gfx_vc_width, (idx+1) * gfx_vc_height + gfx_vc_margin, fill=None, tags='chan')
-            self.vc_canvas.create_text(0+gfx_vc_margin + gfx_vc_pad, idx * gfx_vc_height + gfx_vc_margin + gfx_vc_pad, 
+        #
+        # create display list in order
+        #
+        all_channels = set(self.show.virtual_channels)
+        self.displayed_channels = []
+        for vc_id in self.show.gui.virtual_channel_display_order:
+            if vc_id in all_channels:
+                self.displayed_channels.append(self.show.virtual_channels[vc_id])
+                all_channels.remove(vc_id)
+
+        for vc_id in sorted(all_channels):
+            self.displayed_channels.append(self.show.virtual_channels[vc_id])
+
+        all_channels = None
+
+        for idx, vchan in enumerate(self.displayed_channels):
+            self.vc_canvas.create_rectangle(0+self.gfx_vc_margin, idx * self.gfx_vc_height + self.gfx_vc_margin, 
+                self.gfx_vc_width, (idx+1) * self.gfx_vc_height + self.gfx_vc_margin, fill=None, tags='chan')
+            self.vc_canvas.create_text(0+self.gfx_vc_margin + self.gfx_vc_pad, idx * self.gfx_vc_height + self.gfx_vc_margin + self.gfx_vc_pad, 
                 anchor=NW, text=vchan.name, tags='chan')
-            print vchan.name
 
                 # .id .name .dimmer
 
@@ -514,6 +796,154 @@ class SequencerCanvas (Tkinter.Frame):
 #    return False
 #
 #        
+#
+
+class LumosGenericDialog(ttk.Frame):
+    def __init__(self, parent, sequencer):
+        dialog = Tkinter.Toplevel()
+        dialog.transient(parent)
+        ttk.Frame.__init__(self, dialog)
+        self.pack(side=TOP, expand=True, fill=BOTH)
+        self._L_field_info = {}
+
+    def _set_form(self, id, fields):
+        f = ttk.Frame(self)
+        self._L_field_info[id] = {}
+
+        for row, field_spec in enumerate(fields):
+            tag, control_type, label = field_spec
+
+            l = ttk.Label(f, text=label)
+            if control_type == 'toggle':
+                v = Tkinter.IntVar()
+                w = ttk.Frame(f)
+
+                ttk.Radiobutton(w, text='Off', value=0, variable=v).pack(side=LEFT)
+                ttk.Radiobutton(w, text='On',  value=1, variable=v).pack(side=LEFT)
+            elif control_type == 'dimmer':
+                v = Tkinter.DoubleVar()
+                v2= Tkinter.StringVar()
+                w = ttk.Frame(f)
+                
+                v2.set('  0.0%')
+                ttk.Scale(w, from_=0.0, to=100.0, variable=v, 
+                          command=lambda x, v=v, v2=v2: v2.set("{0:5.1f}%".format(v.get()))).pack(side=LEFT)
+                ttk.Label(w, textvariable=v2).pack(side=LEFT)
+
+            elif control_type == 'time':
+                vm= Tkinter.StringVar()
+                vs= Tkinter.StringVar()
+                v = (vm,vs)
+
+                vm.set('0')
+                vs.set('0.000')
+
+                w = ttk.Frame(f)
+                v1= self.register(self._validate_time_min)
+                v2= self.register(self._validate_time_sec)
+
+                ttk.Entry(w, width=3, justify=RIGHT, validate='all', validatecommand=(v1, '%V', '%S', '%P'),
+                        textvariable=vm).pack(side=LEFT)
+                ttk.Label(w, text=':').pack(side=LEFT)
+                ttk.Entry(w, width=7, justify=RIGHT, validate='all', validatecommand=(v2, '%V', '%S', '%P'),
+                        textvariable=vs).pack(side=LEFT)
+
+            elif control_type == 'channel':
+                v = None
+                w = ttk.Frame(f)
+            else:
+                v = None
+                w = ttk.Frame(f)
+                
+            l.grid(row=row, column=0, sticky=W)
+            w.grid(row=row, column=1, sticky=W)
+            self._L_field_info[id][tag] = (row, l, w, v)
+
+        f.pack(side=TOP, expand=True, fill=BOTH)
+
+    def _set_cancel_save_buttons(self):
+        buttons = ttk.Frame(self)
+        buttons.pack(side=BOTTOM, anchor=S)
+        ttk.Button(buttons, text="Cancel", command=self.master.destroy).pack(side=LEFT)
+        ttk.Button(buttons, text="Save",   command=self._save).pack(side=RIGHT)
+
+    def _save(self):
+        tkMessageBox.showerror("No Save", "The save operation for this dialog is not implemented.")
+
+    def _validate_time_min(self, operation, insertvalue, fullvalue):
+        if operation=='key' and insertvalue not in '0123456789':
+            return False
+
+        try:
+            v = int(fullvalue)
+        except ValueError:
+            return False
+
+        if not 0 <= v:
+            return False
+
+        return True
+
+    def _validate_time_sec(self, operation, insertvalue, fullvalue):
+        if operation=='key' and insertvalue not in '.0123456789':
+            return False
+
+        try:
+            v = float(fullvalue)
+        except ValueError:
+            return False
+
+        if not 0 <= v < 60:
+            return False
+        return True
+
+#    
+# Edit|New Event [chan]@[time]
+#---------------------------------------
+# Channel Affected:  [All | list]
+# Toggle:            []off []on
+# Dimmer:            0=================100%
+# Color:             [   ] click to change
+#
+# Event Time:        [nn] minutes [   n.nnn] seconds
+# Duration of effect:             [   n.nnn] seconds
+#
+# [Cancel]                         [Save]
+#
+class EventEditorDialog (LumosGenericDialog):
+    def __init__(self, parent, sequencer, at_time=0, event_obj=None, vchannel=None):
+        LumosGenericDialog.__init__(self, parent, sequencer)
+
+        # save app-specific data in this object
+        self.event_obj = event_obj
+        self.sequencer = sequencer
+        self.timestamp = at_time
+        self.vchannel  = vchannel
+
+        # set up the GUI widgets
+
+        self.master.title("{2} Event for {0}@{1}".format(
+            '*' if vchannel is None else vchannel.name,
+            self.sequencer.timestamp_to_text(at_time),
+            "Create New" if self.event_obj is None else "Modify"
+        ))
+
+        self._set_form('controls', (
+            ('vchan', 'channel', 'Channel Affected:',   ),
+            ('on',    'toggle',  'Power:',              ),
+            ('level', 'dimmer',  'Dimmer:',             ),
+            ('color', 'color',   'Color:',              ),
+            ('start', 'time',    'Event Time',          ),
+            ('delta', 'time',    'Duration of Effect:', ),
+        ))
+        self._set_cancel_save_buttons()
+
+
+    def _save(self):
+        pass
+
+
+        
 #class PowerSourceEditorDialog(ttk.Frame):
 #    def __init__(self, parent, show_obj, power_source_obj=None, parent_source=None):
 #        root = Tkinter.Toplevel()
@@ -931,49 +1361,128 @@ class Application (SequencerCanvas):
 
         menu_bar = Tkinter.Menu(self)
         self.master.config(menu=menu_bar)
+        self.master.title("Lumos Sequence Editor")
 
-        file_menu = Tkinter.Menu(menu_bar, tearoff=False)
-        menu_bar.add_cascade(label="File", menu=file_menu)
-        file_menu.add_command(label="New Sequence", command=self.new_file)
-        file_menu.add_command(label="Open Sequence...", command=self.open_file)
-        file_menu.add_command(label="Save Sequence", command=self.save_file)
-        file_menu.add_command(label="Save Sequence As...", command=self.save_file_as)
-        file_menu.add_separator()
-        file_menu.add_command(label="Quit", command=self.on_quit)
+        def create_menu(parent, title, item_list):
+            this_menu = Tkinter.Menu(parent, tearoff=False)
+            parent.add_cascade(label=title, menu=this_menu)
+            accelerator_idx = {
+                'darwin':   1,
+            }.get(sys.platform, 0)
+
+            for label, accelerators, binding in item_list:
+                if label == '---':
+                    this_menu.add_separator()
+                elif isinstance(binding, (list, tuple)):
+                    create_menu(this_menu, label, binding)
+                else:
+                    if len(accelerators) <= accelerator_idx or accelerators[accelerator_idx] is None: 
+                        this_menu.add_command(label=label, command=binding)
+                    else: 
+                        acc = accelerators[accelerator_idx]
+                        if isinstance(acc, (list, tuple)):
+                            acc_tag = acc[0]
+                            keybind = acc[1]
+                        else:
+                            acc_tag = keybind = acc
+
+                        if acc_tag is not None:
+                            this_menu.add_command(label=label, accelerator=acc_tag, command=binding)
+                        if keybind is not None:
+                            self.bind_all('<'+keybind+'>', binding)
+
+        #   menu item               (default, Mac, ...)          command
+        create_menu(menu_bar, "File", [
+            ("New Sequence",         (None, "Command-n",),       self.new_file),
+            ("Open Sequence...",     (None, "Command-o",),       self.open_file),
+            ("Save Sequence",        (None, "Command-s",),       self.save_file),
+            ("Save Sequence As...",  (None, "Shift-Command-S",), self.save_file_as),
+            ("---",                  None,                       None),
+            ("Quit",                 (None, "Command-q"),        self.on_quit),
+        ])
+
+        create_menu(menu_bar, "View", [
+            ("Zoom in",              (None, "Command-+",),       self.zoom_in),
+            ("Zoom out",             (None, 
+                                        ("Command--","Command-minus")),
+                                                                 self.zoom_out),
+            ("Zoom",                 (),                         [
+                ("10 minutes",       (),                            lambda *e: self.zoom_to(600)),
+                ("5 minutes",        (),                            lambda *e: self.zoom_to(300)),
+                ("1 minute",         (),                            lambda *e: self.zoom_to(60)),
+                ("30 seconds",       (),                            lambda *e: self.zoom_to(30)),
+                ("10 seconds",       (),                            lambda *e: self.zoom_to(10)),
+                ("5 seconds",        (),                            lambda *e: self.zoom_to(5)),
+                ("2 seconds",        (),                            lambda *e: self.zoom_to(2)),
+                ("1 second",         (None, "Command-="),           lambda *e: self.zoom_to(1)),
+                ("1/2 second",       (),                            lambda *e: self.zoom_to(.5)),
+                ("1/5 second",       (),                            lambda *e: self.zoom_to(.2)),
+                ("1/10 second",      (),                            lambda *e: self.zoom_to(.1)),
+                ("1/20 second",      (),                            lambda *e: self.zoom_to(.05)),
+                ("1/50 second",      (),                            lambda *e: self.zoom_to(.02)),
+                ("1/100 second",     (),                            lambda *e: self.zoom_to(.01)),
+            ]),
+        ])
 
         parser = argparse.ArgumentParser(description="Test of the SequenceCanvas widget.")
         parser.add_argument('--config',   '-c', help='Show configuration file')
         parser.add_argument('--sequence', '-s', help='Sequence file')
+        parser.add_argument('--verbose',  '-v', help='Increase information output level')
         self.options = parser.parse_args()
 
         if self.options.config:
             self.show.load_file(self.options.config, open_device=False, virtual_only=True)
 
         if self.options.sequence:
-            self.seq.load_file(self.options.sequence)
+            self.sequence.load_file(self.options.sequence, self.show.controllers, self.show.virtual_channels)
+            self.file_name = self.options.sequence
+            self.set_title()
+
+        if self.options.verbose:
+            raise NotImplementedError("-v option not yet implemented")  #XXX
 
         self.refresh()
 
-    def on_quit(self):
+    def set_title(self):
+        self.master.title("Lumos Sequence Editor - {0} {1}".format(
+            self.file_name or 'Untitled',
+            '(*)' if self.modified_since_saved else ''
+        ))
+
+    def on_quit(self, *a):
         if self.check_unsaved_first(): return
         self.quit()
 
+    def note_changed(self, how_many=1):
+        self.modified_since_saved += how_many
+        self.set_title()
+
+    def clear_changes(self):
+        self.modified_since_saved = 0
+        self.set_title()
+
     def check_unsaved_first(self):
         return self.modified_since_saved and not tkMessageBox.askokcancel('Unsaved Changes', '''
-You have made changes which haven't been saved.  Are you sure?
-If you continue, you will lose those changes!
-''', default=tkMessageBox.CANCEL)
+You have made {0} change{1} which {2} been saved.  Are you sure?
+If you continue, you will lose {3} change{1}!'''.format(
+    self.modified_since_saved,
+    '' if self.modified_since_saved == 1 else 's',
+    "hasn't" if self.modified_since_saved == 1 else "haven't",
+    'that' if self.modified_since_saved == 1 else 'those',
+), default=tkMessageBox.CANCEL)
         
     def new_file(self):
         if self.check_unsaved_first(): return
-        self.show = Show()
+        self.clear_changes()
+        self.sequence = Sequence()
         self.file_name = None
+        self.set_title()
         self.refresh()
 
     def open_file(self):
         if self.check_unsaved_first(): return
         file_name = tkFileDialog.askopenfilename(
-            filetypes=(('Lumos Configuration Profile', '.conf'), ('All Files', '*')),
+            filetypes=(('Lumos Sequence File', '.lseq'), ('All Files', '*')),
             defaultextension=".lseq",
             initialdir=os.getcwd(),
             parent=self,
@@ -981,13 +1490,15 @@ If you continue, you will lose those changes!
         )
         if file_name is not None and file_name.strip() != '':
             try:
-                show = Show()
-                show.load_file(file_name, open_device=False)
+                seq = Sequence()
+                seq.load_file(file_name, self.show.controllers, self.show.virtual_channels)
             except Exception as err:
                 tkMessageBox.showerror("Unable to load file", "Error: {0}".format(traceback.format_exc(TBLIM)))
             else:
-                self.show = show
+                self.clear_changes()
+                self.sequence = seq
                 self.file_name = file_name
+                self.set_title()
                 self.refresh()
 
     def save_file(self):
@@ -995,12 +1506,11 @@ If you continue, you will lose those changes!
             self.save_file_as()
         else:
             try:
-                #  self.show.save_file(self.file_name)
-                raise NotImplementedError('no save funtion')
+                self.sequence.save_file(self.file_name)
             except Exception as err:
                 tkMessageBox.showerror("Error Saving Sequence", "Error writing {1}: {0}".format(traceback.format_exc(0), self.file_name))
             else:
-                self.modified_since_saved = False
+                self.clear_changes()
 
     def save_file_as(self):
         if self.file_name is None:
@@ -1020,9 +1530,19 @@ If you continue, you will lose those changes!
         if file_name is not None and file_name.strip() != '':
             self.file_name = file_name.strip()
             self.save_file()
+            self.set_title()
 
     
 if __name__ == "__main__":
+#    import sys
+#
+#    if sys.platform == 'darwin':
+#        try:
+#            import os
+#            os.system('''/usr/bin/osascript -e 'tell app "Finder" to set frontmost of process "Python" to true' ''')
+#        except Exception:
+#            pass
+
     root = Tkinter.Tk()
     show = Show()
     seq = Sequence()
@@ -1033,3 +1553,11 @@ if __name__ == "__main__":
         root.destroy()
     except:
         pass
+
+# minus underscore asciitilde exclam at numbersign dollar percent
+# asciicirum ampersand asterisk parenleft parenright plus equal
+# F1 F2 ... F10 quoteleft(`) quoteright(') less greater question
+# comma period slash braceleft braceright bar colon quotedbl(")
+# bracketleft bracketright backslash semicolon Escape 1 2 ... 0
+# KP_Enter Up Left Down Right Prior Home Next End
+# Super_L (fn)

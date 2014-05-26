@@ -41,6 +41,7 @@ class ToggleVirtualChannel (VirtualChannel):
         VirtualChannel.__init__(self, id, channel, name, color)
         self.type = 'toggle'
         self.current_raw_value = 0
+        self.is_dimmable = False
 
     def denormalize_level_value(self, value):
         return 'on' if value else 'off'
@@ -73,7 +74,7 @@ class ToggleVirtualChannel (VirtualChannel):
         if v == 'off': return 0
 
         if not permissive or not isinstance(v, int):
-            raise ValueError('{1} {2} toggle channels must be set to "on" or "off", not "{0}"'.format(value, permissive, type(v)))
+            raise ValueError('{1}: toggle channels must be set to "on" or "off", not "{0}"'.format(value, id))
 
         return 1 if v else 0
 
@@ -91,3 +92,4 @@ class ToggleVirtualChannel (VirtualChannel):
                 self.channel.controller.set_channel_on if new_raw_level else self.channel.controller.set_channel_off, 
                 (self.channel.id, force), 
                 base_priority)]
+

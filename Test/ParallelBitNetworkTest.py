@@ -36,14 +36,14 @@ class ParallelBitNetworkTest (unittest.TestCase):
     def testCons(self):
         n = network_factory(type='parbit', description='desc', port=1, open_device=False)
         if isinstance(n, NullNetwork):
-            warn_once('NOPARBIT', "Skipping tests of ParallelBit networks: this machine does not support them (intall PyParallel?)")
+            warn_once('NOPARBIT', "Skipping tests of ParallelBit networks: this machine does not support them (install PyParallel?)")
         else:
             self.assertEqual(n.description, 'desc')
 
     def testDefaults(self):
         n = network_factory(type='parbit', open_device=False)
         if isinstance(n, NullNetwork):
-            warn_once('NOPARBIT', "Skipping tests of ParallelBit networks: this machine does not support them (intall PyParallel?)")
+            warn_once('NOPARBIT', "Skipping tests of ParallelBit networks: this machine does not support them (install PyParallel?)")
         else:
             self.assertEqual(n.description, None)
             self.assertEqual(str(n), 'ParallelBitNetwork (port 0)')
@@ -52,6 +52,6 @@ class ParallelBitNetworkTest (unittest.TestCase):
     def test_no_open(self):
         n = network_factory(type='parbit', open_device=False)
         if isinstance(n, NullNetwork):
-            warn_once('NOPARBIT', "Skipping tests of ParallelBit networks: this machine does not support them (intall PyParallel?)")
+            warn_once('NOPARBIT', "Skipping tests of ParallelBit networks: this machine does not support them (install PyParallel?)")
         else:
             self.assertEqual(n.dev, None)

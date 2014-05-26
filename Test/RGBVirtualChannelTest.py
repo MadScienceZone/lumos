@@ -52,14 +52,14 @@ class RGBVirtualChannelTest (unittest.TestCase):
         vc = RGBVirtualChannel('id', self.rgb, color='#ffffff')
         self.assertEqual(vc.id, 'id')
         self.assertEqual(vc.channel, self.rgb)
-        self.assertEqual(vc.name, None)
+        self.assertEqual(vc.name, 'id')
         self.assertEqual(vc.color, '#ffffff')
         self.assertEqual(vc.type, 'rgb')
 
         vc = RGBVirtualChannel('id', self.rgb)
         self.assertEqual(vc.id, 'id')
         self.assertEqual(vc.channel, self.rgb)
-        self.assertEqual(vc.name, None)
+        self.assertEqual(vc.name, 'id')
         self.assertEqual(vc.color, '#ffffff')
         self.assertEqual(vc.type, 'rgb')
 

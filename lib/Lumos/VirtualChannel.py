@@ -39,6 +39,7 @@ class VirtualChannel (object):
 
     def __init__(self, id, channel, name=None, color=None):
         self.channel = channel
+        self.is_dimmable = True
         if isinstance(channel, (list, tuple)):
             if len(channel) != 1:
                 raise ValueError('virtual channel {0} only takes a single hardware channel object'.format(id))
@@ -66,6 +67,21 @@ class VirtualChannel (object):
 
     def compile_level_change(self, base_timestamp, base_priority, new_raw_level, time_delta, force=False):
         raise NotImplementedError("VirtualChanel is an abstract base class.  Derived sub-classes must implement their own compile_level_change() method.")
+
+    def display_level_change(self, new_raw_level):
+        """
+        For GUI tools which work with channel level changes, change the virtual
+        channel's current value as it's being tracked here.  Emits a pair of
+        color values representing the display color before and after the change.
+        """
+
+        old_value = self.current_raw_value
+        self.current_raw_value = new_raw_level
+
+        return (
+            self._to_rgb_color(self.denormalize_level_value(old_value), base_color=self.color), 
+            self._to_rgb_color(self.denormalize_level_value(self.current_raw_value), base_color=self.color)
+        )
         
     def all_hardware_channels(self):
         "Returns a list of all hardware channels associated with this virtual channel."
@@ -81,8 +97,8 @@ class VirtualChannel (object):
         number of milliseconds.
 
         Returns a list of tuples (<timestamp>, <raw level value>)
-        XXX REMEMBER THAT IF YOU INJECT MORE EVENT TIMES DUE TO
-        XXX TRANSITIONS, YOU MUST INSERT MORE FLUSH EVENTS TOO
+        REMEMBER THAT IF YOU INJECT MORE EVENT TIMES DUE TO
+        TRANSITIONS, YOU MUST INSERT MORE FLUSH EVENTS TOO
         """
         
         if time_delta == 0:
@@ -140,6 +156,52 @@ class VirtualChannel (object):
         if v.startswith('#') and len(v)==7:
             try:
                 return (int(v[1:3], 16)/2.55, int(v[3:5], 16)/2.55, int(v[5:7], 16)/2.55)
+            except ValueError:
+                raise ValueError("Color value {0} not understood (invalid hex bytes)".format(color_code))
+        raise ValueError("Color value {0} not understood (bad string format)".format(color_code))
+
+    def _to_rgb_color(self, color_code, base_color=None):
+        """
+        Resolve standard color representations which may be
+        used by different virtual channels and GUI elements.
+
+        Accepts a single integer or float value (or string
+        containing such) as a percentage of white intensity 
+        from 0 to 100; or the strings "on" and "off"; or
+        a string of the form "#rrggbb".  Also accepts the
+        None value as a synonym for 0.
+
+        Returns a string of the form "#rrggbb".
+        """
+
+        if color_code is None:
+            return '#000000'
+
+        if base_color is not None:
+            base_rgb = self._to_raw_color(base_color)
+        else:
+            base_rgb = self._to_raw_color("#ffffff")
+
+        try:
+            #v = int((float(color_code) / 100.0) * 255)
+            v = float(color_code)
+            if v < 0:   v = 0
+            if v > 100: v = 100
+            return '#{0:02x}{1:02x}{2:02x}'.format(
+                int(base_rgb[0] * v *  0.0255) & 0xff, 
+                int(base_rgb[1] * v * 0.0255) & 0xff, 
+                int(base_rgb[2] * v * 0.0255) & 0xff)
+        except ValueError:
+            if not isinstance(color_code, str):
+                raise ValueError("Color code {0} not understood".format(color_code))
+
+        v = color_code.lower().strip()
+        if v == 'on':   return '#{0[0]:02x}{0[1]:02x}{0[2]:02x}'.format([int(i*2.55)&0xff for i in base_rgb])
+        if v == 'off':  return '#000000'
+        if v.startswith('#') and len(v)==7:
+            try:
+                rgb = (int(v[1:3], 16)/2.55, int(v[3:5], 16)/2.55, int(v[5:7], 16)/2.55)
+                return v
             except ValueError:
                 raise ValueError("Color value {0} not understood (invalid hex bytes)".format(color_code))
         raise ValueError("Color value {0} not understood (bad string format)".format(color_code))

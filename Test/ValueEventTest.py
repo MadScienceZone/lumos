@@ -29,10 +29,11 @@ from Lumos.ValueEvent import ValueEvent
 
 class DummyVirtualChannel (object):
     def __init__(self, id):
-	self.id = id
+        self.id = id
+        self.is_dimmable = True
 
-    def normalize_level_value(self, i):
-	return int(i)
+    def normalize_level_value(self, i, permissive=False):
+        return int(i)
 
     def __eq__(self, other):
         return self.id == other.id
@@ -41,9 +42,9 @@ class ValueEventTest(unittest.TestCase):
     def testCons(self):
         e = ValueEvent(DummyVirtualChannel(44), level='31', delta=100)
         self.assertEqual(e.vchannel.id, 44)
-	self.assertEqual(e.level, 31)
+        self.assertEqual(e.level, 31)
         self.assertEqual(e.delta, 100)
-	self.assertEqual(e.raw_level, 31)
+        self.assertEqual(e.raw_level, 31)
 
     def test_on(self):
         e = ValueEvent(DummyVirtualChannel(44), level='100')
@@ -59,7 +60,7 @@ class ValueEventTest(unittest.TestCase):
         self.assertEqual(e.delta, 0)
 
     def test_equality(self):
-	eo= DummyVirtualChannel(12)
+        eo= DummyVirtualChannel(12)
         e = ValueEvent(eo, 10, 100)
         f = ValueEvent(DummyVirtualChannel(12), 10, 100)
         g = ValueEvent(DummyVirtualChannel(13), 10, 100)
@@ -68,7 +69,7 @@ class ValueEventTest(unittest.TestCase):
         j = ValueEvent(DummyVirtualChannel(12), 10, 0)
         k = ValueEvent(eo, 10, 100)
 
-	self.assertEqual(e,k)
+        self.assertEqual(e,k)
         self.assertNotEqual(e,f)
         self.assertNotEqual(e,g)
         self.assertNotEqual(e,h)

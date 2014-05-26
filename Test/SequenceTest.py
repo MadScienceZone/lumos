@@ -49,8 +49,9 @@ class DummyController (object):
 class DummyVirtualChannel (object):
     def __init__(self, id):
         self.id = id
+        self.is_dimmable = True
 
-    def normalize_level_value(self, v):
+    def normalize_level_value(self, v, permissive=False):
         return v
 
 class SqeuenceTest (unittest.TestCase):

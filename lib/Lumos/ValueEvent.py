@@ -52,6 +52,14 @@ class ValueEvent:
         be stored in ev.raw_level.
         """
         self.vchannel = vchannel
+        self.change_level(level, delta)
+
+    def copy(self):
+        "Return a new copy of this ValueEvent object."
+
+        return  ValueEvent(self.vchannel, self.level, self.delta)
+
+    def change_level(self, level, delta, permissive=False):
         self.level    = level
         self.delta    = delta
 
@@ -67,11 +75,16 @@ class ValueEvent:
         else:
             self.level = level
 
-
-        if vchannel is None:
+        if self.vchannel is None:
             self.raw_level = None
         else:
-            self.raw_level= vchannel.normalize_level_value(level)
+            self.raw_level= self.vchannel.normalize_level_value(level, permissive)
+            if not self.vchannel.is_dimmable:
+                self.delta = 0
+
+    def change_channel(self, new_vchannel, permissive=False):
+        self.vchannel = new_vchannel
+        self.change_level(self.level, self.delta, permissive)
 
     def compile(self, base_timestamp, base_priority=1, force=False, for_vchannel=None):
         """
