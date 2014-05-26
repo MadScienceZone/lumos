@@ -1,18 +1,21 @@
-; OSCCON:SCS=00;HS;
 ; vim:set syntax=pic ts=8:
 ;
 		LIST n=90
 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ;@@                                                                         @@
-;@@ @      @   @  @   @   @@@    @@@          LUMOS: LIGHT ORCHESTRATION    @@
-;@@ @      @   @  @@ @@  @   @  @   @         SYSTEM FIRMWARE VERSION 3.0   @@ 
-;@@ @      @   @  @ @ @  @   @  @                                           @@
-;@@ @      @   @  @   @  @   @   @@@   @@@@@  FOR 24- AND 48-CHANNEL AC/DC  @@
-;@@ @      @   @  @   @  @   @      @         LUMOS CONTROLLER UNITS        @@
-;@@ @      @   @  @   @  @   @  @   @         BASED ON THE PIC18F4685 CHIP  @@
-;@@ @@@@@   @@@   @   @   @@@    @@@                                        @@
+;@@  @@@   @   @  @@@@@  @@@@@                QUIZ SHOW HARDWARE CONTROLLER @@
+;@@ @   @  @   @    @        @                FIRMWARE VERSION 4.0          @@ 
+;@@ @   @  @   @    @       @                                               @@
+;@@ @   @  @   @    @      @                  FOR HARDWARE REVISION 4.0     @@
+;@@ @ @ @  @   @    @     @                   QSCC - QUIZ SHOW CONTESTANT   @@
+;@@ @  @@  @   @    @    @                    QSRC - QUIZ SHOW REMOTE       @@
+;@@ @@@@@   @@@   @@@@@  @@@@@                                              @@
 ;@@                                                                         @@
 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+;
+; Based on Lumos controller firmware 3.0, PWD-2 firmware (particularly 
+; readerboard controls), and previous Quizshow hardware designs.  All of the
+; above are copyright (c) Steven L. Willoughby, All Rights Reserved.
 ;
 ; ************                                                           /\
 ; * WARNING! *    EXPERIMENTAL DESIGN FOR EDUCATIONAL PURPOSES          /  \
@@ -43,121 +46,38 @@
 ; TO USE, THE ABOVE-LISTED PRODUCTS.
 ; 
 ;
-; Copyright (c) 2012, 2013, 2014 by Steven L. Willoughby, Aloha, Oregon, USA.  
-; All Rights Reserved.  Released under the terms and conditions of the 
-; Open Software License, version 3.0.
+; Copyright (c) 2014 by Steven L. Willoughby, Aloha, Oregon, USA.  
+; All Rights Reserved.  Quiz Show portions are unreleased trade secret
+; information.
 ;
-; Portions based on earlier code copyright (c) 2004, 2005, 2006, 2007
-; Steven L. Willoughby, Aloha, Oregon, USA.  All Rights Reserved.
+; Based on previous works by the same author, some of which are released
+; under the Open Software License, version 3.0, which portions are available
+; separately for free download.
 ;
 ; -*- -*- -* -*- -*- -*- -*- -*- -*- -*- -*- -*- -*- -*- -* -*- -*- -*- -*- -*-
 ;
 ; Main implementation module.
 ;
-#include "lumos_config.inc"
+#include "quizshow_config.inc"
 	RADIX		DEC
-#include "lumos_init.inc"
+#include "quizshow_init.inc"
 #include "serial-io.inc"
-#include "flash_update.inc"
 
-; Works on Lumos 48-Channel controller boards 48CTL-3-1 with retrofit
-; and 24SSR-DC-1.0.8 boards.
+; Works on Software Alchemy Quiz Show QSCC and QSRC boards revision 4.0.
 ;
 ; N.B. THE BOARD SELECT BITS IN LUMOS_CONFIG.INC MUST BE SELECTED
 ; FOR THE TARGET CONFIGURATION!  EACH ROM IS DIFFERENT!
 ;
 ; Target Microcontroller is PIC18F4685, Q=40MHz (100nS instruction cycle)
-; (Original was designed for PIC16F777 and PIC16F877A; you must upgrade
-; the uC to a PIC18F4685 AND retrofit some parts on the old board as
-; follows:
-;    Replace X0 and X1 with 10 MHz crystals.
-;    Interface off-board reset button to ground J5 and J6 pin 3 when pressed.
-;    Interface off-board option button to ground J5 pin 5 when pressed.
-;    Install a 10K pull-up resistor between J5 pin 5 and +5V.
-;    (Optional) /PWRCTL output to P/S available on J5 pin 4.
-;    Option button should only be attached to the master microcontroller.
-;    Both need reset signals.
 ;
-; Serial control (RS-232 or RS-485) at 19.2kbps by default.
+; Serial control (RS-485) at 19.2kbps by default.
 ; Configurable from 300 to 250000 baud.
 ;
-;=============================================================================
-; DIAGNOSTICS
-;-----------------------------------------------------------------------------
-;
-; The front panel LEDs provide the following indications of status.  
-;
-; A  G  Y  R
-; C  R  E  E
-; T  N  L  D PHASE MEANING
-; ---------- ----- -------
-; .  .  .  . BOOT  Never started into boot sequence
-; .  .  .  * BOOT  Halted during EEPROM setup
-; .  .  *  * BOOT  Halted during EEPROM write operation
-; .  .  *  . BOOT  Halted during EEPROM read / system init
-; .  *  *  . BOOT  Halted during system initialization
-; .  *  .  . BOOT  Initialized but main loop or timing system non-functional
-;** ** ** ** RUN   Factory defaults restored (then reboots)
-; . (*) .  . RUN   Normal operations
-; . **  .  . RUN   Normal operations + privileged (config) mode enabled
-; ! (*) X  X RUN   Received command for this unit
-; X  X  !  X RUN   Master/Slave communications
-; X  X  X  * RUN   Command error
-; X  X  * ** RUN   Communications error (framing error)
-; X  X ** ** RUN   Communications error (overrun error)
-; X  X (*)** RUN   Communications error (buffer full error)
-;** (*)**  . RUN   Internal error (exact error displayed on 2nd set of LEDs)*
-; . () () () SLEEP Sleep Mode
-; .  .  .  % HALT  System Halted normally
-; ?  ?  ? ** HALT  Fatal error (exact error displayed on other LEDs)
-;**  . ** ** HALT  Fatal error: reset/halt failure
-;
-; .=off  *=steady (*)=slowly fading on/off X=don't care
-; ()=slow flash **=rapid flash !=blink/fade once (**)=rapid fade
-; %=extra-slow flash
-;
-;
-; *Internal error codes on 2nd LEDs (48-channel models only)
-; A  G  Y  R
-; C  R  E  E
-; T  N  L  D MEANING
-; ---------- -------
-;-- **  .  . dispatch table overrun
-;--  X  .  * input validator failure
-;-- ** ** ** reset failure
-;--  X  . ** device/hardware problem
-;--  X  .(*) internal command error
-;--  . **  . unknown/other error class
-;-- 
-;
-; Error codes retrieved from query command
-; 01  Command decode error (dispatch overrun)
-; 02  Input validator failed to deal with bad value (channel number range for SET_LVL)
-; 03  Input validator failed to deal with bad value (channel number range for BULK_UPD)
-; 04  Input validator failed to deal with bad value (BULK_UPD data block scan)
-; 05  Command decode error (dispatch overrun in S6 final command execution)
-; 06  Input validator failed to deal with bad value (channel number range for RAMP_LVL)
-; 07  Command decode error (dispatch overrun in S9 internal command execution)
-; 08  Command decode error (illegal state transition in S10 for IC_TXDAT/IC_TXSTA)
-; 09  Command impossible to carry out on this hardware (chip without T/R tried to take control of bus)
-; 0A  Illegal internal command sent from master chip (invalid packet in S11 IC_TXDAT/IC_TXSTA)
-; 0B  Command decode error (illegal state transition in S11 for IC_TXDAT/IC_TXSTA)
-; 0C  Command decode error (illegal state transition in S12 for IC_LED)
-; 0D  Command decode error (illegal state transition in S13 for IC_LED)
-; 0E  Command decode error (extended dispatch overrun)
-; 0F  Illegal internal command sent from master chip (received raw QUERY packet)
-; 10  Could not determine device type                                  _
-; 11  Command impossible to carry out on this hardware (chip without T/R tried to release control of bus)
-; 12  Internal inter-CPU command executed on wrong class hardware
-; 
-; 20  Unrecognized command received or command arguments incorrect
-; 21  Attempt to invoke privileged command from normal run mode
-; 22  Command not yet implemented
-; 23  Command received before previous one completed (previous command aborted)
-; 70  CPU failed to reset with new configuration (execution bounds check)
-; 71  CPU failed to halt when requested (execution bounds check)
-;
 ; OPTION BUTTON:
+; XXX The Lumos controllers have an OPTION button which starts configuration
+; XXX mode.  QS*C boards don't have those, so instead boot the unit while
+; XXX holding down the A and C buttons (QSCC) or the XXX buttons (QSRC)
+; XXX to enter configuration mode.
 ; 
 ; Pres and hold the option button to enter field setup mode.  The lights will
 ; flash rapidly to signal this mode change.  Release the button and wait.  

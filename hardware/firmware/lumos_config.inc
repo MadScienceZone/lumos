@@ -13,8 +13,9 @@
 ;@@                                                                         @@
 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ;
-; Copyright (c) 2012 by Steven L. Willoughby, Aloha, Oregon, USA.  All Rights
-; Reserved.  Released under the terms and conditions of the Open Software
+; Copyright (c) 2012, 2014 by Steven L. Willoughby, Aloha, Oregon, USA.  
+; All Rights Reserved.  
+; Released under the terms and conditions of the Open Software
 ; License, version 3.0.
 ;
 ; Portions based on earlier code copyright (c) 2004, 2005, 2006, 2007
@@ -35,13 +36,17 @@
 #define LUMOS_CHIP_SLAVE	0x42	; 48-channel slave CPU
 #define LUMOS_CHIP_STANDALONE	0x43	; 24-channel CPU
 #define LUMOS_CHIP_4CHANNEL	0x44	; 4-channel CPU
+#define LUMOS_CHIP_QSCC         0x45	; Private code; custom hardware
+#define LUMOS_CHIP_QSRC         0x46	; Private code; custom hardware
 ;
 ; Un-comment one of these to select board type for this ROM image:
 ;
 ;#define LUMOS_CHIP_TYPE		LUMOS_CHIP_MASTER
 ;#define LUMOS_CHIP_TYPE		LUMOS_CHIP_SLAVE
-#define LUMOS_CHIP_TYPE		LUMOS_CHIP_STANDALONE
-;#define LUMOS_CHIP_TYPE			LUMOS_CHIP_4CHANNEL
+;#define LUMOS_CHIP_TYPE		LUMOS_CHIP_STANDALONE
+;#define LUMOS_CHIP_TYPE		LUMOS_CHIP_4CHANNEL
+;#define LUMOS_CHIP_TYPE		LUMOS_CHIP_QSCC
+#define LUMOS_CHIP_TYPE		LUMOS_CHIP_QSRC
 ;
 ;
 ;
@@ -51,7 +56,7 @@
  IF LUMOS_CHIP_TYPE == LUMOS_CHIP_MASTER || LUMOS_CHIP_TYPE == LUMOS_CHIP_SLAVE
   #define LUMOS_SLICE_TIMER LUMOS_ZC
  ELSE
-  IF LUMOS_CHIP_TYPE == LUMOS_CHIP_STANDALONE || LUMOS_CHIP_TYPE == LUMOS_CHIP_4CHANNEL
+  IF LUMOS_CHIP_TYPE == LUMOS_CHIP_STANDALONE || LUMOS_CHIP_TYPE == LUMOS_CHIP_4CHANNEL || LUMOS_CHIP_TYPE == LUMOS_CHIP_QSCC || LUMOS_CHIP_TYPE == LUMOS_CHIP_QSRC
    #define LUMOS_SLICE_TIMER LUMOS_INTERNAL
   ELSE
    ERROR "LUMOS_CHIP_TYPE must be set to MASTER, SLAVE, 4CHANNEL, or STANDALONE"
@@ -87,7 +92,21 @@
      #define ROLE_STANDALONE (1)
      #define NUM_CHANNELS    (.4)
     ELSE
-     ERROR "Invalid LUMOS_CHIP_TYPE"
+     IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSCC
+      #define ROLE_MASTER     (0)
+      #define ROLE_SLAVE      (0)
+      #define ROLE_STANDALONE (1)
+      #define NUM_CHANNELS    (.14)
+     ELSE
+      IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSRC
+       #define ROLE_MASTER     (0)
+       #define ROLE_SLAVE      (0)
+       #define ROLE_STANDALONE (1)
+       #define NUM_CHANNELS    (.20)
+      ELSE
+       ERROR "Invalid LUMOS_CHIP_TYPE"
+      ENDIF
+     ENDIF
     ENDIF
    ENDIF
   ENDIF
@@ -96,7 +115,7 @@
 #define LUMOS_ARCH_4685  (0x4685)
 #define LUMOS_ARCH_14K50 (0x1450)
 
- IF LUMOS_CHIP_TYPE == LUMOS_CHIP_MASTER || LUMOS_CHIP_TYPE == LUMOS_CHIP_SLAVE || LUMOS_CHIP_TYPE == LUMOS_CHIP_STANDALONE
+ IF LUMOS_CHIP_TYPE == LUMOS_CHIP_MASTER || LUMOS_CHIP_TYPE == LUMOS_CHIP_SLAVE || LUMOS_CHIP_TYPE == LUMOS_CHIP_STANDALONE || LUMOS_CHIP_TYPE == LUMOS_CHIP_QSCC || LUMOS_CHIP_TYPE == LUMOS_CHIP_QSRC
   #define LUMOS_ARCH LUMOS_ARCH_4685
   PROCESSOR 18F4685
   #include <p18f4685.inc>
@@ -126,6 +145,8 @@
 ;	LUMOS_CHIP_SLAVE	- 48-channel (2-CPU) controller, slave CPU
 ;	LUMOS_CHIP_STANDALONE	- 24-channel (1-CPU) controller, sole CPU
 ;	LUMOS_CHIP_4CHANNEL	- 4-channel  (1-CPU) controller, sole CPU
+;       LUMOS_CHIP_QSCC         - private configuration for custom hardware
+;       LUMOS_CHIP_QSRC         - private configuration for custom hardware
 ;
 ; LUMOS_SLICE_TIMER: Will be one of the following, to specify where the PWM
 ;		    slice timer sync pulse is coming from:
