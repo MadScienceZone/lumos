@@ -279,20 +279,20 @@ class LumosControllerUnit (ControllerUnit):
         self.kill_all_channels(False)
         self.all_channels_off(False)
 
-    def raw_ramp_up(self, channel, steps, delay):
+    def raw_ramp_up(self, channel, steps, delay, cycle=False):
         self.flush()
         self.channels[channel].set_level(self.resolution - 1)
         self.network.send(chr(0xC0 | self.address) + self._8_bit_string([
-            0x40 | (channel & 0x3f),
+            (0x80 if cycle else 0x00) | 0x40 | (channel & 0x3f),
             steps - 1,
             delay - 1
         ]))
 
-    def raw_ramp_down(self, channel, steps, delay):
+    def raw_ramp_down(self, channel, steps, delay, cycle=False):
         self.flush()
         self.channels[channel].set_level(0)
         self.network.send(chr(0xC0 | self.address) + self._8_bit_string([
-            channel & 0x3f,
+            (0x80 if cycle else 0x00) | (channel & 0x3f),
             steps - 1,
             delay - 1
         ]))

@@ -13,7 +13,7 @@
 ;@@                                                                         @@
 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ;
-; Copyright (c) 2012 by Steven L. Willoughby, Aloha, Oregon, USA.  All Rights
+; Copyright (c) 2012, 2014 by Steven L. Willoughby, Aloha, Oregon, USA.  All Rights
 ; Reserved.  Released under the terms and conditions of the Open Software
 ; License, version 3.0.
 ;
@@ -33,7 +33,7 @@
 ; CONFIGURATION FUSES
 ;==============================================================================
 ;
- IF LUMOS_CHIP_TYPE == LUMOS_CHIP_4CHANNEL
+ IF LUMOS_ARCH == LUMOS_ARCH_14K50
 ;
 ;	18F14K50 fuses
 ;
@@ -63,6 +63,7 @@
 ;
 ;
  ELSE
+  IF LUMOS_ARCH == LUMOS_ARCH_4685
 ;
 ;	18F4685 fuses
 ;
@@ -98,6 +99,9 @@
 	CONFIG	EBTR4=OFF	; Block 4 ($10000-$13FFF) unprotected TBL RD
 	CONFIG	EBTR5=OFF	; Block 5 ($14000-$17FFF) unprotected TBL RD
 ; 
+  ELSE
+   ERROR "PIC Architecture setting not configured!"
+  ENDIF
  ENDIF
 ; 
 ;==============================================================================
@@ -203,7 +207,7 @@ LUMOS_INIT:
 		; -0------	; A/D converter int = low priority
 		; --0-----	; UART RX int = low priority
 		; ---0----	; UART TX int = low priority
-		; ----0---	; Syncronous port = low priority
+		; ----0---	; Synchronous port = low priority
 		; -----0--	; CCP1 int = low priority
 		; ------1-	; TMR2 int = high priority
 		; -------0	; TMR1 int = low priority
@@ -237,62 +241,71 @@ LUMOS_INIT:
 ;
 ; I/O PORT SETUP
 ;
-	MOVLW	b'00111100'
+ 	IF QSCC_PORT
+	 #include "qscc_hook_io_setup.asm"
+ 	ELSE
+	 MOVLW	b'00111100'
 		; XX------	; N/A
 		; --1111--	; no channel selected
 		; ------0-	; A/D converter idle
 		; -------0	; A/D converter OFF
-	MOVWF	ADCON0, ACCESS
-	MOVLW	b'00001111'
+	 MOVWF	ADCON0, ACCESS
+	 MOVLW	b'00001111'
 		; XX------	; N/A
 		; --00----	; voltage reference = AVss, AVdd
 		; ----1111	; all I/O pins digital
-	MOVWF	ADCON1, ACCESS
-	CLRF	ADCON2, ACCESS	; not needed since we're not using A/D	
-	CLRF	CVRCON, ACCESS	; turn off comparator voltage reference
+	 MOVWF	ADCON1, ACCESS
+	 CLRF	ADCON2, ACCESS	; not needed since we're not using A/D	
+	 CLRF	CVRCON, ACCESS	; turn off comparator voltage reference
 				;
-	MOVLW 	b'00011111'	; PORT A: 
+	 MOVLW 	b'00011111'	; PORT A: 
 		; XX------	; crystal oscillator pins
 		; --0-----	; T/R pin to RECEIVE mode / ACT light OFF
 		; ---11111	; SSR pins HIGH (relays off)
-	MOVWF	PORTA, ACCESS	; 
-	MOVLW	b'10111110' 	; PORT B:
+	 MOVWF	PORTA, ACCESS	; 
+	 MOVWF	LATA, ACCESS
+	 MOVLW	b'10111110' 	; PORT B:
 		; 1-------	; PWRCTL set HIGH (power supply OFF)
 		; -X------	; OPTION button
 		; --11111-	; SSR pins HIGH (relays off)
 		; -------0	; T/R to RECEIVE (standalone board; input on others)
-	MOVWF	PORTB, ACCESS
-	MOVWF	b'00111111'	; PORTC:
+	 MOVWF	PORTB, ACCESS
+	 MOVWF	LATB, ACCESS
+	 MOVWF	b'00111111'	; PORTC:
 		; XX------	; serial I/O pins
 		; --111111	; SSR pins HIGH (relays off)
-	MOVWF	PORTC, ACCESS
-	SETF	PORTD, ACCESS	; PORTD: SSR pins HIGH (relays off)
-	CLRF	PORTE, ACCESS	; PORTE: LEDs LOW (off)
+	 MOVWF	PORTC, ACCESS
+	 MOVWF	LATC, ACCESS
+	 SETF	PORTD, ACCESS	; PORTD: SSR pins HIGH (relays off)
+	 SETF	LATD, ACCESS
+	 CLRF	PORTE, ACCESS	; PORTE: LEDs LOW (off)
+	 CLRF	LATE, ACCESS
 
 				;    bit 7 6 5 4 3 2 1 0
-	MOVLW	b'11100000' 	; PORTA  X X I O O O O O  all outputs except LEDs (may be sensors)
-	MOVWF	TRISA, ACCESS
- IF LUMOS_CHIP_TYPE==LUMOS_CHIP_MASTER
-	MOVLW	b'01000001'	; PORTB  O I O O O O O I  <6> option, <0> INT; rest outputs
-	MOVWF	TRISB, ACCESS
- ELSE
-  IF LUMOS_CHIP_TYPE==LUMOS_CHIP_SLAVE
-	MOVLW	b'00000001'	; PORTB  O X O O O O O I  <0> INT; rest outputs
-	MOVWF	TRISB, ACCESS
-  ELSE
-   IF LUMOS_CHIP_TYPE==LUMOS_CHIP_STANDALONE
-	MOVLW	b'01000000'	; PORTB  O I O O O O O O  <6> option; rest outputs
-	MOVWF	TRISB, ACCESS
-   ELSE
-    ERROR "LUMOS_CHIP_TYPE not set correctly"
-   ENDIF
-  ENDIF
- ENDIF
-	MOVLW	b'11000000'	; <7:6> is serial; rest are output
-	MOVWF	TRISC, ACCESS
-	CLRF 	TRISD, ACCESS	; PORTD  O O O O O O O O  all outputs
-	MOVLW	b'00000111'
-	MOVWF	TRISE, ACCESS	; PORTE  X X X X X 1 1 1  all inputs (for now, may be sensors)
+	 MOVLW	b'11100000' 	; PORTA  X X I O O O O O  all outputs except LEDs (may be sensors)
+	 MOVWF	TRISA, ACCESS
+ 	 IF LUMOS_CHIP_TYPE==LUMOS_CHIP_MASTER
+	  MOVLW	b'01000001'	; PORTB  O I O O O O O I  <6> option, <0> INT; rest outputs
+	  MOVWF	TRISB, ACCESS
+  	 ELSE
+  	  IF LUMOS_CHIP_TYPE==LUMOS_CHIP_SLAVE
+	   MOVLW b'00000001'	; PORTB  O X O O O O O I  <0> INT; rest outputs
+	   MOVWF TRISB, ACCESS
+          ELSE
+           IF LUMOS_CHIP_TYPE==LUMOS_CHIP_STANDALONE
+	    MOVLW b'01000000'	; PORTB  O I O O O O O O  <6> option; rest outputs
+	    MOVWF TRISB, ACCESS
+           ELSE
+    	    ERROR "LUMOS_CHIP_TYPE not set correctly"
+           ENDIF
+          ENDIF
+         ENDIF
+	 MOVLW	b'11000000'	; <7:6> is serial; rest are output
+	 MOVWF	TRISC, ACCESS
+	 CLRF 	TRISD, ACCESS	; PORTD  O O O O O O O O  all outputs
+	 MOVLW	b'00000111'
+	 MOVWF	TRISE, ACCESS	; PORTE  X X X X X 1 1 1  all inputs (for now, may be sensors)
+	ENDIF
 ;
 ; Timers
 ;

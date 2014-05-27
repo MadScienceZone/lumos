@@ -1,0 +1,3011 @@
+MPASM 5.53                 ../LUMOS_INIT.ASM   5-26-2014  22:33:11         PAGE  1
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00001 ; vim:set syntax=pic ts=8:
+                      00002 ;
+                      00003                 LIST n=90
+                      00004 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                      00005 ;@@                                                                         @@
+                      00006 ;@@ @      @   @  @   @   @@@    @@@          LUMOS: LIGHT ORCHESTRATION    @@
+                      00007 ;@@ @      @   @  @@ @@  @   @  @   @         SYSTEM FIRMWARE VERSION 3.0   @@
+                      00008 ;@@ @      @   @  @ @ @  @   @  @                                           @@
+                      00009 ;@@ @      @   @  @   @  @   @   @@@   @@@@@  FOR 24- AND 48-CHANNEL AC/DC  @@
+                      00010 ;@@ @      @   @  @   @  @   @      @         LUMOS CONTROLLER UNITS        @@
+                      00011 ;@@ @      @   @  @   @  @   @  @   @         BASED ON THE PIC18F4685 CHIP  @@
+                      00012 ;@@ @@@@@   @@@   @   @   @@@    @@@                                        @@
+                      00013 ;@@                                                                         @@
+                      00014 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                      00015 ;
+                      00016 ; Copyright (c) 2012, 2014 by Steven L. Willoughby, Aloha, Oregon, USA.  All Rights
+                      00017 ; Reserved.  Released under the terms and conditions of the Open Software
+                      00018 ; License, version 3.0.
+                      00019 ;
+                      00020 ; Portions based on earlier code copyright (c) 2004, 2005, 2006, 2007
+                      00021 ; Steven L. Willoughby, Aloha, Oregon, USA.  All Rights Reserved.
+                      00022 ;
+                      00023 ; -*- -*- -* -*- -*- -*- -*- -*- -* -*- -*- -*- -*- -*- -* -*- -*- -*- -*- -*-
+                      00024 ;
+                      00025 ; Device initialization code.  See lumos_main.asm for hardware implementation
+                      00026 ; details.
+                      00027 ;
+                      00028 ;
+                      00029 #include "lumos_config.inc"
+                      00001 ; vim:set syntax=pic ts=8:
+                      00002 ;
+                      00003                 LIST n=90
+                      00004 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                      00005 ;@@                                                                         @@
+                      00006 ;@@ @      @   @  @   @   @@@    @@@          LUMOS: LIGHT ORCHESTRATION    @@
+                      00007 ;@@ @      @   @  @@ @@  @   @  @   @         SYSTEM FIRMWARE VERSION 3.0   @@
+                      00008 ;@@ @      @   @  @ @ @  @   @  @                                           @@
+                      00009 ;@@ @      @   @  @   @  @   @   @@@   @@@@@  FOR 24- AND 48-CHANNEL AC/DC  @@
+                      00010 ;@@ @      @   @  @   @  @   @      @         LUMOS CONTROLLER UNITS        @@
+                      00011 ;@@ @      @   @  @   @  @   @  @   @         BASED ON THE PIC18F4685 CHIP  @@
+                      00012 ;@@ @@@@@   @@@   @   @   @@@    @@@                                        @@
+                      00013 ;@@                                                                         @@
+                      00014 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                      00015 ;
+                      00016 ; Copyright (c) 2012, 2014 by Steven L. Willoughby, Aloha, Oregon, USA.  
+                      00017 ; All Rights Reserved.  
+                      00018 ; Released under the terms and conditions of the Open Software
+                      00019 ; License, version 3.0.
+                      00020 ;
+                      00021 ; Portions based on earlier code copyright (c) 2004, 2005, 2006, 2007
+                      00022 ; Steven L. Willoughby, Aloha, Oregon, USA.  All Rights Reserved.
+                      00023 ;
+                      00024 ; -*- -*- -* -*- -*- -*- -*- -*- -* -*- -*- -*- -*- -*- -* -*- -*- -*- -*- -*-
+                      00025 ;
+                      00026 ; Configuration options.  Set these as desired and then re-assemble the
+                      00027 ; code to produce the desired version of the ROM.
+                      00028 ;
+                      00029 ; 
+                      00030 ;==============================================================================
+                      00031 ; CONFIGURATION OPTIONS
+                      00032 ;==============================================================================
+                      00033 #ifndef LUMOS_CONFIG_INC
+                      00034 #define LUMOS_CONFIG_INC
+                      00035 #define LUMOS_CHIP_MASTER       0x41    ; 48-channel master CPU
+                      00036 #define LUMOS_CHIP_SLAVE        0x42    ; 48-channel slave CPU
+                      00037 #define LUMOS_CHIP_STANDALONE   0x43    ; 24-channel CPU
+                      00038 #define LUMOS_CHIP_4CHANNEL     0x44    ; 4-channel CPU
+                      00039 #define LUMOS_CHIP_QSCC         0x45    ; Private code; custom hardware
+                      00040 #define LUMOS_CHIP_QSRC         0x46    ; Private code; custom hardware
+                      00041 ;
+                      00042 ; Un-comment one of these to select board type for this ROM image:
+                      00043 ;
+                      00044 ;#define LUMOS_CHIP_TYPE                LUMOS_CHIP_MASTER
+                      00045 ;#define LUMOS_CHIP_TYPE                LUMOS_CHIP_SLAVE
+                      00046 ;#define LUMOS_CHIP_TYPE                LUMOS_CHIP_STANDALONE
+                      00047 ;#define LUMOS_CHIP_TYPE                LUMOS_CHIP_4CHANNEL
+                      00048 ;#define LUMOS_CHIP_TYPE                LUMOS_CHIP_QSCC
+                      00049 #define LUMOS_CHIP_TYPE         LUMOS_CHIP_QSRC
+                      00050 ;
+                      00051 ;
+                      00052 ;
+                      00053 #define LUMOS_ZC                0x55
+                      00054 #define LUMOS_INTERNAL          0x58
+                      00055 
+MPASM 5.53                 ../LUMOS_INIT.ASM   5-26-2014  22:33:11         PAGE  2
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00056  IF LUMOS_CHIP_TYPE == LUMOS_CHIP_MASTER || LUMOS_CHIP_TYPE == LUMOS_CHIP_SLAVE
+                      00057   #define LUMOS_SLICE_TIMER LUMOS_ZC
+                      00058  ELSE
+                      00059   IF LUMOS_CHIP_TYPE == LUMOS_CHIP_STANDALONE || LUMOS_CHIP_TYPE == LUMOS_CHIP_4CHANNEL || LUMOS_CHIP_TY
+                            PE == LUMOS_CHIP_QSCC || LUMOS_CHIP_TYPE == LUMOS_CHIP_QSRC
+                      00060    #define LUMOS_SLICE_TIMER LUMOS_INTERNAL
+                      00061   ELSE
+                      00062    ERROR "LUMOS_CHIP_TYPE must be set to MASTER, SLAVE, 4CHANNEL, or STANDALONE"
+                      00063   ENDIF
+                      00064  ENDIF
+                      00065  
+                      00066  IF LUMOS_SLICE_TIMER != LUMOS_ZC && LUMOS_SLICE_TIMER != LUMOS_INTERNAL
+                      00067   ERROR "LUMOS_SLICE_TIMER must be set to ZC or INTERNAL"
+                      00068  ENDIF
+                      00069 
+                      00070 
+                      00071  IF LUMOS_CHIP_TYPE == LUMOS_CHIP_MASTER
+                      00072   #define ROLE_MASTER       (1)
+                      00073   #define ROLE_SLAVE        (0)
+                      00074   #define ROLE_STANDALONE   (0)
+                      00075   #define NUM_CHANNELS      (.48)
+                      00076   #define QSCC_PORT         (0)
+                      00077  ELSE
+                      00078   IF LUMOS_CHIP_TYPE == LUMOS_CHIP_SLAVE
+                      00079    #define ROLE_MASTER      (0)
+                      00080    #define ROLE_SLAVE       (1)
+                      00081    #define ROLE_STANDALONE  (0)
+                      00082    #define NUM_CHANNELS     (.48)
+                      00083    #define QSCC_PORT        (0)
+                      00084   ELSE
+                      00085    IF LUMOS_CHIP_TYPE == LUMOS_CHIP_STANDALONE
+                      00086     #define ROLE_MASTER     (0)
+                      00087     #define ROLE_SLAVE      (0)
+                      00088     #define ROLE_STANDALONE (1)
+                      00089     #define NUM_CHANNELS    (.24)
+                      00090     #define QSCC_PORT       (0)
+                      00091    ELSE
+                      00092     IF LUMOS_CHIP_TYPE == LUMOS_CHIP_4CHANNEL
+                      00093      #define ROLE_MASTER     (0)
+                      00094      #define ROLE_SLAVE      (0)
+                      00095      #define ROLE_STANDALONE (1)
+                      00096      #define NUM_CHANNELS    (.4)
+                      00097      #define QSCC_PORT       (0)
+                      00098     ELSE
+                      00099      IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSCC
+                      00100       #define ROLE_MASTER     (0)
+                      00101       #define ROLE_SLAVE      (0)
+                      00102       #define ROLE_STANDALONE (1)
+                      00103       #define NUM_CHANNELS    (.14)
+                      00104       #define QSCC_PORT       (1)
+                      00105      ELSE
+                      00106       IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSRC
+                      00107        #define ROLE_MASTER     (0)
+                      00108        #define ROLE_SLAVE      (0)
+                      00109        #define ROLE_STANDALONE (1)
+                      00110        #define NUM_CHANNELS    (.20)
+                      00111        #define QSCC_PORT       (1)
+                      00112       ELSE
+                      00113        ERROR "Invalid LUMOS_CHIP_TYPE"
+                      00114       ENDIF
+                      00115      ENDIF
+                      00116     ENDIF
+                      00117    ENDIF
+                      00118   ENDIF
+                      00119  ENDIF
+                      00120 
+                      00121 #define LUMOS_ARCH_4685  (0x4685)
+                      00122 #define LUMOS_ARCH_14K50 (0x1450)
+                      00123 
+                      00124  IF LUMOS_CHIP_TYPE == LUMOS_CHIP_MASTER || LUMOS_CHIP_TYPE == LUMOS_CHIP_SLAVE || LUMOS_CHIP_TYPE == LU
+                            MOS_CHIP_STANDALONE || LUMOS_CHIP_TYPE == LUMOS_CHIP_QSCC || LUMOS_CHIP_TYPE == LUMOS_CHIP_QSRC
+                      00125   #define LUMOS_ARCH LUMOS_ARCH_4685
+                      00126   PROCESSOR 18F4685
+                      00127   #include <p18f4685.inc>
+                      00001         LIST
+                      00002 
+                      00003 ;==========================================================================
+                      00004 ;  MPASM PIC18F4685 processor include
+                      00005 ; 
+                      00006 ;  (c) Copyright 1999-2013 Microchip Technology, All rights reserved
+                      00007 ;==========================================================================
+                      00008 
+                      05130         LIST
+                      00128  ELSE
+MPASM 5.53                 ../LUMOS_INIT.ASM   5-26-2014  22:33:11         PAGE  3
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00129   IF LUMOS_CHIP_TYPE == LUMOS_CHIP_4CHANNEL
+                      00130    #define LUMOS_ARCH LUMOS_ARCH_14K50
+                      00131    PROCESSOR 18F14K50
+                      00132    #include <p18f14k50.inc>
+                      00133   ELSE
+                      00134    ERROR "Invalid LUMOS_CHIP_TYPE"
+                      00135   ENDIF
+                      00136  ENDIF
+                      00137 
+                      00138 ;
+                      00139 ; The following public symbols can be used after this file is
+                      00140 ; included (and this file should be included everywhere before
+                      00141 ; anything else is included, and in lieu of PROCESSOR directives
+                      00142 ; or #includes which bring in processor-specific bits--this file
+                      00143 ; will do that for you):
+                      00144 ;
+                      00145 ; LUMOS_CHIP_TYPE:  Will be one of the following, to show what the intent
+                      00146 ;                   of the target chip will be and what its particular 
+                      00147 ;                   I/O pin assignments are, role in the overall circuit, etc.
+                      00148 ;                   (use the ROLE_* values where possible, though, in your logic)
+                      00149 ;
+                      00150 ;       LUMOS_CHIP_MASTER       - 48-channel (2-CPU) controller, master CPU
+                      00151 ;       LUMOS_CHIP_SLAVE        - 48-channel (2-CPU) controller, slave CPU
+                      00152 ;       LUMOS_CHIP_STANDALONE   - 24-channel (1-CPU) controller, sole CPU
+                      00153 ;       LUMOS_CHIP_4CHANNEL     - 4-channel  (1-CPU) controller, sole CPU
+                      00154 ;       LUMOS_CHIP_QSCC         - private configuration for custom hardware
+                      00155 ;       LUMOS_CHIP_QSRC         - private configuration for custom hardware
+                      00156 ;
+                      00157 ; LUMOS_SLICE_TIMER: Will be one of the following, to specify where the PWM
+                      00158 ;                   slice timer sync pulse is coming from:
+                      00159 ;
+                      00160 ;       LUMOS_ZC        - Hardware zero-crossing detector to PIC interrupt pin
+                      00161 ;       LUMOS_INTERNAL  - Internal timing system (using PIC timer module)
+                      00162 ;
+                      00163 ; LUMOS_ARCH:       Will be one of the following, to show what PIC device
+                      00164 ;                   is targeted, strictly to determine chip-specific details,
+                      00165 ;                   not how Lumos is using it.
+                      00166 ;
+                      00167 ;       "14K50"         - The PIC18F14K50
+                      00168 ;       "4685"          - The PIC18F4685
+                      00169 ;
+                      00170 ; ROLE_MASTER           - (bool) true if this chip is the master in master/slave arrangement
+                      00171 ; ROLE_SLAVE            - (bool) true if this chip is the slave in master/slave arrangement
+                      00172 ; ROLE_STANDALONE       - (bool) true if this is the only chip, must run entire board function
+                      00173 ; NUM_CHANNELS          - (int) number of output SSR channels
+                      00174 #endif
+                      00030                 RADIX           DEC
+                      00031 ;
+                      00032 ;==============================================================================
+                      00033 ; CONFIGURATION FUSES
+                      00034 ;==============================================================================
+                      00035 ;
+                      00036  IF LUMOS_ARCH == LUMOS_ARCH_14K50
+                      00037 ;
+                      00038 ;       18F14K50 fuses
+                      00039 ;
+                      00040         CONFIG  CPUDIV=NOCLKDIV         ; No CPU clock divide [NOCLKDIV,CLKDIV[234]]
+                      00041         CONFIG  USBDIV=OFF              ; USB clock from OSC oscillator block
+                      00042         CONFIG  FOSC=HS                 ; Oscillator selection [LP,XT,HS,ERCCLKOUT,ECCLKOUTH,ECH,ERC,IRC
+                            ,IRCCLKOUT,ECCLKOUTM,ECM,ECCLKOUTL,ECL]
+                      00043         CONFIG  PLLEN=ON                ; Oscillator x4
+                      00044         CONFIG  PCLKEN=ON               ; Primary clock enabled
+                      00045         CONFIG  FCMEN=OFF               ; Fail-safe clock monitor off
+                      00046         CONFIG  IESO=OFF                ; no oscillator switchover
+                      00047         CONFIG  PWRTEN=OFF              ; no power-up timer
+                      00048         CONFIG  BOREN=OFF               ; no brown-out reset
+                      00049         CONFIG  WDTEN=ON                ; watchdog timer enabled
+                      00050         CONFIG  WDTPS=16384             ; Watchdog timer postscale 1:16K (~65.5s) [1,2,4,8,...,32768]
+                      00051         CONFIG  HFINTOSC=OFF            ; System clock waits for HFINTOSC to stabilize
+                      00052         CONFIG  MCLRE=ON                ; /MCLR pin is for /MCLR, not I/O
+                      00053         CONFIG  STVREN=ON               ; enable stack over/under-flow reset
+                      00054         CONFIG  LVP=OFF                 ; disable low-voltage programming mode
+                      00055         CONFIG  BBSIZ=OFF               ; 1kW boot block [OFF=1k,ON=2k]
+                      00056         CONFIG  CP0=OFF, CP1=OFF        ; no code protection on pages 0, 1
+                      00057         CONFIG  CPB=OFF, CPD=OFF        ; ... nor on boot block and data EEPROM
+                      00058         CONFIG  WRT0=OFF, WRT1=OFF      ; ... nor table writes
+                      00059         CONFIG  WRTB=OFF, WRTD=OFF      ; ... nor boot block, EEPROM
+                      00060         CONFIG  EBTRB=OFF               ; Bootblk ($00000-$007FF) unprotected TBL RD
+                      00061         CONFIG  EBTR0=OFF               ; Block 0 ($00800-$03FFF) unprotected TBL RD
+                      00062         CONFIG  EBTR1=OFF               ; Block 1 ($04000-$07FFF) unprotected TBL RD
+                      00063 ;
+                      00064 ;
+                      00065  ELSE
+                      00066   IF LUMOS_ARCH == LUMOS_ARCH_4685
+MPASM 5.53                 ../LUMOS_INIT.ASM   5-26-2014  22:33:11         PAGE  4
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00067 ;
+                      00068 ;       18F4685 fuses
+                      00069 ;
+                      00070 ;       CONFIG  OSC=HS          ; OSC is HS mode (4-20MHz)
+                      00071         CONFIG  OSC=HSPLL       ; PLL mode (10MHz xtal -> 40MHz clock)
+                      00072         CONFIG  IESO=OFF        ; no OSC switchover mode
+                      00073         CONFIG  FCMEN=OFF       ; no failsafe clock monitor
+                      00074         CONFIG  PWRT=OFF        ; power-up timer disabled
+                      00075         CONFIG  BOREN=OFF       ; no brown-out reset
+                      00076         CONFIG  WDT=ON          ; watchdog timer enabled
+                      00077 ;       CONFIG  WDTPS=1024      ; watchdog 1:1,024 postscaler (~4s)
+                      00078 ;       CONFIG  WDTPS=8192      ; watchdog 1:8,192 postscaler (~32.8s)
+                      00079         CONFIG  WDTPS=16384     ; watchdog 1:16,384 postscaler (~65.5s)
+                      00080 ;       CONFIG  WDTPS=32768     ; watchdog 1:32,768 postscaler (~131s)
+                      00081         CONFIG  MCLRE=ON        ; /MCLR pin is for /MCLR, not I/O
+                      00082         CONFIG  LPT1OSC=OFF     ; TMR1 is high-power
+                      00083         CONFIG  PBADEN=OFF      ; PORTB pins digital, not A/D on power-up
+                      00084         CONFIG  DEBUG=OFF       ; background debugger disabled; RB<7:6> I/O
+                      00085         CONFIG  XINST=OFF       ; extended instruction set/addressing modes OFF
+                      00086         CONFIG  BBSIZ=1024      ; boot block = 1,024 words
+                      00087         CONFIG  LVP=OFF         ; low-voltage programming DISABLED
+                      00088         CONFIG  STVREN=ON       ; enable stack over/under-flow reset
+                      00089                                 ; turn off write protection and code protection
+                      00090         CONFIG  CP0=OFF, CP1=OFF, CP2=OFF, CP3=OFF, CP4=OFF, CP5=OFF
+                      00091         CONFIG  CPB=OFF, CPD=OFF        
+                      00092         CONFIG  WRT0=OFF, WRT1=OFF, WRT2=OFF, WRT3=OFF, WRT4=OFF, WRT5=OFF
+                      00093         CONFIG  WRTB=OFF, WRTC=OFF, WRTD=OFF
+                      00094         CONFIG  EBTRB=OFF       ; Bootblk ($00000-$007FF) unprotected TBL RD
+                      00095         CONFIG  EBTR0=OFF       ; Block 0 ($00800-$03FFF) unprotected TBL RD
+                      00096         CONFIG  EBTR1=OFF       ; Block 1 ($04000-$07FFF) unprotected TBL RD
+                      00097         CONFIG  EBTR2=OFF       ; Block 2 ($08000-$0BFFF) unprotected TBL RD
+                      00098         CONFIG  EBTR3=OFF       ; Block 3 ($0C000-$0FFFF) unprotected TBL RD
+                      00099         CONFIG  EBTR4=OFF       ; Block 4 ($10000-$13FFF) unprotected TBL RD
+                      00100         CONFIG  EBTR5=OFF       ; Block 5 ($14000-$17FFF) unprotected TBL RD
+                      00101 ; 
+                      00102   ELSE
+                      00103    ERROR "PIC Architecture setting not configured!"
+                      00104   ENDIF
+                      00105  ENDIF
+                      00106 ; 
+                      00107 ;==============================================================================
+                      00108 ; PUBLIC ENTRY POINTS
+                      00109 ;==============================================================================
+                      00110 LUMOS_CODE_INIT CODE
+  0000                00111         GLOBAL  LUMOS_INIT
+                      00112 ;
+                      00113 ; LUMOS_INIT  (nil -> nil)
+                      00114 ;
+                      00115 ;       Initialize the CPU for the Lumos circuit
+                      00116 ;
+000000                00117 LUMOS_INIT:
+000000 0004           00118         CLRWDT
+                      00119 ;
+                      00120 ; Oscillator Control
+                      00121 ;
+000002 0E40           00122         MOVLW   b'01000000'     ;
+                      00123                 ; 0-------      ; IDLEN: enter sleep mode on SLEEP
+                      00124                 ; -100----      ; IRCF:  internal osc (not used)
+                      00125                 ; ----XX--      ; not used (status bits)
+                      00126                 ; ------00      ; system clock from primary osc
+000004 6ED3           00127         MOVWF   OSCCON, ACCESS
+                      00128  IF LUMOS_ARCH == LUMOS_ARCH_14K50
+                      00129   ERROR "Missing 14K50 initialization code"
+                      00130  ENDIF
+                      00131 ;
+                      00132 ; Reset Control
+                      00133 ;
+000006 0E9F           00134         MOVLW   b'10011111'     ;
+                      00135                 ; 1-------      ; use interrupt prioriries
+                      00136                 ; -0------      ; disable brown-out reset
+                      00137                 ; --X-----      ; 
+                      00138                 ; ---1----      ; RESET state clear
+                      00139                 ; ----1---      ; WDT state clear
+                      00140                 ; -----1--      ; Power-down detection clear
+                      00141                 ; ------1-      ; POR clear
+                      00142                 ; -------1      ; BOR clear
+000008 6ED0           00143         MOVWF   RCON, ACCESS
+                      00144 ;
+                      00145 ; Interrupt Control
+                      00146 ;
+00000A 0E00           00147         MOVLW   b'00000000'     ;
+                      00148                 ; 0-------      ; High-priority interrupts OFF
+                      00149                 ; -0------      ; Low-priority interrupts OFF
+                      00150                 ; --0-----      ; TMR0 int enable OFF
+MPASM 5.53                 ../LUMOS_INIT.ASM   5-26-2014  22:33:11         PAGE  5
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00151                 ; ---0----      ; INT0 int enable OFF
+                      00152                 ; ----0---      ; PORTB int on change OFF
+                      00153                 ; -----0--      ; TMR0 int flag CLEAR
+                      00154                 ; ------0-      ; INT0 int flag CLEAR
+                      00155                 ; -------0      ; PORTB int on change flag CLEAR
+00000C 6EF2           00156         MOVWF   INTCON, ACCESS
+00000E 0EB4           00157         MOVLW   b'10110100'
+                      00158                 ; 1-------      ; PORTB pull-up OFF
+                      00159                 ; -0------      ; INT0 on falling edge
+                      00160                 ; --1-----      ; INT1 on rising edge
+                      00161                 ; ---1----      ; INT2 on rising edge
+                      00162                 ; ----X-X-      ; N/A
+                      00163                 ; -----1--      ; TMR0 = high priority
+                      00164                 ; -------0      ; PORTB IoC = low priority
+000010 6EF1           00165         MOVWF   INTCON2, ACCESS
+000012 0E00           00166         MOVLW   b'00000000'
+                      00167                 ; 0-------      ; INT2 = low priority
+                      00168                 ; -0------      ; INT1 = low priority
+                      00169                 ; --X--X--      ; N/A
+                      00170                 ; ---0----      ; INT2 int enable OFF
+                      00171                 ; ----0---      ; INT1 int enable OFF
+                      00172                 ; ------0-      ; INT2 int flag CLEAR
+                      00173                 ; -------0      ; INT1 int flag CLEAR
+000014 6EF0           00174         MOVWF   INTCON3, ACCESS
+000016 0E00           00175         MOVLW   b'00000000'
+                      00176                 ; 0-------      ; parallel slave R/W int OFF
+                      00177                 ; -0------      ; A/D converter int OFF
+                      00178                 ; --0-----      ; UART RX int OFF
+                      00179                 ; ---0----      ; UART TX int OFF
+                      00180                 ; ----0---      ; Synchronous int OFF
+                      00181                 ; -----0--      ; CCP1 int OFF
+                      00182                 ; ------0-      ; TMR2 int OFF
+                      00183                 ; -------0      ; TMR1 int OFF
+000018 6E9D           00184         MOVWF   PIE1, ACCESS
+00001A 0E00           00185         MOVLW   b'00000000'
+                      00186                 ; 0-------      ; OSC fail int OFF
+                      00187                 ; -0------      ; comparator int OFF
+                      00188                 ; --X-----      ; 
+                      00189                 ; ---0----      ; EEPROM write int OFF
+                      00190                 ; ----0---      ; bus collision int OFF
+                      00191                 ; -----0--      ; H/L voltage int OFF
+                      00192                 ; ------0-      ; TMR3 int OFF
+                      00193                 ; -------0      ; ECCP1 int OFF
+00001C 6EA0           00194         MOVWF   PIE2, ACCESS
+00001E 0E00           00195         MOVLW   b'00000000'
+                      00196                 ; 0-------      ; CAN invalid RX int OFF
+                      00197                 ; -0------      ; CAN wakeup int OFF
+                      00198                 ; --0-----      ; CAN error int OFF
+                      00199                 ; ---0----      ; CAN TX buf 2 int OFF
+                      00200                 ; ----0---      ; CAN TX buf 1 int OFF 
+                      00201                 ; -----0--      ; CAN TX buf 0 int OFF
+                      00202                 ; ------0-      ; CAN RX buf 1 int OFF
+                      00203                 ; -------0      ; CAN RX buf 0 int OFF
+000020 6EA3           00204         MOVWF   PIE3, ACCESS
+000022 0E02           00205         MOVLW   b'00000010'
+                      00206                 ; 0-------      ; Parallel slave port R/W int = low priority
+                      00207                 ; -0------      ; A/D converter int = low priority
+                      00208                 ; --0-----      ; UART RX int = low priority
+                      00209                 ; ---0----      ; UART TX int = low priority
+                      00210                 ; ----0---      ; Synchronous port = low priority
+                      00211                 ; -----0--      ; CCP1 int = low priority
+                      00212                 ; ------1-      ; TMR2 int = high priority
+                      00213                 ; -------0      ; TMR1 int = low priority
+000024 6E9F           00214         MOVWF   IPR1, ACCESS
+000026 0E00           00215         MOVLW   b'00000000'
+                      00216                 ; 0-------      ; OSC fail int = low priority
+                      00217                 ; -0------      ; Comparator int = low priority
+                      00218                 ; --X-----      ; N/A
+                      00219                 ; ---0----      ; EEPROM write int = low priority
+                      00220                 ; ----0---      ; Bus collisions int = low priority
+                      00221                 ; -----0--      ; H/L voltage int = low priority
+                      00222                 ; ------0-      ; TMR3 int = low priority
+                      00223                 ; -------0      ; ECCP1 int = low priority
+000028 6EA2           00224         MOVWF   IPR2, ACCESS
+00002A 0E00           00225         MOVLW   b'00000000'
+                      00226                 ; 0-------      ; CAN RX error int = low priority
+                      00227                 ; -0------      ; CAN wakeup int = low priority
+                      00228                 ; --0-----      ; CAN bus err int = low priority
+                      00229                 ; ---0----      ; CAN TX buf2 int = low priority
+                      00230                 ; ----0---      ; CAN TX buf1 int = low priority
+                      00231                 ; -----0--      ; CAN TX buf0 int = low priority
+                      00232                 ; ------0-      ; CAN RX buf1 int = low priority
+                      00233                 ; -------0      ; CAN RX buf0 int = low priority
+00002C 6EA5           00234         MOVWF   IPR3, ACCESS
+MPASM 5.53                 ../LUMOS_INIT.ASM   5-26-2014  22:33:11         PAGE  6
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00235 
+                      00236 
+                      00237 
+00002E 6A9E           00238         CLRF    PIR1, ACCESS    ; Clear all peripheral int flags
+000030 6AA1           00239         CLRF    PIR2, ACCESS    ; Clear all peripheral int flags
+000032 6AA4           00240         CLRF    PIR3, ACCESS    ; Clear all peripheral int flags
+                      00241 ;
+                      00242 ; I/O PORT SETUP
+                      00243 ;
+                      00244         IF QSCC_PORT
+                      00245          #include "qscc_hook_io_setup.asm"
+                      00001 ; vim:set syntax=pic ts=8:
+                      00002 ;
+                      00003                 LIST n=90
+                      00004 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                      00005 ;@@                                                                         @@
+                      00006 ;@@  @@@   @   @  @@@@@  @@@@@                QUIZ SHOW HARDWARE CONTROLLER @@
+                      00007 ;@@ @   @  @   @    @        @                FIRMWARE VERSION 4.0          @@ 
+                      00008 ;@@ @   @  @   @    @       @                                               @@
+                      00009 ;@@ @   @  @   @    @      @                  FOR HARDWARE REVISION 4.0     @@
+                      00010 ;@@ @ @ @  @   @    @     @                   QSCC - QUIZ SHOW CONTESTANT   @@
+                      00011 ;@@ @  @@  @   @    @    @                    QSRC - QUIZ SHOW REMOTE       @@
+                      00012 ;@@ @@@@@   @@@   @@@@@  @@@@@                                              @@
+                      00013 ;@@                                                                         @@
+                      00014 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                      00015 ;
+                      00016 ; Copyright (c) 2014 by Steven L. Willoughby, Aloha, Oregon, USA.  
+                      00017 ; All Rights Reserved.  Quiz Show portions are unreleased trade secret
+                      00018 ; information.
+                      00019 ;
+                      00020 ; Based on previous works by the same author, some of which are released
+                      00021 ; under the Open Software License, version 3.0, which portions are available
+                      00022 ; separately for free download.
+                      00023 ;
+                      00024 ; -*- -*- -* -*- -*- -*- -*- -*- -* -*- -*- -*- -*- -*- -* -*- -*- -*- -*- -*-
+                      00025 ;
+                      00026 ; This hooks into the Lumos device initialization code which sets up I/O pins.
+                      00027 ; We want them arranged differently than the Lumos controllers do, but we put
+                      00028 ; the QuizShow code here to keep the Lumos product clean and separate.
+                      00029 ; 
+                      00030         IF LUMOS_CHIP_TYPE != LUMOS_CHIP_QSCC && LUMOS_CHIP_TYPE != LUMOS_CHIP_QSRC
+                      00031          ERROR "qscc_hook_io_setup only used for QS*C systems"
+                      00032         ENDIF
+                      00033 
+000034 0E3C           00034         MOVLW   b'00111100'
+                      00035                 ; XX------      ; N/A
+                      00036                 ; --1111--      ; no channel selected
+                      00037                 ; ------0-      ; A/D converter idle
+                      00038                 ; -------0      ; A/D converter OFF
+000036 6EC2           00039         MOVWF   ADCON0, ACCESS
+000038 0E0F           00040         MOVLW   b'00001111'
+                      00041                 ; XX------      ; N/A
+                      00042                 ; --00----      ; voltage reference = AVss, AVdd
+                      00043                 ; ----1111      ; all I/O pins digital
+00003A 6EC1           00044         MOVWF   ADCON1, ACCESS
+00003C 6AC0           00045         CLRF    ADCON2, ACCESS  ; not needed since we're not using A/D  
+00003E 6AB5           00046         CLRF    CVRCON, ACCESS  ; turn off comparator voltage reference
+                      00047                                 ;
+                      00048                                 ; PORT A: 
+                      00049                 ; XX------      ; crystal oscillator pins
+                      00050                 ; --000000      ; always inputs
+000040 6A80           00051         CLRF    PORTA, ACCESS   ;
+000042 6A89           00052         CLRF    LATA, ACCESS    ;
+                      00053                                 ; PORT B:
+                      00054                 ; 00000000      ; outputs off
+000044 6A81           00055         CLRF    PORTB, ACCESS   ;
+000046 6A8A           00056         CLRF    LATB, ACCESS    ;
+                      00057                                 ; PORTC:
+                      00058                 ; XX------      ; UART pins
+                      00059                 ; --00-000      ; I/O pins -> 0
+                      00060                 ; ----0---      ; T/R to receive
+000048 6A82           00061         CLRF    PORTC, ACCESS   ;
+00004A 6A8B           00062         CLRF    LATC, ACCESS    ;
+                      00063                                 ; PORTD:
+                      00064                 ; 00000000      ; [CC] data port
+                      00065                 ; 00000000      ; [RC] I/O pins
+00004C 6A83           00066         CLRF    PORTD, ACCESS   ; 
+00004E 6A8C           00067         CLRF    LATD, ACCESS    ;
+                      00068                                 ; PORTE:
+                      00069                 ; XXXXX000      ; outputs to 0
+000050 6A84           00070         CLRF    PORTE, ACCESS   ;
+000052 6A8D           00071         CLRF    LATE, ACCESS    ;
+                      00072         ;
+                      00073         ; I/O direction bits
+MPASM 5.53                 ../LUMOS_INIT.ASM   5-26-2014  22:33:11         PAGE  7
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00074         ;
+                      00075         IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSCC
+                      00076          ;     7 6 5 4 3 2 1 0
+                      00077          ; RA  X X I I I I I I  buttons ABCDXL
+                      00078          ; RB  O O O O O O O O  lights ABCDF[RGBW]
+                      00079          ; RC  X X O O O O O O  controls and lights
+                      00080          ; RD  O O O O O O O O  score data port
+                      00081          ; RE  X X X X X O O O  LART lights
+                      00082          ;
+                      00083          SETF   TRISA, ACCESS
+                      00084          CLRF   TRISB, ACCESS
+                      00085          MOVLW  b'11000000'
+                      00086          MOVWF  TRISC, ACCESS
+                      00087          CLRF   TRISD, ACCESS
+                      00088          CLRF   TRISE, ACCESS
+                      00089         ELSE
+                      00090          IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSRC
+                      00091           ;     7 6 5 4 3 2 1 0
+                      00092           ; RA  X X I I I I I I buttons 
+                      00093           ; RB  O O O O O O O O lights 
+                      00094           ; RC  X X I I O O O O lights/buttons
+                      00095           ; RD  O O O I O O O I lights/buttons
+                      00096           ; RE  X X X X X O O O lights
+                      00097           ;
+000054 6892           00098           SETF  TRISA, ACCESS
+000056 6A93           00099           CLRF  TRISB, ACCESS
+000058 0EF0           00100           MOVLW b'11110000'
+00005A 6E94           00101           MOVWF TRISC, ACCESS
+00005C 0E11           00102           MOVLW b'00010001'
+00005E 6E95           00103           MOVWF TRISD, ACCESS
+000060 6A96           00104           CLRF  TRISE, ACCESS
+                      00105          ELSE
+                      00106           ERROR "LUMOS_CHIP_TYPE not set correctly"
+                      00107          ENDIF
+                      00108         ENDIF
+                      00246         ELSE
+                      00247          MOVLW  b'00111100'
+                      00248                 ; XX------      ; N/A
+                      00249                 ; --1111--      ; no channel selected
+                      00250                 ; ------0-      ; A/D converter idle
+                      00251                 ; -------0      ; A/D converter OFF
+                      00252          MOVWF  ADCON0, ACCESS
+                      00253          MOVLW  b'00001111'
+                      00254                 ; XX------      ; N/A
+                      00255                 ; --00----      ; voltage reference = AVss, AVdd
+                      00256                 ; ----1111      ; all I/O pins digital
+                      00257          MOVWF  ADCON1, ACCESS
+                      00258          CLRF   ADCON2, ACCESS  ; not needed since we're not using A/D  
+                      00259          CLRF   CVRCON, ACCESS  ; turn off comparator voltage reference
+                      00260                                 ;
+                      00261          MOVLW  b'00011111'     ; PORT A: 
+                      00262                 ; XX------      ; crystal oscillator pins
+                      00263                 ; --0-----      ; T/R pin to RECEIVE mode / ACT light OFF
+                      00264                 ; ---11111      ; SSR pins HIGH (relays off)
+                      00265          MOVWF  PORTA, ACCESS   ; 
+                      00266          MOVWF  LATA, ACCESS
+                      00267          MOVLW  b'10111110'     ; PORT B:
+                      00268                 ; 1-------      ; PWRCTL set HIGH (power supply OFF)
+                      00269                 ; -X------      ; OPTION button
+                      00270                 ; --11111-      ; SSR pins HIGH (relays off)
+                      00271                 ; -------0      ; T/R to RECEIVE (standalone board; input on others)
+                      00272          MOVWF  PORTB, ACCESS
+                      00273          MOVWF  LATB, ACCESS
+                      00274          MOVWF  b'00111111'     ; PORTC:
+                      00275                 ; XX------      ; serial I/O pins
+                      00276                 ; --111111      ; SSR pins HIGH (relays off)
+                      00277          MOVWF  PORTC, ACCESS
+                      00278          MOVWF  LATC, ACCESS
+                      00279          SETF   PORTD, ACCESS   ; PORTD: SSR pins HIGH (relays off)
+                      00280          SETF   LATD, ACCESS
+                      00281          CLRF   PORTE, ACCESS   ; PORTE: LEDs LOW (off)
+                      00282          CLRF   LATE, ACCESS
+                      00283 
+                      00284                                 ;    bit 7 6 5 4 3 2 1 0
+                      00285          MOVLW  b'11100000'     ; PORTA  X X I O O O O O  all outputs except LEDs (may be sensors)
+                      00286          MOVWF  TRISA, ACCESS
+                      00287          IF LUMOS_CHIP_TYPE==LUMOS_CHIP_MASTER
+                      00288           MOVLW b'01000001'     ; PORTB  O I O O O O O I  <6> option, <0> INT; rest outputs
+                      00289           MOVWF TRISB, ACCESS
+                      00290          ELSE
+                      00291           IF LUMOS_CHIP_TYPE==LUMOS_CHIP_SLAVE
+                      00292            MOVLW b'00000001'    ; PORTB  O X O O O O O I  <0> INT; rest outputs
+                      00293            MOVWF TRISB, ACCESS
+                      00294           ELSE
+MPASM 5.53                 ../LUMOS_INIT.ASM   5-26-2014  22:33:11         PAGE  8
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00295            IF LUMOS_CHIP_TYPE==LUMOS_CHIP_STANDALONE
+                      00296             MOVLW b'01000000'   ; PORTB  O I O O O O O O  <6> option; rest outputs
+                      00297             MOVWF TRISB, ACCESS
+                      00298            ELSE
+                      00299             ERROR "LUMOS_CHIP_TYPE not set correctly"
+                      00300            ENDIF
+                      00301           ENDIF
+                      00302          ENDIF
+                      00303          MOVLW  b'11000000'     ; <7:6> is serial; rest are output
+                      00304          MOVWF  TRISC, ACCESS
+                      00305          CLRF   TRISD, ACCESS   ; PORTD  O O O O O O O O  all outputs
+                      00306          MOVLW  b'00000111'
+                      00307          MOVWF  TRISE, ACCESS   ; PORTE  X X X X X 1 1 1  all inputs (for now, may be sensors)
+                      00308         ENDIF
+                      00309 ;
+                      00310 ; Timers
+                      00311 ;
+000062 0E10           00312         MOVLW   b'00010000'
+                      00313                 ; 0-------      ; TMR0 off
+                      00314                 ; -0------      ; TMR0 16 bits, not 8
+                      00315                 ; --0-----      ; TMR0 clock source from system clock
+                      00316                 ; ---1----      ; TMR0 triggered on falling edge
+                      00317                 ; ----0---      ; TMR0 does use prescaler
+                      00318                 ; -----000      ; TMR0 prescaler=1:2
+000064 6ED5           00319         MOVWF   T0CON, ACCESS
+000066 6AD7           00320         CLRF    TMR0H, ACCESS
+000068 6AD6           00321         CLRF    TMR0L, ACCESS   ; reset TMR0 
+00006A 0E80           00322         MOVLW   b'10000000'
+                      00323                 ; 1-------      ; TMR1 read/write 16 bits at a time
+                      00324                 ; -X------      ; N/A
+                      00325                 ; --00----      ; TMR1 prescaler = 1:1
+                      00326                 ; ----0---      ; TMR1 oscillator power off
+                      00327                 ; -----00-      ; TMR1 uses system clock (Fosc/4)
+                      00328                 ; -------0      ; TMR1 off
+00006C 6ECD           00329         MOVWF   T1CON, ACCESS
+00006E 6ACF           00330         CLRF    TMR1H, ACCESS   ; (written with low byte)
+000070 6ACE           00331         CLRF    TMR1L, ACCESS   ; reset TMR1
+000072 0E08           00332         MOVLW   b'00001000'
+                      00333                 ; X-------      ; N/A
+                      00334                 ; -0001---      ; TMR2 postscaler = 1:2
+                      00335                 ; -----0--      ; TMR2 off
+                      00336                 ; ------00      ; TMR2 prescaler = 1:1
+000074 6ECA           00337         MOVWF   T2CON, ACCESS
+000076 6ACC           00338         CLRF    TMR2, ACCESS    ; reset TMR2 counter
+000078 6ACB           00339         CLRF    PR2, ACCESS     ; clear TMR2 period
+00007A 0E80           00340         MOVLW   b'10000000'     
+                      00341                 ; 1-------      ; TMR3 read 16 bits at a time
+                      00342                 ; -0--0---      ; TMR1 is source for ECCP1/CCP1
+                      00343                 ; --00----      ; TMR3 prescaler = 1:1
+                      00344                 ; -----00-      ; TMR3 from system clock (Fosc/4)
+                      00345                 ; -------0      ; TMR3 off
+00007C 6EB1           00346         MOVWF   T3CON, ACCESS
+00007E 6AB3           00347         CLRF    TMR3H, ACCESS   ; (written with low byte)
+000080 6AB2           00348         CLRF    TMR3L, ACCESS   ; clear TMR3
+                      00349 
+                      00350 ;
+                      00351 ; Misc peripherals
+                      00352 ;
+000082 6AD2           00353         CLRF    HLVDCON, ACCESS ; turn off high/low voltage detection
+000084 0E20           00354         MOVLW   b'00100000'
+                      00355                 ; 001XXXXX      ; set CAN module to disable/sleep mode
+                      00356                 ; ----0000      ; no interrupts
+000086 6E6E           00357         MOVWF   CANSTAT, ACCESS
+000088 6ABD           00358         CLRF    CCP1CON, ACCESS ; disable CCP1
+00008A 6ABA           00359         CLRF    ECCP1CON, ACCESS; disable ECCP1
+00008C 6AB4           00360         CLRF    CMCON, ACCESS   ; comparator not used
+                      00361 ;
+                      00362 ; Enable watchdog timer
+                      00363 ;
+00008E 0E01           00364         MOVLW   b'00000001'
+                      00365                 ; XXXXXXX1      ; WDT ON
+000090 6ED1           00366         MOVWF   WDTCON, ACCESS
+                      00367 ;
+                      00368 ; Ready for other module initialization, etc.
+                      00369 ;
+000092 0012           00370         RETURN
+                      00371         END
+MPASM 5.53                 ../LUMOS_INIT.ASM   5-26-2014  22:33:11         PAGE  9
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+A                                 00000000
+ABAT                              00000004
+ABDEN                             00000000
+ABDOVF                            00000007
+ACCESS                            00000000
+ACKDT                             00000005
+ACKEN                             00000004
+ACKSTAT                           00000006
+ACQT0                             00000003
+ACQT1                             00000004
+ACQT2                             00000005
+ADCON0                            00000FC2
+ADCON1                            00000FC1
+ADCON2                            00000FC0
+ADCS0                             00000000
+ADCS1                             00000001
+ADCS2                             00000002
+ADDEN                             00000003
+ADEN                              00000003
+ADFM                              00000007
+ADIE                              00000006
+ADIF                              00000006
+ADIP                              00000006
+ADON                              00000000
+ADRES                             00000FC3
+ADRESH                            00000FC4
+ADRESL                            00000FC3
+AN0                               00000000
+AN1                               00000001
+AN10                              00000000
+AN2                               00000002
+AN3                               00000003
+AN4                               00000005
+AN5                               00000000
+AN6                               00000001
+AN7                               00000002
+AN8                               00000001
+AN9                               00000004
+B0CON                             00000E20
+B0D0                              00000E26
+B0D00                             00000000
+B0D01                             00000001
+B0D02                             00000002
+B0D03                             00000003
+B0D04                             00000004
+B0D05                             00000005
+B0D06                             00000006
+B0D07                             00000007
+B0D1                              00000E27
+B0D10                             00000000
+B0D11                             00000001
+B0D12                             00000002
+B0D13                             00000003
+B0D14                             00000004
+B0D15                             00000005
+B0D16                             00000006
+B0D17                             00000007
+B0D2                              00000E28
+B0D20                             00000000
+B0D21                             00000001
+B0D22                             00000002
+B0D23                             00000003
+B0D24                             00000004
+B0D25                             00000005
+B0D26                             00000006
+B0D27                             00000007
+B0D3                              00000E29
+B0D30                             00000000
+B0D31                             00000001
+B0D32                             00000002
+B0D33                             00000003
+B0D34                             00000004
+B0D35                             00000005
+B0D36                             00000006
+B0D37                             00000007
+B0D4                              00000E2A
+B0D40                             00000000
+B0D41                             00000001
+B0D42                             00000002
+B0D43                             00000003
+B0D44                             00000004
+B0D45                             00000005
+B0D46                             00000006
+B0D47                             00000007
+MPASM 5.53                 ../LUMOS_INIT.ASM   5-26-2014  22:33:11         PAGE 10
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+B0D5                              00000E2B
+B0D50                             00000000
+B0D51                             00000001
+B0D52                             00000002
+B0D53                             00000003
+B0D54                             00000004
+B0D55                             00000005
+B0D56                             00000006
+B0D57                             00000007
+B0D6                              00000E2C
+B0D60                             00000000
+B0D61                             00000001
+B0D62                             00000002
+B0D63                             00000003
+B0D64                             00000004
+B0D65                             00000005
+B0D66                             00000006
+B0D67                             00000007
+B0D7                              00000E2D
+B0D70                             00000000
+B0D71                             00000001
+B0D72                             00000002
+B0D73                             00000003
+B0D74                             00000004
+B0D75                             00000005
+B0D76                             00000006
+B0D77                             00000007
+B0DLC                             00000E25
+B0EIDH                            00000E23
+B0EIDL                            00000E24
+B0IE                              00000002
+B0SIDH                            00000E21
+B0SIDL                            00000E22
+B0TXEN                            00000002
+B1CON                             00000E30
+B1D0                              00000E36
+B1D00                             00000000
+B1D01                             00000001
+B1D02                             00000002
+B1D03                             00000003
+B1D04                             00000004
+B1D05                             00000005
+B1D06                             00000006
+B1D07                             00000007
+B1D1                              00000E37
+B1D10                             00000000
+B1D11                             00000001
+B1D12                             00000002
+B1D13                             00000003
+B1D14                             00000004
+B1D15                             00000005
+B1D16                             00000006
+B1D17                             00000007
+B1D2                              00000E38
+B1D20                             00000000
+B1D21                             00000001
+B1D22                             00000002
+B1D23                             00000003
+B1D24                             00000004
+B1D25                             00000005
+B1D26                             00000006
+B1D27                             00000007
+B1D3                              00000E39
+B1D30                             00000000
+B1D31                             00000001
+B1D32                             00000002
+B1D33                             00000003
+B1D34                             00000004
+B1D35                             00000005
+B1D36                             00000006
+B1D37                             00000007
+B1D4                              00000E3A
+B1D40                             00000000
+B1D41                             00000001
+B1D42                             00000002
+B1D43                             00000003
+B1D44                             00000004
+B1D45                             00000005
+B1D46                             00000006
+B1D47                             00000007
+B1D5                              00000E3B
+B1D50                             00000000
+B1D51                             00000001
+B1D52                             00000002
+MPASM 5.53                 ../LUMOS_INIT.ASM   5-26-2014  22:33:11         PAGE 11
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+B1D53                             00000003
+B1D54                             00000004
+B1D55                             00000005
+B1D56                             00000006
+B1D57                             00000007
+B1D6                              00000E3C
+B1D60                             00000000
+B1D61                             00000001
+B1D62                             00000002
+B1D63                             00000003
+B1D64                             00000004
+B1D65                             00000005
+B1D66                             00000006
+B1D67                             00000007
+B1D7                              00000E3D
+B1D70                             00000000
+B1D71                             00000001
+B1D72                             00000002
+B1D73                             00000003
+B1D74                             00000004
+B1D75                             00000005
+B1D76                             00000006
+B1D77                             00000007
+B1DLC                             00000E35
+B1EIDH                            00000E33
+B1EIDL                            00000E34
+B1IE                              00000003
+B1SIDH                            00000E31
+B1SIDL                            00000E32
+B1TXEN                            00000003
+B2CON                             00000E40
+B2D0                              00000E46
+B2D00                             00000000
+B2D01                             00000001
+B2D02                             00000002
+B2D03                             00000003
+B2D04                             00000004
+B2D05                             00000005
+B2D06                             00000006
+B2D07                             00000007
+B2D1                              00000E47
+B2D10                             00000000
+B2D11                             00000001
+B2D12                             00000002
+B2D13                             00000003
+B2D14                             00000004
+B2D15                             00000005
+B2D16                             00000006
+B2D17                             00000007
+B2D2                              00000E48
+B2D20                             00000000
+B2D21                             00000001
+B2D22                             00000002
+B2D23                             00000003
+B2D24                             00000004
+B2D25                             00000005
+B2D26                             00000006
+B2D27                             00000007
+B2D3                              00000E49
+B2D30                             00000000
+B2D31                             00000001
+B2D32                             00000002
+B2D33                             00000003
+B2D34                             00000004
+B2D35                             00000005
+B2D36                             00000006
+B2D37                             00000007
+B2D4                              00000E4A
+B2D40                             00000000
+B2D41                             00000001
+B2D42                             00000002
+B2D43                             00000003
+B2D44                             00000004
+B2D45                             00000005
+B2D46                             00000006
+B2D47                             00000007
+B2D5                              00000E4B
+B2D50                             00000000
+B2D51                             00000001
+B2D52                             00000002
+B2D53                             00000003
+B2D54                             00000004
+B2D55                             00000005
+B2D56                             00000006
+MPASM 5.53                 ../LUMOS_INIT.ASM   5-26-2014  22:33:11         PAGE 12
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+B2D57                             00000007
+B2D6                              00000E4C
+B2D60                             00000000
+B2D61                             00000001
+B2D62                             00000002
+B2D63                             00000003
+B2D64                             00000004
+B2D65                             00000005
+B2D66                             00000006
+B2D67                             00000007
+B2D7                              00000E4D
+B2D70                             00000000
+B2D71                             00000001
+B2D72                             00000002
+B2D73                             00000003
+B2D74                             00000004
+B2D75                             00000005
+B2D76                             00000006
+B2D77                             00000007
+B2DLC                             00000E45
+B2EIDH                            00000E43
+B2EIDL                            00000E44
+B2IE                              00000004
+B2SIDH                            00000E41
+B2SIDL                            00000E42
+B2TXEN                            00000004
+B3CON                             00000E50
+B3D0                              00000E56
+B3D00                             00000000
+B3D01                             00000001
+B3D02                             00000002
+B3D03                             00000003
+B3D04                             00000004
+B3D05                             00000005
+B3D06                             00000006
+B3D07                             00000007
+B3D1                              00000E57
+B3D10                             00000000
+B3D11                             00000001
+B3D12                             00000002
+B3D13                             00000003
+B3D14                             00000004
+B3D15                             00000005
+B3D16                             00000006
+B3D17                             00000007
+B3D2                              00000E58
+B3D20                             00000000
+B3D21                             00000001
+B3D22                             00000002
+B3D23                             00000003
+B3D24                             00000004
+B3D25                             00000005
+B3D26                             00000006
+B3D27                             00000007
+B3D3                              00000E59
+B3D30                             00000000
+B3D31                             00000001
+B3D32                             00000002
+B3D33                             00000003
+B3D34                             00000004
+B3D35                             00000005
+B3D36                             00000006
+B3D37                             00000007
+B3D4                              00000E5A
+B3D40                             00000000
+B3D41                             00000001
+B3D42                             00000002
+B3D43                             00000003
+B3D44                             00000004
+B3D45                             00000005
+B3D46                             00000006
+B3D47                             00000007
+B3D5                              00000E5B
+B3D50                             00000000
+B3D51                             00000001
+B3D52                             00000002
+B3D53                             00000003
+B3D54                             00000004
+B3D55                             00000005
+B3D56                             00000006
+B3D57                             00000007
+B3D6                              00000E5C
+B3D60                             00000000
+B3D61                             00000001
+MPASM 5.53                 ../LUMOS_INIT.ASM   5-26-2014  22:33:11         PAGE 13
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+B3D62                             00000002
+B3D63                             00000003
+B3D64                             00000004
+B3D65                             00000005
+B3D66                             00000006
+B3D67                             00000007
+B3D7                              00000E5D
+B3D70                             00000000
+B3D71                             00000001
+B3D72                             00000002
+B3D73                             00000003
+B3D74                             00000004
+B3D75                             00000005
+B3D76                             00000006
+B3D77                             00000007
+B3DLC                             00000E55
+B3EIDH                            00000E53
+B3EIDL                            00000E54
+B3IE                              00000005
+B3SIDH                            00000E51
+B3SIDL                            00000E52
+B3TXEN                            00000005
+B46D77                            00000007
+B4CON                             00000E60
+B4D0                              00000E66
+B4D00                             00000000
+B4D01                             00000001
+B4D02                             00000002
+B4D03                             00000003
+B4D04                             00000004
+B4D05                             00000005
+B4D06                             00000006
+B4D07                             00000007
+B4D1                              00000E67
+B4D10                             00000000
+B4D11                             00000001
+B4D12                             00000002
+B4D13                             00000003
+B4D14                             00000004
+B4D15                             00000005
+B4D16                             00000006
+B4D17                             00000007
+B4D2                              00000E68
+B4D20                             00000000
+B4D21                             00000001
+B4D22                             00000002
+B4D23                             00000003
+B4D24                             00000004
+B4D25                             00000005
+B4D26                             00000006
+B4D27                             00000007
+B4D3                              00000E69
+B4D30                             00000000
+B4D31                             00000001
+B4D32                             00000002
+B4D33                             00000003
+B4D34                             00000004
+B4D35                             00000005
+B4D36                             00000006
+B4D37                             00000007
+B4D4                              00000E6A
+B4D40                             00000000
+B4D41                             00000001
+B4D42                             00000002
+B4D43                             00000003
+B4D44                             00000004
+B4D45                             00000005
+B4D46                             00000006
+B4D47                             00000007
+B4D5                              00000E6B
+B4D50                             00000000
+B4D51                             00000001
+B4D52                             00000002
+B4D53                             00000003
+B4D54                             00000004
+B4D55                             00000005
+B4D56                             00000006
+B4D57                             00000007
+B4D6                              00000E6C
+B4D60                             00000000
+B4D61                             00000001
+B4D62                             00000002
+B4D63                             00000003
+B4D64                             00000004
+MPASM 5.53                 ../LUMOS_INIT.ASM   5-26-2014  22:33:11         PAGE 14
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+B4D65                             00000005
+B4D66                             00000006
+B4D67                             00000007
+B4D7                              00000E6D
+B4D70                             00000000
+B4D71                             00000001
+B4D72                             00000002
+B4D73                             00000003
+B4D74                             00000004
+B4D75                             00000005
+B4D76                             00000006
+B4D77                             00000007
+B4DLC                             00000E65
+B4EIDH                            00000E63
+B4EIDL                            00000E64
+B4IE                              00000006
+B4SIDH                            00000E61
+B4SIDL                            00000E62
+B4TXEN                            00000006
+B57D07                            00000007
+B57D23                            00000003
+B5CON                             00000E70
+B5D0                              00000E76
+B5D00                             00000000
+B5D01                             00000001
+B5D02                             00000002
+B5D03                             00000003
+B5D04                             00000004
+B5D05                             00000005
+B5D06                             00000006
+B5D07                             00000007
+B5D1                              00000E77
+B5D10                             00000000
+B5D11                             00000001
+B5D12                             00000002
+B5D13                             00000003
+B5D14                             00000004
+B5D15                             00000005
+B5D16                             00000006
+B5D17                             00000007
+B5D2                              00000E78
+B5D20                             00000000
+B5D21                             00000001
+B5D22                             00000002
+B5D23                             00000003
+B5D24                             00000004
+B5D25                             00000005
+B5D26                             00000006
+B5D27                             00000007
+B5D3                              00000E79
+B5D30                             00000000
+B5D31                             00000001
+B5D32                             00000002
+B5D33                             00000003
+B5D34                             00000004
+B5D35                             00000005
+B5D36                             00000006
+B5D37                             00000007
+B5D4                              00000E7A
+B5D40                             00000000
+B5D41                             00000001
+B5D42                             00000002
+B5D43                             00000003
+B5D44                             00000004
+B5D45                             00000005
+B5D46                             00000006
+B5D47                             00000007
+B5D5                              00000E7B
+B5D50                             00000000
+B5D51                             00000001
+B5D52                             00000002
+B5D53                             00000003
+B5D54                             00000004
+B5D55                             00000005
+B5D56                             00000006
+B5D57                             00000007
+B5D6                              00000E7C
+B5D60                             00000000
+B5D61                             00000001
+B5D62                             00000002
+B5D63                             00000003
+B5D64                             00000004
+B5D65                             00000005
+B5D66                             00000006
+MPASM 5.53                 ../LUMOS_INIT.ASM   5-26-2014  22:33:11         PAGE 15
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+B5D67                             00000007
+B5D7                              00000E7D
+B5D70                             00000000
+B5D71                             00000001
+B5D72                             00000002
+B5D73                             00000003
+B5D74                             00000004
+B5D75                             00000005
+B5D76                             00000006
+B5D77                             00000007
+B5DLC                             00000E75
+B5EIDH                            00000E73
+B5EIDL                            00000E74
+B5IE                              00000007
+B5SIDH                            00000E71
+B5SIDL                            00000E72
+B5TXEN                            00000007
+BANKED                            00000001
+BAUDCON                           00000FB8
+BAUDCTL                           00000FB8
+BCLIE                             00000003
+BCLIF                             00000003
+BCLIP                             00000003
+BF                                00000000
+BGST                              00000005
+BIE0                              00000DFA
+BOR                               00000000
+BRG16                             00000003
+BRGCON1                           00000F70
+BRGCON2                           00000F71
+BRGCON3                           00000F72
+BRGH                              00000002
+BRP0                              00000000
+BRP1                              00000001
+BRP2                              00000002
+BRP3                              00000003
+BRP4                              00000004
+BRP5                              00000005
+BSEL0                             00000DF8
+BSR                               00000FE0
+C                                 00000000
+C1INA                             00000001
+C1INB                             00000000
+C1INV                             00000004
+C1OUT                             00000006
+C2INA                             00000003
+C2INB                             00000002
+C2INV                             00000005
+C2OUT                             00000007
+CANCAP                            00000004
+CANCON                            00000F6F
+CANCON_RO0                        00000F5F
+CANCON_RO1                        00000F4F
+CANCON_RO2                        00000F3F
+CANCON_RO3                        00000F2F
+CANCON_RO4                        00000E7F
+CANCON_RO5                        00000E6F
+CANCON_RO6                        00000E5F
+CANCON_RO7                        00000E4F
+CANCON_RO8                        00000E3F
+CANCON_RO9                        00000E2F
+CANRX                             00000003
+CANSTAT                           00000F6E
+CANSTAT_RO0                       00000F5E
+CANSTAT_RO1                       00000F4E
+CANSTAT_RO2                       00000F3E
+CANSTAT_RO3                       00000F2E
+CANSTAT_RO4                       00000E7E
+CANSTAT_RO5                       00000E6E
+CANSTAT_RO6                       00000E5E
+CANSTAT_RO7                       00000E4E
+CANSTAT_RO8                       00000E3E
+CANSTAT_RO9                       00000E2E
+CANTX                             00000002
+CCP1                              00000002
+CCP1CON                           00000FBD
+CCP1IE                            00000002
+CCP1IF                            00000002
+CCP1IP                            00000002
+CCP1M0                            00000000
+CCP1M1                            00000001
+CCP1M2                            00000002
+CCP1M3                            00000003
+CCPR1                             00000FBE
+MPASM 5.53                 ../LUMOS_INIT.ASM   5-26-2014  22:33:11         PAGE 16
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+CCPR1H                            00000FBF
+CCPR1L                            00000FBE
+CFGS                              00000006
+CHS0                              00000002
+CHS1                              00000003
+CHS2                              00000004
+CHS3                              00000005
+CIOCON                            00000F73
+CIS                               00000003
+CK                                00000006
+CKE                               00000006
+CKP                               00000004
+CLKI                              00000007
+CLKO                              00000006
+CM0                               00000000
+CM1                               00000001
+CM2                               00000002
+CMCON                             00000FB4
+CMIE                              00000006
+CMIF                              00000006
+CMIP                              00000006
+COMSTAT                           00000F74
+CREN                              00000004
+CS                                00000002
+CSRC                              00000007
+CVR0                              00000000
+CVR1                              00000001
+CVR2                              00000002
+CVR3                              00000003
+CVRCON                            00000FB5
+CVREF_CVRCON                      00000004
+CVREF_PORTA                       00000000
+CVREN                             00000007
+CVROE                             00000006
+CVRR                              00000005
+CVRSS                             00000004
+D                                 00000005
+DATA_ADDRESS                      00000005
+DC                                00000001
+DC1B0                             00000004
+DC1B1                             00000005
+DDRA                              TRISA
+DDRB                              TRISB
+DDRC                              TRISC
+DDRD                              TRISD
+DDRE                              TRISE
+DFLC0                             00000000
+DFLC1                             00000001
+DFLC2                             00000002
+DFLC3                             00000003
+DFLC4                             00000004
+DLC0                              00000000
+DLC1                              00000001
+DLC2                              00000002
+DLC3                              00000003
+DONE                              00000001
+D_A                               00000005
+D_NOT_A                           00000005
+ECANCON                           00000F77
+ECCP1                             00000004
+ECCP1AS                           00000FB6
+ECCP1CON                          00000FBA
+ECCP1DEL                          00000FB7
+ECCP1IE                           00000000
+ECCP1IF                           00000000
+ECCP1IP                           00000000
+ECCP1M0                           00000000
+ECCP1M1                           00000001
+ECCP1M2                           00000002
+ECCP1M3                           00000003
+ECCPAS0                           00000004
+ECCPAS1                           00000005
+ECCPAS2                           00000006
+ECCPASE                           00000007
+ECCPR1                            00000FBB
+ECCPR1H                           00000FBC
+ECCPR1L                           00000FBB
+EDC1B0                            00000004
+EDC1B1                            00000005
+EEADR                             00000FA9
+EEADRH                            00000FAA
+EECON1                            00000FA6
+EECON2                            00000FA7
+EEDATA                            00000FA8
+MPASM 5.53                 ../LUMOS_INIT.ASM   5-26-2014  22:33:11         PAGE 17
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+EEIE                              00000004
+EEIF                              00000004
+EEIP                              00000004
+EEPGD                             00000007
+EICODE0                           00000000
+EICODE1                           00000001
+EICODE1_ICODE0                    00000001
+EICODE2                           00000002
+EICODE2_ICODE1                    00000002
+EICODE3                           00000003
+EICODE3_ICODE2                    00000003
+EICODE4                           00000004
+EID0                              00000000
+EID1                              00000001
+EID10                             00000002
+EID11                             00000003
+EID12                             00000004
+EID13                             00000005
+EID14                             00000006
+EID15                             00000007
+EID16                             00000000
+EID17                             00000001
+EID2                              00000002
+EID3                              00000003
+EID4                              00000004
+EID5                              00000005
+EID6                              00000006
+EID7                              00000007
+EID8                              00000000
+EID9                              00000001
+ENDRHI                            00000005
+EPWM1M0                           00000006
+EPWM1M1                           00000007
+ERRIE                             00000005
+ERRIF                             00000005
+ERRIP                             00000005
+EWARN                             00000000
+EWIN0                             00000000
+EWIN1                             00000001
+EWIN2                             00000002
+EWIN3                             00000003
+EWIN4                             00000004
+EXID                              00000003
+EXIDE                             00000003
+EXIDEN                            00000003
+F                                 00000005
+F0BP_0                            00000000
+F0BP_1                            00000001
+F0BP_2                            00000002
+F0BP_3                            00000003
+F10BP_0                           00000000
+F10BP_1                           00000001
+F10BP_2                           00000002
+F10BP_3                           00000003
+F11BP_0                           00000004
+F11BP_1                           00000005
+F11BP_2                           00000006
+F11BP_3                           00000007
+F12BP_0                           00000000
+F12BP_1                           00000001
+F12BP_2                           00000002
+F12BP_3                           00000003
+F13BP_0                           00000004
+F13BP_1                           00000005
+F13BP_2                           00000006
+F13BP_3                           00000007
+F14BP_0                           00000000
+F14BP_1                           00000001
+F14BP_2                           00000002
+F14BP_3                           00000003
+F15BP_0                           00000004
+F15BP_1                           00000005
+F15BP_2                           00000006
+F15BP_3                           00000007
+F1BP_0                            00000004
+F1BP_1                            00000005
+F1BP_2                            00000006
+F1BP_3                            00000007
+F2BP_0                            00000000
+F2BP_1                            00000001
+F2BP_2                            00000002
+F2BP_3                            00000003
+F3BP_0                            00000004
+F3BP_1                            00000005
+MPASM 5.53                 ../LUMOS_INIT.ASM   5-26-2014  22:33:11         PAGE 18
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+F3BP_2                            00000006
+F3BP_3                            00000007
+F4BP_0                            00000000
+F4BP_1                            00000001
+F4BP_2                            00000002
+F4BP_3                            00000003
+F5BP_0                            00000004
+F5BP_1                            00000005
+F5BP_2                            00000006
+F5BP_3                            00000007
+F6BP_0                            00000000
+F6BP_1                            00000001
+F6BP_2                            00000002
+F6BP_3                            00000003
+F7BP_0                            00000004
+F7BP_1                            00000005
+F7BP_2                            00000006
+F7BP_3                            00000007
+F8BP_0                            00000000
+F8BP_1                            00000001
+F8BP_2                            00000002
+F8BP_3                            00000003
+F9BP_0                            00000004
+F9BP_1                            00000005
+F9BP_2                            00000006
+F9BP_3                            00000007
+FAST                              00000001
+FERR                              00000002
+FIFOEMPTY                         00000007
+FIFOMWIE                          00000000
+FIFOWM                            00000005
+FIFOWMIE                          00000000
+FIFOWMIF                          00000000
+FIFOWMIP                          00000000
+FIL0_0                            00000000
+FIL0_1                            00000001
+FIL10_0                           00000004
+FIL10_1                           00000005
+FIL11_0                           00000006
+FIL11_1                           00000007
+FIL12_0                           00000000
+FIL12_1                           00000001
+FIL13_0                           00000002
+FIL13_1                           00000003
+FIL14_0                           00000004
+FIL14_1                           00000005
+FIL15_0                           00000006
+FIL15_1                           00000007
+FIL1_0                            00000002
+FIL1_1                            00000003
+FIL2_0                            00000004
+FIL2_1                            00000005
+FIL3_0                            00000006
+FIL3_1                            00000007
+FIL4_0                            00000000
+FIL4_1                            00000001
+FIL5_0                            00000002
+FIL5_1                            00000003
+FIL6_0                            00000004
+FIL6_1                            00000005
+FIL7_0                            00000006
+FIL7_1                            00000007
+FIL8_0                            00000000
+FIL8_1                            00000001
+FIL9_0                            00000002
+FIL9_1                            00000003
+FILHIT0                           00000000
+FILHIT0_TXPRI0                    00000000
+FILHIT1                           00000001
+FILHIT1_TXPRI1                    00000001
+FILHIT2                           00000002
+FILHIT2_RTREN                     00000002
+FILHIT3                           00000003
+FILHIT3_TXREQ                     00000003
+FILHIT4                           00000004
+FILHIT4_TXERR                     00000004
+FLC0                              00000000
+FLC1                              00000001
+FLC2                              00000002
+FLC3                              00000003
+FLC4                              00000004
+FLT0                              00000000
+FP0                               00000000
+FP1                               00000001
+MPASM 5.53                 ../LUMOS_INIT.ASM   5-26-2014  22:33:11         PAGE 19
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+FP2                               00000002
+FP3                               00000003
+FREE                              00000004
+FSR0                              00000000
+FSR0H                             00000FEA
+FSR0L                             00000FE9
+FSR1                              00000001
+FSR1H                             00000FE2
+FSR1L                             00000FE1
+FSR2                              00000002
+FSR2H                             00000FDA
+FSR2L                             00000FD9
+GCEN                              00000007
+GIE                               00000007
+GIEH                              00000007
+GIEL                              00000006
+GIE_GIEH                          00000007
+GO                                00000001
+GO_DONE                           00000001
+GO_NOT_DONE                       00000001
+HLVDCON                           00000FD2
+HLVDEN                            00000004
+HLVDIE                            00000002
+HLVDIF                            00000002
+HLVDIN                            00000005
+HLVDIP                            00000002
+HLVDL0                            00000000
+HLVDL1                            00000001
+HLVDL2                            00000002
+HLVDL3                            00000003
+I2C_DAT                           00000005
+I2C_READ                          00000002
+I2C_START                         00000003
+I2C_STOP                          00000004
+IBF                               00000007
+IBOV                              00000005
+ICODE0                            00000000
+ICODE1                            00000001
+ICODE2                            00000002
+ICODE3                            00000003
+ICODE4                            00000004
+IDLEN                             00000007
+INDF0                             00000FEF
+INDF1                             00000FE7
+INDF2                             00000FDF
+INT0                              00000000
+INT0E                             00000004
+INT0F                             00000001
+INT0IE                            00000004
+INT0IF                            00000001
+INT1                              00000001
+INT1E                             00000003
+INT1F                             00000000
+INT1IE                            00000003
+INT1IF                            00000000
+INT1IP                            00000006
+INT1P                             00000006
+INT2                              00000002
+INT2E                             00000004
+INT2F                             00000001
+INT2IE                            00000004
+INT2IF                            00000001
+INT2IP                            00000007
+INT2P                             00000007
+INTCON                            00000FF2
+INTCON2                           00000FF1
+INTCON3                           00000FF0
+INTEDG0                           00000006
+INTEDG1                           00000005
+INTEDG2                           00000004
+INTSCR                            00000007
+INTSRC                            00000007
+IOFS                              00000002
+IPEN                              00000007
+IPR1                              00000F9F
+IPR2                              00000FA2
+IPR3                              00000FA5
+IRCF0                             00000004
+IRCF1                             00000005
+IRCF2                             00000006
+IRVST                             00000005
+IRXIE                             00000007
+IRXIF                             00000007
+IRXIP                             00000007
+MPASM 5.53                 ../LUMOS_INIT.ASM   5-26-2014  22:33:11         PAGE 20
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+IVRST                             00000005
+JTOFF                             00000001
+JTOFF_FILHIT1                     00000001
+KBI0                              00000004
+KBI1                              00000005
+KBI2                              00000006
+KBI3                              00000007
+LATA                              00000F89
+LATA0                             00000000
+LATA1                             00000001
+LATA2                             00000002
+LATA3                             00000003
+LATA4                             00000004
+LATA5                             00000005
+LATA6                             00000006
+LATA7                             00000007
+LATB                              00000F8A
+LATB0                             00000000
+LATB1                             00000001
+LATB2                             00000002
+LATB3                             00000003
+LATB4                             00000004
+LATB5                             00000005
+LATB6                             00000006
+LATB7                             00000007
+LATC                              00000F8B
+LATC0                             00000000
+LATC1                             00000001
+LATC2                             00000002
+LATC3                             00000003
+LATC4                             00000004
+LATC5                             00000005
+LATC6                             00000006
+LATC7                             00000007
+LATD                              00000F8C
+LATD0                             00000000
+LATD1                             00000001
+LATD2                             00000002
+LATD3                             00000003
+LATD4                             00000004
+LATD5                             00000005
+LATD6                             00000006
+LATD7                             00000007
+LATE                              00000F8D
+LATE0                             00000000
+LATE1                             00000001
+LATE2                             00000002
+LUMOS_ARCH                        LUMOS_ARCH_4685
+LUMOS_ARCH_14K50                  (0x1450)
+LUMOS_ARCH_4685                   (0x4685)
+LUMOS_CHIP_4CHANNEL               0x44
+LUMOS_CHIP_MASTER                 0x41
+LUMOS_CHIP_QSCC                   0x45
+LUMOS_CHIP_QSRC                   0x46
+LUMOS_CHIP_SLAVE                  0x42
+LUMOS_CHIP_STANDALONE             0x43
+LUMOS_CHIP_TYPE                   LUMOS_CHIP_QSRC
+LUMOS_CONFIG_INC                  
+LUMOS_INIT                        00000000
+LUMOS_INTERNAL                    0x58
+LUMOS_SLICE_TIMER                 LUMOS_INTERNAL
+LUMOS_ZC                          0x55
+LVDCON                            00000FD2
+LVDEN                             00000004
+LVDIE                             00000002
+LVDIF                             00000002
+LVDIN                             00000005
+LVDIP                             00000002
+LVDL0                             00000000
+LVDL1                             00000001
+LVDL2                             00000002
+LVDL3                             00000003
+LVV0                              00000000
+LVV1                              00000001
+LVV2                              00000002
+LVV3                              00000003
+MDSEL0                            00000006
+MDSEL1                            00000007
+MSEL0                             00000DF0
+MSEL1                             00000DF1
+MSEL2                             00000DF2
+MSEL3                             00000DF3
+N                                 00000004
+NOT_A                             00000005
+MPASM 5.53                 ../LUMOS_INIT.ASM   5-26-2014  22:33:11         PAGE 21
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+NOT_ADDRESS                       00000005
+NOT_BOR                           00000000
+NOT_CS                            00000002
+NOT_DONE                          00000001
+NOT_FIFOEMPTY                     00000007
+NOT_PD                            00000002
+NOT_POR                           00000001
+NOT_RBPU                          00000007
+NOT_RD                            00000000
+NOT_RI                            00000004
+NOT_SS                            00000005
+NOT_T1SYNC                        00000002
+NOT_T3SYNC                        00000002
+NOT_TO                            00000003
+NOT_W                             00000002
+NOT_WR                            00000001
+NOT_WRITE                         00000002
+NUM_CHANNELS                      (.20)
+OBF                               00000006
+OERR                              00000001
+OPMODE0                           00000005
+OPMODE1                           00000006
+OPMODE2                           00000007
+OSC1                              00000007
+OSC2                              00000006
+OSCCON                            00000FD3
+OSCFIE                            00000007
+OSCFIF                            00000007
+OSCFIP                            00000007
+OSCTUNE                           00000F9B
+OSTS                              00000003
+OV                                00000003
+P                                 00000004
+P1A                               00000004
+P1B                               00000005
+P1C                               00000006
+P1D                               00000007
+PC                                00000FF9
+PCFG0                             00000000
+PCFG1                             00000001
+PCFG2                             00000002
+PCFG3                             00000003
+PCL                               00000FF9
+PCLATH                            00000FFA
+PCLATU                            00000FFB
+PD                                00000002
+PDC0                              00000000
+PDC1                              00000001
+PDC2                              00000002
+PDC3                              00000003
+PDC4                              00000004
+PDC5                              00000005
+PDC6                              00000006
+PEIE                              00000006
+PEIE_GIEL                         00000006
+PEN                               00000002
+PGC                               00000006
+PGD                               00000007
+PGM                               00000005
+PIE1                              00000F9D
+PIE2                              00000FA0
+PIE3                              00000FA3
+PIR1                              00000F9E
+PIR2                              00000FA1
+PIR3                              00000FA4
+PLLEN                             00000006
+PLUSW0                            00000FEB
+PLUSW1                            00000FE3
+PLUSW2                            00000FDB
+POR                               00000001
+PORTA                             00000F80
+PORTB                             00000F81
+PORTC                             00000F82
+PORTD                             00000F83
+PORTE                             00000F84
+POSTDEC0                          00000FED
+POSTDEC1                          00000FE5
+POSTDEC2                          00000FDD
+POSTINC0                          00000FEE
+POSTINC1                          00000FE6
+POSTINC2                          00000FDE
+PR2                               00000FCB
+PREINC0                           00000FEC
+PREINC1                           00000FE4
+MPASM 5.53                 ../LUMOS_INIT.ASM   5-26-2014  22:33:11         PAGE 22
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+PREINC2                           00000FDC
+PROD                              00000FF3
+PRODH                             00000FF4
+PRODL                             00000FF3
+PRSEG0                            00000000
+PRSEG1                            00000001
+PRSEG2                            00000002
+PRSEN                             00000007
+PSA                               00000003
+PSP0                              00000000
+PSP1                              00000001
+PSP2                              00000002
+PSP3                              00000003
+PSP4                              00000004
+PSP5                              00000005
+PSP6                              00000006
+PSP7                              00000007
+PSPIE                             00000007
+PSPIF                             00000007
+PSPIP                             00000007
+PSPMODE                           00000004
+PSSAC0                            00000002
+PSSAC1                            00000003
+PSSBD0                            00000000
+PSSBD1                            00000001
+QSCC_PORT                         (1)
+R                                 00000002
+RA0                               00000000
+RA1                               00000001
+RA2                               00000002
+RA3                               00000003
+RA4                               00000004
+RA5                               00000005
+RA6                               00000006
+RA7                               00000007
+RB0_B0DLC                         00000004
+RB0_B1DLC                         00000004
+RB0_B2DLC                         00000004
+RB0_B3DLC                         00000004
+RB0_B4DLC                         00000004
+RB0_B5DLC                         00000004
+RB0_DDRB                          00000000
+RB0_PORTB                         00000000
+RB0_RXB0DLC                       00000004
+RB0_RXB1DLC                       00000004
+RB0_TRISB                         00000000
+RB1_B0DLC                         00000005
+RB1_B1DLC                         00000005
+RB1_B2DLC                         00000005
+RB1_B3DLC                         00000005
+RB1_B4DLC                         00000005
+RB1_B5DLC                         00000005
+RB1_DDRB                          00000001
+RB1_PORTB                         00000001
+RB1_RXB0DLC                       00000005
+RB1_RXB1DLC                       00000005
+RB1_TRISB                         00000001
+RB2                               00000002
+RB3                               00000003
+RB4                               00000004
+RB5                               00000005
+RB6                               00000006
+RB7                               00000007
+RBIE                              00000003
+RBIF                              00000000
+RBIP                              00000000
+RBPU                              00000007
+RC0                               00000000
+RC1                               00000001
+RC2                               00000002
+RC3                               00000003
+RC4                               00000004
+RC5                               00000005
+RC6                               00000006
+RC7                               00000007
+RCEN                              00000003
+RCIDL                             00000006
+RCIE                              00000005
+RCIF                              00000005
+RCIP                              00000005
+RCON                              00000FD0
+RCREG                             00000FAE
+RCSTA                             00000FAB
+RD                                00000000
+MPASM 5.53                 ../LUMOS_INIT.ASM   5-26-2014  22:33:11         PAGE 23
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+RD0                               00000000
+RD1                               00000001
+RD16                              00000007
+RD2                               00000002
+RD3                               00000003
+RD4                               00000004
+RD5                               00000005
+RD6                               00000006
+RD7                               00000007
+RE0                               00000000
+RE1                               00000001
+RE2                               00000002
+RE3                               00000003
+READ_WRITE                        00000002
+REC0                              00000000
+REC1                              00000001
+REC2                              00000002
+REC3                              00000003
+REC4                              00000004
+REC5                              00000005
+REC6                              00000006
+REC7                              00000007
+REQOP0                            00000005
+REQOP1                            00000006
+REQOP2                            00000007
+RESRB0                            00000004
+RESRB1                            00000005
+RI                                00000004
+ROLE_MASTER                       (0)
+ROLE_SLAVE                        (0)
+ROLE_STANDALONE                   (1)
+RSEN                              00000001
+RTREN                             00000002
+RTRRO                             00000005
+RX                                00000007
+RX9                               00000006
+RX9D                              00000000
+RXB0CON                           00000F60
+RXB0D0                            00000F66
+RXB0D00                           00000000
+RXB0D01                           00000001
+RXB0D02                           00000002
+RXB0D03                           00000003
+RXB0D04                           00000004
+RXB0D05                           00000005
+RXB0D06                           00000006
+RXB0D07                           00000007
+RXB0D1                            00000F67
+RXB0D10                           00000000
+RXB0D11                           00000001
+RXB0D12                           00000002
+RXB0D13                           00000003
+RXB0D14                           00000004
+RXB0D15                           00000005
+RXB0D16                           00000006
+RXB0D17                           00000007
+RXB0D2                            00000F68
+RXB0D20                           00000000
+RXB0D21                           00000001
+RXB0D22                           00000002
+RXB0D23                           00000003
+RXB0D24                           00000004
+RXB0D25                           00000005
+RXB0D26                           00000006
+RXB0D27                           00000007
+RXB0D3                            00000F69
+RXB0D30                           00000000
+RXB0D31                           00000001
+RXB0D32                           00000002
+RXB0D33                           00000003
+RXB0D34                           00000004
+RXB0D35                           00000005
+RXB0D36                           00000006
+RXB0D37                           00000007
+RXB0D4                            00000F6A
+RXB0D40                           00000000
+RXB0D41                           00000001
+RXB0D42                           00000002
+RXB0D43                           00000003
+RXB0D44                           00000004
+RXB0D45                           00000005
+RXB0D46                           00000006
+RXB0D47                           00000007
+RXB0D5                            00000F6B
+MPASM 5.53                 ../LUMOS_INIT.ASM   5-26-2014  22:33:11         PAGE 24
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+RXB0D50                           00000000
+RXB0D51                           00000001
+RXB0D52                           00000002
+RXB0D53                           00000003
+RXB0D54                           00000004
+RXB0D55                           00000005
+RXB0D56                           00000006
+RXB0D57                           00000007
+RXB0D6                            00000F6C
+RXB0D60                           00000000
+RXB0D61                           00000001
+RXB0D62                           00000002
+RXB0D63                           00000003
+RXB0D64                           00000004
+RXB0D65                           00000005
+RXB0D66                           00000006
+RXB0D67                           00000007
+RXB0D7                            00000F6D
+RXB0D70                           00000000
+RXB0D71                           00000001
+RXB0D72                           00000002
+RXB0D73                           00000003
+RXB0D74                           00000004
+RXB0D75                           00000005
+RXB0D76                           00000006
+RXB0D77                           00000007
+RXB0DBEN                          00000002
+RXB0DBEN_FILHIT2                  00000002
+RXB0DLC                           00000F65
+RXB0EIDH                          00000F63
+RXB0EIDL                          00000F64
+RXB0IE                            00000000
+RXB0IF                            00000000
+RXB0IP                            00000000
+RXB0OVFL                          00000007
+RXB0OVFL_NOT_FIFOEMPTY            00000007
+RXB0SIDH                          00000F61
+RXB0SIDL                          00000F62
+RXB1CON                           00000F50
+RXB1D0                            00000F56
+RXB1D00                           00000000
+RXB1D01                           00000001
+RXB1D02                           00000002
+RXB1D03                           00000003
+RXB1D04                           00000004
+RXB1D05                           00000005
+RXB1D06                           00000006
+RXB1D07                           00000007
+RXB1D1                            00000F57
+RXB1D10                           00000000
+RXB1D11                           00000001
+RXB1D12                           00000002
+RXB1D13                           00000003
+RXB1D14                           00000004
+RXB1D15                           00000005
+RXB1D16                           00000006
+RXB1D17                           00000007
+RXB1D2                            00000F58
+RXB1D20                           00000000
+RXB1D21                           00000001
+RXB1D22                           00000002
+RXB1D23                           00000003
+RXB1D24                           00000004
+RXB1D25                           00000005
+RXB1D26                           00000006
+RXB1D27                           00000007
+RXB1D3                            00000F59
+RXB1D30                           00000000
+RXB1D31                           00000001
+RXB1D32                           00000002
+RXB1D33                           00000003
+RXB1D34                           00000004
+RXB1D35                           00000005
+RXB1D36                           00000006
+RXB1D37                           00000007
+RXB1D4                            00000F5A
+RXB1D40                           00000000
+RXB1D41                           00000001
+RXB1D42                           00000002
+RXB1D43                           00000003
+RXB1D44                           00000004
+RXB1D45                           00000005
+RXB1D46                           00000006
+RXB1D47                           00000007
+MPASM 5.53                 ../LUMOS_INIT.ASM   5-26-2014  22:33:11         PAGE 25
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+RXB1D5                            00000F5B
+RXB1D50                           00000000
+RXB1D51                           00000001
+RXB1D52                           00000002
+RXB1D53                           00000003
+RXB1D54                           00000004
+RXB1D55                           00000005
+RXB1D56                           00000006
+RXB1D57                           00000007
+RXB1D6                            00000F5C
+RXB1D60                           00000000
+RXB1D61                           00000001
+RXB1D62                           00000002
+RXB1D63                           00000003
+RXB1D64                           00000004
+RXB1D65                           00000005
+RXB1D66                           00000006
+RXB1D67                           00000007
+RXB1D7                            00000F5D
+RXB1D70                           00000000
+RXB1D71                           00000001
+RXB1D72                           00000002
+RXB1D73                           00000003
+RXB1D74                           00000004
+RXB1D75                           00000005
+RXB1D76                           00000006
+RXB1D77                           00000007
+RXB1DLC                           00000F55
+RXB1EIDH                          00000F53
+RXB1EIDL                          00000F54
+RXB1IE                            00000001
+RXB1IF                            00000001
+RXB1IP                            00000001
+RXB1OVFL                          00000006
+RXB1SIDH                          00000F51
+RXB1SIDL                          00000F52
+RXBODBEN                          00000002
+RXBP                              00000003
+RXBnIE                            00000001
+RXBnIF                            00000001
+RXBnIP                            00000001
+RXBnOVFL                          00000006
+RXERRCNT                          00000F75
+RXF0EIDH                          00000F02
+RXF0EIDL                          00000F03
+RXF0EN                            00000000
+RXF0SIDH                          00000F00
+RXF0SIDL                          00000F01
+RXF10EIDH                         00000D76
+RXF10EIDL                         00000D77
+RXF10EN                           00000002
+RXF10SIDH                         00000D74
+RXF10SIDL                         00000D75
+RXF11EIDH                         00000D7A
+RXF11EIDL                         00000D7B
+RXF11EN                           00000003
+RXF11SIDH                         00000D78
+RXF11SIDL                         00000D79
+RXF12EIDH                         00000D82
+RXF12EIDL                         00000D83
+RXF12EN                           00000004
+RXF12SIDH                         00000D80
+RXF12SIDL                         00000D81
+RXF13EIDH                         00000D86
+RXF13EIDL                         00000D87
+RXF13EN                           00000005
+RXF13SIDH                         00000D84
+RXF13SIDL                         00000D85
+RXF14EIDH                         00000D8A
+RXF14EIDL                         00000D8B
+RXF14EN                           00000006
+RXF14SIDH                         00000D88
+RXF14SIDL                         00000D89
+RXF15EIDH                         00000D92
+RXF15EIDL                         00000D93
+RXF15EN                           00000007
+RXF15SIDH                         00000D90
+RXF15SIDL                         00000D91
+RXF1EIDH                          00000F06
+RXF1EIDL                          00000F07
+RXF1EN                            00000001
+RXF1SIDH                          00000F04
+RXF1SIDL                          00000F05
+RXF2EIDH                          00000F0A
+MPASM 5.53                 ../LUMOS_INIT.ASM   5-26-2014  22:33:11         PAGE 26
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+RXF2EIDL                          00000F0B
+RXF2EN                            00000002
+RXF2SIDH                          00000F08
+RXF2SIDL                          00000F09
+RXF3EIDH                          00000F0E
+RXF3EIDL                          00000F0F
+RXF3EN                            00000003
+RXF3SIDH                          00000F0C
+RXF3SIDL                          00000F0D
+RXF4EIDH                          00000F12
+RXF4EIDL                          00000F13
+RXF4EN                            00000004
+RXF4SIDH                          00000F10
+RXF4SIDL                          00000F11
+RXF5EIDH                          00000F16
+RXF5EIDL                          00000F17
+RXF5EN                            00000005
+RXF5SIDH                          00000F14
+RXF5SIDL                          00000F15
+RXF6EIDH                          00000D62
+RXF6EIDL                          00000D63
+RXF6EN                            00000006
+RXF6SIDH                          00000D60
+RXF6SIDL                          00000D61
+RXF7EIDH                          00000D66
+RXF7EIDL                          00000D67
+RXF7EN                            00000007
+RXF7SIDH                          00000D64
+RXF7SIDL                          00000D65
+RXF8EIDH                          00000D6A
+RXF8EIDL                          00000D6B
+RXF8EN                            00000000
+RXF8SIDH                          00000D68
+RXF8SIDL                          00000D69
+RXF9EIDH                          00000D72
+RXF9EIDL                          00000D73
+RXF9EN                            00000001
+RXF9SIDH                          00000D70
+RXF9SIDL                          00000D71
+RXFBCON0                          00000DE0
+RXFBCON1                          00000DE1
+RXFBCON2                          00000DE2
+RXFBCON3                          00000DE3
+RXFBCON4                          00000DE4
+RXFBCON5                          00000DE5
+RXFBCON6                          00000DE6
+RXFBCON7                          00000DE7
+RXFCON0                           00000DD4
+RXFCON1                           00000DD5
+RXFUL                             00000007
+RXFUL_TXBIF                       00000007
+RXM0                              00000005
+RXM0EIDH                          00000F1A
+RXM0EIDL                          00000F1B
+RXM0SIDH                          00000F18
+RXM0SIDL                          00000F19
+RXM0_RTRRO                        00000005
+RXM1                              00000006
+RXM1EIDH                          00000F1E
+RXM1EIDL                          00000F1F
+RXM1SIDH                          00000F1C
+RXM1SIDL                          00000F1D
+RXM1_TXABT                        00000006
+RXRTR                             00000006
+RXRTRRO_B0CON                     00000005
+RXRTRRO_B1CON                     00000005
+RXRTRRO_B2CON                     00000005
+RXRTRRO_B3CON                     00000005
+RXRTRRO_B4CON                     00000005
+RXRTRRO_B5CON                     00000005
+RXRTRRO_FILHIT3                   00000003
+RXRTRRO_RXB0CON                   00000003
+RXRTRRO_RXB1CON                   00000003
+RXRTRRO_TXLARB                    00000005
+RXRTR_TXRTR                       00000006
+RXWARN                            00000001
+R_NOT_W                           00000002
+R_W                               00000002
+S                                 00000003
+SAM                               00000006
+SBOREN                            00000006
+SCK                               00000003
+SCKP                              00000004
+SCL                               00000003
+MPASM 5.53                 ../LUMOS_INIT.ASM   5-26-2014  22:33:11         PAGE 27
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+SCS0                              00000000
+SCS1                              00000001
+SDA                               00000004
+SDFLC                             00000DD8
+SDI                               00000004
+SDO                               00000005
+SEG1PH0                           00000003
+SEG1PH1                           00000004
+SEG1PH2                           00000005
+SEG2PH0                           00000000
+SEG2PH1                           00000001
+SEG2PH2                           00000002
+SEG2PHT                           00000007
+SEG2PHTS                          00000007
+SEN                               00000000
+SENDB                             00000003
+SID0                              00000005
+SID1                              00000006
+SID10                             00000007
+SID2                              00000007
+SID3                              00000000
+SID4                              00000001
+SID5                              00000002
+SID6                              00000003
+SID7                              00000004
+SID8                              00000005
+SID9                              00000006
+SJW0                              00000006
+SJW1                              00000007
+SMP                               00000007
+SP0                               00000000
+SP1                               00000001
+SP2                               00000002
+SP3                               00000003
+SP4                               00000004
+SPBRG                             00000FAF
+SPBRGH                            00000FB0
+SPEN                              00000007
+SREN                              00000005
+SRR                               00000004
+SS                                00000005
+SSPADD                            00000FC8
+SSPBUF                            00000FC9
+SSPCON1                           00000FC6
+SSPCON2                           00000FC5
+SSPEN                             00000005
+SSPIE                             00000003
+SSPIF                             00000003
+SSPIP                             00000003
+SSPM0                             00000000
+SSPM1                             00000001
+SSPM2                             00000002
+SSPM3                             00000003
+SSPOV                             00000006
+SSPSTAT                           00000FC7
+STATUS                            00000FD8
+STKFUL                            00000007
+STKOVF                            00000007
+STKPTR                            00000FFC
+STKPTR0                           00000000
+STKPTR1                           00000001
+STKPTR2                           00000002
+STKPTR3                           00000003
+STKPTR4                           00000004
+STKUNF                            00000006
+SWDTE                             00000000
+SWDTEN                            00000000
+SYNC                              00000004
+T08BIT                            00000006
+T0CKI                             00000004
+T0CON                             00000FD5
+T0CS                              00000005
+T0IE                              00000005
+T0IF                              00000002
+T0IP                              00000002
+T0PS0                             00000000
+T0PS1                             00000001
+T0PS2                             00000002
+T0PS3                             00000003
+T0SE                              00000004
+T13CKI                            00000000
+T1CKPS0                           00000004
+T1CKPS1                           00000005
+T1CON                             00000FCD
+MPASM 5.53                 ../LUMOS_INIT.ASM   5-26-2014  22:33:11         PAGE 28
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+T1INSYNC                          00000002
+T1OSCEN                           00000003
+T1OSI                             00000001
+T1OSO                             00000000
+T1RUN                             00000006
+T1SYNC                            00000002
+T2CKPS0                           00000000
+T2CKPS1                           00000001
+T2CON                             00000FCA
+T2OUTPS0                          00000003
+T2OUTPS1                          00000004
+T2OUTPS2                          00000005
+T2OUTPS3                          00000006
+T3CCP1                            00000003
+T3CCP2                            00000006
+T3CKPS0                           00000004
+T3CKPS1                           00000005
+T3CON                             00000FB1
+T3ECCP1                           00000006
+T3NSYNC                           00000002
+T3SYNC                            00000002
+TABLAT                            00000FF5
+TBLPTR                            00000FF6
+TBLPTRH                           00000FF7
+TBLPTRL                           00000FF6
+TBLPTRU                           00000FF8
+TEC0                              00000000
+TEC1                              00000001
+TEC2                              00000002
+TEC3                              00000003
+TEC4                              00000004
+TEC5                              00000005
+TEC6                              00000006
+TEC7                              00000007
+TMR0                              00000FD6
+TMR0H                             00000FD7
+TMR0IE                            00000005
+TMR0IF                            00000002
+TMR0IP                            00000002
+TMR0L                             00000FD6
+TMR0ON                            00000007
+TMR1                              00000FCE
+TMR1CS                            00000001
+TMR1H                             00000FCF
+TMR1IE                            00000000
+TMR1IF                            00000000
+TMR1IP                            00000000
+TMR1L                             00000FCE
+TMR1ON                            00000000
+TMR2                              00000FCC
+TMR2IE                            00000001
+TMR2IF                            00000001
+TMR2IP                            00000001
+TMR2ON                            00000002
+TMR3                              00000FB2
+TMR3CS                            00000001
+TMR3H                             00000FB3
+TMR3IE                            00000001
+TMR3IF                            00000001
+TMR3IP                            00000001
+TMR3L                             00000FB2
+TMR3ON                            00000000
+TO                                00000003
+TOS                               00000FFD
+TOSH                              00000FFE
+TOSL                              00000FFD
+TOSU                              00000FFF
+TRISA                             00000F92
+TRISA0                            00000000
+TRISA1                            00000001
+TRISA2                            00000002
+TRISA3                            00000003
+TRISA4                            00000004
+TRISA5                            00000005
+TRISA6                            00000006
+TRISA7                            00000007
+TRISB                             00000F93
+TRISB0                            00000000
+TRISB1                            00000001
+TRISB2                            00000002
+TRISB3                            00000003
+TRISB4                            00000004
+TRISB5                            00000005
+TRISB6                            00000006
+MPASM 5.53                 ../LUMOS_INIT.ASM   5-26-2014  22:33:11         PAGE 29
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+TRISB7                            00000007
+TRISC                             00000F94
+TRISC0                            00000000
+TRISC1                            00000001
+TRISC2                            00000002
+TRISC3                            00000003
+TRISC4                            00000004
+TRISC5                            00000005
+TRISC6                            00000006
+TRISC7                            00000007
+TRISD                             00000F95
+TRISD0                            00000000
+TRISD1                            00000001
+TRISD2                            00000002
+TRISD3                            00000003
+TRISD4                            00000004
+TRISD5                            00000005
+TRISD6                            00000006
+TRISD7                            00000007
+TRISE                             00000F96
+TRISE0                            00000000
+TRISE1                            00000001
+TRISE2                            00000002
+TRMT                              00000001
+TUN0                              00000000
+TUN1                              00000001
+TUN2                              00000002
+TUN3                              00000003
+TUN4                              00000004
+TX                                00000006
+TX9                               00000006
+TX9D                              00000000
+TXABT                             00000006
+TXB0CON                           00000F40
+TXB0D0                            00000F46
+TXB0D00                           00000000
+TXB0D01                           00000001
+TXB0D02                           00000002
+TXB0D03                           00000003
+TXB0D04                           00000004
+TXB0D05                           00000005
+TXB0D06                           00000006
+TXB0D07                           00000007
+TXB0D1                            00000F47
+TXB0D10                           00000000
+TXB0D11                           00000001
+TXB0D12                           00000002
+TXB0D13                           00000003
+TXB0D14                           00000004
+TXB0D15                           00000005
+TXB0D16                           00000006
+TXB0D17                           00000007
+TXB0D2                            00000F48
+TXB0D20                           00000000
+TXB0D21                           00000001
+TXB0D22                           00000002
+TXB0D23                           00000003
+TXB0D24                           00000004
+TXB0D25                           00000005
+TXB0D26                           00000006
+TXB0D27                           00000007
+TXB0D3                            00000F49
+TXB0D30                           00000000
+TXB0D31                           00000001
+TXB0D32                           00000002
+TXB0D33                           00000003
+TXB0D34                           00000004
+TXB0D35                           00000005
+TXB0D36                           00000006
+TXB0D37                           00000007
+TXB0D4                            00000F4A
+TXB0D40                           00000000
+TXB0D41                           00000001
+TXB0D42                           00000002
+TXB0D43                           00000003
+TXB0D44                           00000004
+TXB0D45                           00000005
+TXB0D46                           00000006
+TXB0D47                           00000007
+TXB0D5                            00000F4B
+TXB0D50                           00000000
+TXB0D51                           00000001
+TXB0D52                           00000002
+TXB0D53                           00000003
+MPASM 5.53                 ../LUMOS_INIT.ASM   5-26-2014  22:33:11         PAGE 30
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+TXB0D54                           00000004
+TXB0D55                           00000005
+TXB0D56                           00000006
+TXB0D57                           00000007
+TXB0D6                            00000F4C
+TXB0D60                           00000000
+TXB0D61                           00000001
+TXB0D62                           00000002
+TXB0D63                           00000003
+TXB0D64                           00000004
+TXB0D65                           00000005
+TXB0D66                           00000006
+TXB0D67                           00000007
+TXB0D7                            00000F4D
+TXB0D70                           00000000
+TXB0D71                           00000001
+TXB0D72                           00000002
+TXB0D73                           00000003
+TXB0D74                           00000004
+TXB0D75                           00000005
+TXB0D76                           00000006
+TXB0D77                           00000007
+TXB0DLC                           00000F45
+TXB0EIDH                          00000F43
+TXB0EIDL                          00000F44
+TXB0IE                            00000002
+TXB0IF                            00000002
+TXB0IP                            00000002
+TXB0SIDH                          00000F41
+TXB0SIDL                          00000F42
+TXB1CON                           00000F30
+TXB1D0                            00000F36
+TXB1D00                           00000000
+TXB1D01                           00000001
+TXB1D02                           00000002
+TXB1D03                           00000003
+TXB1D04                           00000004
+TXB1D05                           00000005
+TXB1D06                           00000006
+TXB1D07                           00000007
+TXB1D1                            00000F37
+TXB1D10                           00000000
+TXB1D11                           00000001
+TXB1D12                           00000002
+TXB1D13                           00000003
+TXB1D14                           00000004
+TXB1D15                           00000005
+TXB1D16                           00000006
+TXB1D17                           00000007
+TXB1D2                            00000F38
+TXB1D20                           00000000
+TXB1D21                           00000001
+TXB1D22                           00000002
+TXB1D23                           00000003
+TXB1D24                           00000004
+TXB1D25                           00000005
+TXB1D26                           00000006
+TXB1D27                           00000007
+TXB1D3                            00000F39
+TXB1D30                           00000000
+TXB1D31                           00000001
+TXB1D32                           00000002
+TXB1D33                           00000003
+TXB1D34                           00000004
+TXB1D35                           00000005
+TXB1D36                           00000006
+TXB1D37                           00000007
+TXB1D4                            00000F3A
+TXB1D40                           00000000
+TXB1D41                           00000001
+TXB1D42                           00000002
+TXB1D43                           00000003
+TXB1D44                           00000004
+TXB1D45                           00000005
+TXB1D46                           00000006
+TXB1D47                           00000007
+TXB1D5                            00000F3B
+TXB1D50                           00000000
+TXB1D51                           00000001
+TXB1D52                           00000002
+TXB1D53                           00000003
+TXB1D54                           00000004
+TXB1D55                           00000005
+TXB1D56                           00000006
+MPASM 5.53                 ../LUMOS_INIT.ASM   5-26-2014  22:33:11         PAGE 31
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+TXB1D57                           00000007
+TXB1D6                            00000F3C
+TXB1D60                           00000000
+TXB1D61                           00000001
+TXB1D62                           00000002
+TXB1D63                           00000003
+TXB1D64                           00000004
+TXB1D65                           00000005
+TXB1D66                           00000006
+TXB1D67                           00000007
+TXB1D7                            00000F3D
+TXB1D70                           00000000
+TXB1D71                           00000001
+TXB1D72                           00000002
+TXB1D73                           00000003
+TXB1D74                           00000004
+TXB1D75                           00000005
+TXB1D76                           00000006
+TXB1D77                           00000007
+TXB1DLC                           00000F35
+TXB1EIDH                          00000F33
+TXB1EIDL                          00000F34
+TXB1IE                            00000003
+TXB1IF                            00000003
+TXB1IP                            00000003
+TXB1SIDH                          00000F31
+TXB1SIDL                          00000F32
+TXB2CON                           00000F20
+TXB2D0                            00000F26
+TXB2D00                           00000000
+TXB2D01                           00000001
+TXB2D02                           00000002
+TXB2D03                           00000003
+TXB2D04                           00000004
+TXB2D05                           00000005
+TXB2D06                           00000006
+TXB2D07                           00000007
+TXB2D1                            00000F27
+TXB2D10                           00000000
+TXB2D11                           00000001
+TXB2D12                           00000002
+TXB2D13                           00000003
+TXB2D14                           00000004
+TXB2D15                           00000005
+TXB2D16                           00000006
+TXB2D17                           00000007
+TXB2D2                            00000F28
+TXB2D20                           00000000
+TXB2D21                           00000001
+TXB2D22                           00000002
+TXB2D23                           00000003
+TXB2D24                           00000004
+TXB2D25                           00000005
+TXB2D26                           00000006
+TXB2D27                           00000007
+TXB2D3                            00000F29
+TXB2D30                           00000000
+TXB2D31                           00000001
+TXB2D32                           00000002
+TXB2D33                           00000003
+TXB2D34                           00000004
+TXB2D35                           00000005
+TXB2D36                           00000006
+TXB2D37                           00000007
+TXB2D4                            00000F2A
+TXB2D40                           00000000
+TXB2D41                           00000001
+TXB2D42                           00000002
+TXB2D43                           00000003
+TXB2D44                           00000004
+TXB2D45                           00000005
+TXB2D46                           00000006
+TXB2D47                           00000007
+TXB2D5                            00000F2B
+TXB2D50                           00000000
+TXB2D51                           00000001
+TXB2D52                           00000002
+TXB2D53                           00000003
+TXB2D54                           00000004
+TXB2D55                           00000005
+TXB2D56                           00000006
+TXB2D57                           00000007
+TXB2D6                            00000F2C
+TXB2D60                           00000000
+MPASM 5.53                 ../LUMOS_INIT.ASM   5-26-2014  22:33:11         PAGE 32
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+TXB2D61                           00000001
+TXB2D62                           00000002
+TXB2D63                           00000003
+TXB2D64                           00000004
+TXB2D65                           00000005
+TXB2D66                           00000006
+TXB2D67                           00000007
+TXB2D7                            00000F2D
+TXB2D70                           00000000
+TXB2D71                           00000001
+TXB2D72                           00000002
+TXB2D73                           00000003
+TXB2D74                           00000004
+TXB2D75                           00000005
+TXB2D76                           00000006
+TXB2D77                           00000007
+TXB2DLC                           00000F25
+TXB2EIDH                          00000F23
+TXB2EIDL                          00000F24
+TXB2IE                            00000004
+TXB2IF                            00000004
+TXB2IP                            00000004
+TXB2SIDH                          00000F21
+TXB2SIDL                          00000F22
+TXBIE                             00000DFC
+TXBIF                             00000007
+TXBIFBXB2CON                      00000007
+TXBIFTXB1CON                      00000007
+TXBIP                             00000004
+TXBO                              00000005
+TXBP                              00000004
+TXBnIE                            00000004
+TXBnIF                            00000004
+TXBnIP                            00000004
+TXCKP                             00000004
+TXEN                              00000005
+TXERR                             00000004
+TXERRCNT                          00000F76
+TXIE                              00000004
+TXIF                              00000004
+TXIP                              00000004
+TXLARB                            00000005
+TXPRI0                            00000000
+TXPRI1                            00000001
+TXREG                             00000FAD
+TXREQ                             00000003
+TXRTR                             00000006
+TXSTA                             00000FAC
+TXWARN                            00000002
+UA                                00000001
+VCFG0                             00000004
+VCFG1                             00000005
+VDIRMAG                           00000007
+VREFM                             00000002
+VREFP                             00000003
+W                                 00000000
+WAKDIS                            00000007
+WAKFIL                            00000006
+WAKIE                             00000006
+WAKIF                             00000006
+WAKIP                             00000006
+WCOL                              00000007
+WDTCON                            00000FD1
+WIN0                              00000001
+WIN0_FP1                          00000001
+WIN1                              00000002
+WIN1_FP2                          00000002
+WIN2                              00000003
+WIN2_FP3                          00000003
+WR                                00000001
+WREG                              00000FE8
+WREN                              00000002
+WRERR                             00000003
+WUE                               00000001
+Z                                 00000002
+_BBSIZ_1024_4L                    000000CF
+_BBSIZ_2048_4L                    000000DF
+_BBSIZ_4096_4L                    000000EF
+_BOREN_BOACTIVE_2L                000000FD
+_BOREN_BOHW_2L                    000000FF
+_BOREN_OFF_2L                     000000F9
+_BOREN_SBORENCTRL_2L              000000FB
+_BORV_0_2L                        000000E7
+_BORV_1_2L                        000000EF
+MPASM 5.53                 ../LUMOS_INIT.ASM   5-26-2014  22:33:11         PAGE 33
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+_BORV_2_2L                        000000F7
+_BORV_3_2L                        000000FF
+_CONFIG1H                         00300001
+_CONFIG2H                         00300003
+_CONFIG2L                         00300002
+_CONFIG3H                         00300005
+_CONFIG4L                         00300006
+_CONFIG5H                         00300009
+_CONFIG5L                         00300008
+_CONFIG6H                         0030000B
+_CONFIG6L                         0030000A
+_CONFIG7H                         0030000D
+_CONFIG7L                         0030000C
+_CP0_OFF_5L                       000000FF
+_CP0_ON_5L                        000000FE
+_CP1_OFF_5L                       000000FF
+_CP1_ON_5L                        000000FD
+_CP2_OFF_5L                       000000FF
+_CP2_ON_5L                        000000FB
+_CP3_OFF_5L                       000000FF
+_CP3_ON_5L                        000000F7
+_CP4_OFF_5L                       000000FF
+_CP4_ON_5L                        000000EF
+_CP5_OFF_5L                       000000FF
+_CP5_ON_5L                        000000DF
+_CPB_OFF_5H                       000000FF
+_CPB_ON_5H                        000000BF
+_CPD_OFF_5H                       000000FF
+_CPD_ON_5H                        0000007F
+_DEBUG_OFF_4L                     000000FF
+_DEBUG_ON_4L                      0000007F
+_DEVID1                           003FFFFE
+_DEVID2                           003FFFFF
+_EBTR0_OFF_7L                     000000FF
+_EBTR0_ON_7L                      000000FE
+_EBTR1_OFF_7L                     000000FF
+_EBTR1_ON_7L                      000000FD
+_EBTR2_OFF_7L                     000000FF
+_EBTR2_ON_7L                      000000FB
+_EBTR3_OFF_7L                     000000FF
+_EBTR3_ON_7L                      000000F7
+_EBTR4_OFF_7L                     000000FF
+_EBTR4_ON_7L                      000000EF
+_EBTR5_OFF_7L                     000000FF
+_EBTR5_ON_7L                      000000DF
+_EBTRB_OFF_7H                     000000FF
+_EBTRB_ON_7H                      000000BF
+_FCMEN_OFF_1H                     000000BF
+_FCMEN_ON_1H                      000000FF
+_IDLOC0                           00200000
+_IDLOC1                           00200001
+_IDLOC2                           00200002
+_IDLOC3                           00200003
+_IDLOC4                           00200004
+_IDLOC5                           00200005
+_IDLOC6                           00200006
+_IDLOC7                           00200007
+_IESO_OFF_1H                      0000007F
+_IESO_ON_1H                       000000FF
+_LPT1OSC_OFF_3H                   000000FB
+_LPT1OSC_ON_3H                    000000FF
+_LVP_OFF_4L                       000000FB
+_LVP_ON_4L                        000000FF
+_MCLRE_OFF_3H                     0000007F
+_MCLRE_ON_3H                      000000FF
+_OSC_ECIO_1H                      000000F5
+_OSC_EC_1H                        000000F4
+_OSC_HSPLL_1H                     000000F6
+_OSC_HS_1H                        000000F2
+_OSC_IRCIO67_1H                   000000F8
+_OSC_IRCIO7_1H                    000000F9
+_OSC_LP_1H                        000000F0
+_OSC_RCIO_1H                      000000F7
+_OSC_RC_1H                        000000F3
+_OSC_XT_1H                        000000F1
+_PBADEN_OFF_3H                    000000FD
+_PBADEN_ON_3H                     000000FF
+_PWRT_OFF_2L                      000000FF
+_PWRT_ON_2L                       000000FE
+_STVREN_OFF_4L                    000000FE
+_STVREN_ON_4L                     000000FF
+_WDTPS_1024_2H                    000000F5
+_WDTPS_128_2H                     000000EF
+_WDTPS_16384_2H                   000000FD
+MPASM 5.53                 ../LUMOS_INIT.ASM   5-26-2014  22:33:11         PAGE 34
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+_WDTPS_16_2H                      000000E9
+_WDTPS_1_2H                       000000E1
+_WDTPS_2048_2H                    000000F7
+_WDTPS_256_2H                     000000F1
+_WDTPS_2_2H                       000000E3
+_WDTPS_32768_2H                   000000FF
+_WDTPS_32_2H                      000000EB
+_WDTPS_4096_2H                    000000F9
+_WDTPS_4_2H                       000000E5
+_WDTPS_512_2H                     000000F3
+_WDTPS_64_2H                      000000ED
+_WDTPS_8192_2H                    000000FB
+_WDTPS_8_2H                       000000E7
+_WDT_OFF_2H                       000000FE
+_WDT_ON_2H                        000000FF
+_WRT0_OFF_6L                      000000FF
+_WRT0_ON_6L                       000000FE
+_WRT1_OFF_6L                      000000FF
+_WRT1_ON_6L                       000000FD
+_WRT2_OFF_6L                      000000FF
+_WRT2_ON_6L                       000000FB
+_WRT3_OFF_6L                      000000FF
+_WRT3_ON_6L                       000000F7
+_WRT4_OFF_6L                      000000FF
+_WRT4_ON_6L                       000000EF
+_WRT5_OFF_6L                      000000FF
+_WRT5_ON_6L                       000000DF
+_WRTB_OFF_6H                      000000FF
+_WRTB_ON_6H                       000000BF
+_WRTC_OFF_6H                      000000FF
+_WRTC_ON_6H                       000000DF
+_WRTD_OFF_6H                      000000FF
+_WRTD_ON_6H                       0000007F
+_XINST_OFF_4L                     000000BF
+_XINST_ON_4L                      000000FF
+__18F4685                         00000001
+
+Errors   :     0
+Warnings :     0 reported,     0 suppressed
+Messages :     0 reported,     0 suppressed
+
+

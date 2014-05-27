@@ -73,36 +73,42 @@
   #define ROLE_SLAVE        (0)
   #define ROLE_STANDALONE   (0)
   #define NUM_CHANNELS      (.48)
+  #define QSCC_PORT         (0)
  ELSE
   IF LUMOS_CHIP_TYPE == LUMOS_CHIP_SLAVE
    #define ROLE_MASTER      (0)
    #define ROLE_SLAVE       (1)
    #define ROLE_STANDALONE  (0)
    #define NUM_CHANNELS     (.48)
+   #define QSCC_PORT        (0)
   ELSE
    IF LUMOS_CHIP_TYPE == LUMOS_CHIP_STANDALONE
     #define ROLE_MASTER     (0)
     #define ROLE_SLAVE      (0)
     #define ROLE_STANDALONE (1)
     #define NUM_CHANNELS    (.24)
+    #define QSCC_PORT       (0)
    ELSE
     IF LUMOS_CHIP_TYPE == LUMOS_CHIP_4CHANNEL
      #define ROLE_MASTER     (0)
      #define ROLE_SLAVE      (0)
      #define ROLE_STANDALONE (1)
      #define NUM_CHANNELS    (.4)
+     #define QSCC_PORT       (0)
     ELSE
      IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSCC
       #define ROLE_MASTER     (0)
       #define ROLE_SLAVE      (0)
       #define ROLE_STANDALONE (1)
       #define NUM_CHANNELS    (.14)
+      #define QSCC_PORT       (1)
      ELSE
       IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSRC
        #define ROLE_MASTER     (0)
        #define ROLE_SLAVE      (0)
        #define ROLE_STANDALONE (1)
        #define NUM_CHANNELS    (.20)
+       #define QSCC_PORT       (1)
       ELSE
        ERROR "Invalid LUMOS_CHIP_TYPE"
       ENDIF

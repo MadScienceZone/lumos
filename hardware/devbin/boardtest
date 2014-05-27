@@ -164,8 +164,23 @@ SENSOR TESTS
 ------------------------------------------------------------------------------
 EOF
 	pause
-	echo "Sending configuration..."
-	$BIN/lumosctl
+	echo "[NOT] Sending configuration..."
+	#$BIN/lumosctl
+	cat <<EOF
+------------------------------------------------------------------------------
+looping for 60 seconds, showing sensor state each second... Alter inputs
+during this time.
+------------------------------------------------------------------------------
+EOF
+	pause
+	for x in 0 1 2 3 4 5 6 7 8 9
+	do
+		for y in 0 1 2 3 4 5
+		do
+			sleep 1
+			$BIN/lumosctl $LUMOSOPTS --report
+		done
+	done
 }
 
 function test_channels(){
@@ -209,7 +224,8 @@ EOF
 #test_upgrade
 false
 while [ $? = 1 ]; do
-	test_channels
+	#test_channels
+	test_sensors
 	yorn "Again"
 done
 	

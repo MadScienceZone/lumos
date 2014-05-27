@@ -1,0 +1,3552 @@
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE  1
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00001 ; vim:set syntax=pic ts=8:
+                      00002                 LIST n=90
+                      00003 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                      00004 ;@@                                                                         @@
+                      00005 ;@@                                                                         @@
+                      00006 ;@@  @@@   @@@@@  @@@@   @@@   @@@   @              @@@      @   @@@        @@
+                      00007 ;@@ @   @  @      @   @   @   @   @  @               @       @  @   @       @@
+                      00008 ;@@ @      @      @   @   @   @   @  @               @      @   @   @       @@
+                      00009 ;@@  @@@   @@@@   @@@@    @   @@@@@  @      @@@@@    @     @    @   @       @@
+                      00010 ;@@     @  @      @ @     @   @   @  @               @    @     @   @       @@
+                      00011 ;@@ @   @  @      @  @    @   @   @  @               @   @      @   @       @@
+                      00012 ;@@  @@@   @@@@@  @   @  @@@  @   @  @@@@@          @@@  @       @@@        @@
+                      00013 ;@@                                                                         @@
+                      00014 ;@@ Copyright (c) 2012 by Steven L. Willoughby, Aloha, Oregon, USA.  All    @@
+                      00015 ;@@ Rights Reserved.                                                        @@
+                      00016 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                      00017 ;
+                      00018 ; Portions based on earlier code copyright (c) 2004, 2005, 2006, 2007, 2008, 
+                      00019 ; 2009, Steven L. Willoughby, Aloha, Oregon, USA.  All Rights Reserved.
+                      00020 ;
+                      00021 ; General serial console I/O handling
+                      00022 ; This module manages the TXIE interrupt masks as needed
+                      00023 ;
+                      00024         RADIX           DEC
+                      00025 ; 
+                      00026 ;==============================================================================
+                      00027 ; PUBLIC ENTRY POINTS
+                      00028 ;==============================================================================
+                      00029 ;       SIO_INIT        Initialize module (call this once first)
+                      00030 ;
+                      00031 #include "serial-io-bits.inc"
+                      00001 ; vim:set syntax=pic ts=8:
+                      00002                 LIST n=90
+                      00003 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                      00004 ;@@                                                                         @@
+                      00005 ;@@                                                                         @@
+                      00006 ;@@  @@@   @@@@@  @@@@   @@@   @@@   @              @@@      @   @@@        @@
+                      00007 ;@@ @   @  @      @   @   @   @   @  @               @       @  @   @       @@
+                      00008 ;@@ @      @      @   @   @   @   @  @               @      @   @   @       @@
+                      00009 ;@@  @@@   @@@@   @@@@    @   @@@@@  @      @@@@@    @     @    @   @       @@
+                      00010 ;@@     @  @      @ @     @   @   @  @               @    @     @   @       @@
+                      00011 ;@@ @   @  @      @  @    @   @   @  @               @   @      @   @       @@
+                      00012 ;@@  @@@   @@@@@  @   @  @@@  @   @  @@@@@          @@@  @       @@@        @@
+                      00013 ;@@                                                                         @@
+                      00014 ;@@ Copyright (c) 2012 by Steven L. Willoughby, Aloha, Oregon, USA.  All    @@
+                      00015 ;@@ Rights Reserved.                                                        @@
+                      00016 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                      00017 ;
+                      00018 ; Portions based on earlier code copyright (c) 2004, 2005, 2006, 2007, 2008, 
+                      00019 ; 2009, Steven L. Willoughby, Aloha, Oregon, USA.  All Rights Reserved.
+                      00020 ;
+                      00021 ; serial io (SIO) module bit definitions, included by caller and the module
+                      00022 ;
+                      00023 #include "serial-io-user.inc"
+                      00001 ;
+                      00002 ; To use the serial I/O module, you need to edit this
+                      00003 ; include file to suit your application.
+                      00004 ;
+                      00005 #include "lumos_config.inc"
+                      00001 ; vim:set syntax=pic ts=8:
+                      00002 ;
+                      00003                 LIST n=90
+                      00004 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                      00005 ;@@                                                                         @@
+                      00006 ;@@ @      @   @  @   @   @@@    @@@          LUMOS: LIGHT ORCHESTRATION    @@
+                      00007 ;@@ @      @   @  @@ @@  @   @  @   @         SYSTEM FIRMWARE VERSION 3.0   @@
+                      00008 ;@@ @      @   @  @ @ @  @   @  @                                           @@
+                      00009 ;@@ @      @   @  @   @  @   @   @@@   @@@@@  FOR 24- AND 48-CHANNEL AC/DC  @@
+                      00010 ;@@ @      @   @  @   @  @   @      @         LUMOS CONTROLLER UNITS        @@
+                      00011 ;@@ @      @   @  @   @  @   @  @   @         BASED ON THE PIC18F4685 CHIP  @@
+                      00012 ;@@ @@@@@   @@@   @   @   @@@    @@@                                        @@
+                      00013 ;@@                                                                         @@
+                      00014 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                      00015 ;
+                      00016 ; Copyright (c) 2012, 2014 by Steven L. Willoughby, Aloha, Oregon, USA.  
+                      00017 ; All Rights Reserved.  
+                      00018 ; Released under the terms and conditions of the Open Software
+                      00019 ; License, version 3.0.
+                      00020 ;
+                      00021 ; Portions based on earlier code copyright (c) 2004, 2005, 2006, 2007
+                      00022 ; Steven L. Willoughby, Aloha, Oregon, USA.  All Rights Reserved.
+                      00023 ;
+                      00024 ; -*- -*- -* -*- -*- -*- -*- -*- -* -*- -*- -*- -*- -*- -* -*- -*- -*- -*- -*-
+                      00025 ;
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE  2
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00026 ; Configuration options.  Set these as desired and then re-assemble the
+                      00027 ; code to produce the desired version of the ROM.
+                      00028 ;
+                      00029 ; 
+                      00030 ;==============================================================================
+                      00031 ; CONFIGURATION OPTIONS
+                      00032 ;==============================================================================
+                      00033 #ifndef LUMOS_CONFIG_INC
+                      00034 #define LUMOS_CONFIG_INC
+                      00035 #define LUMOS_CHIP_MASTER       0x41    ; 48-channel master CPU
+                      00036 #define LUMOS_CHIP_SLAVE        0x42    ; 48-channel slave CPU
+                      00037 #define LUMOS_CHIP_STANDALONE   0x43    ; 24-channel CPU
+                      00038 #define LUMOS_CHIP_4CHANNEL     0x44    ; 4-channel CPU
+                      00039 #define LUMOS_CHIP_QSCC         0x45    ; Private code; custom hardware
+                      00040 #define LUMOS_CHIP_QSRC         0x46    ; Private code; custom hardware
+                      00041 ;
+                      00042 ; Un-comment one of these to select board type for this ROM image:
+                      00043 ;
+                      00044 ;#define LUMOS_CHIP_TYPE                LUMOS_CHIP_MASTER
+                      00045 ;#define LUMOS_CHIP_TYPE                LUMOS_CHIP_SLAVE
+                      00046 ;#define LUMOS_CHIP_TYPE                LUMOS_CHIP_STANDALONE
+                      00047 ;#define LUMOS_CHIP_TYPE                LUMOS_CHIP_4CHANNEL
+                      00048 ;#define LUMOS_CHIP_TYPE                LUMOS_CHIP_QSCC
+                      00049 #define LUMOS_CHIP_TYPE         LUMOS_CHIP_QSRC
+                      00050 ;
+                      00051 ;
+                      00052 ;
+                      00053 #define LUMOS_ZC                0x55
+                      00054 #define LUMOS_INTERNAL          0x58
+                      00055 
+                      00056  IF LUMOS_CHIP_TYPE == LUMOS_CHIP_MASTER || LUMOS_CHIP_TYPE == LUMOS_CHIP_SLAVE
+                      00057   #define LUMOS_SLICE_TIMER LUMOS_ZC
+                      00058  ELSE
+                      00059   IF LUMOS_CHIP_TYPE == LUMOS_CHIP_STANDALONE || LUMOS_CHIP_TYPE == LUMOS_CHIP_4CHANNEL || LUMOS_CHIP_TY
+                            PE == LUMOS_CHIP_QSCC || LUMOS_CHIP_TYPE == LUMOS_CHIP_QSRC
+                      00060    #define LUMOS_SLICE_TIMER LUMOS_INTERNAL
+                      00061   ELSE
+                      00062    ERROR "LUMOS_CHIP_TYPE must be set to MASTER, SLAVE, 4CHANNEL, or STANDALONE"
+                      00063   ENDIF
+                      00064  ENDIF
+                      00065  
+                      00066  IF LUMOS_SLICE_TIMER != LUMOS_ZC && LUMOS_SLICE_TIMER != LUMOS_INTERNAL
+                      00067   ERROR "LUMOS_SLICE_TIMER must be set to ZC or INTERNAL"
+                      00068  ENDIF
+                      00069 
+                      00070 
+                      00071  IF LUMOS_CHIP_TYPE == LUMOS_CHIP_MASTER
+                      00072   #define ROLE_MASTER       (1)
+                      00073   #define ROLE_SLAVE        (0)
+                      00074   #define ROLE_STANDALONE   (0)
+                      00075   #define NUM_CHANNELS      (.48)
+                      00076   #define QSCC_PORT         (0)
+                      00077  ELSE
+                      00078   IF LUMOS_CHIP_TYPE == LUMOS_CHIP_SLAVE
+                      00079    #define ROLE_MASTER      (0)
+                      00080    #define ROLE_SLAVE       (1)
+                      00081    #define ROLE_STANDALONE  (0)
+                      00082    #define NUM_CHANNELS     (.48)
+                      00083    #define QSCC_PORT        (0)
+                      00084   ELSE
+                      00085    IF LUMOS_CHIP_TYPE == LUMOS_CHIP_STANDALONE
+                      00086     #define ROLE_MASTER     (0)
+                      00087     #define ROLE_SLAVE      (0)
+                      00088     #define ROLE_STANDALONE (1)
+                      00089     #define NUM_CHANNELS    (.24)
+                      00090     #define QSCC_PORT       (0)
+                      00091    ELSE
+                      00092     IF LUMOS_CHIP_TYPE == LUMOS_CHIP_4CHANNEL
+                      00093      #define ROLE_MASTER     (0)
+                      00094      #define ROLE_SLAVE      (0)
+                      00095      #define ROLE_STANDALONE (1)
+                      00096      #define NUM_CHANNELS    (.4)
+                      00097      #define QSCC_PORT       (0)
+                      00098     ELSE
+                      00099      IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSCC
+                      00100       #define ROLE_MASTER     (0)
+                      00101       #define ROLE_SLAVE      (0)
+                      00102       #define ROLE_STANDALONE (1)
+                      00103       #define NUM_CHANNELS    (.14)
+                      00104       #define QSCC_PORT       (1)
+                      00105      ELSE
+                      00106       IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSRC
+                      00107        #define ROLE_MASTER     (0)
+                      00108        #define ROLE_SLAVE      (0)
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE  3
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00109        #define ROLE_STANDALONE (1)
+                      00110        #define NUM_CHANNELS    (.20)
+                      00111        #define QSCC_PORT       (1)
+                      00112       ELSE
+                      00113        ERROR "Invalid LUMOS_CHIP_TYPE"
+                      00114       ENDIF
+                      00115      ENDIF
+                      00116     ENDIF
+                      00117    ENDIF
+                      00118   ENDIF
+                      00119  ENDIF
+                      00120 
+                      00121 #define LUMOS_ARCH_4685  (0x4685)
+                      00122 #define LUMOS_ARCH_14K50 (0x1450)
+                      00123 
+                      00124  IF LUMOS_CHIP_TYPE == LUMOS_CHIP_MASTER || LUMOS_CHIP_TYPE == LUMOS_CHIP_SLAVE || LUMOS_CHIP_TYPE == LU
+                            MOS_CHIP_STANDALONE || LUMOS_CHIP_TYPE == LUMOS_CHIP_QSCC || LUMOS_CHIP_TYPE == LUMOS_CHIP_QSRC
+                      00125   #define LUMOS_ARCH LUMOS_ARCH_4685
+                      00126   PROCESSOR 18F4685
+                      00127   #include <p18f4685.inc>
+                      00001         LIST
+                      00002 
+                      00003 ;==========================================================================
+                      00004 ;  MPASM PIC18F4685 processor include
+                      00005 ; 
+                      00006 ;  (c) Copyright 1999-2013 Microchip Technology, All rights reserved
+                      00007 ;==========================================================================
+                      00008 
+                      05130         LIST
+                      00128  ELSE
+                      00129   IF LUMOS_CHIP_TYPE == LUMOS_CHIP_4CHANNEL
+                      00130    #define LUMOS_ARCH LUMOS_ARCH_14K50
+                      00131    PROCESSOR 18F14K50
+                      00132    #include <p18f14k50.inc>
+                      00133   ELSE
+                      00134    ERROR "Invalid LUMOS_CHIP_TYPE"
+                      00135   ENDIF
+                      00136  ENDIF
+                      00137 
+                      00138 ;
+                      00139 ; The following public symbols can be used after this file is
+                      00140 ; included (and this file should be included everywhere before
+                      00141 ; anything else is included, and in lieu of PROCESSOR directives
+                      00142 ; or #includes which bring in processor-specific bits--this file
+                      00143 ; will do that for you):
+                      00144 ;
+                      00145 ; LUMOS_CHIP_TYPE:  Will be one of the following, to show what the intent
+                      00146 ;                   of the target chip will be and what its particular 
+                      00147 ;                   I/O pin assignments are, role in the overall circuit, etc.
+                      00148 ;                   (use the ROLE_* values where possible, though, in your logic)
+                      00149 ;
+                      00150 ;       LUMOS_CHIP_MASTER       - 48-channel (2-CPU) controller, master CPU
+                      00151 ;       LUMOS_CHIP_SLAVE        - 48-channel (2-CPU) controller, slave CPU
+                      00152 ;       LUMOS_CHIP_STANDALONE   - 24-channel (1-CPU) controller, sole CPU
+                      00153 ;       LUMOS_CHIP_4CHANNEL     - 4-channel  (1-CPU) controller, sole CPU
+                      00154 ;       LUMOS_CHIP_QSCC         - private configuration for custom hardware
+                      00155 ;       LUMOS_CHIP_QSRC         - private configuration for custom hardware
+                      00156 ;
+                      00157 ; LUMOS_SLICE_TIMER: Will be one of the following, to specify where the PWM
+                      00158 ;                   slice timer sync pulse is coming from:
+                      00159 ;
+                      00160 ;       LUMOS_ZC        - Hardware zero-crossing detector to PIC interrupt pin
+                      00161 ;       LUMOS_INTERNAL  - Internal timing system (using PIC timer module)
+                      00162 ;
+                      00163 ; LUMOS_ARCH:       Will be one of the following, to show what PIC device
+                      00164 ;                   is targeted, strictly to determine chip-specific details,
+                      00165 ;                   not how Lumos is using it.
+                      00166 ;
+                      00167 ;       "14K50"         - The PIC18F14K50
+                      00168 ;       "4685"          - The PIC18F4685
+                      00169 ;
+                      00170 ; ROLE_MASTER           - (bool) true if this chip is the master in master/slave arrangement
+                      00171 ; ROLE_SLAVE            - (bool) true if this chip is the slave in master/slave arrangement
+                      00172 ; ROLE_STANDALONE       - (bool) true if this is the only chip, must run entire board function
+                      00173 ; NUM_CHANNELS          - (int) number of output SSR channels
+                      00174 #endif
+                      00006 
+                      00007                         IF LUMOS_ARCH == LUMOS_ARCH_4685
+  00000100            00008 SIO_TX_BUFFER_START      EQU    0x100   ; Starting address of 256-byte Tx buffer*
+  00000200            00009 SIO_RX_BUFFER_START      EQU    0x200   ; Starting address of 256-byte Rx buffer*
+  00000300            00010 SIO_DATA_START           EQU    0x300   ; Starting address for SIO module variable storage
+  00015000            00011 SIO_TABLE_START          EQU    0x15000 ; Starting ROM address for SIO module tables*
+                      00012                         ELSE
+                      00013                          IF LUMOS_ARCH == LUMOS_ARCH_14K50
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE  4
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00014 SIO_TX_BUFFER_START       EQU   0x100   ; Starting address of 256-byte Tx buffer*
+                      00015 SIO_RX_BUFFER_START       EQU   0x200   ; Starting address of 256-byte Rx buffer*
+                      00016 SIO_DATA_START            EQU   0x0E4   ; Starting address for SIO module variable storage
+                      00017 SIO_TABLE_START           EQU   0x2F00  ; Starting ROM address for SIO module tables*
+                      00018                          ELSE
+                      00019                           ERROR "Invalid architecture switch in serial-io-user.inc"
+                      00020                          ENDIF
+                      00021                         ENDIF
+                      00022 ;
+                      00023 ; * must be aligned to the start of a 256-byte bank.
+                      00024 ;
+                      00024 ;       
+                      00025 ;                    bit 7      6      5      4      3      2      1      0
+                      00026 ;                     _______________________________________________________
+                      00027 ; +$00 SIO_STATUS    |      |      |SIO_  |SIO_  |RXDATA|TXDATA|RXDATA|TXDATA|
+                      00028 ;                    |      |      | FERR | ORUN |_FULL |_FULL |_QUEUE|_QUEUE|
+                      00029 ;                    |______|______|______|______|______|______|______|______|
+                      00030 ;
+  00000000            00031 TXDATA_QUEUE    EQU     0       ; Tx data waiting in buffer now to be sent
+  00000001            00032 RXDATA_QUEUE    EQU     1       ; Rx data waiting in buffer to be retrieved
+  00000002            00033 TXDATA_FULL     EQU     2       ; Tx buffer full
+  00000003            00034 RXDATA_FULL     EQU     3       ; Rx buffer full
+  00000004            00035 SIO_ORUN        EQU     4       ; I/O Error: incoming data overrun  (caller clears)
+  00000005            00036 SIO_FERR        EQU     5       ; I/O Error: break/framing error received  (caller clears)
+                      00037 ;
+                      00038 ; Baud rate settings
+                      00039 ;
+  00000000            00040 SIO_300         EQU     0x00
+  00000001            00041 SIO_600         EQU     0x01
+  00000002            00042 SIO_1200        EQU     0x02
+  00000003            00043 SIO_2400        EQU     0x03
+  00000004            00044 SIO_4800        EQU     0x04
+  00000005            00045 SIO_9600        EQU     0x05
+  00000006            00046 SIO_19200       EQU     0x06
+  00000007            00047 SIO_38400       EQU     0x07
+  00000008            00048 SIO_57600       EQU     0x08
+  00000009            00049 SIO_115200      EQU     0x09
+  0000000A            00050 SIO_250000      EQU     0x0A
+                      00032 #ifndef LUMOS_ARCH
+                      00033         ERROR "Architecture not configured"
+                      00034 #endif
+                      00035 
+                      00036 ;==============================================================================
+                      00037 ; REGISTERS USED
+                      00038 ;==============================================================================
+                      00039 ;
+                      00040 ;                    bit 7      6      5      4      3      2      1      0
+                      00041 ;                     _______________________________________________________
+                      00042 ; $F9D PIE1          |      |      |      |      |      |      |      |      |
+                      00043 ;                    |      |      | RCIE | TXIE |      |      |      |      |
+                      00044 ;                    |______|______|______|______|______|______|______|______|
+                      00045 ; $F9E PIR1          |      |      |      |      |      |      |      |      |
+                      00046 ;                    |      |      | RXIF | TXIF |      |      |      |      |
+                      00047 ;                    |______|______|______|______|______|______|______|______|
+                      00048 ; $F9F IPR1          |      |      |      |      |      |      |      |      |
+                      00049 ;                    |      |      | RXIP | TXIP |      |      |      |      |
+                      00050 ;                    |______|______|______|______|______|______|______|______|
+                      00051 ; $FAB RCSTA         |      |      |      |      |      |      |      |      |
+                      00052 ;                    | SPEN |  RX9 | SREN | CREN |ADDEN | FERR | OERR | RX9D |
+                      00053 ;                    |______|______|______|______|______|______|______|______|
+                      00054 ; $FAC TXSTA         |      |      |      |      |      |      |      |      |
+                      00055 ;                    | CSRC |  TX9 | TXEN | SYNC |SENDB | BRGH | TRMT | TX9D |
+                      00056 ;                    |______|______|______|______|______|______|______|______|
+                      00057 ; $FAD TXREG         |                                                       |
+                      00058 ;                    | Byte to be transmitted (bit 9 is in TX9D if used)     |
+                      00059 ;                    |______|______|______|______|______|______|______|______|
+                      00060 ; $FAE RCREG         |                                                       |
+                      00061 ;                    | Byte received (bit 9 is in RX9D if used)              |
+                      00062 ;                    |______|______|______|______|______|______|______|______|
+                      00063 ; $FAF SPBRG         |                                                       |
+                      00064 ;                    | Baud-rate generator value (lower byte if 16-bit mode) |
+                      00065 ;                    |______|______|______|______|______|______|______|______|
+                      00066 ; $FB0 SPBRGH        |                                                       |
+                      00067 ;                    | Baud-rate generator value (upper byte) if 16-bit mode |
+                      00068 ;                    |______|______|______|______|______|______|______|______|
+                      00069 ; $FB8 BAUDCON       |      |      |//////|      |      |//////|      |      |
+                      00070 ;                    |ADBOVF| RCIDL|//////| SCKP |BRG16 |//////|  WUE |ABDEN |
+                      00071 ;                    |______|______|//////|______|______|//////|______|______|
+                      00072 ;
+                      00073 ;==============================================================================
+                      00074 ; RAM LOCATIONS USED
+                      00075 ;==============================================================================
+                      00076 ;
+                      00077 ; Three memory banks are used: one for each of the data buffers, and a third
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE  5
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00078 ; for the variables used by this module.
+                      00079 ;       
+                      00080 ;                    bit 7      6      5      4      3      2      1      0
+                      00081 ;                     _______________________________________________________
+                      00082 ; +$00 SIO_STATUS    |      |      |SIO_  |SIO_  |RXDATA|TXDATA|RXDATA|TXDATA|
+                      00083 ;                    |      |      | FERR | ORUN |_FULL |_FULL |_QUEUE|_QUEUE|
+                      00084 ;                    |______|______|______|______|______|______|______|______|
+                      00085 ; +$01 SIO_INPUT     |                                                       |
+                      00086 ;                    | Character last read from serial port                  |
+                      00087 ;                    |______|______|______|______|______|______|______|______|
+                      00088 ; +$02 SIO_OUTPUT    |                                                       |
+                      00089 ;                    | Character last written to serial port                 |
+                      00090 ;                    |______|______|______|______|______|______|______|______|
+                      00091 ; +$03 TX_BUF_START  |                                                       |
+                      00092 ;                    | Pointer into TX_BUFFER at NEXT char to be transmitted |
+                      00093 ;                    |______|______|______|______|______|______|______|______|
+                      00094 ; +$04 TX_BUF_END    |                                                       |
+                      00095 ;                    | Pointer into TX_BUFFER where next char will be stored |
+                      00096 ;                    |______|______|______|______|______|______|______|______|
+                      00097 ; +$05 RX_BUF_START  |                                                       |
+                      00098 ;                    | Pointer into RX_BUFFER at NEXT char to be transmitted |
+                      00099 ;                    |______|______|______|______|______|______|______|______|
+                      00100 ; +$06 RX_BUF_END    |                                                       |
+                      00101 ;                    | Pointer into RX_BUFFER where next char will be stored |
+                      00102 ;                    |______|______|______|______|______|______|______|______|
+                      00103 ; +$07 TX_CHAR       |                                                       |
+                      00104 ;                    | Temporary storage for character being output.         |
+                      00105 ;                    |______|______|______|______|______|______|______|______|
+                      00106 ; +$08 SIO_X         |                                                       |
+                      00107 ;                    | Temporary storage register                            |
+                      00108 ;                    |______|______|______|______|______|______|______|______|
+                      00109 ; +$09 FSR1H_SAVE    |///////////////////////////|Temp store for high-order  |
+                      00110 ;                    |///////////////////////////|bits of caller's FSR1 ptr  |
+                      00111 ;                    |///////////////////////////|______|______|______|______|
+                      00112 ; +$0A FSR1L_SAVE    |                                                       |
+                      00113 ;                    | Temporary storage for low-order bits of caller's FSR1 |
+                      00114 ;                    |______|______|______|______|______|______|______|______|
+                      00115 ; +$0B B32__BCD_ASC  | 5-byte BCD output buffer      10-byte ASCII output    |
+                      00116 ; +$0C               | for binary-to-BCD conv.  ---> buffer for binary or    |
+                      00117 ; +$0D               | Also input to BCD to ASCII    BCD to ASCII conversions|
+                      00118 ; +$0E               | conversion.           /|\               |             |
+                      00119 ; +$0F               |........................|.               |             |
+                      00120 ; +$10 B32__BIN      | 4-byte binary input    |                |             |
+                      00121 ; +$11               | for bin-to-BCD conversion               |             |
+                      00122 ; +$12               |                                         |             |
+                      00123 ; +$13               |                                         |             |
+                      00124 ; +$14               |////////////////////////////______|______V______|______|
+                      00125 ;
+                      00126 ;
+                      00127 ;
+                      00128 
+                      00129 _SIO_TXBUF_DATA UDATA   SIO_TX_BUFFER_START
+000100                00130 TX_BUFFER:
+000100                00131         RES .256
+                      00132 
+                      00133 _SIO_RXBUF_DATA UDATA   SIO_RX_BUFFER_START
+000200                00134 RX_BUFFER:
+000200                00135         RES .256
+                      00136 
+                      00137 _SIO_VAR_DATA   UDATA   SIO_DATA_START
+  0000                00138         GLOBAL  SIO_STATUS      ; export this out to other modules
+  0000                00139         GLOBAL  SIO_INPUT, SIO_OUTPUT
+  0000                00140         GLOBAL  B32__BIN, B32__BCD_ASC
+                      00141 
+000300                00142 SIO_STATUS      RES     1       ; SIO module general status bits
+000301                00143 SIO_INPUT       RES     1       ; external buffer to receive Rx byte
+000302                00144 SIO_OUTPUT      RES     1       ; external buffer to send Tx byte
+000303                00145 TX_BUF_START    RES     1       ; Pointer to start of Tx ring buffer
+000304                00146 TX_BUF_END      RES     1       ; Pointer to end of Tx ring buffer
+000305                00147 RX_BUF_START    RES     1       ; Pointer to start of Tx ring buffer
+000306                00148 RX_BUF_END      RES     1       ; Pointer to end of Tx ring buffer
+000307                00149 TX_CHAR         RES     1       ; Holding area for character on its way out
+000308                00150 SIO_X           RES     1       ; Temporary variable
+000309                00151 SIO_TMPPC       RES     1       ; Temporary to read PC to latch it
+00030A                00152 FSR1H_SAVE      RES     1       ; Storage for caller's FSR1H value
+00030B                00153 FSR1L_SAVE      RES     1       ; Storage for caller's FSR1L value
+00030C                00154 B32__BIT        RES     1       ; Current bit being converted
+00030D                00155 B32__OUTCTR     RES     1       ; Output counter
+00030E                00156 B32__FSR0H      RES     1       ; Temporary FSR0H storage
+00030F                00157 B32__FSR0L      RES     1       ; Temporary FSR0L storage
+000310                00158 B32__FSR1H      RES     1       ; Temporary FSR1H storage
+000311                00159 B32__FSR1L      RES     1       ; Temporary FSR1L storage
+000312                00160 B32__BCD_ASC    RES     5       ; Storage for BCD conversion routines
+000317                00161 B32__BIN        RES     4       ; **MUST** follow B32__BCD_ASC
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE  6
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00162 ;                      --
+                      00163 ;                      27       ; ***DO NOT ADD MORE*** without checking
+                      00164 ;                               ; elsewhere; on some small chips we have
+                      00165 ;                               ; had to locate this in tiny corners of RAM.
+                      00166 
+                      00167 ;==============================================================================
+                      00168 ;
+                      00169 ; The baud rate calculations are:
+                      00170 ; low-speed   8-bit (BRG16=0, BRGH=0) is Fosc/[64(n+1)]
+                      00171 ; high-speed  8-bit (BRG16=0, BRGH=1) is Fosc/[16(n+1)]
+                      00172 ; low-speed  16-bit (BRG16=1, BRGH=0) is Fosc/[16(n+1)]
+                      00173 ; high-speed 16-bit (BRG16=1, BRGH=1) is Fosc/[4(n+1)]
+                      00174 ;
+                      00175 ; for desired baud rate of b,
+                      00176 ;       X = [((Fosc/b)/d)-1]    (d is multiplier above; e.g. 64 in first case)
+                      00177 ;       X goes into SPBRG (or SPBRGH:SPBRG if 16 bit)
+                      00178 ;       error = (Fosc/d(X+1) - b) / b
+                      00179 ;
+                      00180 ;
+                      00181 ; Operational notes
+                      00182 ;
+                      00183 ; Sending:
+                      00184 ;       When TXIF is set, TXREG is ready to accept another byte
+                      00185 ;       data byte written to TXREG and is sent out the port
+                      00186 ;       TRMT bit is clear while byte is sent, then set when it's done.
+                      00187 ; Receiving:
+                      00188 ;       When a byte is received, RXIF is set
+                      00189 ;       RCSTA will alert to errors and holds bit 9 if used
+                      00190 ;       RCREG holds the received byte
+                      00191 ;       if error, clear CREN to clear error state
+                      00192 ;       clear RXIF to acknowledge receipt
+                      00193 ;
+                      00194 ; The Tx and Rx buffers are 256-byte ring buffers each in a single
+                      00195 ; RAM page.  The 8-bit pointers that index them are assumed to wrap
+                      00196 ; around naturally to create the ring buffer effect.  Changing the
+                      00197 ; buffer sizes will require recoding the pointer arithmetic.
+                      00198 ;
+                      00199 ; In each case, the buffer has two pointers: START, which points to the
+                      00200 ; next character to be read out of the buffer, and END, which points to
+                      00201 ; the location where the next character will be written into the buffer.
+                      00202 ;
+                      00203 ;   BUFFER   Q 
+                      00204 ; [________] 0 If START=END, the buffer is empty.  If the QUEUE flag is
+                      00205 ;  ^           clear, this means the buffer is empty, as opposed to the
+                      00206 ;  ^           case where the pointers wrap around to be equal again,
+                      00207 ;              but QUEUE is set (meaning buffer is full).
+                      00208 ; [H_______] 1 Pushing "H" into the buffer means writing it to [E++],
+                      00209 ;  ^^          so E points to the next available location.
+                      00210 ;  SE
+                      00211 ;
+                      00212 ; [HELLO___] 1 Pushing "ELLO" continues...
+                      00213 ;  ^    ^
+                      00214 ;  S    E
+                      00215 ;
+                      00216 ; [__LLO___] 1 Pulling two bytes from the buffer meas reading from [S++].
+                      00217 ;    ^  ^      (The buffer really still contains [HELLO___] but since the
+                      00218 ;    S  E      pointer's moved on, we're ignoring the "HE" we read and those
+                      00219 ;              bytes will be overwritten later.)
+                      00220 ; [O_LLO, W] 1 Pushing ", WO" illustrates how we wrap around in the ring
+                      00221 ;   ^^         buffer, so no matter where we're reading/writing there is
+                      00222 ;   ES         always the same maximum available buffer space.
+                      00223 ;
+                      00224 ; [ORLLO, W] 1 Pushing one more byte fills the buffer (START=END), so we
+                      00225 ;    ^         won't allow more writes until some more is read.
+                      00226 ;    ^
+                      00227 ;
+                      00228 ; [OR____ W] 1 Reading more, leaves more room...
+                      00229 ;    ^   ^
+                      00230 ;    E   S
+                      00231 ;
+                      00232 ; [ORLD!_ W] 1 for more data...
+                      00233 ;       ^^
+                      00234 ;       ES
+                      00235 ;
+                      00236 ; [________] 0 reading it back to empty leaves it like this.  It's ready
+                      00237 ;       ^      regardless of where in the buffer the pointers are located.
+                      00238 ;       ^      the QUEUE flag is cleared to indicate no data are queued.
+                      00239 ;
+                      00240 
+                      00241 
+                      00242 _SIO_CODE CODE
+  0000                00243         GLOBAL  SIO_INIT
+  0000                00244         GLOBAL  SIO_ECHO
+  0000                00245         GLOBAL  SIO_ECHO_W
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE  7
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+  0000                00246         GLOBAL  SIO_WRITE
+  0000                00247         GLOBAL  SIO_WRITE_W
+  0000                00248         GLOBAL  SIO_PUTCHAR
+  0000                00249         GLOBAL  SIO_PUTCHAR_W
+  0000                00250         GLOBAL  SIO_RECV
+  0000                00251         GLOBAL  SIO_SEND
+  0000                00252         GLOBAL  SIO_NEWLINE
+  0000                00253         GLOBAL  SIO_GETCHAR
+  0000                00254         GLOBAL  SIO_GETCHAR_W
+  0000                00255         GLOBAL  SIO_READ
+  0000                00256         GLOBAL  SIO_READ_W
+  0000                00257         GLOBAL  SIO_PRINT_HEX
+  0000                00258         GLOBAL  SIO_PRINT_HEX_W
+  0000                00259         GLOBAL  SIO_SET_BAUD_W
+  0000                00260         GLOBAL  SIO_FLUSH_INPUT
+  0000                00261         GLOBAL  SIO_FLUSH_OUTPUT
+  0000                00262         GLOBAL  B32__BIN2BCD
+  0000                00263         GLOBAL  B32__BCD2ASCII
+                      00264 ;
+                      00265 ;==============================================================================
+                      00266 ; SIO_INIT 
+                      00267 ;
+                      00268 ; Set up the USART for serial communications.
+                      00269 ; The following global symbols need to be exported by the caller:
+                      00270 ;       SIO_RX_BUFFER_START*    Starting addr of 256-byte Rx buffer
+                      00271 ;       SIO_TX_BUFFER_START*    Starting addr of 256-byte Tx buffer
+                      00272 ;       SIO_DATA_START          Starting addr of SIO module variables
+                      00273 ;
+                      00274 ; *must be aligned to the start of a 256-byte RAM bank
+                      00275 ;
+                      00276 ; AFFECTS:      RAM data bank
+                      00277 ;       
+                      00278 ;==============================================================================
+                      00279 
+                      00280         IF SIO_RX_BUFFER_START & 0xFF
+                      00281                 ERROR "SIO_RX_BUFFER_START must be on a 256-byte RAM boundary."
+                      00282         ENDIF
+                      00283 
+                      00284         IF SIO_TX_BUFFER_START & 0xFF
+                      00285                 ERROR "SIO_TX_BUFFER_START must be on a 256-byte RAM boundary."
+                      00286         ENDIF
+                      00287         
+000000                00288 SIO_INIT:
+000000 0004           00289         CLRWDT
+000002 0103           00290         BANKSEL SIO_DATA_START
+                      00291 ;
+                      00292 ; Set up I/O pins
+                      00293 ;
+000004 8E94           00294         BSF     TRISC, 7, ACCESS        ; RX pin on PORTC<7>
+000006 9C94           00295         BCF     TRISC, 6, ACCESS        ; TX pin on PORTC<6>
+                      00296 ;
+                      00297 ; Set up EUSART for asynchronous serial I/O
+                      00298 ;
+                      00299 ; STEP 1. Set baud rate to SPBRGH:SPBRG
+                      00300 ;
+000008 0E06           00301         MOVLW   SIO_19200               ; default baud rate is 19.2k
+00000A EC?? F???      00302         CALL    SIO_SET_BAUD_W
+                      00303 ;
+                      00304 ; STEP 2. Set up Tx/Rx buffers and other variables.
+                      00305 ;
+                      00306         ;
+                      00307         ; Zero buffer contents (probably unnecessary, but I'm a purist)
+                      00308         ;
+00000E 010?           00309         BANKSEL TX_BUFFER
+000010 0004           00310         CLRWDT
+000012 EE?? F0??      00311         LFSR    FSR0, TX_BUFFER
+000016                00312 CLR_NEXT_TX:
+000016 6AEE           00313         CLRF    POSTINC0
+000018 66E9           00314         TSTFSZ  FSR0L, ACCESS
+00001A D???           00315         BRA     CLR_NEXT_TX
+                      00316         
+00001C 010?           00317         BANKSEL RX_BUFFER
+00001E 0004           00318         CLRWDT
+000020 EE?? F0??      00319         LFSR    FSR0, RX_BUFFER
+000024                00320 CLR_NEXT_RX:
+000024 6AEE           00321         CLRF    POSTINC0
+000026 66E9           00322         TSTFSZ  FSR0L, ACCESS
+000028 D???           00323         BRA     CLR_NEXT_RX
+                      00324         ;
+                      00325         ; Initialize buffer pointers and status register
+                      00326         ;
+00002A 0103           00327         BANKSEL SIO_DATA_START
+00002C 6B00           00328         CLRF    SIO_STATUS, BANKED      ; all status bits default to cleared
+00002E 6A??           00329         CLRF    TX_BUF_START            ; set start and end buffer pointers at
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE  8
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+000030 6A??           00330         CLRF    TX_BUF_END              ; start of buffer (==buffer empty)
+000032 6A??           00331         CLRF    RX_BUF_START
+000034 6A??           00332         CLRF    RX_BUF_END
+                      00333 ;
+                      00334 ; STEP 3. Enable port and set modes.
+                      00335 ;       
+000036 0E90           00336         MOVLW   b'10010000'
+                      00337                 ; 1-------      ; Serial I/O ON
+                      00338                 ; -0------      ; RX9 disabled
+                      00339                 ; --X-----      ; not used for async
+                      00340                 ; ---1----      ; receiver enabled
+                      00341                 ; ----0---      ; don't use address detection
+                      00342                 ; -----0--      ; framing error detected
+                      00343                 ; ------0-      ; overrun error detected
+                      00344                 ; -------0      ; bit 9 if used
+000038 6EAB           00345         MOVWF   RCSTA, ACCESS
+00003A 0E24           00346         MOVLW   b'00100100'
+                      00347                 ; X-------      ; Clock source (not used for async)
+                      00348                 ; -0------      ; TX9 disabled
+                      00349                 ; --1-----      ; transmitter enabled
+                      00350                 ; ---0----      ; asynchronous mode selected
+                      00351                 ; ----0---      ; not sending BREAK
+                      00352                 ; -----1--      ; high-speed baud rate
+                      00353                 ; ------X-      ; TX buffer status (R/0)
+                      00354                 ; -------0      ; bit 9 if used
+00003C 6EAC           00355         MOVWF   TXSTA, ACCESS
+00003E 0E08           00356         MOVLW   b'00001000'
+                      00357                 ; 0-------      ; auto-baud acquisition rollover status clear
+                      00358                 ; -X------      ; receive idle status
+                      00359                 ; --XX-X--      ; N/A
+                      00360                 ; ----1---      ; 16-bit baud rate (SPBRGH:SPBRG)
+                      00361                 ; ------0-      ; don't wake up on RX
+                      00362                 ; -------0      ; don't detect baud rate
+000040 6EB8           00363         MOVWF   BAUDCON, ACCESS
+                      00364 ;
+                      00365 ; STEP 4. Enable interrupts (DOES NOT enable global interrupts; that is
+                      00366 ;         assumed to be under the caller's control)
+                      00367 ;
+000042 0012           00368         RETURN
+                      00369 
+                      00370 ;==============================================================================
+                      00371 ; PUBLIC ENTRY POINTS FOR I/O
+                      00372 ;==============================================================================
+                      00373 ;
+000044                00374 SIO_FLUSH_INPUT:
+000044 0103           00375         BANKSEL SIO_DATA_START
+000046 6B00           00376         CLRF    SIO_X, BANKED
+000048 AA9D           00377         BTFSS   PIE1, RCIE, ACCESS
+00004A D???           00378         BRA     SIO_FLUSH_IN_1
+00004C 9A9D           00379         BCF     PIE1, RCIE, ACCESS      ; turn off interrupts
+00004E 8100           00380         BSF     SIO_X, 0, BANKED        ; remember to enable interrupts again
+000050                00381 SIO_FLUSH_IN_1:
+000050 6B00           00382         CLRF    RX_BUF_START, BANKED
+000052 6B00           00383         CLRF    RX_BUF_END, BANKED
+000054 9700           00384         BCF     SIO_STATUS, RXDATA_FULL, BANKED
+000056 9300           00385         BCF     SIO_STATUS, RXDATA_QUEUE, BANKED
+000058 B100           00386         BTFSC   SIO_X, 0, BANKED
+00005A 8A9D           00387         BSF     PIE1, RCIE, ACCESS      ; turn interrupt back on if set initially
+00005C 0012           00388         RETURN
+                      00389 
+00005E                00390 SIO_FLUSH_OUTPUT:
+00005E 0103           00391         BANKSEL SIO_DATA_START
+000060 6B00           00392         CLRF    SIO_X, BANKED
+000062 A89D           00393         BTFSS   PIE1, TXIE, ACCESS
+000064 D???           00394         BRA     SIO_FLUSH_OUT_1
+000066 989D           00395         BCF     PIE1, TXIE, ACCESS      ; turn off interrupts
+000068 8100           00396         BSF     SIO_X, 0, BANKED        ; remember to enable interrupts again
+00006A                00397 SIO_FLUSH_OUT_1:
+00006A 6B00           00398         CLRF    TX_BUF_START, BANKED
+00006C 6B00           00399         CLRF    TX_BUF_END, BANKED
+00006E 9500           00400         BCF     SIO_STATUS, TXDATA_FULL, BANKED
+000070 9100           00401         BCF     SIO_STATUS, TXDATA_QUEUE, BANKED
+000072 B100           00402         BTFSC   SIO_X, 0, BANKED
+000074 889D           00403         BSF     PIE1, TXIE, ACCESS      ; turn interrupt back on if set initially
+000076 0012           00404         RETURN
+                      00405 
+000078                00406 SIO_SET_BAUD_W:
+000078 0103           00407         BANKSEL SIO_DATA_START
+00007A 0004           00408         CLRWDT
+00007C 6F00           00409         MOVWF   SIO_X, BANKED
+00007E EC?? F???      00410         CALL    BAUDTBLH
+000082 6EB0           00411         MOVWF   SPBRGH, ACCESS
+000084 5100           00412         MOVF    SIO_X, W, BANKED
+000086 EC?? F???      00413         CALL    BAUDTBLL
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE  9
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+00008A 6EAF           00414         MOVWF   SPBRG, ACCESS
+00008C 0012           00415         RETURN
+                      00416 
+00008E                00417 SIO_ECHO_W:
+00008E 0103           00418         BANKSEL SIO_DATA_START
+000090 6F00           00419         MOVWF   SIO_OUTPUT, BANKED
+000092                00420 SIO_ECHO:
+000092 0004           00421         CLRWDT
+000094 0103           00422         BANKSEL SIO_DATA_START
+000096 AF00           00423         BTFSS   SIO_OUTPUT, 7, BANKED   ; is char 7-bit clean?
+000098 D???           00424         BRA     ECHO_7BITS              ; yes: skip this next bit
+00009A 0E4D           00425         MOVLW   'M'                     
+00009C D???           00426         RCALL   SIO_PUTCHAR_W           ; output "M-" then the stripped char
+00009E 0E2D           00427         MOVLW   '-'
+0000A0 D???           00428         RCALL   SIO_PUTCHAR_W
+0000A2 9F00           00429         BCF     SIO_OUTPUT, 7, BANKED   ; strip high bit
+0000A4                00430 ECHO_7BITS:
+0000A4 0E7F           00431         MOVLW   0x7F                    ; is the character DELETE?
+0000A6 6300           00432         CPFSEQ  SIO_OUTPUT, BANKED
+0000A8 D???           00433         BRA     ECHO_NOT_DELETE         ; no: go on to next test
+0000AA 0E5E           00434         MOVLW   '^'                     ; yes: print as "^?"
+0000AC D???           00435         RCALL   SIO_PUTCHAR_W
+0000AE 0E3F           00436         MOVLW   '?'
+0000B0 6F00           00437         MOVWF   SIO_OUTPUT, BANKED
+0000B2                00438 ECHO_NOT_DELETE:
+0000B2 0E1B           00439         MOVLW   0x1B                    ; is the character ESCAPE?
+0000B4 6300           00440         CPFSEQ  SIO_OUTPUT, BANKED
+0000B6 D???           00441         BRA     ECHO_NOT_ESCAPE         ; no: go on...
+0000B8 0E24           00442         MOVLW   '$'
+0000BA 6F00           00443         MOVWF   SIO_OUTPUT, BANKED      ; yes: print as "$"
+0000BC                00444 ECHO_NOT_ESCAPE:
+0000BC AD00           00445         BTFSS   SIO_OUTPUT, 6, BANKED   ; is it a control character?
+0000BE BB00           00446         BTFSC   SIO_OUTPUT, 5, BANKED   ; (i.e., bits <7:5>=000)
+0000C0 D???           00447         BRA     ECHO_PLAIN              ; no: print normally
+0000C2 0E5E           00448         MOVLW   '^'
+0000C4 D???           00449         RCALL   SIO_PUTCHAR_W           ; yes: print as "^<char>"
+0000C6 8D00           00450         BSF     SIO_OUTPUT, 6, BANKED   ; set bit 6 to shift to upper-case char
+0000C8                00451 ECHO_PLAIN:
+0000C8 5100           00452         MOVF    SIO_OUTPUT, W, BANKED   ; pick up final character to print
+0000CA D???           00453         RCALL   SIO_PUTCHAR_W           ; and output it.
+0000CC 0012           00454         RETURN
+                      00455 
+0000CE                00456 SIO_PUTCHAR:
+0000CE 0103           00457         BANKSEL SIO_DATA_START
+0000D0 5100           00458         MOVF    SIO_OUTPUT, W, BANKED
+                      00459 
+0000D2                00460 SIO_PUTCHAR_W:
+0000D2 0004           00461         CLRWDT                                  
+0000D4 0103           00462         BANKSEL SIO_DATA_START
+0000D6 6F00           00463         MOVWF   TX_CHAR, BANKED                 
+                      00464 
+0000D8                00465 SPIN_FOR_BUF_DRAIN:
+0000D8 A100           00466         BTFSS   SIO_STATUS, TXDATA_QUEUE, BANKED; Check to see if buffer full
+0000DA D???           00467         BRA     WRITE_OK                        ; OK because it's totally empty
+0000DC 5100           00468         MOVF    TX_BUF_START, W, BANKED         ; Next check for START==END
+0000DE 6300           00469         CPFSEQ  TX_BUF_END, BANKED
+0000E0 D???           00470         BRA     WRITE_OK                        ; START != END, so we're good.
+0000E2 D???           00471         BRA     SPIN_FOR_BUF_DRAIN              ; loop back until buffer not full
+                      00472 
+0000E4                00473 SIO_WRITE:
+0000E4 0103           00474         BANKSEL SIO_DATA_START
+0000E6 5100           00475         MOVF    SIO_OUTPUT, W, BANKED
+                      00476 
+0000E8                00477 SIO_WRITE_W:
+0000E8 0004           00478         CLRWDT                                  
+0000EA 0103           00479         BANKSEL SIO_DATA_START
+0000EC 6F00           00480         MOVWF   TX_CHAR, BANKED                 
+0000EE A100           00481         BTFSS   SIO_STATUS, TXDATA_QUEUE, BANKED; Check to see if buffer full
+0000F0 D???           00482         BRA     WRITE_OK                        ; OK because it's totally empty
+0000F2 5100           00483         MOVF    TX_BUF_START, W, BANKED         ; Next check for START==END
+0000F4 6300           00484         CPFSEQ  TX_BUF_END, BANKED
+0000F6 D???           00485         BRA     WRITE_OK                        ; START != END, so we're good.
+0000F8 8500           00486         BSF     SIO_STATUS, TXDATA_FULL, BANKED ; flag buffer as full and give up
+0000FA 0012           00487         RETURN
+                      00488         
+0000FC                00489 WRITE_OK:                                       ; OK to write byte into next slot in the buffer
+0000FC C??? FFE1      00490         MOVFF   TX_BUF_END, FSR1L               ; load buffer pointer
+000100 0E??           00491         MOVLW   HIGH(TX_BUFFER)
+000102 6EE2           00492         MOVWF   FSR1H, ACCESS
+000104 C??? FFE7      00493         MOVFF   TX_CHAR, INDF1                  ; move character into Tx buffer
+000108 8100           00494         BSF     SIO_STATUS, TXDATA_QUEUE, BANKED; flag that data are in the buffer now
+00010A 2B00           00495         INCF    TX_BUF_END, F, BANKED           ; increment pointer (will wrap around)
+00010C 889D           00496         BSF     PIE1, TXIE, ACCESS              ; enable TX interrupt to send to H/W
+00010E 0012           00497         RETURN
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE 10
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00498 
+000110                00499 SIO_NEWLINE:
+000110 0004           00500         CLRWDT
+000112 0E0D           00501         MOVLW   0x0D
+000114 D???           00502         RCALL   SIO_PUTCHAR_W
+000116 0E0A           00503         MOVLW   0x0A
+000118 D???           00504         RCALL   SIO_PUTCHAR_W
+00011A 0012           00505         RETURN
+                      00506 
+                      00507 
+00011C                00508 SIO_READ_W:
+00011C D???           00509         RCALL   SIO_READ
+00011E 5100           00510         MOVF    SIO_INPUT, W, BANKED
+000120 0012           00511         RETURN
+                      00512 
+000122                00513 SIO_READ:
+000122 0004           00514         CLRWDT
+000124 0103           00515         BANKSEL SIO_DATA_START
+000126 B300           00516         BTFSC   SIO_STATUS, RXDATA_QUEUE, BANKED; Is data waiting to be read?
+000128 D???           00517         BRA     READ_OK                         ; yes, branch down to handle it
+00012A 6B00           00518         CLRF    SIO_INPUT, BANKED               ; no, return zero
+00012C 0012           00519         RETURN
+                      00520 
+00012E                00521 READ_OK:                                        ; get next byte out of buffer
+00012E C??? FFE1      00522         MOVFF   RX_BUF_START, FSR1L             ; load buffer pointer
+000132 0E??           00523         MOVLW   HIGH(RX_BUFFER)
+000134 6EE2           00524         MOVWF   FSR1H, ACCESS
+000136 CFE7 F???      00525         MOVFF   INDF1, SIO_INPUT                ; retrieve byte at start of buffer
+00013A 2B00           00526         INCF    RX_BUF_START, F, BANKED         ; advance pointer (will wrap around)
+00013C 5100           00527         MOVF    RX_BUF_START, W, BANKED         ; have we run out of data? (start == end)
+00013E 6300           00528         CPFSEQ  RX_BUF_END, BANKED
+000140 D???           00529         BRA     READ_DONE                       ; no, leave everything alone for next time
+000142 9300           00530         BCF     SIO_STATUS, RXDATA_QUEUE, BANKED; yes, clear the queue bit (buffer empty)
+000144                00531 READ_DONE:
+000144 0012           00532         RETURN
+                      00533 
+000146                00534 SIO_GETCHAR_W:
+000146 D???           00535         RCALL   SIO_GETCHAR
+000148 5100           00536         MOVF    SIO_INPUT, W, BANKED
+00014A 0012           00537         RETURN
+                      00538 
+00014C                00539 SIO_GETCHAR:
+00014C 0103           00540         BANKSEL SIO_DATA_START
+00014E 0004           00541 GC_SPIN CLRWDT
+000150 A300           00542         BTFSS   SIO_STATUS, RXDATA_QUEUE, BANKED; wait here until data arrives
+000152 D???           00543         BRA     GC_SPIN
+000154 D???           00544         BRA     SIO_READ
+                      00545 
+                      00546 ;==============================================================================
+                      00547 ; HIGHER LEVEL I/O FUNCIONS
+                      00548 ;==============================================================================
+                      00549 ;
+                      00550 ; SIO_PRINT_HEX         Print value in SIO_OUTPUT as 2-digit hex value
+                      00551 ; SIO_PRINT_HEX_W       Convenience function to take value from W (->SIO_OUTPUT)
+                      00552 ;
+000156                00553 SIO_PRINT_HEX_W:
+000156 0103           00554         BANKSEL SIO_DATA_START
+000158 6F00           00555         MOVWF   SIO_OUTPUT, BANKED
+                      00556 
+00015A                00557 SIO_PRINT_HEX:
+00015A 0004           00558         CLRWDT
+00015C 0103           00559         BANKSEL SIO_DATA_START
+00015E C??? F???      00560         MOVFF   SIO_OUTPUT, SIO_X       ; Move value aside (we'll need SIO_OUTPUT)
+000162 3900           00561         SWAPF   SIO_X, W, BANKED        ; Get first nybble
+000164 EC?? F???      00562         CALL    HEXTBL                  ; Convert to ASCII character in W
+000168 EC?? F???      00563         CALL    SIO_PUTCHAR_W           ; and print
+00016C 5100           00564         MOVF    SIO_X, W, BANKED        ; Get last nybble
+00016E EC?? F???      00565         CALL    HEXTBL                  ;
+000172 EC?? F???      00566         CALL    SIO_PUTCHAR_W           ;
+000176 0012           00567         RETURN
+                      00568 
+                      00569 ;
+                      00570 ; 32-bit BCD and ASCII conversion routines
+                      00571 ; derived (and then ported to PIC18 and modified by Steve Willoughby)
+                      00572 ; from Microchip app note AN526 + modifications by Mike Keitz and
+                      00573 ; Ron Kreymborg.  Contributed to the PIC developer community (PICList)
+                      00574 ;
+                      00575 ; B32__BIN2BCD   Convert 32-bit int to 10-digit BCD.
+                      00576 ;       INPUT:  B32__BIN
+                      00577 ;       OUTPUT: B32__BCD_ASC
+                      00578 ;
+000178                00579 B32__BIN2BCD:
+000178 0103           00580         BANKSEL SIO_DATA_START
+00017A 0004           00581         CLRWDT
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE 11
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+00017C 0E20           00582         MOVLW   .32                     ; bits to convert
+00017E 6F00           00583         MOVWF   B32__BIT, BANKED        ; cycle counter
+000180 6A??           00584         CLRF    B32__BCD_ASC
+000182 6A??           00585         CLRF    B32__BCD_ASC+1
+000184 6A??           00586         CLRF    B32__BCD_ASC+2
+000186 6A??           00587         CLRF    B32__BCD_ASC+3
+000188 6A??           00588         CLRF    B32__BCD_ASC+4
+00018A CFEA F???      00589         MOVFF   FSR0H, B32__FSR0H
+00018E CFE9 F???      00590         MOVFF   FSR0L, B32__FSR0L
+                      00591 
+000192                00592 B32__B2BCD_BIT:
+000192 EE?? F0??      00593         LFSR    FSR0, B32__BCD_ASC
+000196 0E05           00594         MOVLW   .5
+000198 6F00           00595         MOVWF   B32__OUTCTR, BANKED
+                      00596         
+00019A                00597 B32__B2BCD_LOOP:
+00019A 0004           00598         CLRWDT
+00019C 0E33           00599         MOVLW   0x33
+00019E 26EF           00600         ADDWF   INDF0, F
+0001A0 B6EF           00601         BTFSC   INDF0, 3                ; low result > 7?
+0001A2 0BF0           00602         ANDLW   0xF0                    ; yes: take 3 out
+0001A4 BEEF           00603         BTFSC   INDF0, 7                ; high result > 7?
+0001A6 0B0F           00604         ANDLW   0x0F                    ; yes
+0001A8 5EEE           00605         SUBWF   POSTINC0, F             ; results <=7, subtract back
+0001AA 2F00           00606         DECFSZ  B32__OUTCTR, F, BANKED  
+0001AC D???           00607         BRA     B32__B2BCD_LOOP
+                      00608         ; 
+                      00609         ; Get another bit by shifting the whole 32-bit value one bit to the left
+                      00610         ; by cascading 8-bit shifts via carry (carry carries the bit across between
+                      00611         ; them).
+                      00612         ;                                   BIN[0]   BIN[1]   BIN[2]   BIN[3]
+                      00613         ;                                  @bcdefgh ijklmnop qrstuvwx yzABCDEF
+0001AE 3700           00614         RLCF    B32__BIN+3, F, BANKED    ; @bcdefgh ijklmnop qrstuvwxyzABCDEF?
+0001B0 3700           00615         RLCF    B32__BIN+2, F, BANKED    ; @bcdefgh ijklmnopqrstuvwxy zABCDEF?
+0001B2 3700           00616         RLCF    B32__BIN+1, F, BANKED    ; @bcdefghijklmnopq rstuvwxy zABCDEF?
+0001B4 3700           00617         RLCF    B32__BIN+0, F, BANKED    ;@bcdefghi jklmnopq rstuvwxy zABCDEF?
+                      00618         ;                                 |____________________________________________
+                      00619         ;                                                                              |
+                      00620         ;                                   BCD[0]   BCD[1]   BCD[2]   BCD[3]   BCD[4] V
+                      00621         ;                                  abcdefgh ijklmnop qrstuvwx yzABCDEF GHIJKLMN@
+0001B6 3700           00622         RLCF    B32__BCD_ASC+4, F, BANKED; abcdefgh ijklmnop qrstuvwx yzABCDEFGHIJKLMN@
+0001B8 3700           00623         RLCF    B32__BCD_ASC+3, F, BANKED; abcdefgh ijklmnop qrstuvwxyzABCDEFG HIJKLMN@
+0001BA 3700           00624         RLCF    B32__BCD_ASC+2, F, BANKED; abcdefgh ijklmnopqrstuvwxy zABCDEFG HIJKLMN@
+0001BC 3700           00625         RLCF    B32__BCD_ASC+1, F, BANKED; abcdefghijklmnopq rstuvwxy zABCDEFG HIJKLMN@
+0001BE 3700           00626         RLCF    B32__BCD_ASC+0, F, BANKED;abcdefghi jklmnopq rstuvwxy zABCDEFG HIJKLMN@
+                      00627         ;                                  bcdefghi jklmnopq rstuvwxy zABCDEFG HIJKLMN@
+0001C0 2F00           00628         DECFSZ  B32__BIT, F, BANKED
+0001C2 D???           00629         BRA     B32__B2BCD_BIT
+0001C4 C??? FFEA      00630         MOVFF   B32__FSR0H, FSR0H
+0001C8 C??? FFE9      00631         MOVFF   B32__FSR0L, FSR0L
+0001CC 0012           00632         RETURN
+                      00633         
+                      00634 ;
+                      00635 ; B32__BCD2ASCII
+                      00636 ;
+                      00637 ; Convert 10-digit BCD (in 5 bytes) to 10-character ASCII
+                      00638 ; string
+                      00639 ;
+                      00640 ; buffer at B32__BCD_ASC:
+                      00641 ;     ______________
+                      00642 ;   0|BCD0      ASC0|  Modified in place
+                      00643 ;   1|BCD1      ASC1|
+                      00644 ;   2|BCD2 ---> ASC2|          /|\
+                      00645 ;   3|BCD3      ASC3|           |
+                      00646 ;   4|BCD4      ASC4| <-- SRC pointer FSR0
+                      00647 ;   5|          ASC5|
+                      00648 ;   6|          ASC6|
+                      00649 ;   7|          ASC7|          /|\
+                      00650 ;   8|          ASC8|           |
+                      00651 ;   9|__________ASC9| <-- DST pointer FSR1
+                      00652 ; 
+                      00653 ;
+0001CE                00654 B32__BCD2ASCII:
+0001CE 0004           00655         CLRWDT
+0001D0 0103           00656         BANKSEL SIO_DATA_START
+0001D2 CFEA F???      00657         MOVFF   FSR0H, B32__FSR0H               ; Save old FSR values
+0001D6 CFE9 F???      00658         MOVFF   FSR0L, B32__FSR0L
+0001DA CFE2 F???      00659         MOVFF   FSR1H, B32__FSR1H
+0001DE CFE1 F???      00660         MOVFF   FSR1L, B32__FSR1L
+0001E2 EE?? F0??      00661         LFSR    FSR0, B32__BCD_ASC+4            ; Set data pointers (src)
+0001E6 EE?? F0??      00662         LFSR    FSR1, B32__BCD_ASC+9            ; (dst)
+                      00663         
+                      00664         
+                      00665         
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE 12
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0001EA 0E05           00666         MOVLW   .5
+0001EC 6F00           00667         MOVWF   B32__OUTCTR, BANKED
+                      00668 
+0001EE                00669 B32__BCD2A_LOOP:
+0001EE 50EF           00670         MOVF    INDF0, W                        ; least significant digit
+0001F0 0B0F           00671         ANDLW   0x0F
+0001F2 0F30           00672         ADDLW   '0'
+0001F4 6EE5           00673         MOVWF   POSTDEC1
+0001F6 38ED           00674         SWAPF   POSTDEC0, W                     ; most significant digit
+0001F8 0B0F           00675         ANDLW   0x0F
+0001FA 0F30           00676         ADDLW   '0'
+0001FC 6EE5           00677         MOVWF   POSTDEC1
+0001FE 2F00           00678         DECFSZ  B32__OUTCTR, F, BANKED
+000200 D???           00679         BRA     B32__BCD2A_LOOP
+000202 C??? FFEA      00680         MOVFF   B32__FSR0H, FSR0H               ; Restore old FSR values
+000206 C??? FFE9      00681         MOVFF   B32__FSR0L, FSR0L
+00020A C??? FFE2      00682         MOVFF   B32__FSR1H, FSR1H
+00020E C??? FFE1      00683         MOVFF   B32__FSR1L, FSR1L
+000212 0012           00684         RETURN
+                      00685         
+                      00686 
+                      00687 
+                      00688 
+                      00689         
+                      00690 
+                      00691 ;==============================================================================
+                      00692 ; LOW-LEVEL I/O
+                      00693 ;
+                      00694 ; These are generally called from interrupt service routines to handle the
+                      00695 ; passing of data bytes between the buffers and the serial transceiver 
+                      00696 ; hardware.
+                      00697 ;
+                      00698 ; SIO_RECV      Call this when you know there's a byte waiting to be read in
+                      00699 ;               from the USART.
+                      00700 ; SIO_SEND      Call this when you know there's a byte that needs to be sent
+                      00701 ;               to the USART and it's ready to send it.
+                      00702 ;
+                      00703 ;==============================================================================
+                      00704 
+000214                00705 SIO_SEND:
+000214 0004           00706         CLRWDT
+000216 0103           00707         BANKSEL SIO_DATA_START
+000218 B100           00708         BTFSC   SIO_STATUS, TXDATA_QUEUE, BANKED; Is data waiting to go out?
+00021A D???           00709         BRA     TX_OK                           ; yes, branch down to handle it
+00021C 989D           00710         BCF     PIE1, TXIE, ACCESS              ; no, block TX interrupt until needed again
+00021E 0012           00711         RETURN
+                      00712 
+000220                00713 TX_OK:                                          ; push next byte out of buffer
+000220 CFE2 F???      00714         MOVFF   FSR1H, FSR1H_SAVE               ; save pointer (remember we're an ISR here)
+000224 CFE1 F???      00715         MOVFF   FSR1L, FSR1L_SAVE
+000228 C??? FFE1      00716         MOVFF   TX_BUF_START, FSR1L             ; load buffer pointer
+00022C 0E??           00717         MOVLW   HIGH(TX_BUFFER)
+00022E 6EE2           00718         MOVWF   FSR1H, ACCESS
+000230 CFE7 FFAD      00719         MOVFF   INDF1, TXREG                    ; transmit byte at buffer position
+000234 2B00           00720         INCF    TX_BUF_START, F, BANKED         ; advance pointer (will wrap around)
+000236 5100           00721         MOVF    TX_BUF_START, W, BANKED         ; have we run out of data? (start == end)
+000238 6300           00722         CPFSEQ  TX_BUF_END, BANKED
+00023A D???           00723         BRA     TX_DONE                         ; no, leave everything alone for next time
+00023C 9100           00724         BCF     SIO_STATUS, TXDATA_QUEUE, BANKED; yes, clear the queue bit (buffer empty)
+00023E                00725 TX_DONE:
+00023E C??? FFE2      00726         MOVFF   FSR1H_SAVE, FSR1H               ; restore saved registers
+000242 C??? FFE1      00727         MOVFF   FSR1L_SAVE, FSR1L
+000246 0012           00728         RETURN
+                      00729 
+000248                00730 SIO_RECV:
+000248 0004           00731         CLRWDT
+00024A 0103           00732         BANKSEL SIO_DATA_START
+00024C B4AB           00733         BTFSC   RCSTA, FERR, ACCESS             ; Framing error?
+00024E D???           00734         RCALL   ERR_FRAMING                     ; yes: go handle it.
+000250 B2AB           00735         BTFSC   RCSTA, OERR, ACCESS             ; Overrun error?
+000252 D???           00736         RCALL   ERR_OVERRUN                     ; yes: go handle that.
+000254 A300           00737         BTFSS   SIO_STATUS, RXDATA_QUEUE, BANKED; Is there data already in the buffer?
+000256 D???           00738         BRA     RX_OK                           ; no: go ahead and write into empty buffer
+000258 5100           00739         MOVF    RX_BUF_START, W, BANKED         ; check for buffer full condition:
+00025A 6300           00740         CPFSEQ  RX_BUF_END, BANKED              ;   buf not empty but start==end
+00025C D???           00741         BRA     RX_OK                           ; not full yet: go ahead and write
+00025E 8700           00742         BSF     SIO_STATUS, RXDATA_FULL, BANKED ; FULL! flag the error and write nothing
+000260 50AE           00743         MOVF    RCREG, W, ACCESS                ; pull byte out of serial port and ignore it.
+000262 0012           00744         RETURN                                  ; (necessary or UART will flag an overrun state)
+                      00745         
+000264                00746 RX_OK:                                          ; OK to write byte into next slot in the buffer
+000264 CFE2 F???      00747         MOVFF   FSR1H, FSR1H_SAVE               ; save pointer (remember we're an ISR here)
+000268 CFE1 F???      00748         MOVFF   FSR1L, FSR1L_SAVE
+00026C C??? FFE1      00749         MOVFF   RX_BUF_END, FSR1L               ; load buffer pointer
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE 13
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+000270 0E??           00750         MOVLW   HIGH(RX_BUFFER)
+000272 6EE2           00751         MOVWF   FSR1H, ACCESS
+000274 CFAE FFE7      00752         MOVFF   RCREG, INDF1                    ; move received byte into buffer
+000278 8300           00753         BSF     SIO_STATUS, RXDATA_QUEUE, BANKED; flag that data are in the buffer now
+00027A 2B00           00754         INCF    RX_BUF_END, F, BANKED           ; increment pointer (will wrap around)
+00027C C??? FFE2      00755         MOVFF   FSR1H_SAVE, FSR1H               ; restore caller's FSR1 pointer
+000280 C??? FFE1      00756         MOVFF   FSR1L_SAVE, FSR1L
+000284 0012           00757         RETURN
+                      00758 
+000286                00759 ERR_FRAMING:
+000286 8B00           00760         BSF     SIO_STATUS, SIO_FERR, BANKED    ; flag framing error for caller to handle
+000288 0012           00761         RETURN                                  ; I believe this clears on next valid Rx byte
+                      00762 
+00028A                00763 ERR_OVERRUN:
+00028A 8900           00764         BSF     SIO_STATUS, SIO_ORUN, BANKED    ; flag overrun error for caller to handle
+00028C 98AB           00765         BCF     RCSTA, CREN, ACCESS             ; reset error by disabling serial receiver
+00028E 88AB           00766         BSF     RCSTA, CREN, ACCESS             ; and then enabling it again.
+000290 0012           00767         RETURN
+                      00768         
+                      00769 
+                      00770 _SIO_LOOKUP_TABLES CODE SIO_TABLE_START
+                      00771 HEXTBL  ORG     SIO_TABLE_START
+                      00772         
+015000 0B0F           00773         ANDLW   0x0F
+015002 46E8           00774         RLNCF   WREG, F, ACCESS                 ; offset*2
+015004 CFF9 F???      00775         MOVFF   PCL, SIO_TMPPC                  ; latch high bits of PC
+015008 26F9           00776         ADDWF   PCL, F, ACCESS                  ; branch into table
+01500A 0C30 0C31 0C32 00777         DT      "0123456789ABCDEF"
+       0C33 0C34 0C35 
+       0C36 0C37 0C38 
+       0C39 0C41 0C42 
+       0C43 0C44 0C45 
+       0C46 
+                      00778 
+                      00779 ;   300 baud 8234  error 0.001%
+                      00780 ;   600 baud 4219        0.004%
+                      00781 ;  1200 baud 208C        0.004%
+                      00782 ;  2400 baud 1045        0.016%
+                      00783 ;  4800 baud 0822        0.016%
+                      00784 ;  9600 baud 0410        0.064%
+                      00785 ; 19200 baud 0207        0.160%
+                      00786 ; 38400 baud 0103        0.160%
+                      00787 ; 57600 baud 00AC        0.353%
+                      00788 ;115200 baud 0055        0.937%
+                      00789 ;250000 baud 0027        0.000%
+                      00790 
+01502A                00791 BAUDTBLH:
+01502A 0B0F           00792         ANDLW   0x0F
+01502C 46E8           00793         RLNCF   WREG, F, ACCESS
+01502E CFF9 F???      00794         MOVFF   PCL, SIO_TMPPC
+015032 26F9           00795         ADDWF   PCL, F, ACCESS
+015034 0C82 0C42 0C20 00796         DT      0x82, 0x42, 0x20, 0x10, 0x08
+       0C10 0C08 
+01503E 0C04 0C02 0C01 00797         DT      0x04, 0x02, 0x01, 0x00, 0x00
+       0C00 0C00 
+015048 0C00           00798         DT      0x00
+01504A 0C02 0C02 0C02 00799         DT      0x02, 0x02, 0x02, 0x02, 0x02    ; fallback to 19.2k
+       0C02 0C02 
+015054                00800 BAUDTBLL:
+015054 0B0F           00801         ANDLW   0x0F
+015056 46E8           00802         RLNCF   WREG, F, ACCESS
+015058 CFF9 F???      00803         MOVFF   PCL, SIO_TMPPC
+01505C 26F9           00804         ADDWF   PCL, F, ACCESS
+01505E 0C34 0C19 0C8C 00805         DT      0x34, 0x19, 0x8C, 0x45, 0x22
+       0C45 0C22 
+015068 0C10 0C07 0C03 00806         DT      0x10, 0x07, 0x03, 0xAC, 0x55
+       0CAC 0C55 
+015072 0C27           00807         DT      0x27
+015074 0C07 0C07 0C07 00808         DT      0x07, 0x07, 0x07, 0x07, 0x07    ; fallback to 19.2k
+       0C07 0C07 
+                      00809 
+                      00810         
+                      00811 ;==============================================================================
+                      00812 ;==============================================================================
+                      00813         END
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE 14
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+A                                 00000000
+ABAT                              00000004
+ABDEN                             00000000
+ABDOVF                            00000007
+ACCESS                            00000000
+ACKDT                             00000005
+ACKEN                             00000004
+ACKSTAT                           00000006
+ACQT0                             00000003
+ACQT1                             00000004
+ACQT2                             00000005
+ADCON0                            00000FC2
+ADCON1                            00000FC1
+ADCON2                            00000FC0
+ADCS0                             00000000
+ADCS1                             00000001
+ADCS2                             00000002
+ADDEN                             00000003
+ADEN                              00000003
+ADFM                              00000007
+ADIE                              00000006
+ADIF                              00000006
+ADIP                              00000006
+ADON                              00000000
+ADRES                             00000FC3
+ADRESH                            00000FC4
+ADRESL                            00000FC3
+AN0                               00000000
+AN1                               00000001
+AN10                              00000000
+AN2                               00000002
+AN3                               00000003
+AN4                               00000005
+AN5                               00000000
+AN6                               00000001
+AN7                               00000002
+AN8                               00000001
+AN9                               00000004
+B0CON                             00000E20
+B0D0                              00000E26
+B0D00                             00000000
+B0D01                             00000001
+B0D02                             00000002
+B0D03                             00000003
+B0D04                             00000004
+B0D05                             00000005
+B0D06                             00000006
+B0D07                             00000007
+B0D1                              00000E27
+B0D10                             00000000
+B0D11                             00000001
+B0D12                             00000002
+B0D13                             00000003
+B0D14                             00000004
+B0D15                             00000005
+B0D16                             00000006
+B0D17                             00000007
+B0D2                              00000E28
+B0D20                             00000000
+B0D21                             00000001
+B0D22                             00000002
+B0D23                             00000003
+B0D24                             00000004
+B0D25                             00000005
+B0D26                             00000006
+B0D27                             00000007
+B0D3                              00000E29
+B0D30                             00000000
+B0D31                             00000001
+B0D32                             00000002
+B0D33                             00000003
+B0D34                             00000004
+B0D35                             00000005
+B0D36                             00000006
+B0D37                             00000007
+B0D4                              00000E2A
+B0D40                             00000000
+B0D41                             00000001
+B0D42                             00000002
+B0D43                             00000003
+B0D44                             00000004
+B0D45                             00000005
+B0D46                             00000006
+B0D47                             00000007
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE 15
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+B0D5                              00000E2B
+B0D50                             00000000
+B0D51                             00000001
+B0D52                             00000002
+B0D53                             00000003
+B0D54                             00000004
+B0D55                             00000005
+B0D56                             00000006
+B0D57                             00000007
+B0D6                              00000E2C
+B0D60                             00000000
+B0D61                             00000001
+B0D62                             00000002
+B0D63                             00000003
+B0D64                             00000004
+B0D65                             00000005
+B0D66                             00000006
+B0D67                             00000007
+B0D7                              00000E2D
+B0D70                             00000000
+B0D71                             00000001
+B0D72                             00000002
+B0D73                             00000003
+B0D74                             00000004
+B0D75                             00000005
+B0D76                             00000006
+B0D77                             00000007
+B0DLC                             00000E25
+B0EIDH                            00000E23
+B0EIDL                            00000E24
+B0IE                              00000002
+B0SIDH                            00000E21
+B0SIDL                            00000E22
+B0TXEN                            00000002
+B1CON                             00000E30
+B1D0                              00000E36
+B1D00                             00000000
+B1D01                             00000001
+B1D02                             00000002
+B1D03                             00000003
+B1D04                             00000004
+B1D05                             00000005
+B1D06                             00000006
+B1D07                             00000007
+B1D1                              00000E37
+B1D10                             00000000
+B1D11                             00000001
+B1D12                             00000002
+B1D13                             00000003
+B1D14                             00000004
+B1D15                             00000005
+B1D16                             00000006
+B1D17                             00000007
+B1D2                              00000E38
+B1D20                             00000000
+B1D21                             00000001
+B1D22                             00000002
+B1D23                             00000003
+B1D24                             00000004
+B1D25                             00000005
+B1D26                             00000006
+B1D27                             00000007
+B1D3                              00000E39
+B1D30                             00000000
+B1D31                             00000001
+B1D32                             00000002
+B1D33                             00000003
+B1D34                             00000004
+B1D35                             00000005
+B1D36                             00000006
+B1D37                             00000007
+B1D4                              00000E3A
+B1D40                             00000000
+B1D41                             00000001
+B1D42                             00000002
+B1D43                             00000003
+B1D44                             00000004
+B1D45                             00000005
+B1D46                             00000006
+B1D47                             00000007
+B1D5                              00000E3B
+B1D50                             00000000
+B1D51                             00000001
+B1D52                             00000002
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE 16
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+B1D53                             00000003
+B1D54                             00000004
+B1D55                             00000005
+B1D56                             00000006
+B1D57                             00000007
+B1D6                              00000E3C
+B1D60                             00000000
+B1D61                             00000001
+B1D62                             00000002
+B1D63                             00000003
+B1D64                             00000004
+B1D65                             00000005
+B1D66                             00000006
+B1D67                             00000007
+B1D7                              00000E3D
+B1D70                             00000000
+B1D71                             00000001
+B1D72                             00000002
+B1D73                             00000003
+B1D74                             00000004
+B1D75                             00000005
+B1D76                             00000006
+B1D77                             00000007
+B1DLC                             00000E35
+B1EIDH                            00000E33
+B1EIDL                            00000E34
+B1IE                              00000003
+B1SIDH                            00000E31
+B1SIDL                            00000E32
+B1TXEN                            00000003
+B2CON                             00000E40
+B2D0                              00000E46
+B2D00                             00000000
+B2D01                             00000001
+B2D02                             00000002
+B2D03                             00000003
+B2D04                             00000004
+B2D05                             00000005
+B2D06                             00000006
+B2D07                             00000007
+B2D1                              00000E47
+B2D10                             00000000
+B2D11                             00000001
+B2D12                             00000002
+B2D13                             00000003
+B2D14                             00000004
+B2D15                             00000005
+B2D16                             00000006
+B2D17                             00000007
+B2D2                              00000E48
+B2D20                             00000000
+B2D21                             00000001
+B2D22                             00000002
+B2D23                             00000003
+B2D24                             00000004
+B2D25                             00000005
+B2D26                             00000006
+B2D27                             00000007
+B2D3                              00000E49
+B2D30                             00000000
+B2D31                             00000001
+B2D32                             00000002
+B2D33                             00000003
+B2D34                             00000004
+B2D35                             00000005
+B2D36                             00000006
+B2D37                             00000007
+B2D4                              00000E4A
+B2D40                             00000000
+B2D41                             00000001
+B2D42                             00000002
+B2D43                             00000003
+B2D44                             00000004
+B2D45                             00000005
+B2D46                             00000006
+B2D47                             00000007
+B2D5                              00000E4B
+B2D50                             00000000
+B2D51                             00000001
+B2D52                             00000002
+B2D53                             00000003
+B2D54                             00000004
+B2D55                             00000005
+B2D56                             00000006
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE 17
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+B2D57                             00000007
+B2D6                              00000E4C
+B2D60                             00000000
+B2D61                             00000001
+B2D62                             00000002
+B2D63                             00000003
+B2D64                             00000004
+B2D65                             00000005
+B2D66                             00000006
+B2D67                             00000007
+B2D7                              00000E4D
+B2D70                             00000000
+B2D71                             00000001
+B2D72                             00000002
+B2D73                             00000003
+B2D74                             00000004
+B2D75                             00000005
+B2D76                             00000006
+B2D77                             00000007
+B2DLC                             00000E45
+B2EIDH                            00000E43
+B2EIDL                            00000E44
+B2IE                              00000004
+B2SIDH                            00000E41
+B2SIDL                            00000E42
+B2TXEN                            00000004
+B32__B2BCD_BIT                    00000192
+B32__B2BCD_LOOP                   0000019A
+B32__BCD2ASCII                    000001CE
+B32__BCD2A_LOOP                   000001EE
+B32__BCD_ASC                      00000312
+B32__BIN                          00000317
+B32__BIN2BCD                      00000178
+B32__BIT                          0000030C
+B32__FSR0H                        0000030E
+B32__FSR0L                        0000030F
+B32__FSR1H                        00000310
+B32__FSR1L                        00000311
+B32__OUTCTR                       0000030D
+B3CON                             00000E50
+B3D0                              00000E56
+B3D00                             00000000
+B3D01                             00000001
+B3D02                             00000002
+B3D03                             00000003
+B3D04                             00000004
+B3D05                             00000005
+B3D06                             00000006
+B3D07                             00000007
+B3D1                              00000E57
+B3D10                             00000000
+B3D11                             00000001
+B3D12                             00000002
+B3D13                             00000003
+B3D14                             00000004
+B3D15                             00000005
+B3D16                             00000006
+B3D17                             00000007
+B3D2                              00000E58
+B3D20                             00000000
+B3D21                             00000001
+B3D22                             00000002
+B3D23                             00000003
+B3D24                             00000004
+B3D25                             00000005
+B3D26                             00000006
+B3D27                             00000007
+B3D3                              00000E59
+B3D30                             00000000
+B3D31                             00000001
+B3D32                             00000002
+B3D33                             00000003
+B3D34                             00000004
+B3D35                             00000005
+B3D36                             00000006
+B3D37                             00000007
+B3D4                              00000E5A
+B3D40                             00000000
+B3D41                             00000001
+B3D42                             00000002
+B3D43                             00000003
+B3D44                             00000004
+B3D45                             00000005
+B3D46                             00000006
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE 18
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+B3D47                             00000007
+B3D5                              00000E5B
+B3D50                             00000000
+B3D51                             00000001
+B3D52                             00000002
+B3D53                             00000003
+B3D54                             00000004
+B3D55                             00000005
+B3D56                             00000006
+B3D57                             00000007
+B3D6                              00000E5C
+B3D60                             00000000
+B3D61                             00000001
+B3D62                             00000002
+B3D63                             00000003
+B3D64                             00000004
+B3D65                             00000005
+B3D66                             00000006
+B3D67                             00000007
+B3D7                              00000E5D
+B3D70                             00000000
+B3D71                             00000001
+B3D72                             00000002
+B3D73                             00000003
+B3D74                             00000004
+B3D75                             00000005
+B3D76                             00000006
+B3D77                             00000007
+B3DLC                             00000E55
+B3EIDH                            00000E53
+B3EIDL                            00000E54
+B3IE                              00000005
+B3SIDH                            00000E51
+B3SIDL                            00000E52
+B3TXEN                            00000005
+B46D77                            00000007
+B4CON                             00000E60
+B4D0                              00000E66
+B4D00                             00000000
+B4D01                             00000001
+B4D02                             00000002
+B4D03                             00000003
+B4D04                             00000004
+B4D05                             00000005
+B4D06                             00000006
+B4D07                             00000007
+B4D1                              00000E67
+B4D10                             00000000
+B4D11                             00000001
+B4D12                             00000002
+B4D13                             00000003
+B4D14                             00000004
+B4D15                             00000005
+B4D16                             00000006
+B4D17                             00000007
+B4D2                              00000E68
+B4D20                             00000000
+B4D21                             00000001
+B4D22                             00000002
+B4D23                             00000003
+B4D24                             00000004
+B4D25                             00000005
+B4D26                             00000006
+B4D27                             00000007
+B4D3                              00000E69
+B4D30                             00000000
+B4D31                             00000001
+B4D32                             00000002
+B4D33                             00000003
+B4D34                             00000004
+B4D35                             00000005
+B4D36                             00000006
+B4D37                             00000007
+B4D4                              00000E6A
+B4D40                             00000000
+B4D41                             00000001
+B4D42                             00000002
+B4D43                             00000003
+B4D44                             00000004
+B4D45                             00000005
+B4D46                             00000006
+B4D47                             00000007
+B4D5                              00000E6B
+B4D50                             00000000
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE 19
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+B4D51                             00000001
+B4D52                             00000002
+B4D53                             00000003
+B4D54                             00000004
+B4D55                             00000005
+B4D56                             00000006
+B4D57                             00000007
+B4D6                              00000E6C
+B4D60                             00000000
+B4D61                             00000001
+B4D62                             00000002
+B4D63                             00000003
+B4D64                             00000004
+B4D65                             00000005
+B4D66                             00000006
+B4D67                             00000007
+B4D7                              00000E6D
+B4D70                             00000000
+B4D71                             00000001
+B4D72                             00000002
+B4D73                             00000003
+B4D74                             00000004
+B4D75                             00000005
+B4D76                             00000006
+B4D77                             00000007
+B4DLC                             00000E65
+B4EIDH                            00000E63
+B4EIDL                            00000E64
+B4IE                              00000006
+B4SIDH                            00000E61
+B4SIDL                            00000E62
+B4TXEN                            00000006
+B57D07                            00000007
+B57D23                            00000003
+B5CON                             00000E70
+B5D0                              00000E76
+B5D00                             00000000
+B5D01                             00000001
+B5D02                             00000002
+B5D03                             00000003
+B5D04                             00000004
+B5D05                             00000005
+B5D06                             00000006
+B5D07                             00000007
+B5D1                              00000E77
+B5D10                             00000000
+B5D11                             00000001
+B5D12                             00000002
+B5D13                             00000003
+B5D14                             00000004
+B5D15                             00000005
+B5D16                             00000006
+B5D17                             00000007
+B5D2                              00000E78
+B5D20                             00000000
+B5D21                             00000001
+B5D22                             00000002
+B5D23                             00000003
+B5D24                             00000004
+B5D25                             00000005
+B5D26                             00000006
+B5D27                             00000007
+B5D3                              00000E79
+B5D30                             00000000
+B5D31                             00000001
+B5D32                             00000002
+B5D33                             00000003
+B5D34                             00000004
+B5D35                             00000005
+B5D36                             00000006
+B5D37                             00000007
+B5D4                              00000E7A
+B5D40                             00000000
+B5D41                             00000001
+B5D42                             00000002
+B5D43                             00000003
+B5D44                             00000004
+B5D45                             00000005
+B5D46                             00000006
+B5D47                             00000007
+B5D5                              00000E7B
+B5D50                             00000000
+B5D51                             00000001
+B5D52                             00000002
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE 20
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+B5D53                             00000003
+B5D54                             00000004
+B5D55                             00000005
+B5D56                             00000006
+B5D57                             00000007
+B5D6                              00000E7C
+B5D60                             00000000
+B5D61                             00000001
+B5D62                             00000002
+B5D63                             00000003
+B5D64                             00000004
+B5D65                             00000005
+B5D66                             00000006
+B5D67                             00000007
+B5D7                              00000E7D
+B5D70                             00000000
+B5D71                             00000001
+B5D72                             00000002
+B5D73                             00000003
+B5D74                             00000004
+B5D75                             00000005
+B5D76                             00000006
+B5D77                             00000007
+B5DLC                             00000E75
+B5EIDH                            00000E73
+B5EIDL                            00000E74
+B5IE                              00000007
+B5SIDH                            00000E71
+B5SIDL                            00000E72
+B5TXEN                            00000007
+BANKED                            00000001
+BAUDCON                           00000FB8
+BAUDCTL                           00000FB8
+BAUDTBLH                          0001502A
+BAUDTBLL                          00015054
+BCLIE                             00000003
+BCLIF                             00000003
+BCLIP                             00000003
+BF                                00000000
+BGST                              00000005
+BIE0                              00000DFA
+BOR                               00000000
+BRG16                             00000003
+BRGCON1                           00000F70
+BRGCON2                           00000F71
+BRGCON3                           00000F72
+BRGH                              00000002
+BRP0                              00000000
+BRP1                              00000001
+BRP2                              00000002
+BRP3                              00000003
+BRP4                              00000004
+BRP5                              00000005
+BSEL0                             00000DF8
+BSR                               00000FE0
+C                                 00000000
+C1INA                             00000001
+C1INB                             00000000
+C1INV                             00000004
+C1OUT                             00000006
+C2INA                             00000003
+C2INB                             00000002
+C2INV                             00000005
+C2OUT                             00000007
+CANCAP                            00000004
+CANCON                            00000F6F
+CANCON_RO0                        00000F5F
+CANCON_RO1                        00000F4F
+CANCON_RO2                        00000F3F
+CANCON_RO3                        00000F2F
+CANCON_RO4                        00000E7F
+CANCON_RO5                        00000E6F
+CANCON_RO6                        00000E5F
+CANCON_RO7                        00000E4F
+CANCON_RO8                        00000E3F
+CANCON_RO9                        00000E2F
+CANRX                             00000003
+CANSTAT                           00000F6E
+CANSTAT_RO0                       00000F5E
+CANSTAT_RO1                       00000F4E
+CANSTAT_RO2                       00000F3E
+CANSTAT_RO3                       00000F2E
+CANSTAT_RO4                       00000E7E
+CANSTAT_RO5                       00000E6E
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE 21
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+CANSTAT_RO6                       00000E5E
+CANSTAT_RO7                       00000E4E
+CANSTAT_RO8                       00000E3E
+CANSTAT_RO9                       00000E2E
+CANTX                             00000002
+CCP1                              00000002
+CCP1CON                           00000FBD
+CCP1IE                            00000002
+CCP1IF                            00000002
+CCP1IP                            00000002
+CCP1M0                            00000000
+CCP1M1                            00000001
+CCP1M2                            00000002
+CCP1M3                            00000003
+CCPR1                             00000FBE
+CCPR1H                            00000FBF
+CCPR1L                            00000FBE
+CFGS                              00000006
+CHS0                              00000002
+CHS1                              00000003
+CHS2                              00000004
+CHS3                              00000005
+CIOCON                            00000F73
+CIS                               00000003
+CK                                00000006
+CKE                               00000006
+CKP                               00000004
+CLKI                              00000007
+CLKO                              00000006
+CLR_NEXT_RX                       00000024
+CLR_NEXT_TX                       00000016
+CM0                               00000000
+CM1                               00000001
+CM2                               00000002
+CMCON                             00000FB4
+CMIE                              00000006
+CMIF                              00000006
+CMIP                              00000006
+COMSTAT                           00000F74
+CREN                              00000004
+CS                                00000002
+CSRC                              00000007
+CVR0                              00000000
+CVR1                              00000001
+CVR2                              00000002
+CVR3                              00000003
+CVRCON                            00000FB5
+CVREF_CVRCON                      00000004
+CVREF_PORTA                       00000000
+CVREN                             00000007
+CVROE                             00000006
+CVRR                              00000005
+CVRSS                             00000004
+D                                 00000005
+DATA_ADDRESS                      00000005
+DC                                00000001
+DC1B0                             00000004
+DC1B1                             00000005
+DDRA                              TRISA
+DDRB                              TRISB
+DDRC                              TRISC
+DDRD                              TRISD
+DDRE                              TRISE
+DFLC0                             00000000
+DFLC1                             00000001
+DFLC2                             00000002
+DFLC3                             00000003
+DFLC4                             00000004
+DLC0                              00000000
+DLC1                              00000001
+DLC2                              00000002
+DLC3                              00000003
+DONE                              00000001
+D_A                               00000005
+D_NOT_A                           00000005
+ECANCON                           00000F77
+ECCP1                             00000004
+ECCP1AS                           00000FB6
+ECCP1CON                          00000FBA
+ECCP1DEL                          00000FB7
+ECCP1IE                           00000000
+ECCP1IF                           00000000
+ECCP1IP                           00000000
+ECCP1M0                           00000000
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE 22
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+ECCP1M1                           00000001
+ECCP1M2                           00000002
+ECCP1M3                           00000003
+ECCPAS0                           00000004
+ECCPAS1                           00000005
+ECCPAS2                           00000006
+ECCPASE                           00000007
+ECCPR1                            00000FBB
+ECCPR1H                           00000FBC
+ECCPR1L                           00000FBB
+ECHO_7BITS                        000000A4
+ECHO_NOT_DELETE                   000000B2
+ECHO_NOT_ESCAPE                   000000BC
+ECHO_PLAIN                        000000C8
+EDC1B0                            00000004
+EDC1B1                            00000005
+EEADR                             00000FA9
+EEADRH                            00000FAA
+EECON1                            00000FA6
+EECON2                            00000FA7
+EEDATA                            00000FA8
+EEIE                              00000004
+EEIF                              00000004
+EEIP                              00000004
+EEPGD                             00000007
+EICODE0                           00000000
+EICODE1                           00000001
+EICODE1_ICODE0                    00000001
+EICODE2                           00000002
+EICODE2_ICODE1                    00000002
+EICODE3                           00000003
+EICODE3_ICODE2                    00000003
+EICODE4                           00000004
+EID0                              00000000
+EID1                              00000001
+EID10                             00000002
+EID11                             00000003
+EID12                             00000004
+EID13                             00000005
+EID14                             00000006
+EID15                             00000007
+EID16                             00000000
+EID17                             00000001
+EID2                              00000002
+EID3                              00000003
+EID4                              00000004
+EID5                              00000005
+EID6                              00000006
+EID7                              00000007
+EID8                              00000000
+EID9                              00000001
+ENDRHI                            00000005
+EPWM1M0                           00000006
+EPWM1M1                           00000007
+ERRIE                             00000005
+ERRIF                             00000005
+ERRIP                             00000005
+ERR_FRAMING                       00000286
+ERR_OVERRUN                       0000028A
+EWARN                             00000000
+EWIN0                             00000000
+EWIN1                             00000001
+EWIN2                             00000002
+EWIN3                             00000003
+EWIN4                             00000004
+EXID                              00000003
+EXIDE                             00000003
+EXIDEN                            00000003
+F                                 00000005
+F0BP_0                            00000000
+F0BP_1                            00000001
+F0BP_2                            00000002
+F0BP_3                            00000003
+F10BP_0                           00000000
+F10BP_1                           00000001
+F10BP_2                           00000002
+F10BP_3                           00000003
+F11BP_0                           00000004
+F11BP_1                           00000005
+F11BP_2                           00000006
+F11BP_3                           00000007
+F12BP_0                           00000000
+F12BP_1                           00000001
+F12BP_2                           00000002
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE 23
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+F12BP_3                           00000003
+F13BP_0                           00000004
+F13BP_1                           00000005
+F13BP_2                           00000006
+F13BP_3                           00000007
+F14BP_0                           00000000
+F14BP_1                           00000001
+F14BP_2                           00000002
+F14BP_3                           00000003
+F15BP_0                           00000004
+F15BP_1                           00000005
+F15BP_2                           00000006
+F15BP_3                           00000007
+F1BP_0                            00000004
+F1BP_1                            00000005
+F1BP_2                            00000006
+F1BP_3                            00000007
+F2BP_0                            00000000
+F2BP_1                            00000001
+F2BP_2                            00000002
+F2BP_3                            00000003
+F3BP_0                            00000004
+F3BP_1                            00000005
+F3BP_2                            00000006
+F3BP_3                            00000007
+F4BP_0                            00000000
+F4BP_1                            00000001
+F4BP_2                            00000002
+F4BP_3                            00000003
+F5BP_0                            00000004
+F5BP_1                            00000005
+F5BP_2                            00000006
+F5BP_3                            00000007
+F6BP_0                            00000000
+F6BP_1                            00000001
+F6BP_2                            00000002
+F6BP_3                            00000003
+F7BP_0                            00000004
+F7BP_1                            00000005
+F7BP_2                            00000006
+F7BP_3                            00000007
+F8BP_0                            00000000
+F8BP_1                            00000001
+F8BP_2                            00000002
+F8BP_3                            00000003
+F9BP_0                            00000004
+F9BP_1                            00000005
+F9BP_2                            00000006
+F9BP_3                            00000007
+FAST                              00000001
+FERR                              00000002
+FIFOEMPTY                         00000007
+FIFOMWIE                          00000000
+FIFOWM                            00000005
+FIFOWMIE                          00000000
+FIFOWMIF                          00000000
+FIFOWMIP                          00000000
+FIL0_0                            00000000
+FIL0_1                            00000001
+FIL10_0                           00000004
+FIL10_1                           00000005
+FIL11_0                           00000006
+FIL11_1                           00000007
+FIL12_0                           00000000
+FIL12_1                           00000001
+FIL13_0                           00000002
+FIL13_1                           00000003
+FIL14_0                           00000004
+FIL14_1                           00000005
+FIL15_0                           00000006
+FIL15_1                           00000007
+FIL1_0                            00000002
+FIL1_1                            00000003
+FIL2_0                            00000004
+FIL2_1                            00000005
+FIL3_0                            00000006
+FIL3_1                            00000007
+FIL4_0                            00000000
+FIL4_1                            00000001
+FIL5_0                            00000002
+FIL5_1                            00000003
+FIL6_0                            00000004
+FIL6_1                            00000005
+FIL7_0                            00000006
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE 24
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+FIL7_1                            00000007
+FIL8_0                            00000000
+FIL8_1                            00000001
+FIL9_0                            00000002
+FIL9_1                            00000003
+FILHIT0                           00000000
+FILHIT0_TXPRI0                    00000000
+FILHIT1                           00000001
+FILHIT1_TXPRI1                    00000001
+FILHIT2                           00000002
+FILHIT2_RTREN                     00000002
+FILHIT3                           00000003
+FILHIT3_TXREQ                     00000003
+FILHIT4                           00000004
+FILHIT4_TXERR                     00000004
+FLC0                              00000000
+FLC1                              00000001
+FLC2                              00000002
+FLC3                              00000003
+FLC4                              00000004
+FLT0                              00000000
+FP0                               00000000
+FP1                               00000001
+FP2                               00000002
+FP3                               00000003
+FREE                              00000004
+FSR0                              00000000
+FSR0H                             00000FEA
+FSR0L                             00000FE9
+FSR1                              00000001
+FSR1H                             00000FE2
+FSR1H_SAVE                        0000030A
+FSR1L                             00000FE1
+FSR1L_SAVE                        0000030B
+FSR2                              00000002
+FSR2H                             00000FDA
+FSR2L                             00000FD9
+GCEN                              00000007
+GC_SPIN                           0000014E
+GIE                               00000007
+GIEH                              00000007
+GIEL                              00000006
+GIE_GIEH                          00000007
+GO                                00000001
+GO_DONE                           00000001
+GO_NOT_DONE                       00000001
+HEXTBL                            00015000
+HLVDCON                           00000FD2
+HLVDEN                            00000004
+HLVDIE                            00000002
+HLVDIF                            00000002
+HLVDIN                            00000005
+HLVDIP                            00000002
+HLVDL0                            00000000
+HLVDL1                            00000001
+HLVDL2                            00000002
+HLVDL3                            00000003
+I2C_DAT                           00000005
+I2C_READ                          00000002
+I2C_START                         00000003
+I2C_STOP                          00000004
+IBF                               00000007
+IBOV                              00000005
+ICODE0                            00000000
+ICODE1                            00000001
+ICODE2                            00000002
+ICODE3                            00000003
+ICODE4                            00000004
+IDLEN                             00000007
+INDF0                             00000FEF
+INDF1                             00000FE7
+INDF2                             00000FDF
+INT0                              00000000
+INT0E                             00000004
+INT0F                             00000001
+INT0IE                            00000004
+INT0IF                            00000001
+INT1                              00000001
+INT1E                             00000003
+INT1F                             00000000
+INT1IE                            00000003
+INT1IF                            00000000
+INT1IP                            00000006
+INT1P                             00000006
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE 25
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+INT2                              00000002
+INT2E                             00000004
+INT2F                             00000001
+INT2IE                            00000004
+INT2IF                            00000001
+INT2IP                            00000007
+INT2P                             00000007
+INTCON                            00000FF2
+INTCON2                           00000FF1
+INTCON3                           00000FF0
+INTEDG0                           00000006
+INTEDG1                           00000005
+INTEDG2                           00000004
+INTSCR                            00000007
+INTSRC                            00000007
+IOFS                              00000002
+IPEN                              00000007
+IPR1                              00000F9F
+IPR2                              00000FA2
+IPR3                              00000FA5
+IRCF0                             00000004
+IRCF1                             00000005
+IRCF2                             00000006
+IRVST                             00000005
+IRXIE                             00000007
+IRXIF                             00000007
+IRXIP                             00000007
+IVRST                             00000005
+JTOFF                             00000001
+JTOFF_FILHIT1                     00000001
+KBI0                              00000004
+KBI1                              00000005
+KBI2                              00000006
+KBI3                              00000007
+LATA                              00000F89
+LATA0                             00000000
+LATA1                             00000001
+LATA2                             00000002
+LATA3                             00000003
+LATA4                             00000004
+LATA5                             00000005
+LATA6                             00000006
+LATA7                             00000007
+LATB                              00000F8A
+LATB0                             00000000
+LATB1                             00000001
+LATB2                             00000002
+LATB3                             00000003
+LATB4                             00000004
+LATB5                             00000005
+LATB6                             00000006
+LATB7                             00000007
+LATC                              00000F8B
+LATC0                             00000000
+LATC1                             00000001
+LATC2                             00000002
+LATC3                             00000003
+LATC4                             00000004
+LATC5                             00000005
+LATC6                             00000006
+LATC7                             00000007
+LATD                              00000F8C
+LATD0                             00000000
+LATD1                             00000001
+LATD2                             00000002
+LATD3                             00000003
+LATD4                             00000004
+LATD5                             00000005
+LATD6                             00000006
+LATD7                             00000007
+LATE                              00000F8D
+LATE0                             00000000
+LATE1                             00000001
+LATE2                             00000002
+LUMOS_ARCH                        LUMOS_ARCH_4685
+LUMOS_ARCH_14K50                  (0x1450)
+LUMOS_ARCH_4685                   (0x4685)
+LUMOS_CHIP_4CHANNEL               0x44
+LUMOS_CHIP_MASTER                 0x41
+LUMOS_CHIP_QSCC                   0x45
+LUMOS_CHIP_QSRC                   0x46
+LUMOS_CHIP_SLAVE                  0x42
+LUMOS_CHIP_STANDALONE             0x43
+LUMOS_CHIP_TYPE                   LUMOS_CHIP_QSRC
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE 26
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+LUMOS_CONFIG_INC                  
+LUMOS_INTERNAL                    0x58
+LUMOS_SLICE_TIMER                 LUMOS_INTERNAL
+LUMOS_ZC                          0x55
+LVDCON                            00000FD2
+LVDEN                             00000004
+LVDIE                             00000002
+LVDIF                             00000002
+LVDIN                             00000005
+LVDIP                             00000002
+LVDL0                             00000000
+LVDL1                             00000001
+LVDL2                             00000002
+LVDL3                             00000003
+LVV0                              00000000
+LVV1                              00000001
+LVV2                              00000002
+LVV3                              00000003
+MDSEL0                            00000006
+MDSEL1                            00000007
+MSEL0                             00000DF0
+MSEL1                             00000DF1
+MSEL2                             00000DF2
+MSEL3                             00000DF3
+N                                 00000004
+NOT_A                             00000005
+NOT_ADDRESS                       00000005
+NOT_BOR                           00000000
+NOT_CS                            00000002
+NOT_DONE                          00000001
+NOT_FIFOEMPTY                     00000007
+NOT_PD                            00000002
+NOT_POR                           00000001
+NOT_RBPU                          00000007
+NOT_RD                            00000000
+NOT_RI                            00000004
+NOT_SS                            00000005
+NOT_T1SYNC                        00000002
+NOT_T3SYNC                        00000002
+NOT_TO                            00000003
+NOT_W                             00000002
+NOT_WR                            00000001
+NOT_WRITE                         00000002
+NUM_CHANNELS                      (.20)
+OBF                               00000006
+OERR                              00000001
+OPMODE0                           00000005
+OPMODE1                           00000006
+OPMODE2                           00000007
+OSC1                              00000007
+OSC2                              00000006
+OSCCON                            00000FD3
+OSCFIE                            00000007
+OSCFIF                            00000007
+OSCFIP                            00000007
+OSCTUNE                           00000F9B
+OSTS                              00000003
+OV                                00000003
+P                                 00000004
+P1A                               00000004
+P1B                               00000005
+P1C                               00000006
+P1D                               00000007
+PC                                00000FF9
+PCFG0                             00000000
+PCFG1                             00000001
+PCFG2                             00000002
+PCFG3                             00000003
+PCL                               00000FF9
+PCLATH                            00000FFA
+PCLATU                            00000FFB
+PD                                00000002
+PDC0                              00000000
+PDC1                              00000001
+PDC2                              00000002
+PDC3                              00000003
+PDC4                              00000004
+PDC5                              00000005
+PDC6                              00000006
+PEIE                              00000006
+PEIE_GIEL                         00000006
+PEN                               00000002
+PGC                               00000006
+PGD                               00000007
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE 27
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+PGM                               00000005
+PIE1                              00000F9D
+PIE2                              00000FA0
+PIE3                              00000FA3
+PIR1                              00000F9E
+PIR2                              00000FA1
+PIR3                              00000FA4
+PLLEN                             00000006
+PLUSW0                            00000FEB
+PLUSW1                            00000FE3
+PLUSW2                            00000FDB
+POR                               00000001
+PORTA                             00000F80
+PORTB                             00000F81
+PORTC                             00000F82
+PORTD                             00000F83
+PORTE                             00000F84
+POSTDEC0                          00000FED
+POSTDEC1                          00000FE5
+POSTDEC2                          00000FDD
+POSTINC0                          00000FEE
+POSTINC1                          00000FE6
+POSTINC2                          00000FDE
+PR2                               00000FCB
+PREINC0                           00000FEC
+PREINC1                           00000FE4
+PREINC2                           00000FDC
+PROD                              00000FF3
+PRODH                             00000FF4
+PRODL                             00000FF3
+PRSEG0                            00000000
+PRSEG1                            00000001
+PRSEG2                            00000002
+PRSEN                             00000007
+PSA                               00000003
+PSP0                              00000000
+PSP1                              00000001
+PSP2                              00000002
+PSP3                              00000003
+PSP4                              00000004
+PSP5                              00000005
+PSP6                              00000006
+PSP7                              00000007
+PSPIE                             00000007
+PSPIF                             00000007
+PSPIP                             00000007
+PSPMODE                           00000004
+PSSAC0                            00000002
+PSSAC1                            00000003
+PSSBD0                            00000000
+PSSBD1                            00000001
+QSCC_PORT                         (1)
+R                                 00000002
+RA0                               00000000
+RA1                               00000001
+RA2                               00000002
+RA3                               00000003
+RA4                               00000004
+RA5                               00000005
+RA6                               00000006
+RA7                               00000007
+RB0_B0DLC                         00000004
+RB0_B1DLC                         00000004
+RB0_B2DLC                         00000004
+RB0_B3DLC                         00000004
+RB0_B4DLC                         00000004
+RB0_B5DLC                         00000004
+RB0_DDRB                          00000000
+RB0_PORTB                         00000000
+RB0_RXB0DLC                       00000004
+RB0_RXB1DLC                       00000004
+RB0_TRISB                         00000000
+RB1_B0DLC                         00000005
+RB1_B1DLC                         00000005
+RB1_B2DLC                         00000005
+RB1_B3DLC                         00000005
+RB1_B4DLC                         00000005
+RB1_B5DLC                         00000005
+RB1_DDRB                          00000001
+RB1_PORTB                         00000001
+RB1_RXB0DLC                       00000005
+RB1_RXB1DLC                       00000005
+RB1_TRISB                         00000001
+RB2                               00000002
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE 28
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+RB3                               00000003
+RB4                               00000004
+RB5                               00000005
+RB6                               00000006
+RB7                               00000007
+RBIE                              00000003
+RBIF                              00000000
+RBIP                              00000000
+RBPU                              00000007
+RC0                               00000000
+RC1                               00000001
+RC2                               00000002
+RC3                               00000003
+RC4                               00000004
+RC5                               00000005
+RC6                               00000006
+RC7                               00000007
+RCEN                              00000003
+RCIDL                             00000006
+RCIE                              00000005
+RCIF                              00000005
+RCIP                              00000005
+RCON                              00000FD0
+RCREG                             00000FAE
+RCSTA                             00000FAB
+RD                                00000000
+RD0                               00000000
+RD1                               00000001
+RD16                              00000007
+RD2                               00000002
+RD3                               00000003
+RD4                               00000004
+RD5                               00000005
+RD6                               00000006
+RD7                               00000007
+RE0                               00000000
+RE1                               00000001
+RE2                               00000002
+RE3                               00000003
+READ_DONE                         00000144
+READ_OK                           0000012E
+READ_WRITE                        00000002
+REC0                              00000000
+REC1                              00000001
+REC2                              00000002
+REC3                              00000003
+REC4                              00000004
+REC5                              00000005
+REC6                              00000006
+REC7                              00000007
+REQOP0                            00000005
+REQOP1                            00000006
+REQOP2                            00000007
+RESRB0                            00000004
+RESRB1                            00000005
+RI                                00000004
+ROLE_MASTER                       (0)
+ROLE_SLAVE                        (0)
+ROLE_STANDALONE                   (1)
+RSEN                              00000001
+RTREN                             00000002
+RTRRO                             00000005
+RX                                00000007
+RX9                               00000006
+RX9D                              00000000
+RXB0CON                           00000F60
+RXB0D0                            00000F66
+RXB0D00                           00000000
+RXB0D01                           00000001
+RXB0D02                           00000002
+RXB0D03                           00000003
+RXB0D04                           00000004
+RXB0D05                           00000005
+RXB0D06                           00000006
+RXB0D07                           00000007
+RXB0D1                            00000F67
+RXB0D10                           00000000
+RXB0D11                           00000001
+RXB0D12                           00000002
+RXB0D13                           00000003
+RXB0D14                           00000004
+RXB0D15                           00000005
+RXB0D16                           00000006
+RXB0D17                           00000007
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE 29
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+RXB0D2                            00000F68
+RXB0D20                           00000000
+RXB0D21                           00000001
+RXB0D22                           00000002
+RXB0D23                           00000003
+RXB0D24                           00000004
+RXB0D25                           00000005
+RXB0D26                           00000006
+RXB0D27                           00000007
+RXB0D3                            00000F69
+RXB0D30                           00000000
+RXB0D31                           00000001
+RXB0D32                           00000002
+RXB0D33                           00000003
+RXB0D34                           00000004
+RXB0D35                           00000005
+RXB0D36                           00000006
+RXB0D37                           00000007
+RXB0D4                            00000F6A
+RXB0D40                           00000000
+RXB0D41                           00000001
+RXB0D42                           00000002
+RXB0D43                           00000003
+RXB0D44                           00000004
+RXB0D45                           00000005
+RXB0D46                           00000006
+RXB0D47                           00000007
+RXB0D5                            00000F6B
+RXB0D50                           00000000
+RXB0D51                           00000001
+RXB0D52                           00000002
+RXB0D53                           00000003
+RXB0D54                           00000004
+RXB0D55                           00000005
+RXB0D56                           00000006
+RXB0D57                           00000007
+RXB0D6                            00000F6C
+RXB0D60                           00000000
+RXB0D61                           00000001
+RXB0D62                           00000002
+RXB0D63                           00000003
+RXB0D64                           00000004
+RXB0D65                           00000005
+RXB0D66                           00000006
+RXB0D67                           00000007
+RXB0D7                            00000F6D
+RXB0D70                           00000000
+RXB0D71                           00000001
+RXB0D72                           00000002
+RXB0D73                           00000003
+RXB0D74                           00000004
+RXB0D75                           00000005
+RXB0D76                           00000006
+RXB0D77                           00000007
+RXB0DBEN                          00000002
+RXB0DBEN_FILHIT2                  00000002
+RXB0DLC                           00000F65
+RXB0EIDH                          00000F63
+RXB0EIDL                          00000F64
+RXB0IE                            00000000
+RXB0IF                            00000000
+RXB0IP                            00000000
+RXB0OVFL                          00000007
+RXB0OVFL_NOT_FIFOEMPTY            00000007
+RXB0SIDH                          00000F61
+RXB0SIDL                          00000F62
+RXB1CON                           00000F50
+RXB1D0                            00000F56
+RXB1D00                           00000000
+RXB1D01                           00000001
+RXB1D02                           00000002
+RXB1D03                           00000003
+RXB1D04                           00000004
+RXB1D05                           00000005
+RXB1D06                           00000006
+RXB1D07                           00000007
+RXB1D1                            00000F57
+RXB1D10                           00000000
+RXB1D11                           00000001
+RXB1D12                           00000002
+RXB1D13                           00000003
+RXB1D14                           00000004
+RXB1D15                           00000005
+RXB1D16                           00000006
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE 30
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+RXB1D17                           00000007
+RXB1D2                            00000F58
+RXB1D20                           00000000
+RXB1D21                           00000001
+RXB1D22                           00000002
+RXB1D23                           00000003
+RXB1D24                           00000004
+RXB1D25                           00000005
+RXB1D26                           00000006
+RXB1D27                           00000007
+RXB1D3                            00000F59
+RXB1D30                           00000000
+RXB1D31                           00000001
+RXB1D32                           00000002
+RXB1D33                           00000003
+RXB1D34                           00000004
+RXB1D35                           00000005
+RXB1D36                           00000006
+RXB1D37                           00000007
+RXB1D4                            00000F5A
+RXB1D40                           00000000
+RXB1D41                           00000001
+RXB1D42                           00000002
+RXB1D43                           00000003
+RXB1D44                           00000004
+RXB1D45                           00000005
+RXB1D46                           00000006
+RXB1D47                           00000007
+RXB1D5                            00000F5B
+RXB1D50                           00000000
+RXB1D51                           00000001
+RXB1D52                           00000002
+RXB1D53                           00000003
+RXB1D54                           00000004
+RXB1D55                           00000005
+RXB1D56                           00000006
+RXB1D57                           00000007
+RXB1D6                            00000F5C
+RXB1D60                           00000000
+RXB1D61                           00000001
+RXB1D62                           00000002
+RXB1D63                           00000003
+RXB1D64                           00000004
+RXB1D65                           00000005
+RXB1D66                           00000006
+RXB1D67                           00000007
+RXB1D7                            00000F5D
+RXB1D70                           00000000
+RXB1D71                           00000001
+RXB1D72                           00000002
+RXB1D73                           00000003
+RXB1D74                           00000004
+RXB1D75                           00000005
+RXB1D76                           00000006
+RXB1D77                           00000007
+RXB1DLC                           00000F55
+RXB1EIDH                          00000F53
+RXB1EIDL                          00000F54
+RXB1IE                            00000001
+RXB1IF                            00000001
+RXB1IP                            00000001
+RXB1OVFL                          00000006
+RXB1SIDH                          00000F51
+RXB1SIDL                          00000F52
+RXBODBEN                          00000002
+RXBP                              00000003
+RXBnIE                            00000001
+RXBnIF                            00000001
+RXBnIP                            00000001
+RXBnOVFL                          00000006
+RXDATA_FULL                       00000003
+RXDATA_QUEUE                      00000001
+RXERRCNT                          00000F75
+RXF0EIDH                          00000F02
+RXF0EIDL                          00000F03
+RXF0EN                            00000000
+RXF0SIDH                          00000F00
+RXF0SIDL                          00000F01
+RXF10EIDH                         00000D76
+RXF10EIDL                         00000D77
+RXF10EN                           00000002
+RXF10SIDH                         00000D74
+RXF10SIDL                         00000D75
+RXF11EIDH                         00000D7A
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE 31
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+RXF11EIDL                         00000D7B
+RXF11EN                           00000003
+RXF11SIDH                         00000D78
+RXF11SIDL                         00000D79
+RXF12EIDH                         00000D82
+RXF12EIDL                         00000D83
+RXF12EN                           00000004
+RXF12SIDH                         00000D80
+RXF12SIDL                         00000D81
+RXF13EIDH                         00000D86
+RXF13EIDL                         00000D87
+RXF13EN                           00000005
+RXF13SIDH                         00000D84
+RXF13SIDL                         00000D85
+RXF14EIDH                         00000D8A
+RXF14EIDL                         00000D8B
+RXF14EN                           00000006
+RXF14SIDH                         00000D88
+RXF14SIDL                         00000D89
+RXF15EIDH                         00000D92
+RXF15EIDL                         00000D93
+RXF15EN                           00000007
+RXF15SIDH                         00000D90
+RXF15SIDL                         00000D91
+RXF1EIDH                          00000F06
+RXF1EIDL                          00000F07
+RXF1EN                            00000001
+RXF1SIDH                          00000F04
+RXF1SIDL                          00000F05
+RXF2EIDH                          00000F0A
+RXF2EIDL                          00000F0B
+RXF2EN                            00000002
+RXF2SIDH                          00000F08
+RXF2SIDL                          00000F09
+RXF3EIDH                          00000F0E
+RXF3EIDL                          00000F0F
+RXF3EN                            00000003
+RXF3SIDH                          00000F0C
+RXF3SIDL                          00000F0D
+RXF4EIDH                          00000F12
+RXF4EIDL                          00000F13
+RXF4EN                            00000004
+RXF4SIDH                          00000F10
+RXF4SIDL                          00000F11
+RXF5EIDH                          00000F16
+RXF5EIDL                          00000F17
+RXF5EN                            00000005
+RXF5SIDH                          00000F14
+RXF5SIDL                          00000F15
+RXF6EIDH                          00000D62
+RXF6EIDL                          00000D63
+RXF6EN                            00000006
+RXF6SIDH                          00000D60
+RXF6SIDL                          00000D61
+RXF7EIDH                          00000D66
+RXF7EIDL                          00000D67
+RXF7EN                            00000007
+RXF7SIDH                          00000D64
+RXF7SIDL                          00000D65
+RXF8EIDH                          00000D6A
+RXF8EIDL                          00000D6B
+RXF8EN                            00000000
+RXF8SIDH                          00000D68
+RXF8SIDL                          00000D69
+RXF9EIDH                          00000D72
+RXF9EIDL                          00000D73
+RXF9EN                            00000001
+RXF9SIDH                          00000D70
+RXF9SIDL                          00000D71
+RXFBCON0                          00000DE0
+RXFBCON1                          00000DE1
+RXFBCON2                          00000DE2
+RXFBCON3                          00000DE3
+RXFBCON4                          00000DE4
+RXFBCON5                          00000DE5
+RXFBCON6                          00000DE6
+RXFBCON7                          00000DE7
+RXFCON0                           00000DD4
+RXFCON1                           00000DD5
+RXFUL                             00000007
+RXFUL_TXBIF                       00000007
+RXM0                              00000005
+RXM0EIDH                          00000F1A
+RXM0EIDL                          00000F1B
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE 32
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+RXM0SIDH                          00000F18
+RXM0SIDL                          00000F19
+RXM0_RTRRO                        00000005
+RXM1                              00000006
+RXM1EIDH                          00000F1E
+RXM1EIDL                          00000F1F
+RXM1SIDH                          00000F1C
+RXM1SIDL                          00000F1D
+RXM1_TXABT                        00000006
+RXRTR                             00000006
+RXRTRRO_B0CON                     00000005
+RXRTRRO_B1CON                     00000005
+RXRTRRO_B2CON                     00000005
+RXRTRRO_B3CON                     00000005
+RXRTRRO_B4CON                     00000005
+RXRTRRO_B5CON                     00000005
+RXRTRRO_FILHIT3                   00000003
+RXRTRRO_RXB0CON                   00000003
+RXRTRRO_RXB1CON                   00000003
+RXRTRRO_TXLARB                    00000005
+RXRTR_TXRTR                       00000006
+RXWARN                            00000001
+RX_BUFFER                         00000200
+RX_BUF_END                        00000306
+RX_BUF_START                      00000305
+RX_OK                             00000264
+R_NOT_W                           00000002
+R_W                               00000002
+S                                 00000003
+SAM                               00000006
+SBOREN                            00000006
+SCK                               00000003
+SCKP                              00000004
+SCL                               00000003
+SCS0                              00000000
+SCS1                              00000001
+SDA                               00000004
+SDFLC                             00000DD8
+SDI                               00000004
+SDO                               00000005
+SEG1PH0                           00000003
+SEG1PH1                           00000004
+SEG1PH2                           00000005
+SEG2PH0                           00000000
+SEG2PH1                           00000001
+SEG2PH2                           00000002
+SEG2PHT                           00000007
+SEG2PHTS                          00000007
+SEN                               00000000
+SENDB                             00000003
+SID0                              00000005
+SID1                              00000006
+SID10                             00000007
+SID2                              00000007
+SID3                              00000000
+SID4                              00000001
+SID5                              00000002
+SID6                              00000003
+SID7                              00000004
+SID8                              00000005
+SID9                              00000006
+SIO_115200                        00000009
+SIO_1200                          00000002
+SIO_19200                         00000006
+SIO_2400                          00000003
+SIO_250000                        0000000A
+SIO_300                           00000000
+SIO_38400                         00000007
+SIO_4800                          00000004
+SIO_57600                         00000008
+SIO_600                           00000001
+SIO_9600                          00000005
+SIO_DATA_START                    00000300
+SIO_ECHO                          00000092
+SIO_ECHO_W                        0000008E
+SIO_FERR                          00000005
+SIO_FLUSH_INPUT                   00000044
+SIO_FLUSH_IN_1                    00000050
+SIO_FLUSH_OUTPUT                  0000005E
+SIO_FLUSH_OUT_1                   0000006A
+SIO_GETCHAR                       0000014C
+SIO_GETCHAR_W                     00000146
+SIO_INIT                          00000000
+SIO_INPUT                         00000301
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE 33
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+SIO_NEWLINE                       00000110
+SIO_ORUN                          00000004
+SIO_OUTPUT                        00000302
+SIO_PRINT_HEX                     0000015A
+SIO_PRINT_HEX_W                   00000156
+SIO_PUTCHAR                       000000CE
+SIO_PUTCHAR_W                     000000D2
+SIO_READ                          00000122
+SIO_READ_W                        0000011C
+SIO_RECV                          00000248
+SIO_RX_BUFFER_START               00000200
+SIO_SEND                          00000214
+SIO_SET_BAUD_W                    00000078
+SIO_STATUS                        00000300
+SIO_TABLE_START                   00015000
+SIO_TMPPC                         00000309
+SIO_TX_BUFFER_START               00000100
+SIO_WRITE                         000000E4
+SIO_WRITE_W                       000000E8
+SIO_X                             00000308
+SJW0                              00000006
+SJW1                              00000007
+SMP                               00000007
+SP0                               00000000
+SP1                               00000001
+SP2                               00000002
+SP3                               00000003
+SP4                               00000004
+SPBRG                             00000FAF
+SPBRGH                            00000FB0
+SPEN                              00000007
+SPIN_FOR_BUF_DRAIN                000000D8
+SREN                              00000005
+SRR                               00000004
+SS                                00000005
+SSPADD                            00000FC8
+SSPBUF                            00000FC9
+SSPCON1                           00000FC6
+SSPCON2                           00000FC5
+SSPEN                             00000005
+SSPIE                             00000003
+SSPIF                             00000003
+SSPIP                             00000003
+SSPM0                             00000000
+SSPM1                             00000001
+SSPM2                             00000002
+SSPM3                             00000003
+SSPOV                             00000006
+SSPSTAT                           00000FC7
+STATUS                            00000FD8
+STKFUL                            00000007
+STKOVF                            00000007
+STKPTR                            00000FFC
+STKPTR0                           00000000
+STKPTR1                           00000001
+STKPTR2                           00000002
+STKPTR3                           00000003
+STKPTR4                           00000004
+STKUNF                            00000006
+SWDTE                             00000000
+SWDTEN                            00000000
+SYNC                              00000004
+T08BIT                            00000006
+T0CKI                             00000004
+T0CON                             00000FD5
+T0CS                              00000005
+T0IE                              00000005
+T0IF                              00000002
+T0IP                              00000002
+T0PS0                             00000000
+T0PS1                             00000001
+T0PS2                             00000002
+T0PS3                             00000003
+T0SE                              00000004
+T13CKI                            00000000
+T1CKPS0                           00000004
+T1CKPS1                           00000005
+T1CON                             00000FCD
+T1INSYNC                          00000002
+T1OSCEN                           00000003
+T1OSI                             00000001
+T1OSO                             00000000
+T1RUN                             00000006
+T1SYNC                            00000002
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE 34
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+T2CKPS0                           00000000
+T2CKPS1                           00000001
+T2CON                             00000FCA
+T2OUTPS0                          00000003
+T2OUTPS1                          00000004
+T2OUTPS2                          00000005
+T2OUTPS3                          00000006
+T3CCP1                            00000003
+T3CCP2                            00000006
+T3CKPS0                           00000004
+T3CKPS1                           00000005
+T3CON                             00000FB1
+T3ECCP1                           00000006
+T3NSYNC                           00000002
+T3SYNC                            00000002
+TABLAT                            00000FF5
+TBLPTR                            00000FF6
+TBLPTRH                           00000FF7
+TBLPTRL                           00000FF6
+TBLPTRU                           00000FF8
+TEC0                              00000000
+TEC1                              00000001
+TEC2                              00000002
+TEC3                              00000003
+TEC4                              00000004
+TEC5                              00000005
+TEC6                              00000006
+TEC7                              00000007
+TMR0                              00000FD6
+TMR0H                             00000FD7
+TMR0IE                            00000005
+TMR0IF                            00000002
+TMR0IP                            00000002
+TMR0L                             00000FD6
+TMR0ON                            00000007
+TMR1                              00000FCE
+TMR1CS                            00000001
+TMR1H                             00000FCF
+TMR1IE                            00000000
+TMR1IF                            00000000
+TMR1IP                            00000000
+TMR1L                             00000FCE
+TMR1ON                            00000000
+TMR2                              00000FCC
+TMR2IE                            00000001
+TMR2IF                            00000001
+TMR2IP                            00000001
+TMR2ON                            00000002
+TMR3                              00000FB2
+TMR3CS                            00000001
+TMR3H                             00000FB3
+TMR3IE                            00000001
+TMR3IF                            00000001
+TMR3IP                            00000001
+TMR3L                             00000FB2
+TMR3ON                            00000000
+TO                                00000003
+TOS                               00000FFD
+TOSH                              00000FFE
+TOSL                              00000FFD
+TOSU                              00000FFF
+TRISA                             00000F92
+TRISA0                            00000000
+TRISA1                            00000001
+TRISA2                            00000002
+TRISA3                            00000003
+TRISA4                            00000004
+TRISA5                            00000005
+TRISA6                            00000006
+TRISA7                            00000007
+TRISB                             00000F93
+TRISB0                            00000000
+TRISB1                            00000001
+TRISB2                            00000002
+TRISB3                            00000003
+TRISB4                            00000004
+TRISB5                            00000005
+TRISB6                            00000006
+TRISB7                            00000007
+TRISC                             00000F94
+TRISC0                            00000000
+TRISC1                            00000001
+TRISC2                            00000002
+TRISC3                            00000003
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE 35
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+TRISC4                            00000004
+TRISC5                            00000005
+TRISC6                            00000006
+TRISC7                            00000007
+TRISD                             00000F95
+TRISD0                            00000000
+TRISD1                            00000001
+TRISD2                            00000002
+TRISD3                            00000003
+TRISD4                            00000004
+TRISD5                            00000005
+TRISD6                            00000006
+TRISD7                            00000007
+TRISE                             00000F96
+TRISE0                            00000000
+TRISE1                            00000001
+TRISE2                            00000002
+TRMT                              00000001
+TUN0                              00000000
+TUN1                              00000001
+TUN2                              00000002
+TUN3                              00000003
+TUN4                              00000004
+TX                                00000006
+TX9                               00000006
+TX9D                              00000000
+TXABT                             00000006
+TXB0CON                           00000F40
+TXB0D0                            00000F46
+TXB0D00                           00000000
+TXB0D01                           00000001
+TXB0D02                           00000002
+TXB0D03                           00000003
+TXB0D04                           00000004
+TXB0D05                           00000005
+TXB0D06                           00000006
+TXB0D07                           00000007
+TXB0D1                            00000F47
+TXB0D10                           00000000
+TXB0D11                           00000001
+TXB0D12                           00000002
+TXB0D13                           00000003
+TXB0D14                           00000004
+TXB0D15                           00000005
+TXB0D16                           00000006
+TXB0D17                           00000007
+TXB0D2                            00000F48
+TXB0D20                           00000000
+TXB0D21                           00000001
+TXB0D22                           00000002
+TXB0D23                           00000003
+TXB0D24                           00000004
+TXB0D25                           00000005
+TXB0D26                           00000006
+TXB0D27                           00000007
+TXB0D3                            00000F49
+TXB0D30                           00000000
+TXB0D31                           00000001
+TXB0D32                           00000002
+TXB0D33                           00000003
+TXB0D34                           00000004
+TXB0D35                           00000005
+TXB0D36                           00000006
+TXB0D37                           00000007
+TXB0D4                            00000F4A
+TXB0D40                           00000000
+TXB0D41                           00000001
+TXB0D42                           00000002
+TXB0D43                           00000003
+TXB0D44                           00000004
+TXB0D45                           00000005
+TXB0D46                           00000006
+TXB0D47                           00000007
+TXB0D5                            00000F4B
+TXB0D50                           00000000
+TXB0D51                           00000001
+TXB0D52                           00000002
+TXB0D53                           00000003
+TXB0D54                           00000004
+TXB0D55                           00000005
+TXB0D56                           00000006
+TXB0D57                           00000007
+TXB0D6                            00000F4C
+TXB0D60                           00000000
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE 36
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+TXB0D61                           00000001
+TXB0D62                           00000002
+TXB0D63                           00000003
+TXB0D64                           00000004
+TXB0D65                           00000005
+TXB0D66                           00000006
+TXB0D67                           00000007
+TXB0D7                            00000F4D
+TXB0D70                           00000000
+TXB0D71                           00000001
+TXB0D72                           00000002
+TXB0D73                           00000003
+TXB0D74                           00000004
+TXB0D75                           00000005
+TXB0D76                           00000006
+TXB0D77                           00000007
+TXB0DLC                           00000F45
+TXB0EIDH                          00000F43
+TXB0EIDL                          00000F44
+TXB0IE                            00000002
+TXB0IF                            00000002
+TXB0IP                            00000002
+TXB0SIDH                          00000F41
+TXB0SIDL                          00000F42
+TXB1CON                           00000F30
+TXB1D0                            00000F36
+TXB1D00                           00000000
+TXB1D01                           00000001
+TXB1D02                           00000002
+TXB1D03                           00000003
+TXB1D04                           00000004
+TXB1D05                           00000005
+TXB1D06                           00000006
+TXB1D07                           00000007
+TXB1D1                            00000F37
+TXB1D10                           00000000
+TXB1D11                           00000001
+TXB1D12                           00000002
+TXB1D13                           00000003
+TXB1D14                           00000004
+TXB1D15                           00000005
+TXB1D16                           00000006
+TXB1D17                           00000007
+TXB1D2                            00000F38
+TXB1D20                           00000000
+TXB1D21                           00000001
+TXB1D22                           00000002
+TXB1D23                           00000003
+TXB1D24                           00000004
+TXB1D25                           00000005
+TXB1D26                           00000006
+TXB1D27                           00000007
+TXB1D3                            00000F39
+TXB1D30                           00000000
+TXB1D31                           00000001
+TXB1D32                           00000002
+TXB1D33                           00000003
+TXB1D34                           00000004
+TXB1D35                           00000005
+TXB1D36                           00000006
+TXB1D37                           00000007
+TXB1D4                            00000F3A
+TXB1D40                           00000000
+TXB1D41                           00000001
+TXB1D42                           00000002
+TXB1D43                           00000003
+TXB1D44                           00000004
+TXB1D45                           00000005
+TXB1D46                           00000006
+TXB1D47                           00000007
+TXB1D5                            00000F3B
+TXB1D50                           00000000
+TXB1D51                           00000001
+TXB1D52                           00000002
+TXB1D53                           00000003
+TXB1D54                           00000004
+TXB1D55                           00000005
+TXB1D56                           00000006
+TXB1D57                           00000007
+TXB1D6                            00000F3C
+TXB1D60                           00000000
+TXB1D61                           00000001
+TXB1D62                           00000002
+TXB1D63                           00000003
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE 37
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+TXB1D64                           00000004
+TXB1D65                           00000005
+TXB1D66                           00000006
+TXB1D67                           00000007
+TXB1D7                            00000F3D
+TXB1D70                           00000000
+TXB1D71                           00000001
+TXB1D72                           00000002
+TXB1D73                           00000003
+TXB1D74                           00000004
+TXB1D75                           00000005
+TXB1D76                           00000006
+TXB1D77                           00000007
+TXB1DLC                           00000F35
+TXB1EIDH                          00000F33
+TXB1EIDL                          00000F34
+TXB1IE                            00000003
+TXB1IF                            00000003
+TXB1IP                            00000003
+TXB1SIDH                          00000F31
+TXB1SIDL                          00000F32
+TXB2CON                           00000F20
+TXB2D0                            00000F26
+TXB2D00                           00000000
+TXB2D01                           00000001
+TXB2D02                           00000002
+TXB2D03                           00000003
+TXB2D04                           00000004
+TXB2D05                           00000005
+TXB2D06                           00000006
+TXB2D07                           00000007
+TXB2D1                            00000F27
+TXB2D10                           00000000
+TXB2D11                           00000001
+TXB2D12                           00000002
+TXB2D13                           00000003
+TXB2D14                           00000004
+TXB2D15                           00000005
+TXB2D16                           00000006
+TXB2D17                           00000007
+TXB2D2                            00000F28
+TXB2D20                           00000000
+TXB2D21                           00000001
+TXB2D22                           00000002
+TXB2D23                           00000003
+TXB2D24                           00000004
+TXB2D25                           00000005
+TXB2D26                           00000006
+TXB2D27                           00000007
+TXB2D3                            00000F29
+TXB2D30                           00000000
+TXB2D31                           00000001
+TXB2D32                           00000002
+TXB2D33                           00000003
+TXB2D34                           00000004
+TXB2D35                           00000005
+TXB2D36                           00000006
+TXB2D37                           00000007
+TXB2D4                            00000F2A
+TXB2D40                           00000000
+TXB2D41                           00000001
+TXB2D42                           00000002
+TXB2D43                           00000003
+TXB2D44                           00000004
+TXB2D45                           00000005
+TXB2D46                           00000006
+TXB2D47                           00000007
+TXB2D5                            00000F2B
+TXB2D50                           00000000
+TXB2D51                           00000001
+TXB2D52                           00000002
+TXB2D53                           00000003
+TXB2D54                           00000004
+TXB2D55                           00000005
+TXB2D56                           00000006
+TXB2D57                           00000007
+TXB2D6                            00000F2C
+TXB2D60                           00000000
+TXB2D61                           00000001
+TXB2D62                           00000002
+TXB2D63                           00000003
+TXB2D64                           00000004
+TXB2D65                           00000005
+TXB2D66                           00000006
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE 38
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+TXB2D67                           00000007
+TXB2D7                            00000F2D
+TXB2D70                           00000000
+TXB2D71                           00000001
+TXB2D72                           00000002
+TXB2D73                           00000003
+TXB2D74                           00000004
+TXB2D75                           00000005
+TXB2D76                           00000006
+TXB2D77                           00000007
+TXB2DLC                           00000F25
+TXB2EIDH                          00000F23
+TXB2EIDL                          00000F24
+TXB2IE                            00000004
+TXB2IF                            00000004
+TXB2IP                            00000004
+TXB2SIDH                          00000F21
+TXB2SIDL                          00000F22
+TXBIE                             00000DFC
+TXBIF                             00000007
+TXBIFBXB2CON                      00000007
+TXBIFTXB1CON                      00000007
+TXBIP                             00000004
+TXBO                              00000005
+TXBP                              00000004
+TXBnIE                            00000004
+TXBnIF                            00000004
+TXBnIP                            00000004
+TXCKP                             00000004
+TXDATA_FULL                       00000002
+TXDATA_QUEUE                      00000000
+TXEN                              00000005
+TXERR                             00000004
+TXERRCNT                          00000F76
+TXIE                              00000004
+TXIF                              00000004
+TXIP                              00000004
+TXLARB                            00000005
+TXPRI0                            00000000
+TXPRI1                            00000001
+TXREG                             00000FAD
+TXREQ                             00000003
+TXRTR                             00000006
+TXSTA                             00000FAC
+TXWARN                            00000002
+TX_BUFFER                         00000100
+TX_BUF_END                        00000304
+TX_BUF_START                      00000303
+TX_CHAR                           00000307
+TX_DONE                           0000023E
+TX_OK                             00000220
+UA                                00000001
+VCFG0                             00000004
+VCFG1                             00000005
+VDIRMAG                           00000007
+VREFM                             00000002
+VREFP                             00000003
+W                                 00000000
+WAKDIS                            00000007
+WAKFIL                            00000006
+WAKIE                             00000006
+WAKIF                             00000006
+WAKIP                             00000006
+WCOL                              00000007
+WDTCON                            00000FD1
+WIN0                              00000001
+WIN0_FP1                          00000001
+WIN1                              00000002
+WIN1_FP2                          00000002
+WIN2                              00000003
+WIN2_FP3                          00000003
+WR                                00000001
+WREG                              00000FE8
+WREN                              00000002
+WRERR                             00000003
+WRITE_OK                          000000FC
+WUE                               00000001
+Z                                 00000002
+_BBSIZ_1024_4L                    000000CF
+_BBSIZ_2048_4L                    000000DF
+_BBSIZ_4096_4L                    000000EF
+_BOREN_BOACTIVE_2L                000000FD
+_BOREN_BOHW_2L                    000000FF
+_BOREN_OFF_2L                     000000F9
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE 39
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+_BOREN_SBORENCTRL_2L              000000FB
+_BORV_0_2L                        000000E7
+_BORV_1_2L                        000000EF
+_BORV_2_2L                        000000F7
+_BORV_3_2L                        000000FF
+_CONFIG1H                         00300001
+_CONFIG2H                         00300003
+_CONFIG2L                         00300002
+_CONFIG3H                         00300005
+_CONFIG4L                         00300006
+_CONFIG5H                         00300009
+_CONFIG5L                         00300008
+_CONFIG6H                         0030000B
+_CONFIG6L                         0030000A
+_CONFIG7H                         0030000D
+_CONFIG7L                         0030000C
+_CP0_OFF_5L                       000000FF
+_CP0_ON_5L                        000000FE
+_CP1_OFF_5L                       000000FF
+_CP1_ON_5L                        000000FD
+_CP2_OFF_5L                       000000FF
+_CP2_ON_5L                        000000FB
+_CP3_OFF_5L                       000000FF
+_CP3_ON_5L                        000000F7
+_CP4_OFF_5L                       000000FF
+_CP4_ON_5L                        000000EF
+_CP5_OFF_5L                       000000FF
+_CP5_ON_5L                        000000DF
+_CPB_OFF_5H                       000000FF
+_CPB_ON_5H                        000000BF
+_CPD_OFF_5H                       000000FF
+_CPD_ON_5H                        0000007F
+_DEBUG_OFF_4L                     000000FF
+_DEBUG_ON_4L                      0000007F
+_DEVID1                           003FFFFE
+_DEVID2                           003FFFFF
+_EBTR0_OFF_7L                     000000FF
+_EBTR0_ON_7L                      000000FE
+_EBTR1_OFF_7L                     000000FF
+_EBTR1_ON_7L                      000000FD
+_EBTR2_OFF_7L                     000000FF
+_EBTR2_ON_7L                      000000FB
+_EBTR3_OFF_7L                     000000FF
+_EBTR3_ON_7L                      000000F7
+_EBTR4_OFF_7L                     000000FF
+_EBTR4_ON_7L                      000000EF
+_EBTR5_OFF_7L                     000000FF
+_EBTR5_ON_7L                      000000DF
+_EBTRB_OFF_7H                     000000FF
+_EBTRB_ON_7H                      000000BF
+_FCMEN_OFF_1H                     000000BF
+_FCMEN_ON_1H                      000000FF
+_IDLOC0                           00200000
+_IDLOC1                           00200001
+_IDLOC2                           00200002
+_IDLOC3                           00200003
+_IDLOC4                           00200004
+_IDLOC5                           00200005
+_IDLOC6                           00200006
+_IDLOC7                           00200007
+_IESO_OFF_1H                      0000007F
+_IESO_ON_1H                       000000FF
+_LPT1OSC_OFF_3H                   000000FB
+_LPT1OSC_ON_3H                    000000FF
+_LVP_OFF_4L                       000000FB
+_LVP_ON_4L                        000000FF
+_MCLRE_OFF_3H                     0000007F
+_MCLRE_ON_3H                      000000FF
+_OSC_ECIO_1H                      000000F5
+_OSC_EC_1H                        000000F4
+_OSC_HSPLL_1H                     000000F6
+_OSC_HS_1H                        000000F2
+_OSC_IRCIO67_1H                   000000F8
+_OSC_IRCIO7_1H                    000000F9
+_OSC_LP_1H                        000000F0
+_OSC_RCIO_1H                      000000F7
+_OSC_RC_1H                        000000F3
+_OSC_XT_1H                        000000F1
+_PBADEN_OFF_3H                    000000FD
+_PBADEN_ON_3H                     000000FF
+_PWRT_OFF_2L                      000000FF
+_PWRT_ON_2L                       000000FE
+_STVREN_OFF_4L                    000000FE
+_STVREN_ON_4L                     000000FF
+MPASM 5.53                  ../SERIAL-IO.ASM   5-26-2014  22:33:13         PAGE 40
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+_WDTPS_1024_2H                    000000F5
+_WDTPS_128_2H                     000000EF
+_WDTPS_16384_2H                   000000FD
+_WDTPS_16_2H                      000000E9
+_WDTPS_1_2H                       000000E1
+_WDTPS_2048_2H                    000000F7
+_WDTPS_256_2H                     000000F1
+_WDTPS_2_2H                       000000E3
+_WDTPS_32768_2H                   000000FF
+_WDTPS_32_2H                      000000EB
+_WDTPS_4096_2H                    000000F9
+_WDTPS_4_2H                       000000E5
+_WDTPS_512_2H                     000000F3
+_WDTPS_64_2H                      000000ED
+_WDTPS_8192_2H                    000000FB
+_WDTPS_8_2H                       000000E7
+_WDT_OFF_2H                       000000FE
+_WDT_ON_2H                        000000FF
+_WRT0_OFF_6L                      000000FF
+_WRT0_ON_6L                       000000FE
+_WRT1_OFF_6L                      000000FF
+_WRT1_ON_6L                       000000FD
+_WRT2_OFF_6L                      000000FF
+_WRT2_ON_6L                       000000FB
+_WRT3_OFF_6L                      000000FF
+_WRT3_ON_6L                       000000F7
+_WRT4_OFF_6L                      000000FF
+_WRT4_ON_6L                       000000EF
+_WRT5_OFF_6L                      000000FF
+_WRT5_ON_6L                       000000DF
+_WRTB_OFF_6H                      000000FF
+_WRTB_ON_6H                       000000BF
+_WRTC_OFF_6H                      000000FF
+_WRTC_ON_6H                       000000DF
+_WRTD_OFF_6H                      000000FF
+_WRTD_ON_6H                       0000007F
+_XINST_OFF_4L                     000000BF
+_XINST_ON_4L                      000000FF
+__18F4685                         00000001
+
+Errors   :     0
+Warnings :     0 reported,     0 suppressed
+Messages :     0 reported,     0 suppressed
+
+
