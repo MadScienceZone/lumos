@@ -302,7 +302,7 @@ space between
 .RB \*(lq power \*(rq
 and the ID tag name).
 .LP
-Each power source section has two data fields:
+Each power source section has these data fields:
 .TP
 .BI amps= real
 The 
@@ -311,6 +311,9 @@ load available on that circuit to our show.
 .B "If other (i.e., non-Lumos-controlled) loads are on the same circuit, reduce this value by the"
 .B "maximum load of all those other devices.  This value is the maximum current load Lumos should"
 .B "pull from that power source."
+.TP
+.BI volts= real
+The voltage supplied by this power source.  Defaults to 120 if not specified.
 .TP
 .BI disp_order= int
 The GUI display position of this source relative to its siblings (subordinate power

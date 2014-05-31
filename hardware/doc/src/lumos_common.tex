@@ -90,6 +90,10 @@
 \usepackage{wallpaper}
 %\usepackage{tikz}
 \usepackage{circuitikz}	
+\usepackage[
+	pdfauthor={Steve Willoughby / Software Alchemy},
+	pdfsubject={Lumos Hardware Documentation * (c) 2014 * Creative Commons Licensing (See Document for details}
+]{hyperref}
 %\makeatletter
 %\let\pinyinXi\Xi
 %\let\pinyinPi\Pi
@@ -514,6 +518,12 @@
 % \addcontentsline{toc}{chapter}{Index}
 % \printindex
 %
+\newcommand\QSoption{0}
+\newenvironment{QS}{\ifthenelse{\equal{\QSoption}{0}}{}{\par\bigskip\begingroup\color{blue}{\bfseries The following describes a feature of the QS controller
+units which is not part of the core Lumos line.}\par}}{\ifthenelse{\equal{\QSoption}{0}}{}{\endgroup}}
+\newenvironment{QS*}{\ifthenelse{\equal{\QSoption}{0}}{}{\begingroup\color{blue}}}{\ifthenelse{\equal{\QSoption}{0}}{}{\endgroup}}
+\newcommand\NotInQS{\ifthenelse{\equal{\QSoption}{0}}{}{\par{\color{blue}{\bfseries The following describes a feature of the core Lumos line
+which is \emph{not} implemented in the QS units.}\par}}}
 \newenvironment{NotImplemented}{\par{\bfseries The following describes a feature of the Lumos
 controller which is planned for a future release but not implemented today.  While this description
 follows the expected behavior the Lumos board will have when that feature is actually available,

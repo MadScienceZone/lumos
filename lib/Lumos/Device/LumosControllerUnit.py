@@ -416,22 +416,22 @@ class LumosControllerUnit (ControllerUnit):
 # Note that the number of bytes actually received may be greater due to the
 # encoding used to guard 8-bit values.
 
+    def _find_command_byte(self, d, start=0):
+        if d is None:
+            return -1
+
+        for i in range(start, len(d)):
+            if ord(d[i]) & 0x80:
+                return i
+        return -1
+
     def raw_query_device_status(self, timeout=0):
         self.network.send(chr(0xf0 | self.address) + "\3$T")
-
-        def find_command_byte(d, start=0):
-            if d is None:
-                return -1
-
-            for i in range(start, len(d)):
-                if ord(d[i]) & 0x80:
-                    return i
-            return -1
 
         def packet_scanner(d):
             start=0
             while True:
-                cb = find_command_byte(d, start)
+                cb = self._find_command_byte(d, start)
                 start = cb+1
                 if cb < 0:
                     return 37
@@ -458,7 +458,7 @@ class LumosControllerUnit (ControllerUnit):
         reply = []
         set_msb = False
         literal_next = False
-        first_byte = True
+        #first_byte = True
         #
         # skip over possible junk ahead of our reply packet
         #
@@ -475,7 +475,7 @@ class LumosControllerUnit (ControllerUnit):
             elif state == 1:    # this byte must be 0x1f
                 if ord(i) == 0x1f:
                     state=2
-                    reply=[0xf0|self.address, 0x31]
+                    reply=[0xf0|self.address, 0x1f]         # XXX was 0x31?
                     if skipped_data:
                         self.network.diagnostic_output('LumosControllerUnit.raw_query_device_status: Skipped over {0} superfluous byte{1} before finding reply packet: {2}'.format(
                             len(skipped_data),
@@ -483,14 +483,15 @@ class LumosControllerUnit (ControllerUnit):
                             ' '.join(['{0:02X}'.format(ord(c)) for c in skipped_data])
                         ))
                 else:
+                    skipped_data.append(chr(0xf0 | self.address))
                     skipped_data.append(i)
                     state=0
 
             elif state == 2:    # we're in the response packet, interpret it!
-                if ord(i) > 0x7f and not first_byte:
+                if ord(i) > 0x7f: #and not first_byte:
                     raise DeviceProtocolError("Query packet response malformed (high bit in data area: {0})".format(
                         ' '.join(['{0:02X}'.format(x) for x in reply])))
-                first_byte = False
+                #first_byte = False
 
                 if set_msb:
                     set_msb = False
@@ -547,15 +548,17 @@ class LumosControllerUnit (ControllerUnit):
             status.current_sequence = reply[13] & 0x7f
         else:
             status.current_sequence = None
-        if reply[12] & 0x03 == 0:
+        if reply[12] & 0x1F == 0:
             status.hardware_type = 'lumos48ctl'
             status.channels = 48
-        elif reply[12] & 0x03 == 1:
+        elif reply[12] & 0x1F == 1:
             status.hardware_type = 'lumos24dc'
             status.channels = 24
+        elif reply[12] & 0x1F == 2:
+            status.hardware_type = 'lumos4dc'
+            status.channels = 4
         else:
-            status.hardware_type = 'unknown'
-            status.channels = 0
+            status.hardware_type, status.channels = self._unknown_device_type(reply[12] & 0x1F);
 
         for group, sensor_id in enumerate(['A', 'B', 'C', 'D']):
             flags = reply[group * 4 + 14]
@@ -587,6 +590,9 @@ class LumosControllerUnit (ControllerUnit):
             raise InternalDeviceError('Inconsistent phase offset between CPUs (#0={0}, #1={1})'.format(status.phase_offset, status.phase_offset2))
 
         return status
+
+    def _unknown_device_type(self, code):
+        return 'unknown', 0
 
 class LumosControllerConfiguration (object):
     def __init__(self):

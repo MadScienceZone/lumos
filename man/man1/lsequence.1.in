@@ -1,0 +1,181 @@
+.TH LSEQUENCE 1 "Lumos" "Software Alchemy" "User Commands"
+'\"
+'\" LUMOS DOCUMENTATION: LSEQUENCE
+'\"
+'\" Lumos Light Orchestration System
+'\"@@COPYRIGHT@@
+'\"
+'\" This product is provided for educational, experimental or personal
+'\" interest use, in accordance with the terms and conditions of the
+'\" aforementioned license agreement, ON AN "AS IS" BASIS AND WITHOUT
+'\" WARRANTY, EITHER EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION,
+'\" THE WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A
+'\" PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY OF THE ORIGINAL
+'\" WORK IS WITH YOU.  (See the license agreement for full details, 
+'\" including disclaimer of warranty and limitation of liability.)
+'\"
+'\" Under no curcumstances is this product intended to be used where the
+'\" safety of any person, animal, or property depends upon, or is at
+'\" risk of any kind from, the correct operation of this software or
+'\" the hardware devices which it controls.
+'\"
+'\" USE THIS PRODUCT AT YOUR OWN RISK.
+'\" 
+.SH NAME
+lsequence \- Create or Edit a Lumos Sequence File
+.SH SYNOPSIS
+.B lsequence
+.RB [ \-\-config=\fIfile\fP ]
+'\".RB [ \-\-debug=\fIfile\fP ]
+'\".RB [ \-\-no\-audio ]
+'\".RB [ \-\-skew=\fImS\fP ]
+'\".RB [ \-\-test ]
+'\".RB [ \-\-verbose ]
+.RB [ \-\-sequence=\fIfile\fP ]
+.br
+.B lsequence
+.RB [ \-h ]
+.RB [ \-c
+.IR file ]
+.RB [ \-s
+.IR file ]
+.br
+.B lsequence
+.B \-\-help
+.br
+.B lsequence
+.B \-\-version
+.SH DESCRIPTION
+.LP
+The
+.B lsequence
+program is an interactive sequence editor for Lumos sequence files.
+It is a GUI application which displays sequence events on a scollable
+grid with virtual channels in the vertical direction, and time increasing
+to the right in the horizontal direction.
+.LP
+Note that
+.B lsequence
+presents a high-level view of the channels, not at all concerned with
+actual hardware, device limitations, power constraints, etc.  To edit
+a sequence, you are simply orchestrating what the show effects should
+look like, so the focus is on when various things happen in the show.
+Use other programs such as
+.BR lpower (1)
+and
+.BR lcheck (1)
+to evaluate the lower-level configuration of the show's hardware and
+the run-time characteristics of the sequence.  The sequence itself may
+be played on actual hardware using
+.BR lplay (1).
+.LP
+The show configuration file, therefore, need only contain definitions
+of the virtual channels in addition to the general title and description
+fields for the show itself, to use
+.B lsequence
+(although it will need to be complete before using the other,
+hardware-aware, parts of Lumos).
+.LP
+A full description of how to use 
+.B lsequence
+is found in the user manual for Lumos.  This manual page entry is
+only a brief summary highlighting invocation and basic usage.
+Please read the user manual for best results.
+.SH OPTIONS
+.LP
+The following options may be given to
+.BR lsequence .
+They may be specified using either short format, e.g.:
+.LP
+.RS
+.na
+.B "lsequence \-v \-c show.conf \-s myshow.lseq"
+.ad
+.RE
+.LP
+Or using the longer format, e.g.:
+.LP
+.RS
+.na
+.B "lsequence \-\-verbose \-\-config=show.conf \-\-sequence=myshow.lseq"
+.ad
+.RE
+.LP
+Or a combination of both.
+.LP
+The following options may be given to
+.BR lsequence :
+.TP 10
+.BI \-c " file"
+.RB ( \-\-config=\fIfile\fP )
+Get show configuration information from the specified
+.IR file .
+This is necessary for Lumos programs such as
+.B lsequence
+to know what channels will be controlled, and some basic information
+about their nature (e.g., can they be dimmed, do they display in
+different colors, etc.), but for
+.BR lsequence 's
+purposes, the configuration file does not need to contain hardware
+formation such as power supplies, controller types, communications
+networks, and so forth.  (That information will need to be supplied
+before the show can be actually performed, however.)
+.B Lsequence
+only looks at the virtual channel definitions in this file, as well
+as some other general Lumos information.
+'\".TP
+'\".BI \-D " file"
+'\".RB ( \-\-debug=\fIfile\fP )
+'\"Write debugging information to the specified
+'\".IR file .
+'\"This is probably only interesting to Lumos developers and maintainers.
+.TP
+.B \-h
+.RB ( \-\-help )
+Print a basic help message and exit.
+.TP
+.BI \-s " file"
+Specifies the sequence file to be edited.  If this option is omitted,
+a blank sequence editor will be shown, without an associated disk file.
+An existing seuqence may then be loaded by selecting the \*(lqopen\*(rq
+command within the program, if needed.
+.TP
+.B \-v
+.RB ( \-\-verbose )
+Print information about the operation of the program which is
+not normally shown.
+This may go to the standard output and/or a GUI window.
+.TP
+.B \-\-version
+Prints the version number of the program and exits.
+.SH "SEE ALSO"
+.LP
+.BR lcheck (1),
+.BR lplay (1),
+.BR lpower (1),
+.BR lumos (1),
+.BR lumos-configuration (5),
+.BR lumos-sequence (5),
+.I "Using the Lumos Light Orchestration Software."
+.SH VERSION
+.LP
+This document describes version @@VERSION@@ of
+.BR lsequence .
+.SH HISTORY
+.LP
+This program appeared in Lumos version 1.0.
+Note that, as with the other Lumos programs, 
+.B lsequence
+will load older sequence and configuration file formats, but will
+convert them to the latest version while working with them.  It will
+only save the current file format.  Support for legacy formats
+may be limited as time goes on, and may disappear in the future for
+the oldest formats.
+.SH COPYRIGHT
+.LP
+Lumos Light Orchestration System,
+..@@COPYRIGHT@@
+.SH AUTHOR
+.LP
+Steve Willoughby, support@alchemy.com
+'\".SH BUGS
