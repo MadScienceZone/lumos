@@ -23,13 +23,19 @@
 ;
 ; -*- -*- -* -*- -*- -*- -*- -*- -* -*- -*- -*- -*- -*- -* -*- -*- -*- -*- -*-
 ;
-; Configuration options.  Set these as desired and then re-assemble the
-; code to produce the desired version of the ROM.
+; Device initialization code.  See lumos_main.asm for hardware implementation
+; details.  Most of the initialization will be done in the Lumos firmware.
 ;
+#include "quizshow_config.inc"
 ; 
 ;==============================================================================
-; CONFIGURATION OPTIONS
+; PUBLIC ENTRY POINTS
 ;==============================================================================
+	EXTERN	QSCC_INIT	; Call this to set up the hardware before use.
+	EXTERN	QSCC_START	; Call this before starting the main event loop.
+	EXTERN	QSCC_MAIN	; Call this in each main loop iteration.
+	EXTERN	QSCC_CMD6_START
+	EXTERN	QS_STOP_SCANNER
+
 ;
-; Note: set LUMOS_CHIP_TYPE to LUMOS_CHIP_QSCC or _QSRC in lumos_config.inc
 ;

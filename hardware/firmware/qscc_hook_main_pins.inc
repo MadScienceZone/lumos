@@ -35,6 +35,13 @@
 ; QSCC
 ;
     		    IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSCC
+N_BUTTONS	     EQU	6	; X L A B C D
+BTN_IDX_X0	     EQU	0
+BTN_IDX_L0	     EQU	1
+BTN_IDX_A0	     EQU	2
+BTN_IDX_B0	     EQU	3
+BTN_IDX_C0	     EQU	4
+BTN_IDX_D0	     EQU	5
 PORT_RX		     EQU	PORTC
 BIT_RX		     EQU	7
 
@@ -82,6 +89,17 @@ BIT_12		     EQU	1	; FB
 BIT_13		     EQU	0	; FW
 		    ELSE
     		     IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSRC
+N_BUTTONS	      EQU	10	; X0 L0 X1 L1 ... X4 L4
+BTN_IDX_X0	      EQU	0
+BTN_IDX_L0	      EQU	1
+BTN_IDX_X1	      EQU	2
+BTN_IDX_L1	      EQU	3
+BTN_IDX_X2	      EQU	4
+BTN_IDX_L2	      EQU	5
+BTN_IDX_X3	      EQU	6
+BTN_IDX_L3	      EQU	7
+BTN_IDX_X4	      EQU	8
+BTN_IDX_L4	      EQU	9
 PORT_RX		      EQU	PORTC
 BIT_RX		      EQU	7
 

@@ -55,10 +55,18 @@
 ; Main implementation module.
 ;
 #include "lumos_config.inc"
-	RADIX		DEC
+	RADIX	DEC
 #include "lumos_init.inc"
 #include "serial-io.inc"
-	IF !QSCC_PORT
+	IF QSCC_PORT
+#include "qscc_init.inc"
+	 GLOBAL	S0_CMD0
+	 GLOBAL	SSR_00_VALUE
+	 GLOBAL	SSR_00_FLAGS
+	 GLOBAL	SSR_00_STEP
+	 GLOBAL	SSR_00_SPEED
+	 GLOBAL	SSR_00_COUNTER
+	ELSE
 #include "flash_update.inc"
 	ENDIF
 
@@ -1250,18 +1258,6 @@ DMX_FRAME	EQU	5	; --1-----  Start of frame detected
 DMX_BIT8	EQU	0	; -------1  MSB of DMX channel
 
 ;
-; SSR_FLAGS words for each output show state information about those
-; channels.
-;
-FADE_UP		EQU	7	; 1-------  This channel is fading up
-FADE_DOWN	EQU	6	; -1------  This channel is fading down
-FADE_CYCLE	EQU	5	; --1-----  This channel is fading up<-->down
-MAX_OFF_TIME	EQU	4	; ---1----  Use maximum off-time in cycle
-BIT_FADE_UP	EQU	0x80
-BIT_FADE_DOWN	EQU	0x40
-BIT_FADE_CYCLE	EQU	0x20
-BIT_MAX_OFF_TIME EQU	0x10
-;
 ; TARGET_SSR has these flags:
 ;                     _______________________________________________________
 ; TARGET_SSR         |NOT_MY|INVALI|                                         |
@@ -1602,7 +1598,7 @@ BIT_3		    EQU	0
 SSR_LIGHTS	    EQU	4	; first light ID (as opposed to SSR)
                    ELSE
 		    IF QSCC_PORT
-		     #include "qscc_hook_main_pins.asm"
+		     #include "qscc_hook_main_pins.inc"
                     ELSE
      		     ERROR "Invalid platform select"
 		    ENDIF
@@ -1730,64 +1726,7 @@ ERR_BUG	MACRO	ERR_CODE, ERR_CLASS
 	 RETURN
 	ENDM
 
-SET_SSR_VALUE MACRO IDX, LEVEL
-	BANKSEL	SSR_DATA_BANK
-	 MOVLW	LEVEL
-	 MOVWF	SSR_00_VALUE+IDX, BANKED
-	 CLRF	SSR_00_STEP+IDX, BANKED
-	 CLRF	SSR_00_SPEED+IDX, BANKED
-	 CLRF	SSR_00_COUNTER+IDX, BANKED
-	 CLRF	SSR_00_FLAGS+IDX, BANKED
-	ENDM
-
-SET_SSR_PATTERN	MACRO IDX, LEVEL, STEP, SPEED, FLAGS
-	BANKSEL	SSR_DATA_BANK
-	 MOVLW	LEVEL
-	 MOVWF	SSR_00_VALUE+IDX, BANKED
-	 MOVLW	STEP
-	 MOVWF	SSR_00_STEP+IDX, BANKED
-	 MOVLW	SPEED
-	 MOVWF	SSR_00_SPEED+IDX, BANKED
-	 MOVWF	SSR_00_COUNTER+IDX, BANKED
-	 MOVLW	FLAGS
-	 MOVWF	SSR_00_FLAGS+IDX, BANKED
-	ENDM
-
-SET_SSR_NORMAL_MODE MACRO IDX
-	 SET_SSR_PATTERN IDX, 0, 1, 3, BIT_FADE_UP|BIT_FADE_CYCLE
-	ENDM
-
-SET_SSR_DMX_MODE MACRO IDX
-	 SET_SSR_PATTERN IDX, 0, 1, 1, BIT_FADE_UP|BIT_FADE_CYCLE
-	ENDM
-
-SET_SSR_RAPID_FLASH MACRO IDX
-	 SET_SSR_PATTERN IDX, 255, 255, 30, BIT_FADE_DOWN|BIT_FADE_CYCLE
-	ENDM
-
-SET_SSR_BLINK_FADE MACRO IDX
-	 SET_SSR_PATTERN IDX, 255,   2,  1, BIT_FADE_DOWN
-	ENDM
-
-SET_SSR_SLOW_FLASH MACRO IDX
-	 SET_SSR_PATTERN IDX, 255, 255, 30, BIT_FADE_DOWN|BIT_FADE_CYCLE|BIT_MAX_OFF_TIME
-	ENDM
-
-SET_SSR_RAPID_FADE MACRO IDX
-	 SET_SSR_PATTERN IDX, 0, 4, 1, BIT_FADE_UP|BIT_FADE_CYCLE
-	ENDM
-
-SET_SSR_SLOW_FADE MACRO IDX
-	 SET_SSR_PATTERN IDX, 0, 1, 1, BIT_FADE_UP|BIT_FADE_CYCLE
-	ENDM
-
-SET_SSR_STEADY MACRO IDX
-	 SET_SSR_VALUE IDX, 255
-	ENDM
-
-SET_SSR_OFF MACRO IDX
-	 SET_SSR_VALUE IDX, 0
-	ENDM
+#include "lumos_set_ssr.inc"
 
 ;
 ; Sending 8-bit data bytes in our 7-bit protocol
@@ -2150,6 +2089,9 @@ FRJC_LOOP:
 	ENDIF
 	
 END_FRJC:
+	IF QSCC_PORT
+	 CALL	QSCC_START
+	ENDIF
 	;
 	; Launch mainline code
 	;
@@ -2528,19 +2470,6 @@ TR_I		RES	1
 ;==============================================================================
 ; DATA BANK 4
 ;______________________________________________________________________________
- IF LUMOS_ARCH == LUMOS_ARCH_4685
-SSR_DATA_BANK	EQU	0x400
-MAIN_DATA	EQU	0x500
-YY_BUF_LEN	EQU	.200
- ELSE
-  IF LUMOS_ARCH == LUMOS_ARCH_14K50
-SSR_DATA_BANK	EQU	0x060
-MAIN_DATA	EQU	0x088
-YY_BUF_LEN	EQU	.90 
-  ELSE
-   ERROR "Invalid architecture switch for SSR_DATA_BANK"
-  ENDIF
- ENDIF
 
 _SSR_DATA	UDATA	SSR_DATA_BANK
 ;
@@ -2572,6 +2501,11 @@ _SEQ_DATA	UDATA	SEQ_DATA
 ;______________________________________________________________________________
 _MAIN	CODE	0x0800
 MAIN:
+	CLRWDT
+	IF QSCC_PORT
+	 CALL	QSCC_MAIN
+	ENDIF
+
 	CLRWDT
 	BTFSC	SSR_STATE, SLICE_UPD, ACCESS
 	CALL	UPDATE_SSR_OUTPUTS
@@ -3078,6 +3012,9 @@ INTERP_START:
 	;
 	; Is it ours?
 	;
+	IF QSCC_PORT
+	 #include "qscc_hook_global_commands.asm"
+ 	ENDIF
 	IF ! ROLE_SLAVE		; the slave chip has no address and sees no other commands
 	 MOVF	SIO_INPUT, W, BANKED
 	 ANDLW	0x0F
@@ -4513,8 +4450,11 @@ S6_13_VALID:
 	ENDIF
 
 S6_14_DATA:
-	ERR_BUG	0x05, ERR_CLASS_OVERRUN
-
+	IF QSCC_PORT
+	 #include "qscc_hook_s6_14.asm"
+	ELSE
+	 ERR_BUG 0x05, ERR_CLASS_OVERRUN
+	ENDIF
 
 S6_RESTART:
 	; We stopped too early -- resume now
@@ -4693,7 +4633,7 @@ S9_X8_CLR_SEQ:
 	RETURN
 S9_X9_XPRIV:
 	DECFSZ	WREG, W, ACCESS			
-	GOTO	ERR_COMMAND
+	BRA	S9_XA_ERR_COMMAND
 	;
 	; XPRIV:
 	;
@@ -4706,6 +4646,13 @@ S9_X9_XPRIV:
 	;  |______|______|______|______|______|______|______|______|
 	;
 	GOTO	CMD_XPRIV
+
+S9_XA_ERR_COMMAND:
+	IF QSCC_PORT
+	 #include "qscc_hook_s9_xa.asm"
+	ELSE
+	 GOTO	ERR_COMMAND
+	ENDIF
 
 S9_INTERNAL_CMD:
 	;
@@ -4901,7 +4848,11 @@ S9_PRIV_5:
 	RETURN
 
 S9_PRIV_6:
-	GOTO	ERR_COMMAND
+	IF QSCC_PORT
+	 #include "qscc_hook_s9_priv_6.asm"
+	ELSE
+	 GOTO	ERR_COMMAND
+	ENDIF
 
 S9_CF_PHASE:
 	MOVFF	YY_DATA, YY_YY
@@ -5206,7 +5157,11 @@ S17_DATA:
 	; Any state >16 lands here.  Handle the exception and
 	; abort the command being processed.
 	;
-	ERR_BUG 0x0E, ERR_CLASS_OVERRUN
+	IF QSCC_PORT
+	 #include "qscc_hook_s17.asm"
+	ELSE
+	 ERR_BUG 0x0E, ERR_CLASS_OVERRUN
+	ENDIF
 
 SSR_OUTPUT_VALUE:
 	;
@@ -5286,7 +5241,7 @@ X 	SET	0
 	WHILE X <= SSR_MAX
 	 CPFSEQ	SSR_00_VALUE+#v(X), BANKED	; is this SSR set to our slice value?
 	 BRA	UPDATE_SSR_SKIP_#v(X)
- 	 IF X > OUTPUT_CHAN_MAX
+ 	 IF (X > OUTPUT_CHAN_MAX) || (QSCC_PORT)
 	  BSF	PLAT_#v(X), BIT_#v(X), ACCESS	; turn on light
  	 ELSE
 	  BCF	PLAT_#v(X), BIT_#v(X), ACCESS	; turn on SSR
@@ -5315,7 +5270,7 @@ X 	SET	0
 	 BRA	UPDATE_MIN_SKIP_#v(X)
 
 UPDATE_MIN_DIMMED_#v(X):
-  	 IF X > OUTPUT_CHAN_MAX
+  	 IF (X > OUTPUT_CHAN_MAX) || (QSCC_PORT)
 	  BCF	PLAT_#v(X), BIT_#v(X), ACCESS	; turn off light
  	 ELSE
 	  BSF	PLAT_#v(X), BIT_#v(X), ACCESS	; turn off SSR

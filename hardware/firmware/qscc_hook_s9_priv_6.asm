@@ -23,14 +23,18 @@
 ;
 ; -*- -*- -* -*- -*- -*- -*- -*- -* -*- -*- -*- -*- -*- -* -*- -*- -*- -*- -*-
 ;
-; Device initialization code.  See lumos_main.asm for hardware implementation
-; details.  Most of the initialization will be done in the Lumos firmware.
-;
-#include "quizshow_config.inc"
+; This hooks into the Lumos command interpreter to add extended commands 
+; (state 9)
 ; 
-;==============================================================================
-; PUBLIC ENTRY POINTS
-;==============================================================================
-	EXTERN	QUIZSHOW_INIT	; Call this to set up the hardware before use.
-;
-;
+	IF LUMOS_CHIP_TYPE != LUMOS_CHIP_QSCC && LUMOS_CHIP_TYPE != LUMOS_CHIP_QSRC
+	 ERROR "qscc_hook_s9_priv_6 only used for QS*C systems"
+	ENDIF
+
+S9_PRIV_6_QS_PARAM:
+	DECFSZ	WREG, W, ACCESS
+	BRA	S9_PRIV_7
+	WAIT_FOR_SENTINEL 5, B'01011010', .16
+	RETURN
+
+S9_PRIV_7:
+	GOTO	ERR_COMMAND

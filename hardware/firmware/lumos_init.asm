@@ -367,5 +367,9 @@ LUMOS_INIT:
 ;
 ; Ready for other module initialization, etc.
 ;
+	IF QSCC_PORT
+	 #include qscc_init.inc
+	 CALL	QSCC_INIT
+	ENDIF
 	RETURN
 	END
