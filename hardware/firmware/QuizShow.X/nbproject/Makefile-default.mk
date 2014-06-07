@@ -45,17 +45,17 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Source Files Quoted if spaced
-SOURCEFILES_QUOTED_IF_SPACED=../lumos_init.asm ../lumos_main.asm ../quizshow_main.asm ../serial-io.asm
+SOURCEFILES_QUOTED_IF_SPACED=../lumos_init.asm ../lumos_main.asm ../quizshow_main.asm ../serial-io.asm ../quizshow_init.asm
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/_ext/1472/lumos_init.o ${OBJECTDIR}/_ext/1472/lumos_main.o ${OBJECTDIR}/_ext/1472/quizshow_main.o ${OBJECTDIR}/_ext/1472/serial-io.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/_ext/1472/lumos_init.o.d ${OBJECTDIR}/_ext/1472/lumos_main.o.d ${OBJECTDIR}/_ext/1472/quizshow_main.o.d ${OBJECTDIR}/_ext/1472/serial-io.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/_ext/1472/lumos_init.o ${OBJECTDIR}/_ext/1472/lumos_main.o ${OBJECTDIR}/_ext/1472/quizshow_main.o ${OBJECTDIR}/_ext/1472/serial-io.o ${OBJECTDIR}/_ext/1472/quizshow_init.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/_ext/1472/lumos_init.o.d ${OBJECTDIR}/_ext/1472/lumos_main.o.d ${OBJECTDIR}/_ext/1472/quizshow_main.o.d ${OBJECTDIR}/_ext/1472/serial-io.o.d ${OBJECTDIR}/_ext/1472/quizshow_init.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/_ext/1472/lumos_init.o ${OBJECTDIR}/_ext/1472/lumos_main.o ${OBJECTDIR}/_ext/1472/quizshow_main.o ${OBJECTDIR}/_ext/1472/serial-io.o
+OBJECTFILES=${OBJECTDIR}/_ext/1472/lumos_init.o ${OBJECTDIR}/_ext/1472/lumos_main.o ${OBJECTDIR}/_ext/1472/quizshow_main.o ${OBJECTDIR}/_ext/1472/serial-io.o ${OBJECTDIR}/_ext/1472/quizshow_init.o
 
 # Source Files
-SOURCEFILES=../lumos_init.asm ../lumos_main.asm ../quizshow_main.asm ../serial-io.asm
+SOURCEFILES=../lumos_init.asm ../lumos_main.asm ../quizshow_main.asm ../serial-io.asm ../quizshow_init.asm
 
 
 CFLAGS=
@@ -111,6 +111,14 @@ ${OBJECTDIR}/_ext/1472/serial-io.o: ../serial-io.asm  nbproject/Makefile-${CND_C
 	@${DEP_GEN} -d "${OBJECTDIR}/_ext/1472/serial-io.o"
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/serial-io.o.d" $(SILENT) -rsi ${MP_AS_DIR} -c18 
 	
+${OBJECTDIR}/_ext/1472/quizshow_init.o: ../quizshow_init.asm  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} ${OBJECTDIR}/_ext/1472 
+	@${RM} ${OBJECTDIR}/_ext/1472/quizshow_init.o.d 
+	@${RM} ${OBJECTDIR}/_ext/1472/quizshow_init.o 
+	@${FIXDEPS} dummy.d -e "${OBJECTDIR}/_ext/1472/quizshow_init.err" $(SILENT) -c ${MP_AS} $(MP_EXTRA_AS_PRE) -d__DEBUG -d__MPLAB_DEBUGGER_PICKIT2=1 -q -p$(MP_PROCESSOR_OPTION) -u  -l\\\"${OBJECTDIR}/_ext/1472/quizshow_init.lst\\\" -e\\\"${OBJECTDIR}/_ext/1472/quizshow_init.err\\\" $(ASM_OPTIONS)   -o\\\"${OBJECTDIR}/_ext/1472/quizshow_init.o\\\" \\\"../quizshow_init.asm\\\" 
+	@${DEP_GEN} -d "${OBJECTDIR}/_ext/1472/quizshow_init.o"
+	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/quizshow_init.o.d" $(SILENT) -rsi ${MP_AS_DIR} -c18 
+	
 else
 ${OBJECTDIR}/_ext/1472/lumos_init.o: ../lumos_init.asm  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1472 
@@ -143,6 +151,14 @@ ${OBJECTDIR}/_ext/1472/serial-io.o: ../serial-io.asm  nbproject/Makefile-${CND_C
 	@${FIXDEPS} dummy.d -e "${OBJECTDIR}/_ext/1472/serial-io.err" $(SILENT) -c ${MP_AS} $(MP_EXTRA_AS_PRE) -q -p$(MP_PROCESSOR_OPTION) -u  -l\\\"${OBJECTDIR}/_ext/1472/serial-io.lst\\\" -e\\\"${OBJECTDIR}/_ext/1472/serial-io.err\\\" $(ASM_OPTIONS)   -o\\\"${OBJECTDIR}/_ext/1472/serial-io.o\\\" \\\"../serial-io.asm\\\" 
 	@${DEP_GEN} -d "${OBJECTDIR}/_ext/1472/serial-io.o"
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/serial-io.o.d" $(SILENT) -rsi ${MP_AS_DIR} -c18 
+	
+${OBJECTDIR}/_ext/1472/quizshow_init.o: ../quizshow_init.asm  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} ${OBJECTDIR}/_ext/1472 
+	@${RM} ${OBJECTDIR}/_ext/1472/quizshow_init.o.d 
+	@${RM} ${OBJECTDIR}/_ext/1472/quizshow_init.o 
+	@${FIXDEPS} dummy.d -e "${OBJECTDIR}/_ext/1472/quizshow_init.err" $(SILENT) -c ${MP_AS} $(MP_EXTRA_AS_PRE) -q -p$(MP_PROCESSOR_OPTION) -u  -l\\\"${OBJECTDIR}/_ext/1472/quizshow_init.lst\\\" -e\\\"${OBJECTDIR}/_ext/1472/quizshow_init.err\\\" $(ASM_OPTIONS)   -o\\\"${OBJECTDIR}/_ext/1472/quizshow_init.o\\\" \\\"../quizshow_init.asm\\\" 
+	@${DEP_GEN} -d "${OBJECTDIR}/_ext/1472/quizshow_init.o"
+	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/quizshow_init.o.d" $(SILENT) -rsi ${MP_AS_DIR} -c18 
 	
 endif
 
