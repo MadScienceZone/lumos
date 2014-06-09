@@ -1,4 +1,4 @@
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE  1
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE  1
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -88,7 +88,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00025 ;
                       00026 ; Configuration options.  Set these as desired and then re-assemble the
                       00027 ; code to produce the desired version of the ROM.
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE  2
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE  2
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -178,7 +178,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00108        #define ROLE_SLAVE      (0)
                       00109        #define ROLE_STANDALONE (1)
                       00110        #define NUM_CHANNELS    (.20)
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE  3
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE  3
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -268,7 +268,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00006 ;@@ @      @   @  @   @   @@@    @@@          LUMOS: LIGHT ORCHESTRATION    @@
                       00007 ;@@ @      @   @  @@ @@  @   @  @   @         SYSTEM FIRMWARE VERSION 3.0   @@
                       00008 ;@@ @      @   @  @ @ @  @   @  @                                           @@
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE  4
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE  4
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -358,7 +358,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00235   ELSE
                       00236    ERROR "LUMOS_CHIP_TYPE must be set to MASTER, SLAVE, 4CHANNEL, or STANDALONE"
                       00237   ENDIF
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE  5
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE  5
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -448,7 +448,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00318 ;
                       00319 ; LUMOS_CHIP_TYPE:  Will be one of the following, to show what the intent
                       00320 ;                   of the target chip will be and what its particular 
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE  6
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE  6
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -538,7 +538,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00023 #include "serial-io-user.inc"
                       00001 ;
                       00002 ; To use the serial I/O module, you need to edit this
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE  7
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE  7
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -628,7 +628,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00426   IF LUMOS_CHIP_TYPE == LUMOS_CHIP_SLAVE
                       00427    #define ROLE_MASTER      (0)
                       00428    #define ROLE_SLAVE       (1)
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE  8
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE  8
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -718,7 +718,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00509 ;       LUMOS_INTERNAL  - Internal timing system (using PIC timer module)
                       00510 ;
                       00511 ; LUMOS_ARCH:       Will be one of the following, to show what PIC device
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE  9
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE  9
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -808,7 +808,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
   0000                00048         EXTERN  SIO_FLUSH_INPUT ; Clear input buffer; discards any unread received data
   0000                00049         EXTERN  SIO_FLUSH_OUTPUT; Clear output buffer; discards any unsent data
                       00050 ;
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 10
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 10
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -898,7 +898,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00023 ;
                       00024 ; -*- -*- -* -*- -*- -*- -*- -*- -* -*- -*- -*- -*- -*- -* -*- -*- -*- -*- -*-
                       00025 ;
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 11
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 11
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -988,7 +988,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00093 ;
                       00094 ;=============================================================================
                       00095 ; DIAGNOSTICS
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 12
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 12
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -1078,7 +1078,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00176 ; configuration commands from the host PC.
                       00177 ;
                       00178 ; Press the button again to enter self-test mode.  The LEDs will chase
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 13
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 13
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -1168,7 +1168,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00260 ; processes the command (which may require some following data bytes, all
                       00261 ; of which must have their MSB cleared).  Otherwise, the unit ignores the
                       00262 ; byte.
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 14
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 14
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -1258,7 +1258,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00343 ;            7+29  1111aaaa 00011101                    Reserved for future use                 
                       00344 ;   OUT_NAK  7+30  1111aaaa 00011110                    QUERY NAK                               
                       00345 ;   OUT_RPLY 7+31  1111aaaa 00011111 ...                Reply to QUERY command_________________ 
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 15
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 15
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -1348,7 +1348,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00427 ; MUST also change.
                       00428 ;
                       00429 ;    1111aaaa 00011111 00110001 0ABCDdcc 0ccccccc 0ABCDqsf 0ABCDXpp 0ppppppp 
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 16
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 16
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -1438,7 +1438,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00511 ;    |  |         | RAMP_LVL |    |___|    |___|              |
                       00512 ;    |  |         |__________|                                |
                       00513 ;    |  |          __________                  __________     |
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 17
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 17
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -1528,7 +1528,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00595 ;
                       00596 ; In the previous (prototype) version of this controller, we took the ZC
                       00597 ; signal from the *secondary* side of the transformer, which meant that it
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 18
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 18
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -1618,7 +1618,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00679 ;
                       00680 ;  PIC18F4685 Microcontroller I/O pin assignments:
                       00681 ;
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 19
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 19
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -1708,7 +1708,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00763 ;------------------------------------------------------------------------ 
                       00764 ;
                       00765 ;  PIC18F14K50 Microcontroller I/O pin assignments:
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 20
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 20
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -1798,7 +1798,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00847 ; $000 | global state,   | _ADATA            BANK 0
                       00848 ; $05F | ISR data, etc.  |                (ACCESS AREA)
                       00849 ;      |.................|...............................
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 21
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 21
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -1888,7 +1888,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00931 ; $FFF |_________________|___ ___ ___ ___ ___ ___ ___ ___
                       00932 ;
                       00933 ; ========================================================================
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 22
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 22
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -1978,7 +1978,7 @@ F0000F 42             00970         DE      0x42            ; 00F: sentinel
                       01015 ;
                       01016 ;-----------------------------------------------------------------------------
                       01017 ; I/O PORT ASSIGNMENTS
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 23
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 23
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -2068,7 +2068,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       01099 ;                    |______|______|______|______|______|______|______|______|
                       01100 ; YY_DATA            |                                                       |
                       01101 ;                    |                      Command Data                     |
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 24
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 24
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -2158,7 +2158,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       01183 ;                     ___________________________.___________________________
                       01184 ;                    |                                                       |
                       01185 ;                    | Brightness value of SSR #23 (00=off, ... FF=fully on) |
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 25
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 25
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -2248,7 +2248,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
   00000007            01267 NOT_MY_SSR      EQU     7
   00000006            01268 INVALID_SSR     EQU     6               ; MUST be bit 6
   0000003F            01269 TARGET_SSR_MSK  EQU     0x3F
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 26
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 26
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -2338,7 +2338,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       01351 BIT_12           EQU    2
                       01352 BIT_13           EQU    4
                       01353 BIT_14           EQU    1
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 27
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 27
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -2428,7 +2428,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       01435 BIT_16            EQU   0
                       01436 BIT_17            EQU   7
                       01437 BIT_18            EQU   4
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 28
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 28
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -2518,7 +2518,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       01519 BIT_3              EQU  2
                       01520 BIT_4              EQU  1
                       01521 BIT_5              EQU  7
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 29
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 29
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -2608,7 +2608,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00002 ;
                       00003                 LIST n=90
                       00004 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 30
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 30
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -2648,120 +2648,212 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00036 ;
                       00037                     IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSCC
                       00038 N_BUTTONS            EQU        6       ; X L A B C D
-                      00039 PORT_RX              EQU        PORTC
-                      00040 BIT_RX               EQU        7
-                      00041 
-                      00042 HAS_T_R              EQU        1
-                      00043 HAS_ACTIVE           EQU        0
-                      00044 HAS_SENSORS          EQU        0
-                      00045 HAS_OPTION           EQU        0
-                      00046 HAS_STATUS_LEDS      EQU        0
-                      00047 HAS_POWER_CTRL       EQU        0
-                      00048 
-                      00049 PLAT_T_R             EQU        LATC
-                      00050 PORT_T_R             EQU        PORTC
-                      00051 TRIS_T_R             EQU        TRISC
-                      00052 BIT_T_R              EQU        3
-                      00053 
-                      00054 PLAT_0               EQU        LATC    ; XR
-                      00055 PLAT_1               EQU        LATC    ; XG
-                      00056 PLAT_2               EQU        LATC    ; XB
-                      00057 PLAT_3               EQU        LATE    ; LR
-                      00058 PLAT_4               EQU        LATE    ; LY
-                      00059 PLAT_5               EQU        LATE    ; LG
-                      00060 PLAT_6               EQU        LATB    ; AL
-                      00061 PLAT_7               EQU        LATB    ; BL
-                      00062 PLAT_8               EQU        LATB    ; CL
-                      00063 PLAT_9               EQU        LATB    ; DL
-                      00064 PLAT_10              EQU        LATB    ; FR
-                      00065 PLAT_11              EQU        LATB    ; FG
-                      00066 PLAT_12              EQU        LATB    ; FB
-                      00067 PLAT_13              EQU        LATB    ; FW
-                      00068 SSR_MAX              EQU        13
-                      00069 
-                      00070 BIT_0                EQU        2       ; XR
-                      00071 BIT_1                EQU        1       ; XG
-                      00072 BIT_2                EQU        0       ; XB
-                      00073 BIT_3                EQU        2       ; LR
-                      00074 BIT_4                EQU        0       ; LY
-                      00075 BIT_5                EQU        1       ; LG
-                      00076 BIT_6                EQU        7       ; AL
-                      00077 BIT_7                EQU        6       ; BL
-                      00078 BIT_8                EQU        5       ; CL
-                      00079 BIT_9                EQU        4       ; DL
-                      00080 BIT_10               EQU        3       ; FR
-                      00081 BIT_11               EQU        2       ; FG
-                      00082 BIT_12               EQU        1       ; FB
-                      00083 BIT_13               EQU        0       ; FW
-                      00084                     ELSE
-                      00085                      IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSRC
-  0000000A            00086 N_BUTTONS             EQU       10      ; X0 L0 X1 L1 ... X4 L4
-  00000F82            00087 PORT_RX               EQU       PORTC
-  00000007            00088 BIT_RX                EQU       7
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 31
+                      00039 BTN_IDX_X0           EQU        0
+                      00040 BTN_IDX_L0           EQU        1
+                      00041 BTN_IDX_A0           EQU        2
+                      00042 BTN_IDX_B0           EQU        3
+                      00043 BTN_IDX_C0           EQU        4
+                      00044 BTN_IDX_D0           EQU        5
+                      00045 PORT_X0              EQU        PORTA
+                      00046 PORT_L0              EQU        PORTA
+                      00047 PORT_A0              EQU        PORTA
+                      00048 PORT_B0              EQU        PORTA
+                      00049 PORT_C0              EQU        PORTA
+                      00050 PORT_D0              EQU        PORTA
+                      00051 BIT_X0               EQU        1
+                      00052 BIT_L0               EQU        0
+                      00053 BIT_A0               EQU        5
+                      00054 BIT_B0               EQU        4
+                      00055 BIT_C0               EQU        3
+                      00056 BIT_D0               EQU        2
+                      00057 
+                      00058 PORT_RX              EQU        PORTC
+                      00059 BIT_RX               EQU        7
+                      00060 
+                      00061 HAS_T_R              EQU        1
+                      00062 HAS_ACTIVE           EQU        0
+                      00063 HAS_SENSORS          EQU        0
+                      00064 HAS_OPTION           EQU        0
+                      00065 HAS_STATUS_LEDS      EQU        0
+                      00066 HAS_POWER_CTRL       EQU        0
+                      00067 
+                      00068 PLAT_T_R             EQU        LATC
+                      00069 PORT_T_R             EQU        PORTC
+                      00070 TRIS_T_R             EQU        TRISC
+                      00071 BIT_T_R              EQU        3
+                      00072 
+                      00073 CHAN_X0R             EQU        .0
+                      00074 CHAN_X0G             EQU        .1
+                      00075 CHAN_X0B             EQU        .2
+                      00076 CHAN_L0R             EQU        .3
+                      00077 CHAN_L0Y             EQU        .4
+                      00078 CHAN_L0G             EQU        .5
+                      00079 CHAN_A0L             EQU        .6
+                      00080 CHAN_B0L             EQU        .7
+                      00081 CHAN_C0L             EQU        .8
+                      00082 CHAN_D0L             EQU        .9
+                      00083 CHAN_F_R             EQU        .10
+                      00084 CHAN_F_G             EQU        .11
+                      00085 CHAN_F_B             EQU        .12
+                      00086 CHAN_F_W             EQU        .13
+                      00087 
+                      00088 PLAT_0               EQU        LATC    ; XR
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 31
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-                      00089 
-  00000001            00090 HAS_T_R               EQU       1
-  00000000            00091 HAS_ACTIVE            EQU       0
-  00000000            00092 HAS_SENSORS           EQU       0
-  00000000            00093 HAS_OPTION            EQU       0
-  00000000            00094 HAS_STATUS_LEDS       EQU       0
-  00000000            00095 HAS_POWER_CTRL        EQU       0
-                      00096 
-  00000F8B            00097 PLAT_T_R              EQU       LATC
-  00000F82            00098 PORT_T_R              EQU       PORTC
-  00000F94            00099 TRIS_T_R              EQU       TRISC
-  00000003            00100 BIT_T_R               EQU       3
-                      00101 
-  00000F8B            00102 PLAT_0                EQU       LATC    ; X0R
-  00000F8B            00103 PLAT_1                EQU       LATC    ; X0G
-  00000F8B            00104 PLAT_2                EQU       LATC    ; X0B
-  00000F8D            00105 PLAT_3                EQU       LATE    ; L0R
-  00000F8A            00106 PLAT_4                EQU       LATB    ; X1R
-  00000F8A            00107 PLAT_5                EQU       LATB    ; X1G
-  00000F8A            00108 PLAT_6                EQU       LATB    ; X1B
-  00000F8A            00109 PLAT_7                EQU       LATB    ; L1R
-  00000F8A            00110 PLAT_8                EQU       LATB    ; X2R
-  00000F8A            00111 PLAT_9                EQU       LATB    ; X2G
-  00000F8A            00112 PLAT_10               EQU       LATB    ; X2B
-  00000F8D            00113 PLAT_11               EQU       LATE    ; L2R
-  00000F8C            00114 PLAT_12               EQU       LATD    ; X3R
-  00000F8C            00115 PLAT_13               EQU       LATD    ; X3G
-  00000F8C            00116 PLAT_14               EQU       LATD    ; X3B
-  00000F8D            00117 PLAT_15               EQU       LATE    ; L3R
-  00000F8A            00118 PLAT_16               EQU       LATB    ; X4R
-  00000F8C            00119 PLAT_17               EQU       LATD    ; X4G
-  00000F8C            00120 PLAT_18               EQU       LATD    ; X4B
-  00000F8C            00121 PLAT_19               EQU       LATD    ; L4R
-  00000013            00122 SSR_MAX               EQU       19
-                      00123 
-  00000002            00124 BIT_0                 EQU       2       ; X0R
-  00000001            00125 BIT_1                 EQU       1       ; X0G
-  00000000            00126 BIT_2                 EQU       0       ; X0B
-  00000002            00127 BIT_3                 EQU       2       ; L0R
-  00000007            00128 BIT_4                 EQU       7       ; X1R
-  00000006            00129 BIT_5                 EQU       6       ; X1G
-  00000005            00130 BIT_6                 EQU       5       ; X1B
-  00000004            00131 BIT_7                 EQU       4       ; L1R
-  00000003            00132 BIT_8                 EQU       3       ; X2R
-  00000002            00133 BIT_9                 EQU       2       ; X2G
-  00000001            00134 BIT_10                EQU       1       ; X2B
-  00000000            00135 BIT_11                EQU       0       ; L2R
-  00000007            00136 BIT_12                EQU       7       ; X3R
-  00000006            00137 BIT_13                EQU       6       ; X3G
-  00000005            00138 BIT_14                EQU       5       ; X3B
-  00000001            00139 BIT_15                EQU       1       ; L3R
-  00000000            00140 BIT_16                EQU       0       ; X4R
-  00000003            00141 BIT_17                EQU       3       ; X4G
-  00000001            00142 BIT_18                EQU       1       ; X4B
-  00000002            00143 BIT_19                EQU       2       ; L4R
-                      00144                      ENDIF
-                      00145                     ENDIF
-                      00146 
+                      00089 PLAT_1               EQU        LATC    ; XG
+                      00090 PLAT_2               EQU        LATC    ; XB
+                      00091 PLAT_3               EQU        LATE    ; LR
+                      00092 PLAT_4               EQU        LATE    ; LY
+                      00093 PLAT_5               EQU        LATE    ; LG
+                      00094 PLAT_6               EQU        LATB    ; AL
+                      00095 PLAT_7               EQU        LATB    ; BL
+                      00096 PLAT_8               EQU        LATB    ; CL
+                      00097 PLAT_9               EQU        LATB    ; DL
+                      00098 PLAT_10              EQU        LATB    ; FR
+                      00099 PLAT_11              EQU        LATB    ; FG
+                      00100 PLAT_12              EQU        LATB    ; FB
+                      00101 PLAT_13              EQU        LATB    ; FW
+                      00102 SSR_MAX              EQU        13
+                      00103 
+                      00104 BIT_0                EQU        2       ; XR
+                      00105 BIT_1                EQU        1       ; XG
+                      00106 BIT_2                EQU        0       ; XB
+                      00107 BIT_3                EQU        2       ; LR
+                      00108 BIT_4                EQU        0       ; LY
+                      00109 BIT_5                EQU        1       ; LG
+                      00110 BIT_6                EQU        7       ; AL
+                      00111 BIT_7                EQU        6       ; BL
+                      00112 BIT_8                EQU        5       ; CL
+                      00113 BIT_9                EQU        4       ; DL
+                      00114 BIT_10               EQU        3       ; FR
+                      00115 BIT_11               EQU        2       ; FG
+                      00116 BIT_12               EQU        1       ; FB
+                      00117 BIT_13               EQU        0       ; FW
+                      00118                     ELSE
+                      00119                      IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSRC
+  0000000A            00120 N_BUTTONS             EQU       10      ; X0 L0 X1 L1 ... X4 L4
+  00000000            00121 BTN_IDX_X0            EQU       0
+  00000001            00122 BTN_IDX_L0            EQU       1
+  00000002            00123 BTN_IDX_X1            EQU       2
+  00000003            00124 BTN_IDX_L1            EQU       3
+  00000004            00125 BTN_IDX_X2            EQU       4
+  00000005            00126 BTN_IDX_L2            EQU       5
+  00000006            00127 BTN_IDX_X3            EQU       6
+  00000007            00128 BTN_IDX_L3            EQU       7
+  00000008            00129 BTN_IDX_X4            EQU       8
+  00000009            00130 BTN_IDX_L4            EQU       9
+                      00131 
+  00000F80            00132 PORT_X0               EQU       PORTA
+  00000F80            00133 PORT_L0               EQU       PORTA
+  00000F80            00134 PORT_X1               EQU       PORTA
+  00000F80            00135 PORT_L1               EQU       PORTA
+  00000F80            00136 PORT_X2               EQU       PORTA
+  00000F80            00137 PORT_L2               EQU       PORTA
+  00000F82            00138 PORT_X3               EQU       PORTC
+  00000F83            00139 PORT_L3               EQU       PORTD
+  00000F83            00140 PORT_X4               EQU       PORTD
+  00000F82            00141 PORT_L4               EQU       PORTC
+  00000003            00142 BIT_X0                EQU       3
+  00000002            00143 BIT_L0                EQU       2
+  00000001            00144 BIT_X1                EQU       1
+  00000000            00145 BIT_L1                EQU       0
+  00000004            00146 BIT_X2                EQU       4
+  00000005            00147 BIT_L2                EQU       5
+  00000004            00148 BIT_X3                EQU       4
+  00000000            00149 BIT_L3                EQU       0
+  00000004            00150 BIT_X4                EQU       4
+  00000005            00151 BIT_L4                EQU       5
+                      00152 
+  00000F82            00153 PORT_RX               EQU       PORTC
+  00000007            00154 BIT_RX                EQU       7
+                      00155 
+  00000001            00156 HAS_T_R               EQU       1
+  00000000            00157 HAS_ACTIVE            EQU       0
+  00000000            00158 HAS_SENSORS           EQU       0
+  00000000            00159 HAS_OPTION            EQU       0
+  00000000            00160 HAS_STATUS_LEDS       EQU       0
+  00000000            00161 HAS_POWER_CTRL        EQU       0
+                      00162 
+  00000F8B            00163 PLAT_T_R              EQU       LATC
+  00000F82            00164 PORT_T_R              EQU       PORTC
+  00000F94            00165 TRIS_T_R              EQU       TRISC
+  00000003            00166 BIT_T_R               EQU       3
+                      00167 
+  00000000            00168 CHAN_X0R              EQU       .0
+  00000001            00169 CHAN_X0G              EQU       .1
+  00000002            00170 CHAN_X0B              EQU       .2
+  00000003            00171 CHAN_L0R              EQU       .3
+  00000004            00172 CHAN_X1R              EQU       .4
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 32
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+  00000005            00173 CHAN_X1G              EQU       .5
+  00000006            00174 CHAN_X1B              EQU       .6
+  00000007            00175 CHAN_L1R              EQU       .7
+  00000008            00176 CHAN_X2R              EQU       .8
+  00000009            00177 CHAN_X2G              EQU       .9
+  0000000A            00178 CHAN_X2B              EQU       .10
+  0000000B            00179 CHAN_L2R              EQU       .11
+  0000000C            00180 CHAN_X3R              EQU       .12
+  0000000D            00181 CHAN_X3G              EQU       .13
+  0000000E            00182 CHAN_X3B              EQU       .14
+  0000000F            00183 CHAN_L3R              EQU       .15
+  00000010            00184 CHAN_X4R              EQU       .16
+  00000011            00185 CHAN_X4G              EQU       .17
+  00000012            00186 CHAN_X4B              EQU       .18
+  00000013            00187 CHAN_L4R              EQU       .19
+  00000F8B            00188 PLAT_0                EQU       LATC    ; X0R
+  00000F8B            00189 PLAT_1                EQU       LATC    ; X0G
+  00000F8B            00190 PLAT_2                EQU       LATC    ; X0B
+  00000F8D            00191 PLAT_3                EQU       LATE    ; L0R
+  00000F8A            00192 PLAT_4                EQU       LATB    ; X1R
+  00000F8A            00193 PLAT_5                EQU       LATB    ; X1G
+  00000F8A            00194 PLAT_6                EQU       LATB    ; X1B
+  00000F8A            00195 PLAT_7                EQU       LATB    ; L1R
+  00000F8A            00196 PLAT_8                EQU       LATB    ; X2R
+  00000F8A            00197 PLAT_9                EQU       LATB    ; X2G
+  00000F8A            00198 PLAT_10               EQU       LATB    ; X2B
+  00000F8D            00199 PLAT_11               EQU       LATE    ; L2R
+  00000F8C            00200 PLAT_12               EQU       LATD    ; X3R
+  00000F8C            00201 PLAT_13               EQU       LATD    ; X3G
+  00000F8C            00202 PLAT_14               EQU       LATD    ; X3B
+  00000F8D            00203 PLAT_15               EQU       LATE    ; L3R
+  00000F8A            00204 PLAT_16               EQU       LATB    ; X4R
+  00000F8C            00205 PLAT_17               EQU       LATD    ; X4G
+  00000F8C            00206 PLAT_18               EQU       LATD    ; X4B
+  00000F8C            00207 PLAT_19               EQU       LATD    ; L4R
+  00000013            00208 SSR_MAX               EQU       19
+                      00209 
+  00000002            00210 BIT_0                 EQU       2       ; X0R
+  00000001            00211 BIT_1                 EQU       1       ; X0G
+  00000000            00212 BIT_2                 EQU       0       ; X0B
+  00000002            00213 BIT_3                 EQU       2       ; L0R
+  00000007            00214 BIT_4                 EQU       7       ; X1R
+  00000006            00215 BIT_5                 EQU       6       ; X1G
+  00000005            00216 BIT_6                 EQU       5       ; X1B
+  00000004            00217 BIT_7                 EQU       4       ; L1R
+  00000003            00218 BIT_8                 EQU       3       ; X2R
+  00000002            00219 BIT_9                 EQU       2       ; X2G
+  00000001            00220 BIT_10                EQU       1       ; X2B
+  00000000            00221 BIT_11                EQU       0       ; L2R
+  00000007            00222 BIT_12                EQU       7       ; X3R
+  00000006            00223 BIT_13                EQU       6       ; X3G
+  00000005            00224 BIT_14                EQU       5       ; X3B
+  00000001            00225 BIT_15                EQU       1       ; L3R
+  00000000            00226 BIT_16                EQU       0       ; X4R
+  00000003            00227 BIT_17                EQU       3       ; X4G
+  00000001            00228 BIT_18                EQU       1       ; X4B
+  00000002            00229 BIT_19                EQU       2       ; L4R
+                      00230                      ENDIF
+                      00231                     ENDIF
+                      00232 
                       01602                     ELSE
                       01603                      ERROR "Invalid platform select"
                       01604                     ENDIF
@@ -2786,14 +2878,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       01623 SSR_RED                  EQU    SSR_LIGHTS+2
                       01624 ;
                       01625 ;
-                      01626 ; Aliases for macro expansion (continues SSR numbering into these too)
-                      01627 ;
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 32
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 33
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      01626 ; Aliases for macro expansion (continues SSR numbering into these too)
+                      01627 ;
                       01628 PLAT_0                   EQU    PLAT_RED
                       01629 PLAT_0                   EQU    PLAT_YELLOW
                       01630 PLAT_0                   EQU    PLAT_GREEN
@@ -2876,14 +2968,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       01707               CALL SIO_WRITE_W
                       01708               MOVLW B'00000101'
                       01709              ELSE
-                      01710               IF ERR_CLASS == ERR_CLASS_INT_COMMAND
-                      01711                MOVLW B'00111000'
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 33
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 34
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      01710               IF ERR_CLASS == ERR_CLASS_INT_COMMAND
+                      01711                MOVLW B'00111000'
                       01712                CALL SIO_WRITE_W
                       01713                MOVLW B'00000110'
                       01714               ELSE
@@ -2966,14 +3058,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00062          CLRF   SSR_00_COUNTER+IDX, BANKED
                       00063          CLRF   SSR_00_FLAGS+IDX, BANKED
                       00064         ENDM
-                      00065 
-                      00066 SET_SSR_PATTERN MACRO IDX, LEVEL, STEP, SPEED, FLAGS
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 34
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 35
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      00065 
+                      00066 SET_SSR_PATTERN MACRO IDX, LEVEL, STEP, SPEED, FLAGS
                       00067         BANKSEL SSR_DATA_BANK
                       00068          MOVLW  LEVEL
                       00069          MOVWF  SSR_00_VALUE+IDX, BANKED
@@ -3056,14 +3148,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       01761 S8B_CHK_7E#v(S8B_LABEL):
                       01762         MOVLW   0x7E                            ; sending literal $7E?
                       01763         CPFSEQ  EIGHTBITSIOBUF, ACCESS
-                      01764         BRA     S8B_CHK_MSB#v(S8B_LABEL)
-                      01765         MOVLW   0x7F                            ; send $7F to escape first
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 35
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 36
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      01764         BRA     S8B_CHK_MSB#v(S8B_LABEL)
+                      01765         MOVLW   0x7F                            ; send $7F to escape first
                       01766         CALL    SIO_WRITE_W
                       01767         MOVLW   0x7E                            ; then the literal $7E itself.
                       01768         CALL    SIO_WRITE_W
@@ -3146,14 +3238,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       01845           RCALL DELAY_1_12_SEC
                       01846          ENDIF
                       01847         ENDIF
-000102 0012           01848         RETURN
-                      01849 
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 36
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 37
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+000102 0012           01848         RETURN
+                      01849 
 000104                01850 START:
 000104 0004           01851         CLRWDT
 000106 6AFC           01852         CLRF    STKPTR, ACCESS          ; clear stack error bits, set SP=0
@@ -3236,14 +3328,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000156 80A6           01929         BSF     EECON1, RD, ACCESS
 000158 CFA8 F???      01930         MOVFF   EEDATA, PHASE_OFFSETH
                       01931         ;
-00015C 2AA9           01932         INCF    EEADR, F, ACCESS        ; EEPROM location 0x004: phase offset LSB
-00015E 80A6           01933         BSF     EECON1, RD, ACCESS
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 37
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 38
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+00015C 2AA9           01932         INCF    EEADR, F, ACCESS        ; EEPROM location 0x004: phase offset LSB
+00015E 80A6           01933         BSF     EECON1, RD, ACCESS
 000160 CFA8 F???      01934         MOVFF   EEDATA, PHASE_OFFSETL
                       01935         ;
 000164 2AA9           01936         INCF    EEADR, F, ACCESS        ; EEPROM location 0x005: DMX slot MSB
@@ -3326,14 +3418,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0001C6 6B00           01983          CLRF   SSR_00_FLAGS+5,      BANKED     ; all SSR flags cleared
 0001C8 6B00           01984          CLRF   SSR_00_STEP+5,      BANKED
 0001CA 6B00           01985          CLRF   SSR_00_SPEED+5,      BANKED
-0001CC 6B00           01986          CLRF   SSR_00_COUNTER+5,      BANKED
-  00000006            01987 CH       ++
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 38
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 39
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+0001CC 6B00           01986          CLRF   SSR_00_COUNTER+5,      BANKED
+  00000006            01987 CH       ++
 0001CE 6B00           01982          CLRF   SSR_00_VALUE+6,      BANKED     ; all SSRs OFF
 0001D0 6B00           01983          CLRF   SSR_00_FLAGS+6,      BANKED     ; all SSR flags cleared
 0001D2 6B00           01984          CLRF   SSR_00_STEP+6,      BANKED
@@ -3416,14 +3508,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000252 6B00           01983          CLRF   SSR_00_FLAGS+19,     BANKED     ; all SSR flags cleared
 000254 6B00           01984          CLRF   SSR_00_STEP+19,     BANKED
 000256 6B00           01985          CLRF   SSR_00_SPEED+19,     BANKED
-000258 6B00           01986          CLRF   SSR_00_COUNTER+19,     BANKED
-  00000014            01987 CH       ++
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 39
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 40
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+000258 6B00           01986          CLRF   SSR_00_COUNTER+19,     BANKED
+  00000014            01987 CH       ++
                       01988         ENDW
                       01989         IF HAS_STATUS_LEDS
                       01990          BSF    PLAT_RED, BIT_RED, ACCESS       ; Panel: () G Y R
@@ -3506,14 +3598,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       02067          BSF    PLAT_PWR_ON, BIT_PWR_ON, ACCESS ; try flipping back last time
                       02068          RCALL  DELAY_1_12_SEC
                       02069          BTFSS  PORT_OPTION, BIT_OPTION, ACCESS 
-                      02070          BRA    END_FRJC                        
-                      02071 
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 40
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 41
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      02070          BRA    END_FRJC                        
+                      02071 
                       02072         ;
                       02073         ; After perhaps a bit too much caution, we're convinced there's a jumper there.
                       02074         ; wait for it to go away now, then do the reset.
@@ -3596,14 +3688,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       02151 
                       02152 SET_EEPROM_ADDRESS MACRO ADDR
                       02153          MOVLW  HIGH(ADDR)              ; NOTE interrupts need to be OFF here!
-                      02154          MOVWF  EEADRH, ACCESS
-                      02155          MOVLW  LOW(ADDR)
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 41
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 42
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      02154          MOVWF  EEADRH, ACCESS
+                      02155          MOVLW  LOW(ADDR)
                       02156          MOVWF  EEADR, ACCESS
                       02157         ENDM
                       02158 
@@ -3686,14 +3778,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0002C0                02225 FACTORY_RESET_LOOP:
 0002C0 0009           02226         TBLRD   *+                      ; byte -> TABLAT
 0002C2 CFF5 FFA8      02227         MOVFF   TABLAT, EEDATA
-                      02228         IF HAS_STATUS_LEDS
-                      02229          BSF    PLAT_YELLOW, BIT_YELLOW, ACCESS ; Panel: () () Y R
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 42
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 43
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      02228         IF HAS_STATUS_LEDS
+                      02229          BSF    PLAT_YELLOW, BIT_YELLOW, ACCESS ; Panel: () () Y R
                       02230         ENDIF
                       02231         WRITE_EEPROM_DATA_INC
                           M         WRITE_EEPROM_DATA
@@ -3776,14 +3868,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       02290 
                       02291 ;==============================================================================
                       02292 ; INTERRUPT HANDLERS
-                      02293 ;______________________________________________________________________________
-                      02294 _INT    CODE
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 43
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 44
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      02293 ;______________________________________________________________________________
+                      02294 _INT    CODE
 000000                02295 INT_LOW:
 000000 6E00           02296         MOVWF   ISR_TMPL_WREG, ACCESS   ; Save W, status, and bank registers
 000002 CFD8 F???      02297         MOVFF   STATUS, ISR_TMPL_STATUS
@@ -3866,14 +3958,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       02374 INT_ZC_END_OPTION:
                       02375         ENDIF
 000044                02376 INT_ZC_END:
-                      02377         ;
-                      02378         ; Start of cycle slice signal
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 44
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 45
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      02377         ;
+                      02378         ; Start of cycle slice signal
                       02379         ;
 000044                02380 INT_TMR2:
 000044 A29E           02381         BTFSS   PIR1, TMR2IF, ACCESS            ; has timer expired?
@@ -3956,14 +4048,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 00001B                02458 TEST_SSR        RES     1
 00001C                02459 AUTO_OFF_CTRH   RES     1
 00001D                02460 AUTO_OFF_CTRL   RES     1
-00001E                02461 EIGHTBITSIOBUF  RES     1               ; buffer for 8-bit data adjustments
-00001F                02462 I               RES     1
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 45
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 46
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+00001E                02461 EIGHTBITSIOBUF  RES     1               ; buffer for 8-bit data adjustments
+00001F                02462 I               RES     1
 000020                02463 J               RES     1
 000021                02464 K               RES     1
 000022                02465 KK              RES     1
@@ -4046,14 +4138,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       02542         ; If it took <56uS, we'll interpret it as noise.  Otherwise, it's a break and
                       02543         ; the start of our DMX frame.  As a safety measure, if the break lasts longer
                       02544         ; than ~8,000uS, we abandon the frame.
-                      02545         ; 
-                      02546         IF HAS_STATUS_LEDS
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 46
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 47
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      02545         ; 
+                      02546         IF HAS_STATUS_LEDS
                       02547          SET_SSR_BLINK_FADE SSR_YELLOW
                       02548         ENDIF
 00082E 9A9D           02549         BCF     PIE1, RCIE, ACCESS      ; Disable RxD interrupts for now
@@ -4136,14 +4228,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 00088E D???           02626         RCALL   DO_TEST_MODE
                       02627 
                       02628         IF HAS_OPTION
-                      02629 OPTION_HANDLER:
-                      02630          BTFSS  SSR_STATE, PRIV_MODE, ACCESS            ; are we in privileged mode?
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 47
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 48
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      02629 OPTION_HANDLER:
+                      02630          BTFSS  SSR_STATE, PRIV_MODE, ACCESS            ; are we in privileged mode?
                       02631          BRA    OPTION_PRE_PRIV                         ; no, check if we're in pre-priv...
                       02632                                                         ; ----------------------------------------------
                             ---PRIV_MODE
@@ -4226,14 +4318,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       02706           ENDIF
                       02707           SET_SSR_RAPID_FLASH SSR_GREEN
                       02708           SET_SSR_RAPID_FLASH SSR_YELLOW
-                      02709           SET_SSR_RAPID_FLASH SSR_RED
-                      02710          ENDIF
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 48
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 49
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      02709           SET_SSR_RAPID_FLASH SSR_RED
+                      02710          ENDIF
                       02711          IF ROLE_MASTER
                       02712           MOVLW 0xF0                                    ; send to slave chip: F0 21 00101101 00000101
                       02713           CALL  SIO_WRITE_W                             ; (rapid flash all LEDs)
@@ -4316,14 +4408,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M           ; Send extra flags to slave
                           M           MOVLW 0xF0
                           M           CALL  SIO_WRITE_W
-                          M           MOVLW 0x21
-                          M           CALL  SIO_WRITE_W
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 49
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 50
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                          M           MOVLW 0x21
+                          M           CALL  SIO_WRITE_W
                           M           IF ERR_CLASS_DEVICE == ERR_CLASS_OVERRUN
                           M            MOVLW B'00101000'
                           M            CALL SIO_WRITE_W
@@ -4406,14 +4498,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0008D0                02817 TEST_NP_2:
                       02818         ENDIF
                       02819         
-0008D0                02820 TEST_MODE_1:
-0008D0 AE00           02821         BTFSS   SSR_STATE2, TEST_PAUSE, ACCESS  ; paused? 
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 50
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 51
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+0008D0                02820 TEST_MODE_1:
+0008D0 AE00           02821         BTFSS   SSR_STATE2, TEST_PAUSE, ACCESS  ; paused? 
 0008D2 AC00           02822         BTFSS   SSR_STATE2, TEST_UPD, ACCESS    ; time to count down?
 0008D4 0012           02823         RETURN                                  ; either we're paused or not time to update; stop.
                       02824         
@@ -4496,14 +4588,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       02901          SET_SSR_RAPID_FLASH SSR_RED
                       02902          SET_SSR_STEADY SSR_YELLOW
                       02903         ENDIF
-0008FC 0012           02904         RETURN
-0008FE                02905 START_DMX_FRAME:
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 51
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 52
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+0008FC 0012           02904         RETURN
+0008FE                02905 START_DMX_FRAME:
                       02906         ;
                       02907         ; We're in DMX mode so a framing error (aka break) is really
                       02908         ; not an error, but the start of our data frame!
@@ -4586,14 +4678,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       02985         ;
 000936 0004           02986         CLRWDT
 000938 0103           02987         BANKSEL SIO_DATA_START
-00093A AF00           02988         BTFSS   SIO_INPUT, CMD_BIT, BANKED
-00093C D???           02989         BRA     DATA_BYTE               ; it's a data byte
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 52
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 53
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+00093A AF00           02988         BTFSS   SIO_INPUT, CMD_BIT, BANKED
+00093C D???           02989         BRA     DATA_BYTE               ; it's a data byte
                       02990         ;
                       02991         ; ok, so it's a command. are we still waiting for another
                       02992         ; command to complete?  If so, abort it and start over.
@@ -4676,14 +4768,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000968 6200           03021          CPFSEQ MY_ADDRESS, ACCESS
 00096A 0012           03022          RETURN ; not my problem.
                       03023         ENDIF
-                      03024         ;
-                      03025         ; ok, so it's OUR command.  We're at state 0,
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 53
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 54
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      03024         ;
+                      03025         ; ok, so it's OUR command.  We're at state 0,
                       03026         ; so let's decode it and go from here.
                       03027         ;
                       03028         ; === STATE 0 ===
@@ -4766,14 +4858,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0009BA 6B00           03069          CLRF   SSR_00_STEP+6,      BANKED
 0009BC 6B00           03070          CLRF   SSR_00_SPEED+6,      BANKED
 0009BE 6B00           03071          CLRF   SSR_00_COUNTER+6,      BANKED
-  00000007            03072 CH       ++
-0009C0 6B00           03067          CLRF   SSR_00_VALUE+7,      BANKED     ; all SSRs OFF
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 54
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 55
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+  00000007            03072 CH       ++
+0009C0 6B00           03067          CLRF   SSR_00_VALUE+7,      BANKED     ; all SSRs OFF
 0009C2 6B00           03068          CLRF   SSR_00_FLAGS+7,      BANKED     ; all SSR flags cleared
 0009C4 6B00           03069          CLRF   SSR_00_STEP+7,      BANKED
 0009C6 6B00           03070          CLRF   SSR_00_SPEED+7,      BANKED
@@ -4856,14 +4948,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       03075         IF ROLE_MASTER
                       03076          MOVLW  0x80            ; Pass this command on to the other 
                       03077          CALL   SIO_WRITE_W     ; processor too
-                      03078          IF HAS_STATUS_LEDS
-                      03079           SET_SSR_BLINK_FADE SSR_YELLOW ; slave activity indicator
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 55
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 56
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      03078          IF HAS_STATUS_LEDS
+                      03079           SET_SSR_BLINK_FADE SSR_YELLOW ; slave activity indicator
                       03080          ENDIF
                       03081         ENDIF
 000A42 0012           03082         RETURN
@@ -4946,14 +5038,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00041          ; Unimplemented Command
 000A76 2CE8           00042          DECFSZ WREG, W, ACCESS
 000A78 D???           00043          BRA    S0_CMD7
-000A7A EF?? F???      00044          GOTO   ERR_NOT_IMP             ; XXX
-                      03119         ELSE
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 56
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 57
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+000A7A EF?? F???      00044          GOTO   ERR_NOT_IMP             ; XXX
+                      03119         ELSE
                       03120 S0_CMD5:
                       03121          ; Unimplemented Command
                       03122          DECFSZ WREG, W, ACCESS
@@ -5036,14 +5128,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000A8C 6A00               M          CLRF   YY_STATE, ACCESS
 000A8E 0012               M          RETURN
                       03144          
-000A90                03145 DATA_BYTE:
-000A90 0004           03146         CLRWDT
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 57
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 58
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+000A90                03145 DATA_BYTE:
+000A90 0004           03146         CLRWDT
                       03147         ;
                       03148         ; Check for escape sequences
                       03149         ;
@@ -5126,14 +5218,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       03226         IF ROLE_MASTER
                       03227          MOVLW  0x90
                       03228          CALL   SIO_WRITE_W
-                      03229          MOVF   TARGET_SSR, W, ACCESS
-                      03230          ANDLW  0x3F
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 58
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 59
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      03229          MOVF   TARGET_SSR, W, ACCESS
+                      03230          ANDLW  0x3F
                       03231          BTFSC  YY_DATA, 6, ACCESS
                       03232          BSF    WREG, 6, ACCESS
                       03233          SEND_8_BIT_W
@@ -5216,14 +5308,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M            SET_SSR_OFF SSR_GREEN
                           M           ELSE
                           M            SET_SSR_OFF SSR_RED
-                          M           ENDIF
-                          M          ENDIF
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 59
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 60
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                          M           ENDIF
+                          M          ENDIF
                           M          IF ROLE_MASTER
                           M           ; Send extra flags to slave
                           M           MOVLW 0xF0
@@ -5306,14 +5398,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000B5A 6E00           03328         MOVWF   YY_STATE, ACCESS        ; -> state 7 (wait for step count)
 000B5C 0012           03329         RETURN
                       03330         
-                      03331 
-000B5E                03332 S6_DATA:
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 60
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 61
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      03331 
+000B5E                03332 S6_DATA:
 000B5E 2CE8           03333         DECFSZ  WREG, W, ACCESS
 000B60 EF?? F???      03334         GOTO    S7_DATA
                       03335         ;
@@ -5396,14 +5488,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000B8E 6400           03412         CPFSGT  YY_BUF_IDX, ACCESS              ; if IDX > N, we're done.
 000B90 EF?? F???      03413         GOTO    S6_KEEP_LOOKING                 ; otherwise, go back and wait for more data
                       03414         ; XXX Don't do this.
-                      03415         ;INCF   INDF0, F, ACCESS                ; fix it so that YY_BUFFER[0] is N, not N-1
-                      03416         ;
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 61
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 62
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      03415         ;INCF   INDF0, F, ACCESS                ; fix it so that YY_BUFFER[0] is N, not N-1
+                      03416         ;
                       03417         ; start bulk update of channels
                       03418         ;
                       03419         ; Remember that since the protocol specifies that we get N-1 in the length field,
@@ -5486,14 +5578,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M                MOVLW B'00000000'
                           M               ENDIF
                           M              ENDIF
-                          M             ENDIF
-                          M            ENDIF
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 62
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 63
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                          M             ENDIF
+                          M            ENDIF
                           M           ENDIF
                           M           CALL SIO_WRITE_W
                           M          ENDIF
@@ -5576,14 +5668,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       03523         ;  |      |                                                |
                       03524         ;  |   0  |               DMX start <6:0>                  | YY_BUFFER+1
                       03525         ;  |______|______|______|______|______|______|______|______|
-                      03526         ;  |      |                                                |
-                      03527         ;  |   0  |                   $3A                          | YY_BUFFER+2
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 63
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 64
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      03526         ;  |      |                                                |
+                      03527         ;  |   0  |                   $3A                          | YY_BUFFER+2
                       03528         ;  |______|______|______|______|______|______|______|______|
                       03529         ;  |      |                                                |
                       03530         ;  |   0  |                   $3B                          | YY_DATA
@@ -5666,14 +5758,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000C46 8EF2               M          BSF    INTCON, GIEH, ACCESS    ; Enable high-priority interrupts
 000C48 8CF2               M          BSF    INTCON, GIEL, ACCESS    ; Enable low-priority interrupts
 000C4A 6AAA               M          CLRF   EEADRH, ACCESS
-000C4C 6AA9               M          CLRF   EEADR, ACCESS
-                      03570         ;
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 64
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 65
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+000C4C 6AA9               M          CLRF   EEADR, ACCESS
+                      03570         ;
                       03571         ; Configure sensors
                       03572         ;
                       03573         IF HAS_SENSORS
@@ -5756,14 +5848,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       03650           SET_SSR_BLINK_FADE SSR_YELLOW ; slave activity indicator
                       03651          ENDIF
                       03652          MOVLW  0xF0                            ; F0 72 <baud> 26  -> slave
-                      03653          CALL   SIO_WRITE_W
-                      03654          MOVLW  0x72
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 65
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 66
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      03653          CALL   SIO_WRITE_W
+                      03654          MOVLW  0x72
                       03655          CALL   SIO_WRITE_W
                       03656          MOVF   INDF0, W, ACCESS
                       03657          CALL   SIO_WRITE_W
@@ -5846,14 +5938,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000CD2 EF?? F???      03707         GOTO    ERR_COMMAND
 000CD6 EF?? F???      03708         GOTO    FACTORY_RESET                   ; we never return from here
                       03709         ERR_BUG 0x70, ERR_CLASS_FATAL_RESET     
-000CDA 0E70               M          MOVLW  0x70
-000CDC 6E00               M          MOVWF  LAST_ERROR, ACCESS
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 66
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 67
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+000CDA 0E70               M          MOVLW  0x70
+000CDC 6E00               M          MOVWF  LAST_ERROR, ACCESS
                           M          IF HAS_ACTIVE
                           M           SET_SSR_RAPID_FLASH SSR_ACTIVE
                           M          ENDIF
@@ -5936,14 +6028,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       03734         ;  |   0  |                   $4F                          | YY_DATA
                       03735         ;  |______|______|______|______|______|______|______|______|
                       03736         ;
-                      03737         ; Validate inputs
-                      03738         ;
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 67
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 68
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      03737         ; Validate inputs
+                      03738         ;
 000CE8 0E02           03739         MOVLW   2
 000CEA 5C00           03740         SUBWF   YY_BUF_IDX, W, ACCESS           ; input bytes in packet
 000CEC E2??           03741         BC      S6_4_VALID
@@ -6026,14 +6118,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000D54 A8A1               M          BTFSS  PIR2, EEIF, ACCESS      ; wait until write completes
 000D56 D???               M          BRA    WRITE_EEPROM_LOOP5
 000D58 0004               M          CLRWDT
-000D5A 98A1               M          BCF    PIR2, EEIF, ACCESS      ; clear interrupt flag
-  00000006                M EE_LL_XX    ++
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 68
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 69
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+000D5A 98A1               M          BCF    PIR2, EEIF, ACCESS      ; clear interrupt flag
+  00000006                M EE_LL_XX    ++
                       03785         END_EEPROM_WRITE
 000D5C 94A6               M          BCF    EECON1, WREN, ACCESS    ; disable writing
 000D5E 8EF2               M          BSF    INTCON, GIEH, ACCESS    ; Enable high-priority interrupts
@@ -6116,14 +6208,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000DBE 0004               M          CLRWDT
 000DC0 98A1               M          BCF    PIR2, EEIF, ACCESS      ; clear interrupt flag
   00000007                M EE_LL_XX    ++
-                      03840         END_EEPROM_WRITE
-000DC2 94A6               M          BCF    EECON1, WREN, ACCESS    ; disable writing
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 69
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 70
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      03840         END_EEPROM_WRITE
+000DC2 94A6               M          BCF    EECON1, WREN, ACCESS    ; disable writing
 000DC4 8EF2               M          BSF    INTCON, GIEH, ACCESS    ; Enable high-priority interrupts
 000DC6 8CF2               M          BSF    INTCON, GIEL, ACCESS    ; Enable low-priority interrupts
 000DC8 6AAA               M          CLRF   EEADRH, ACCESS
@@ -6206,14 +6298,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000DFC D???           03916         BRA     S6_8_DATA
                       03917         ;
                       03918         ; S6.7: WAKE Command completed:
-                      03919         ;
-                      03920         ;   ___7______6______5______4______3______2______1______0__
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 70
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 71
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      03919         ;
+                      03920         ;   ___7______6______5______4______3______2______1______0__
                       03921         ;  |                                  |                    |
                       03922         ;  |                0                 |          7         | YY_COMMAND
                       03923         ;  |______|______|______|______|______|______|______|______|
@@ -6296,14 +6388,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       04000         ; S6.8: SHUTDOWN Command completed:
                       04001         ;
                       04002         ;   ___7______6______5______4______3______2______1______0__
-                      04003         ;  |                                  |                    |
-                      04004         ;  |                0                 |          7         | YY_COMMAND
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 71
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 72
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      04003         ;  |                                  |                    |
+                      04004         ;  |                0                 |          7         | YY_COMMAND
                       04005         ;  |______|______|______|______|______|______|______|______|
                       04006         ;  |      |      |      |      |                           |
                       04007         ;  |   0  |   0  |   0  |   0  |             2             | (not saved)
@@ -6386,14 +6478,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       04084          MOVLW  .30                     ; write 31-byte packet
                       04085          CALL   SIO_WRITE_W
                       04086         ELSE
-                      04087          IF ROLE_STANDALONE
-000E6C EC?? F???      04088           CALL  TR_ON_DELAY
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 72
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 73
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      04087          IF ROLE_STANDALONE
+000E6C EC?? F???      04088           CALL  TR_ON_DELAY
 000E70 8682           04089           BSF   PORT_T_R, BIT_T_R, ACCESS               ; Fire up our transmitter now
 000E72 9400           04090           BCF   SSR_STATE2, INHIBIT_OUTPUT, ACCESS      ; Allow sending output
                       04091          ELSE
@@ -6476,14 +6568,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       04112          BSF    WREG, 4, ACCESS                 ; 
                       04113          BTFSC  TRIS_SENS_D, BIT_SENS_D, ACCESS ; and for sensor D
                       04114          BSF    WREG, 3, ACCESS                 ; 
-                      04115         ENDIF                                   ; W=0ABCD---  1=sensor configured; 0=LED
-000EF6 BE00           04116         BTFSC   DMX_SLOTH, DMX_EN, ACCESS
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 73
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 74
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      04115         ENDIF                                   ; W=0ABCD---  1=sensor configured; 0=LED
+000EF6 BE00           04116         BTFSC   DMX_SLOTH, DMX_EN, ACCESS
 000EF8 84E8           04117         BSF     WREG, 2, ACCESS                 ;   0----d--  DMX enable bit
 000EFA B000           04118         BTFSC   DMX_SLOTH, DMX_BIT8, ACCESS
 000EFC 82E8           04119         BSF     WREG, 1, ACCESS                 ;   0-----c-  DMX channel bit 8
@@ -6566,14 +6658,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000F98                    M S8B_CHK_7E5:
 000F98 0E7E               M         MOVLW   0x7E                            ; sending literal $7E?
 000F9A 6200               M         CPFSEQ  EIGHTBITSIOBUF, ACCESS
-000F9C D???               M         BRA     S8B_CHK_MSB5
-000F9E 0E7F               M         MOVLW   0x7F                            ; send $7F to escape first
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 74
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 75
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+000F9C D???               M         BRA     S8B_CHK_MSB5
+000F9E 0E7F               M         MOVLW   0x7F                            ; send $7F to escape first
 000FA0 EC?? F???          M         CALL    SIO_WRITE_W
 000FA4 0E7E               M         MOVLW   0x7E                            ; then the literal $7E itself.
 000FA6 EC?? F???          M         CALL    SIO_WRITE_W
@@ -6656,14 +6748,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 001018 EC?? F???          M         CALL    SIO_WRITE_W                     
 00101C D???               M         BRA     S8B_END7
 00101E                    M S8B_CHK_7E7:
-00101E 0E7E               M         MOVLW   0x7E                            ; sending literal $7E?
-001020 6200               M         CPFSEQ  EIGHTBITSIOBUF, ACCESS
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 75
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 76
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+00101E 0E7E               M         MOVLW   0x7E                            ; sending literal $7E?
+001020 6200               M         CPFSEQ  EIGHTBITSIOBUF, ACCESS
 001022 D???               M         BRA     S8B_CHK_MSB7
 001024 0E7F               M         MOVLW   0x7F                            ; send $7F to escape first
 001026 EC?? F???          M         CALL    SIO_WRITE_W
@@ -6746,14 +6838,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M                CALL SIO_WRITE_W
                           M                MOVLW B'00000110'
                           M               ELSE
-                          M                MOVLW B'00000101'
-                          M                CALL  SIO_WRITE_W
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 76
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 77
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                          M                MOVLW B'00000101'
+                          M                CALL  SIO_WRITE_W
                           M                MOVLW B'00000000'
                           M               ENDIF
                           M              ENDIF
@@ -6836,14 +6928,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0010E0 0E00           04205         MOVLW   0x00
 0010E2 EC?? F???      04206         CALL    SIO_WRITE_W                     ; 24 sensor C sequence                  <0iiiiiii> XXX N
                             OT IMPLEMENTED
-0010E6 0E00           04207         MOVLW   0x00
-0010E8 EC?? F???      04208         CALL    SIO_WRITE_W                     ; 25 sensor C post-sequence             <0PPPPPPP> XXX N
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 77
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 78
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+0010E6 0E00           04207         MOVLW   0x00
+0010E8 EC?? F???      04208         CALL    SIO_WRITE_W                     ; 25 sensor C post-sequence             <0PPPPPPP> XXX N
                             OT IMPLEMENTED
                       04209 
 0010EC 0E03           04210         MOVLW   0x03
@@ -6926,14 +7018,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 001180 EC?? F???          M         CALL    SIO_WRITE_W
 001184 0E7E               M         MOVLW   0x7E                            ; then the literal $7E itself.
 001186 EC?? F???          M         CALL    SIO_WRITE_W
-00118A D???               M         BRA     S8B_END10
-00118C                    M S8B_CHK_MSB10:
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 78
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 79
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+00118A D???               M         BRA     S8B_END10
+00118C                    M S8B_CHK_MSB10:
 00118C AE00               M         BTFSS   EIGHTBITSIOBUF, 7, ACCESS       ; MSB set?
 00118E D???               M         BRA     S8B_SEND_NORMAL10
 001190 0E7E               M         MOVLW   0x7E                            ; send $7E to escape first
@@ -7016,14 +7108,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0011EE 5C00           04283         SUBWF   YY_BUF_IDX, W, ACCESS           ; input bytes in packet
 0011F0 E2??           04284         BC      S6_10_VALID
 0011F2 EF?? F???      04285         GOTO    S6_KEEP_LOOKING                 ; input < 4? not done yet
-                      04286 
-0011F6                04287 S6_10_VALID:
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 79
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 80
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      04286 
+0011F6                04287 S6_10_VALID:
 0011F6 E0??           04288         BZ      S6_10_DEF_SENS
 0011F8 EF?? F???      04289         GOTO    ERR_COMMAND                     ; input > 4? too big: reject
                       04290 
@@ -7106,14 +7198,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       04367         ;  |______|______|______|______|______|______|______|______|
                       04368         ;
                       04369         ; Validate inputs
-                      04370         ; first, do we even have a full packet yet?
-                      04371         ;
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 80
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 81
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      04370         ; first, do we even have a full packet yet?
+                      04371         ;
 00122C 5000           04372         MOVF    YY_BUF_IDX, W, ACCESS
 00122E E1??           04373         BNZ     S6_12_VALID
 001230 EF?? F???      04374         GOTO    S6_KEEP_LOOKING                 
@@ -7196,14 +7288,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       04451 
 001282                04452 S6_14_DATA:
                       04453         IF QSCC_PORT
-                      04454          #include "qscc_hook_s6_14.asm"
-                      00001 ; vim:set syntax=pic ts=8:
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 81
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 82
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      04454          #include "qscc_hook_s6_14.asm"
+                      00001 ; vim:set syntax=pic ts=8:
                       00002 ;
                       00003                 LIST n=90
                       00004 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -7286,14 +7378,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 001298 0012           00081         RETURN
                       00082 
 00129A                00083 S6_15_DATA:
-00129A 2CE8           00084         DECFSZ  WREG, W, ACCESS 
-00129C D???           00085         BRA     S6_16_DATA
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 82
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 83
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+00129A 2CE8           00084         DECFSZ  WREG, W, ACCESS 
+00129C D???           00085         BRA     S6_16_DATA
                       00086         ;
                       00087         ; S6.15: DISP_BITMAP command received.
                       00088         ;
@@ -7376,14 +7468,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0012C6 0E32           00165         MOVLW   0x32
 0012C8 6200           00166         CPFSEQ  YY_BUFFER+1, ACCESS
 0012CA EF?? F???      00167         GOTO    ERR_COMMAND
-                      00168         ;
-                      00169         ; XXX set params
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 83
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 84
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      00168         ;
+                      00169         ; XXX set params
                       00170         ;
 0012CE 6A00           00171         CLRF    YY_STATE, ACCESS
 0012D0 0012           00172         RETURN
@@ -7466,14 +7558,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0012F0 2A00           04471         INCF    YY_BUF_IDX, F, ACCESS
 0012F2 0012           04472         RETURN
                       04473 
-0012F4                04474 S7_DATA:
-0012F4 2CE8           04475         DECFSZ  WREG, W, ACCESS
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 84
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 85
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+0012F4                04474 S7_DATA:
+0012F4 2CE8           04475         DECFSZ  WREG, W, ACCESS
 0012F6 D???           04476         BRA     S8_DATA
                       04477         ; RAMP_LVL recieved step count
 0012F8 2800           04478         INCF    YY_DATA, W, ACCESS              ; step count - 1 sent in protocol
@@ -7556,14 +7648,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       04555         ERR_BUG 0x06, ERR_CLASS_IN_VALID
 00133A 0E06               M          MOVLW  0x06
 00133C 6E00               M          MOVWF  LAST_ERROR, ACCESS
-                          M          IF HAS_ACTIVE
-                          M           SET_SSR_RAPID_FLASH SSR_ACTIVE
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 85
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 86
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                          M          IF HAS_ACTIVE
+                          M           SET_SSR_RAPID_FLASH SSR_ACTIVE
                           M          ENDIF
                           M          IF HAS_STATUS_LEDS
                           M           SET_SSR_RAPID_FLASH SSR_YELLOW
@@ -7646,14 +7738,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 00134C D???           04582         BRA     S9_INTERNAL_CMD
                       04583         ;
                       04584         ; Regular extended commands
-                      04585         ;
-00134E 5000           04586         MOVF    YY_DATA, W, ACCESS
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 86
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 87
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      04585         ;
+00134E 5000           04586         MOVF    YY_DATA, W, ACCESS
 001350 E1??           04587         BNZ     S9_X1_WAKE
 001352                04588 S9_X0_SLEEP:
                       04589         WAIT_FOR_SENTINEL 2, B'01011010', 6     ; -> S6.6 when sentinel found
@@ -7736,14 +7828,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0013D6 6E00               M          MOVWF  YY_NEXT_STATE, ACCESS
 0013D8 0012           04622         RETURN
 0013DA                04623 S9_X7_MSK_SENS:
-0013DA 2CE8           04624         DECFSZ  WREG, W, ACCESS
-0013DC D???           04625         BRA     S9_X8_CLR_SEQ
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 87
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 88
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+0013DA 2CE8           04624         DECFSZ  WREG, W, ACCESS
+0013DC D???           04625         BRA     S9_X8_CLR_SEQ
 0013DE 0E10           04626         MOVLW   .16
 0013E0 6E00           04627         MOVWF   YY_STATE, ACCESS                ; -> 16, wait to get sensor byte
 0013E2 0012           04628         RETURN
@@ -7826,14 +7918,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 001414 6E00           00044         MOVWF   YY_STATE, ACCESS
 001416 0012           00045         RETURN
                       00046 
-001418                00047 S9_XC_DISP_TEXT:
-001418 2CE8           00048         DECFSZ  WREG, W, ACCESS
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 88
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 89
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+001418                00047 S9_XC_DISP_TEXT:
+001418 2CE8           00048         DECFSZ  WREG, W, ACCESS
 00141A D???           00049         BRA     S9_XD_DISP_BITMAP
                       00050         WAIT_FOR_SENTINEL .67, B'01010101', .14
 00141C 0E43               M          MOVLW  .67
@@ -7916,14 +8008,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       04702          SET_SSR_OFF SSR_GREEN          ; set LEDs for halt mode        ///////
                       04703          SET_SSR_OFF SSR_YELLOW         ;                               ///////
                       04704          SET_SSR_STEADY SSR_RED         ;                               ///////
-                      04705         ENDIF
-                      04706         IF HAS_T_R                      ;                 _             ///////
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 89
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 90
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      04705         ENDIF
+                      04706         IF HAS_T_R                      ;                 _             ///////
                       04707          BCF    PLAT_T_R, BIT_T_R, ACCESS       ; Clear T/R output      ///////
                       04708         ENDIF                           ;                               ///////
                       04709         GOTO    HALT_MODE               ;                               ///////
@@ -8006,14 +8098,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       04786          MOVLW  0x17
                       04787          CALL   SIO_WRITE_W
                       04788          MOVLW  0x07
-                      04789          CALL   SIO_WRITE_W
-                      04790         ENDIF
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 90
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 91
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      04789          CALL   SIO_WRITE_W
+                      04790         ENDIF
 001470 6A00           04791         CLRF    YY_STATE, ACCESS
 001472 EC?? F???      04792         CALL    DMX_RESUME
 001476 0012           04793         RETURN
@@ -8096,14 +8188,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0014CC D???           04843         BRA     S9_PRIV_6
                       04844         ;
                       04845         ; CF_FLROM command recognized.  Expect packet of 3 more bytes...
-                      04846         ;
-                      04847         WAIT_FOR_SENTINEL 3, B'00011100', 13    ; -> S6.13 when sentinel found
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 91
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 92
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      04846         ;
+                      04847         WAIT_FOR_SENTINEL 3, B'00011100', 13    ; -> S6.13 when sentinel found
 0014CE 0E03               M          MOVLW  3
 0014D0 6E00               M          MOVWF  YY_LOOKAHEAD_MAX, ACCESS
 0014D2 0E1C               M          MOVLW  B'00011100'
@@ -8186,14 +8278,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 001514 0012           04860         RETURN
                       04861 
 001516                04862 S9_CF_ADDR:
-001516 C??? F???      04863         MOVFF   YY_DATA, YY_YY
-                      04864         WAIT_FOR_SENTINEL 3, B'01000100', 5     ; -> S6.5 when sentinel found
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 92
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 93
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+001516 C??? F???      04863         MOVFF   YY_DATA, YY_YY
+                      04864         WAIT_FOR_SENTINEL 3, B'01000100', 5     ; -> S6.5 when sentinel found
 00151A 0E03               M          MOVLW  3
 00151C 6E00               M          MOVWF  YY_LOOKAHEAD_MAX, ACCESS
 00151E 0E44               M          MOVLW  B'01000100'
@@ -8276,14 +8368,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M             CALL SIO_WRITE_W
                           M             MOVLW B'00000001'
                           M            ELSE
-                          M             IF ERR_CLASS_OVERRUN == ERR_CLASS_FATAL_RESET
-                          M              MOVLW B'00101101'
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 93
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 94
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                          M             IF ERR_CLASS_OVERRUN == ERR_CLASS_FATAL_RESET
+                          M              MOVLW B'00101101'
                           M              CALL SIO_WRITE_W
                           M              MOVLW B'00000101'
                           M             ELSE
@@ -8366,14 +8458,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       04962          BSF    WREG, 0, ACCESS                 ;                       ///////
                       04963          SEND_8_BIT_W                           ;                       ///////
                       04964          ;CALL  SIO_WRITE_W                     ;                       ///////
-                      04965          MOVF   PHASE_OFFSETL, W, ACCESS        ;                       ///////
-                      04966          BCF    WREG, 7, ACCESS                 ;                       ///////
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 94
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 95
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      04965          MOVF   PHASE_OFFSETL, W, ACCESS        ;                       ///////
+                      04966          BCF    WREG, 7, ACCESS                 ;                       ///////
                       04967          SEND_8_BIT_W                           ;                       ///////
                       04968          ;CALL  SIO_WRITE_W                     ;                       ///////
                       04969          MOVLW  UPPER(SYS_SNH)                  ;                       ///////
@@ -8456,14 +8548,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M               MOVLW B'00000101'
                           M              ELSE
                           M               IF ERR_CLASS_OVERRUN == ERR_CLASS_INT_COMMAND
-                          M                MOVLW B'00111000'
-                          M                CALL SIO_WRITE_W
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 95
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 96
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                          M                MOVLW B'00111000'
+                          M                CALL SIO_WRITE_W
                           M                MOVLW B'00000110'
                           M               ELSE
                           M                MOVLW B'00000101'
@@ -8546,14 +8638,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M            ENDIF
                           M           ENDIF
                           M           CALL SIO_WRITE_W
-                          M          ENDIF
-00154E 6A00               M          CLRF   YY_STATE, ACCESS
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 96
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 97
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                          M          ENDIF
+00154E 6A00               M          CLRF   YY_STATE, ACCESS
 001550 0012               M          RETURN
                       05022         ENDIF
                       05023         
@@ -8636,14 +8728,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       05100          RETURN
                       05101         ELSE
                       05102          ERR_BUG 0x0D, ERR_CLASS_OVERRUN
-001556 0E0D               M          MOVLW  0x0D
-001558 6E00               M          MOVWF  LAST_ERROR, ACCESS
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 97
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 98
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+001556 0E0D               M          MOVLW  0x0D
+001558 6E00               M          MOVWF  LAST_ERROR, ACCESS
                           M          IF HAS_ACTIVE
                           M           SET_SSR_RAPID_FLASH SSR_ACTIVE
                           M          ENDIF
@@ -8726,14 +8818,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 00157C D???           05118         BRA     S16_DATA
                       05119         ;
                       05120         ; S15: EXEC_SEQ: execute sequence
-                      05121         ;
-                      05122         ;   ___7______6______5______4______3______2______1______0__
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 98
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 99
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      05121         ;
+                      05122         ;   ___7______6______5______4______3______2______1______0__
                       05123         ;  |                                  |                    |
                       05124         ;  |                0                 |          7         | YY_COMMAND
                       05125         ;  |______|______|______|______|______|______|______|______|
@@ -8816,14 +8908,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 001596 EF?? F???      00041         GOTO    ERR_COMMAND
                       00042 
 00159A                00043 S19_DATA:
-00159A 2CE8           00044         DECFSZ  WREG, W, ACCESS
-00159C D???           00045         BRA     S20_DATA
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 99
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 100
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+00159A 2CE8           00044         DECFSZ  WREG, W, ACCESS
+00159C D???           00045         BRA     S20_DATA
                       00046         ;
                       00047         ; S19: QS_QUERY command received.
                       00048         ;
@@ -8906,14 +8998,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00125          ;
                       00126          ; XXX set button masks
                       00127          ;
-                      00128         ELSE
-                      00129          IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSRC
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 100
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 101
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      00128         ELSE
+                      00129          IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSRC
 0015D8 AA00           00130           BTFSS YY_DATA, 5, ACCESS      ; Check postbyte 2 constant xx00xxxx
 0015DA B800           00131           BTFSC YY_DATA, 4, ACCESS
 0015DC EF?? F???      00132           GOTO  ERR_COMMAND
@@ -8996,14 +9088,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       05171         ; while this works at runtime.
                       05172         ;
                       05173         ; Changes the output value of TARGET_SSR to the W register.
-                      05174         ; Uses FSR0 register and KK.
-                      05175         ;
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 101
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 102
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      05174         ; Uses FSR0 register and KK.
+                      05175         ;
 0015EC 0004           05176         CLRWDT
 0015EE 9E00           05177         BCF     TARGET_SSR, 7, ACCESS
 0015F0 9C00           05178         BCF     TARGET_SSR, 6, ACCESS
@@ -9086,14 +9178,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 00163C 828B           05245           BSF   PLAT_1,     BIT_1,     ACCESS   ; turn on light
                       05246          ELSE
                       05247           BCF   PLAT_1,     BIT_1,     ACCESS   ; turn on SSR
-                      05248          ENDIF
-00163E                05249 UPDATE_SSR_SKIP_1:
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 102
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 103
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      05248          ENDIF
+00163E                05249 UPDATE_SSR_SKIP_1:
   00000002            05250 X        ++
 00163E 6300           05242          CPFSEQ SSR_00_VALUE+2,     BANKED      ; is this SSR set to our slice value?
 001640 D???           05243          BRA    UPDATE_SSR_SKIP_2
@@ -9176,14 +9268,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       05248          ENDIF
 001674                05249 UPDATE_SSR_SKIP_10:
   0000000B            05250 X        ++
-001674 6300           05242          CPFSEQ SSR_00_VALUE+11,    BANKED      ; is this SSR set to our slice value?
-001676 D???           05243          BRA    UPDATE_SSR_SKIP_11
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 103
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 104
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+001674 6300           05242          CPFSEQ SSR_00_VALUE+11,    BANKED      ; is this SSR set to our slice value?
+001676 D???           05243          BRA    UPDATE_SSR_SKIP_11
                       05244          IF (X > OUTPUT_CHAN_MAX) || (QSCC_PORT)
 001678 808D           05245           BSF   PLAT_11,    BIT_11,    ACCESS   ; turn on light
                       05246          ELSE
@@ -9266,14 +9358,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       05251         ENDW
 0016AA 0600           05252         DECF    CUR_SLICE, F, ACCESS
 0016AC 0012           05253         RETURN
-                      05254 
-0016AE                05255 UPDATE_MINIMUM_LEVEL:
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 104
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 105
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      05254 
+0016AE                05255 UPDATE_MINIMUM_LEVEL:
                       05256         ;
                       05257         ; turn off every output that isn't set to be fully on
                       05258         ; and handle ramping up/down
@@ -9356,14 +9448,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 001702 AF00           05282          BTFSS  SSR_00_FLAGS+1,     FADE_UP, BANKED
 001704 D???           05283          BRA    TRY_DOWN_1
 001706 2F00           05284          DECFSZ SSR_00_COUNTER+1,     F, BANKED         ; delay to next step
-001708 D???           05285          BRA    END_FADE_1
-00170A C??? F???      05286          MOVFF  SSR_00_SPEED+1,     SSR_00_COUNTER+1
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 105
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 106
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+001708 D???           05285          BRA    END_FADE_1
+00170A C??? F???      05286          MOVFF  SSR_00_SPEED+1,     SSR_00_COUNTER+1
 00170E 5100           05287          MOVF   SSR_00_STEP+1,     W, BANKED
 001710 2700           05288          ADDWF  SSR_00_VALUE+1,     F, BANKED
 001712 E3??           05289          BNC    END_FADE_1
@@ -9446,14 +9538,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
   00000003            05314 X        ++
 001784 1D00           05264          COMF   SSR_00_VALUE+3,     W, BANKED   ; is this set to maximum?
                       05265          ;BZ    UPDATE_MIN_SKIP_#v(X)
-001786 E1??           05266          BNZ    UPDATE_MIN_DIMMED_3
-                      05267          IF X <= OUTPUT_CHAN_MAX
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 106
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 107
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+001786 E1??           05266          BNZ    UPDATE_MIN_DIMMED_3
+                      05267          IF X <= OUTPUT_CHAN_MAX
 001788 9800           05268           BCF   SSR_STATE2, ALL_OFF, ACCESS     ; "light fully on" means they aren't all off.  Clear the
                              flag.
                       05269          ENDIF
@@ -9536,14 +9628,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0017EE 8D00           05294          BSF    SSR_00_FLAGS+4,     FADE_DOWN, BANKED   
 0017F0 D???           05295          BRA    END_FADE_4
                       05296 
-0017F2                05297 TRY_DOWN_4:
-0017F2 AD00           05298          BTFSS  SSR_00_FLAGS+4,     FADE_DOWN, BANKED
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 107
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 108
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+0017F2                05297 TRY_DOWN_4:
+0017F2 AD00           05298          BTFSS  SSR_00_FLAGS+4,     FADE_DOWN, BANKED
 0017F4 D???           05299          BRA    END_FADE_4
 0017F6 2F00           05300          DECFSZ SSR_00_COUNTER+4,     F, BANKED         ; delay
 0017F8 D???           05301          BRA    END_FADE_4
@@ -9626,14 +9718,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 00185E 9A8A           05274           BCF   PLAT_6,     BIT_6,     ACCESS   ; turn off light
                       05275          ELSE
                       05276           BSF   PLAT_6,     BIT_6,     ACCESS   ; turn off SSR
-                      05277           TSTFSZ SSR_00_VALUE+6,     BANKED     ; is this SSR fully off?
-                      05278           BCF   SSR_STATE2, ALL_OFF, ACCESS     ; no, ergo they aren't ALL off now. clear the flag
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 108
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 109
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      05277           TSTFSZ SSR_00_VALUE+6,     BANKED     ; is this SSR fully off?
+                      05278           BCF   SSR_STATE2, ALL_OFF, ACCESS     ; no, ergo they aren't ALL off now. clear the flag
                       05279          ENDIF
 001860                05280 UPDATE_MIN_SKIP_6:
                       05281 
@@ -9716,14 +9808,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0018D6 6B00           05306          CLRF   SSR_00_VALUE+7,     BANKED              ; reached min value
 0018D8 9D00           05307          BCF    SSR_00_FLAGS+7,     FADE_DOWN, BANKED   ; stop fading
 0018DA BB00           05308          BTFSC  SSR_00_FLAGS+7,     FADE_CYCLE, BANKED  ; cycle back?
-0018DC 8F00           05309          BSF    SSR_00_FLAGS+7,     FADE_UP, BANKED
-0018DE B900           05310          BTFSC  SSR_00_FLAGS+7,     MAX_OFF_TIME, BANKED; maximizing off-time?
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 109
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 110
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+0018DC 8F00           05309          BSF    SSR_00_FLAGS+7,     FADE_UP, BANKED
+0018DE B900           05310          BTFSC  SSR_00_FLAGS+7,     MAX_OFF_TIME, BANKED; maximizing off-time?
 0018E0 6900           05311          SETF   SSR_00_COUNTER+7,     BANKED
                       05312 
 0018E2                05313 END_FADE_7:
@@ -9806,14 +9898,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 00193A C??? F???      05286          MOVFF  SSR_00_SPEED+9,     SSR_00_COUNTER+9
 00193E 5100           05287          MOVF   SSR_00_STEP+9,     W, BANKED
 001940 2700           05288          ADDWF  SSR_00_VALUE+9,     F, BANKED
-001942 E3??           05289          BNC    END_FADE_9
-001944 6900           05290          SETF   SSR_00_VALUE+9,     BANKED              ; reached max value
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 110
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 111
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+001942 E3??           05289          BNC    END_FADE_9
+001944 6900           05290          SETF   SSR_00_VALUE+9,     BANKED              ; reached max value
 001946 9F00           05291          BCF    SSR_00_FLAGS+9,     FADE_UP, BANKED     ; stop fading
 001948 AB00           05292          BTFSS  SSR_00_FLAGS+9,     FADE_CYCLE, BANKED  ; cycle back?
 00194A D???           05293          BRA    END_FADE_9
@@ -9896,14 +9988,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       05267          IF X <= OUTPUT_CHAN_MAX
 0019B8 9800           05268           BCF   SSR_STATE2, ALL_OFF, ACCESS     ; "light fully on" means they aren't all off.  Clear the
                              flag.
-                      05269          ENDIF
-0019BA D???           05270          BRA    UPDATE_MIN_SKIP_11
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 111
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 112
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      05269          ENDIF
+0019BA D???           05270          BRA    UPDATE_MIN_SKIP_11
                       05271 
 0019BC                05272 UPDATE_MIN_DIMMED_11:
                       05273          IF (X > OUTPUT_CHAN_MAX) || (QSCC_PORT)
@@ -9986,14 +10078,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 001A22 AD00           05298          BTFSS  SSR_00_FLAGS+12,    FADE_DOWN, BANKED
 001A24 D???           05299          BRA    END_FADE_12
 001A26 2F00           05300          DECFSZ SSR_00_COUNTER+12,    F, BANKED         ; delay
-001A28 D???           05301          BRA    END_FADE_12
-001A2A C??? F???      05302          MOVFF  SSR_00_SPEED+12,    SSR_00_COUNTER+12; reset delay
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 112
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 113
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+001A28 D???           05301          BRA    END_FADE_12
+001A2A C??? F???      05302          MOVFF  SSR_00_SPEED+12,    SSR_00_COUNTER+12; reset delay
 001A2E 5100           05303          MOVF   SSR_00_STEP+12,    W, BANKED
 001A30 5F00           05304          SUBWF  SSR_00_VALUE+12,    F, BANKED
 001A32 E2??           05305          BC     END_FADE_12
@@ -10076,14 +10168,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       05278           BCF   SSR_STATE2, ALL_OFF, ACCESS     ; no, ergo they aren't ALL off now. clear the flag
                       05279          ENDIF
 001A90                05280 UPDATE_MIN_SKIP_14:
-                      05281 
-001A90 AF00           05282          BTFSS  SSR_00_FLAGS+14,    FADE_UP, BANKED
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 113
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 114
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      05281 
+001A90 AF00           05282          BTFSS  SSR_00_FLAGS+14,    FADE_UP, BANKED
 001A92 D???           05283          BRA    TRY_DOWN_14
 001A94 2F00           05284          DECFSZ SSR_00_COUNTER+14,    F, BANKED         ; delay to next step
 001A96 D???           05285          BRA    END_FADE_14
@@ -10166,14 +10258,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 001B0E B900           05310          BTFSC  SSR_00_FLAGS+15,    MAX_OFF_TIME, BANKED; maximizing off-time?
 001B10 6900           05311          SETF   SSR_00_COUNTER+15,    BANKED
                       05312 
-001B12                05313 END_FADE_15:
-  00000010            05314 X        ++
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 114
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 115
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+001B12                05313 END_FADE_15:
+  00000010            05314 X        ++
 001B12 1D00           05264          COMF   SSR_00_VALUE+16,    W, BANKED   ; is this set to maximum?
                       05265          ;BZ    UPDATE_MIN_SKIP_#v(X)
 001B14 E1??           05266          BNZ    UPDATE_MIN_DIMMED_16
@@ -10256,14 +10348,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 001B74 6900           05290          SETF   SSR_00_VALUE+17,    BANKED              ; reached max value
 001B76 9F00           05291          BCF    SSR_00_FLAGS+17,    FADE_UP, BANKED     ; stop fading
 001B78 AB00           05292          BTFSS  SSR_00_FLAGS+17,    FADE_CYCLE, BANKED  ; cycle back?
-001B7A D???           05293          BRA    END_FADE_17
-001B7C 8D00           05294          BSF    SSR_00_FLAGS+17,    FADE_DOWN, BANKED   
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 115
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 116
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+001B7A D???           05293          BRA    END_FADE_17
+001B7C 8D00           05294          BSF    SSR_00_FLAGS+17,    FADE_DOWN, BANKED   
 001B7E D???           05295          BRA    END_FADE_17
                       05296 
 001B80                05297 TRY_DOWN_17:
@@ -10346,14 +10438,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 001BEA D???           05270          BRA    UPDATE_MIN_SKIP_19
                       05271 
 001BEC                05272 UPDATE_MIN_DIMMED_19:
-                      05273          IF (X > OUTPUT_CHAN_MAX) || (QSCC_PORT)
-001BEC 948C           05274           BCF   PLAT_19,    BIT_19,    ACCESS   ; turn off light
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 116
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 117
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      05273          IF (X > OUTPUT_CHAN_MAX) || (QSCC_PORT)
+001BEC 948C           05274           BCF   PLAT_19,    BIT_19,    ACCESS   ; turn off light
                       05275          ELSE
                       05276           BSF   PLAT_19,    BIT_19,    ACCESS   ; turn off SSR
                       05277           TSTFSZ SSR_00_VALUE+19,    BANKED     ; is this SSR fully off?
@@ -10436,14 +10528,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       05354 ;
 001C4E                05355 DMX_EXIT_TEMPORARILY:
 001C4E 0004           05356         CLRWDT
-001C50 AC00           05357         BTFSS   DMX_SLOTH, DMX_SPEED, ACCESS
-001C52 0012           05358         RETURN
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 117
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 118
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+001C50 AC00           05357         BTFSS   DMX_SLOTH, DMX_SPEED, ACCESS
+001C52 0012           05358         RETURN
                       05359         BEGIN_EEPROM_READ EE_BAUD
 001C54 9EF2               M          BCF    INTCON, GIEH, ACCESS    ; Disable high-priority interrupts
 001C56 9CF2               M          BCF    INTCON, GIEL, ACCESS    ; Disable low-priority interrupts
@@ -10526,14 +10618,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       05421         ; or when your data have been received.
                       05422 
 001C8E                05423 DMX_RECEIVED_BYTE:
-001C8E 0004           05424         CLRWDT
-                      05425         ;
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 118
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 119
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+001C8E 0004           05424         CLRWDT
+                      05425         ;
                       05426         ; We just got a DMX byte.  IF DMX_FRAME is set, this is supposedly the start of
                       05427         ; a new frame, so any previous frame in progress is aborted.  The state machine
                       05428         ; in DMX mode is simply:
@@ -10616,14 +10708,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       05505 
 001CEC                05506 DMX_PASS_DOWN_SET_LVL:
                       05507         IF ROLE_MASTER
-                      05508          MOVLW  0xA0
-                      05509          CALL   SIO_WRITE_W
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 119
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 120
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      05508          MOVLW  0xA0
+                      05509          CALL   SIO_WRITE_W
                       05510          BCF    TARGET_SSR, 7, ACCESS
                       05511          BCF    TARGET_SSR, 6, ACCESS
                       05512          BCF    STATUS, C, ACCESS
@@ -10706,14 +10798,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 001CF4 6A00           05532         CLRF    YY_STATE, ACCESS
 001CF6 0012           05533         RETURN
                       05534 
-001CF8                05535 DMX_19:
-                      05536         ;
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 120
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 121
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+001CF8                05535 DMX_19:
+                      05536         ;
                       05537         ; unknown state!  Force return to idle state
                       05538         ;
 001CF8 6A00           05539         CLRF    YY_STATE, ACCESS
@@ -10762,7 +10854,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 001D1A                05582 TR_OFF_DELAY:
 001D1A D???           05583         BRA     TR_ON_DELAY
                       05584         END
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 121
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 122
 
 
 SYMBOL TABLE
@@ -10852,7 +10944,7 @@ B0D41                             00000001
 B0D42                             00000002
 B0D43                             00000003
 B0D44                             00000004
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 122
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 123
 
 
 SYMBOL TABLE
@@ -10942,7 +11034,7 @@ B1D45                             00000005
 B1D46                             00000006
 B1D47                             00000007
 B1D5                              00000E3B
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 123
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 124
 
 
 SYMBOL TABLE
@@ -11032,7 +11124,7 @@ B2D50                             00000000
 B2D51                             00000001
 B2D52                             00000002
 B2D53                             00000003
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 124
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 125
 
 
 SYMBOL TABLE
@@ -11122,7 +11214,7 @@ B3D50                             00000000
 B3D51                             00000001
 B3D52                             00000002
 B3D53                             00000003
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 125
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 126
 
 
 SYMBOL TABLE
@@ -11212,7 +11304,7 @@ B4D53                             00000003
 B4D54                             00000004
 B4D55                             00000005
 B4D56                             00000006
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 126
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 127
 
 
 SYMBOL TABLE
@@ -11302,7 +11394,7 @@ B5D55                             00000005
 B5D56                             00000006
 B5D57                             00000007
 B5D6                              00000E7C
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 127
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 128
 
 
 SYMBOL TABLE
@@ -11368,9 +11460,19 @@ BIT_9                             00000002
 BIT_FADE_CYCLE                    00000020
 BIT_FADE_DOWN                     00000040
 BIT_FADE_UP                       00000080
+BIT_L0                            00000002
+BIT_L1                            00000000
+BIT_L2                            00000005
+BIT_L3                            00000000
+BIT_L4                            00000005
 BIT_MAX_OFF_TIME                  00000010
 BIT_RX                            00000007
 BIT_T_R                           00000003
+BIT_X0                            00000003
+BIT_X1                            00000001
+BIT_X2                            00000004
+BIT_X3                            00000004
+BIT_X4                            00000004
 BOR                               00000000
 BREAK_CONFIRMED                   00000854
 BRG16                             00000003
@@ -11382,22 +11484,32 @@ BRK_DET                           0000082E
 BRK_DET2                          00000826
 BRP0                              00000000
 BRP1                              00000001
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 129
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 BRP2                              00000002
 BRP3                              00000003
 BRP4                              00000004
 BRP5                              00000005
 BSEL0                             00000DF8
 BSR                               00000FE0
+BTN_IDX_L0                        00000001
+BTN_IDX_L1                        00000003
+BTN_IDX_L2                        00000005
+BTN_IDX_L3                        00000007
+BTN_IDX_L4                        00000009
+BTN_IDX_X0                        00000000
+BTN_IDX_X1                        00000002
+BTN_IDX_X2                        00000004
+BTN_IDX_X3                        00000006
+BTN_IDX_X4                        00000008
 C                                 00000000
 C1INA                             00000001
 C1INB                             00000000
 C1INV                             00000004
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 128
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 C1OUT                             00000006
 C2INA                             00000003
 C2INB                             00000002
@@ -11442,6 +11554,32 @@ CCPR1H                            00000FBF
 CCPR1L                            00000FBE
 CFGS                              00000006
 CH                                00000014
+CHAN_L0R                          00000003
+CHAN_L1R                          00000007
+CHAN_L2R                          0000000B
+CHAN_L3R                          0000000F
+CHAN_L4R                          00000013
+CHAN_X0B                          00000002
+CHAN_X0G                          00000001
+CHAN_X0R                          00000000
+CHAN_X1B                          00000006
+CHAN_X1G                          00000005
+CHAN_X1R                          00000004
+CHAN_X2B                          0000000A
+CHAN_X2G                          00000009
+CHAN_X2R                          00000008
+CHAN_X3B                          0000000E
+CHAN_X3G                          0000000D
+CHAN_X3R                          0000000C
+CHAN_X4B                          00000012
+CHAN_X4G                          00000011
+CHAN_X4R                          00000010
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 130
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 CHS0                              00000002
 CHS1                              00000003
 CHS2                              00000004
@@ -11482,12 +11620,6 @@ CVRR                              00000005
 CVRSS                             00000004
 CYCLE_TMR_PERIOD                  00005D3D
 D                                 00000005
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 129
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 DATA_ADDRESS                      00000005
 DATA_BYTE                         00000A90
 DB_CHK_7E                         00000AA4
@@ -11532,6 +11664,12 @@ DMX_SPEED                         00000006
 DMX_ST_LSB                        00001CC0
 DMX_WEIRD_FRAME                   00001CAA
 DONE                              00000001
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 131
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 DO_CMD_SLEEP                      00000DF2
 DO_CMD_WAKE                       00000E1C
 DO_TEST_MODE                      000008B2
@@ -11572,12 +11710,6 @@ EECON2                            00000FA7
 EEDATA                            00000FA8
 EEIE                              00000004
 EEIF                              00000004
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 130
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 EEIP                              00000004
 EEPGD                             00000007
 EEPROM_SETTINGS_LEN               00000010
@@ -11622,6 +11754,12 @@ EID2                              00000002
 EID3                              00000003
 EID4                              00000004
 EID5                              00000005
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 132
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 EID6                              00000006
 EID7                              00000007
 EID8                              00000000
@@ -11662,12 +11800,6 @@ ERR_BUG
 ERR_CLASS_DEVICE                  00000004
 ERR_CLASS_FATAL_RESET             00000003
 ERR_CLASS_INT_COMMAND             00000005
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 131
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 ERR_CLASS_IN_VALID                00000002
 ERR_CLASS_OVERRUN                 00000001
 ERR_CMD_INCOMPLETE                00000910
@@ -11712,6 +11844,12 @@ F14BP_2                           00000002
 F14BP_3                           00000003
 F15BP_0                           00000004
 F15BP_1                           00000005
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 133
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 F15BP_2                           00000006
 F15BP_3                           00000007
 F1BP_0                            00000004
@@ -11752,12 +11890,6 @@ F9BP_2                            00000006
 F9BP_3                            00000007
 FACTORY_RESET                     0000029C
 FACTORY_RESET_FLASH               000002F4
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 132
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 FACTORY_RESET_JUMPER_CHECK        00000284
 FACTORY_RESET_LOOP                000002C0
 FADE_CYCLE                        00000005
@@ -11802,6 +11934,12 @@ FIL7_1                            00000007
 FIL8_0                            00000000
 FIL8_1                            00000001
 FIL9_0                            00000002
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 134
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 FIL9_1                            00000003
 FILHIT0                           00000000
 FILHIT0_TXPRI0                    00000000
@@ -11842,12 +11980,6 @@ GO                                00000001
 GO_DONE                           00000001
 GO_NOT_DONE                       00000001
 HALT_MODE                         00001CFC
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 133
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 HALT_SLEEP                        00001D0A
 HAS_ACTIVE                        00000000
 HAS_OPTION                        00000000
@@ -11892,6 +12024,12 @@ INT1                              00000001
 INT1E                             00000003
 INT1F                             00000000
 INT1IE                            00000003
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 135
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 INT1IF                            00000000
 INT1IP                            00000006
 INT1P                             00000006
@@ -11932,12 +12070,6 @@ IPR2                              00000FA2
 IPR3                              00000FA5
 IRCF0                             00000004
 IRCF1                             00000005
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 134
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 IRCF2                             00000006
 IRVST                             00000005
 IRXIE                             00000007
@@ -11982,6 +12114,12 @@ LATC2                             00000002
 LATC3                             00000003
 LATC4                             00000004
 LATC5                             00000005
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 136
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 LATC6                             00000006
 LATC7                             00000007
 LATD                              00000F8C
@@ -12022,12 +12160,6 @@ LVDIN                             00000005
 LVDIP                             00000002
 LVDL0                             00000000
 LVDL1                             00000001
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 135
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 LVDL2                             00000002
 LVDL3                             00000003
 LVV0                              00000000
@@ -12072,6 +12204,12 @@ OBF                               00000006
 OERR                              00000001
 ON_OFF_ON                         00000AE0
 ON_OFF_YY_DATA                    00000AC6
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 137
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 OPMODE0                           00000005
 OPMODE1                           00000006
 OPMODE2                           00000007
@@ -12112,12 +12250,6 @@ PDC5                              00000005
 PDC6                              00000006
 PEIE                              00000006
 PEIE_GIEL                         00000006
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 136
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 PEN                               00000002
 PGC                               00000006
 PGD                               00000007
@@ -12161,8 +12293,24 @@ PORTB                             00000F81
 PORTC                             00000F82
 PORTD                             00000F83
 PORTE                             00000F84
+PORT_L0                           00000F80
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 138
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+PORT_L1                           00000F80
+PORT_L2                           00000F80
+PORT_L3                           00000F83
+PORT_L4                           00000F82
 PORT_RX                           00000F82
 PORT_T_R                          00000F82
+PORT_X0                           00000F80
+PORT_X1                           00000F80
+PORT_X2                           00000F80
+PORT_X3                           00000F82
+PORT_X4                           00000F83
 POSTDEC0                          00000FED
 POSTDEC1                          00000FE5
 POSTDEC2                          00000FDD
@@ -12202,12 +12350,6 @@ PSSAC1                            00000003
 PSSBD0                            00000000
 PSSBD1                            00000001
 QSCC_CMD6_START                   00000000
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 137
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 QSCC_G_C_1                        00000956
 QSCC_G_C_2                        00000964
 QSCC_INIT                         00000000
@@ -12242,6 +12384,12 @@ RB1_B0DLC                         00000005
 RB1_B1DLC                         00000005
 RB1_B2DLC                         00000005
 RB1_B3DLC                         00000005
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 139
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 RB1_B4DLC                         00000005
 RB1_B5DLC                         00000005
 RB1_DDRB                          00000001
@@ -12292,12 +12440,6 @@ RE3                               00000003
 READ_EEPROM_DATA                  
 READ_EEPROM_DATA_REG              
 READ_EEPROM_DATA_W                
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 138
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 READ_EEPROM_DATA_W_INC            
 READ_WRITE                        00000002
 REC0                              00000000
@@ -12332,6 +12474,12 @@ RXB0D02                           00000002
 RXB0D03                           00000003
 RXB0D04                           00000004
 RXB0D05                           00000005
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 140
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 RXB0D06                           00000006
 RXB0D07                           00000007
 RXB0D1                            00000F67
@@ -12382,12 +12530,6 @@ RXB0D57                           00000007
 RXB0D6                            00000F6C
 RXB0D60                           00000000
 RXB0D61                           00000001
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 139
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 RXB0D62                           00000002
 RXB0D63                           00000003
 RXB0D64                           00000004
@@ -12422,6 +12564,12 @@ RXB1D01                           00000001
 RXB1D02                           00000002
 RXB1D03                           00000003
 RXB1D04                           00000004
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 141
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 RXB1D05                           00000005
 RXB1D06                           00000006
 RXB1D07                           00000007
@@ -12472,12 +12620,6 @@ RXB1D56                           00000006
 RXB1D57                           00000007
 RXB1D6                            00000F5C
 RXB1D60                           00000000
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 140
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 RXB1D61                           00000001
 RXB1D62                           00000002
 RXB1D63                           00000003
@@ -12512,6 +12654,12 @@ RXBnOVFL                          00000006
 RXDATA_FULL                       00000003
 RXDATA_QUEUE                      00000001
 RXERRCNT                          00000F75
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 142
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 RXF0EIDH                          00000F02
 RXF0EIDL                          00000F03
 RXF0EN                            00000000
@@ -12562,12 +12710,6 @@ RXF3EIDL                          00000F0F
 RXF3EN                            00000003
 RXF3SIDH                          00000F0C
 RXF3SIDL                          00000F0D
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 141
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 RXF4EIDH                          00000F12
 RXF4EIDL                          00000F13
 RXF4EN                            00000004
@@ -12602,6 +12744,12 @@ RXFBCON0                          00000DE0
 RXFBCON1                          00000DE1
 RXFBCON2                          00000DE2
 RXFBCON3                          00000DE3
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 143
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 RXFBCON4                          00000DE4
 RXFBCON5                          00000DE5
 RXFBCON6                          00000DE6
@@ -12652,12 +12800,6 @@ S11_DATA                          0000153A
 S12_DATA                          00001546
 S13_DATA                          00001552
 S14_DATA                          0000155E
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 142
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 S15_DATA                          0000157A
 S16_DATA                          00001582
 S17_DATA                          0000158A
@@ -12692,6 +12834,12 @@ S6_14_DATA                        00001282
 S6_14_DATA_QS                     00001282
 S6_14_DISP_TEXT                   00001296
 S6_14_VALID                       00001290
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 144
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 S6_15_DATA                        0000129A
 S6_15_DISP_BITMAP                 000012AE
 S6_15_VALID                       000012A8
@@ -12742,12 +12890,6 @@ S8B_CHK_7E3                       00000F16
 S8B_CHK_7E4                       00000F54
 S8B_CHK_7E5                       00000F98
 S8B_CHK_7E6                       00000FE0
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 143
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 S8B_CHK_7E7                       0000101E
 S8B_CHK_7E8                       00001078
 S8B_CHK_7E9                       0000111C
@@ -12782,6 +12924,12 @@ S8B_SEND_NORMAL3                  00000F36
 S8B_SEND_NORMAL4                  00000F74
 S8B_SEND_NORMAL5                  00000FB8
 S8B_SEND_NORMAL6                  00001000
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 145
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 S8B_SEND_NORMAL7                  0000103E
 S8B_SEND_NORMAL8                  00001098
 S8B_SEND_NORMAL9                  0000113C
@@ -12832,12 +12980,6 @@ SDI                               00000004
 SDO                               00000005
 SEG1PH0                           00000003
 SEG1PH1                           00000004
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 144
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 SEG1PH2                           00000005
 SEG2PH0                           00000000
 SEG2PH1                           00000001
@@ -12872,6 +13014,12 @@ SID7                              00000004
 SID8                              00000005
 SID9                              00000006
 SIO_115200                        00000009
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 146
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 SIO_1200                          00000002
 SIO_19200                         00000006
 SIO_2400                          00000003
@@ -12922,12 +13070,6 @@ SP1                               00000001
 SP2                               00000002
 SP3                               00000003
 SP4                               00000004
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 145
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 SPBRG                             00000FAF
 SPBRGH                            00000FB0
 SPEN                              00000007
@@ -12962,6 +13104,12 @@ SSR_STATE2                        00000007
 START                             00000104
 START_DMX_FRAME                   000008FE
 STATUS                            00000FD8
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 147
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 STKFUL                            00000007
 STKOVF                            00000007
 STKPTR                            00000FFC
@@ -13012,12 +13160,6 @@ T3CKPS0                           00000004
 T3CKPS1                           00000005
 T3CON                             00000FB1
 T3ECCP1                           00000006
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 146
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 T3NSYNC                           00000002
 T3SYNC                            00000002
 TABLAT                            00000FF5
@@ -13052,6 +13194,12 @@ TMR0IE                            00000005
 TMR0IF                            00000002
 TMR0IP                            00000002
 TMR0L                             00000FD6
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 148
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 TMR0ON                            00000007
 TMR1                              00000FCE
 TMR1CS                            00000001
@@ -13102,12 +13250,6 @@ TRISC0                            00000000
 TRISC1                            00000001
 TRISC2                            00000002
 TRISC3                            00000003
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 147
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 TRISC4                            00000004
 TRISC5                            00000005
 TRISC6                            00000006
@@ -13142,6 +13284,12 @@ TRY_DOWN_19                       00001C0C
 TRY_DOWN_2                        00001766
 TRY_DOWN_3                        000017AC
 TRY_DOWN_4                        000017F2
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 149
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 TRY_DOWN_5                        00001838
 TRY_DOWN_6                        0000187E
 TRY_DOWN_7                        000018C4
@@ -13192,12 +13340,6 @@ TXB0D3                            00000F49
 TXB0D30                           00000000
 TXB0D31                           00000001
 TXB0D32                           00000002
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 148
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 TXB0D33                           00000003
 TXB0D34                           00000004
 TXB0D35                           00000005
@@ -13232,6 +13374,12 @@ TXB0D66                           00000006
 TXB0D67                           00000007
 TXB0D7                            00000F4D
 TXB0D70                           00000000
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 150
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 TXB0D71                           00000001
 TXB0D72                           00000002
 TXB0D73                           00000003
@@ -13282,12 +13430,6 @@ TXB1D32                           00000002
 TXB1D33                           00000003
 TXB1D34                           00000004
 TXB1D35                           00000005
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 149
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 TXB1D36                           00000006
 TXB1D37                           00000007
 TXB1D4                            00000F3A
@@ -13322,6 +13464,12 @@ TXB1D70                           00000000
 TXB1D71                           00000001
 TXB1D72                           00000002
 TXB1D73                           00000003
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 151
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 TXB1D74                           00000004
 TXB1D75                           00000005
 TXB1D76                           00000006
@@ -13372,12 +13520,6 @@ TXB2D35                           00000005
 TXB2D36                           00000006
 TXB2D37                           00000007
 TXB2D4                            00000F2A
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 150
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 TXB2D40                           00000000
 TXB2D41                           00000001
 TXB2D42                           00000002
@@ -13412,6 +13554,12 @@ TXB2D73                           00000003
 TXB2D74                           00000004
 TXB2D75                           00000005
 TXB2D76                           00000006
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 152
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 TXB2D77                           00000007
 TXB2DLC                           00000F25
 TXB2EIDH                          00000F23
@@ -13462,12 +13610,6 @@ UPDATE_MIN_DIMMED_16              00001B1A
 UPDATE_MIN_DIMMED_17              00001B60
 UPDATE_MIN_DIMMED_18              00001BA6
 UPDATE_MIN_DIMMED_19              00001BEC
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 151
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 UPDATE_MIN_DIMMED_2               00001746
 UPDATE_MIN_DIMMED_3               0000178C
 UPDATE_MIN_DIMMED_4               000017D2
@@ -13502,6 +13644,12 @@ UPDATE_SSR_SKIP_1                 0000163E
 UPDATE_SSR_SKIP_10                00001674
 UPDATE_SSR_SKIP_11                0000167A
 UPDATE_SSR_SKIP_12                00001680
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 153
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 UPDATE_SSR_SKIP_13                00001686
 UPDATE_SSR_SKIP_14                0000168C
 UPDATE_SSR_SKIP_15                00001692
@@ -13552,12 +13700,6 @@ WRITE_EEPROM_LOOP2                00000C3C
 WRITE_EEPROM_LOOP3                00000C9A
 WRITE_EEPROM_LOOP4                00000D34
 WRITE_EEPROM_LOOP5                00000D54
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 152
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 WRITE_EEPROM_LOOP6                00000DBA
 WUE                               00000001
 X                                 00000014
@@ -13592,6 +13734,12 @@ _CONFIG2L                         00300002
 _CONFIG3H                         00300005
 _CONFIG4L                         00300006
 _CONFIG5H                         00300009
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 154
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 _CONFIG5L                         00300008
 _CONFIG6H                         0030000B
 _CONFIG6L                         0030000A
@@ -13642,12 +13790,6 @@ _IDLOC5                           00200005
 _IDLOC6                           00200006
 _IDLOC7                           00200007
 _IESO_OFF_1H                      0000007F
-MPASM 5.53                 ../LUMOS_MAIN.ASM   6-6-2014  21:57:31         PAGE 153
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 _IESO_ON_1H                       000000FF
 _LPT1OSC_OFF_3H                   000000FB
 _LPT1OSC_ON_3H                    000000FF
@@ -13682,6 +13824,12 @@ _WDTPS_2048_2H                    000000F7
 _WDTPS_256_2H                     000000F1
 _WDTPS_2_2H                       000000E3
 _WDTPS_32768_2H                   000000FF
+MPASM 5.53                 ../LUMOS_MAIN.ASM   6-8-2014  23:49:39         PAGE 155
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 _WDTPS_32_2H                      000000EB
 _WDTPS_4096_2H                    000000F9
 _WDTPS_4_2H                       000000E5

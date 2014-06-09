@@ -42,6 +42,19 @@ BTN_IDX_A0	     EQU	2
 BTN_IDX_B0	     EQU	3
 BTN_IDX_C0	     EQU	4
 BTN_IDX_D0	     EQU	5
+PORT_X0		     EQU	PORTA
+PORT_L0		     EQU	PORTA
+PORT_A0		     EQU	PORTA
+PORT_B0		     EQU	PORTA
+PORT_C0		     EQU	PORTA
+PORT_D0		     EQU	PORTA
+BIT_X0		     EQU	1
+BIT_L0		     EQU	0
+BIT_A0		     EQU	5
+BIT_B0		     EQU	4
+BIT_C0		     EQU	3
+BIT_D0		     EQU	2
+
 PORT_RX		     EQU	PORTC
 BIT_RX		     EQU	7
 
@@ -56,6 +69,21 @@ PLAT_T_R	     EQU	LATC
 PORT_T_R	     EQU	PORTC
 TRIS_T_R	     EQU	TRISC
 BIT_T_R		     EQU	3
+
+CHAN_X0R	     EQU	.0
+CHAN_X0G	     EQU	.1
+CHAN_X0B	     EQU	.2
+CHAN_L0R	     EQU	.3
+CHAN_L0Y	     EQU	.4
+CHAN_L0G	     EQU	.5
+CHAN_A0L	     EQU	.6
+CHAN_B0L	     EQU	.7
+CHAN_C0L	     EQU	.8
+CHAN_D0L	     EQU	.9
+CHAN_F_R	     EQU	.10
+CHAN_F_G	     EQU	.11
+CHAN_F_B	     EQU	.12
+CHAN_F_W	     EQU	.13
 
 PLAT_0		     EQU	LATC	; XR
 PLAT_1		     EQU	LATC	; XG
@@ -100,6 +128,28 @@ BTN_IDX_X3	      EQU	6
 BTN_IDX_L3	      EQU	7
 BTN_IDX_X4	      EQU	8
 BTN_IDX_L4	      EQU	9
+
+PORT_X0		      EQU	PORTA
+PORT_L0		      EQU	PORTA
+PORT_X1		      EQU	PORTA
+PORT_L1		      EQU	PORTA
+PORT_X2		      EQU	PORTA
+PORT_L2		      EQU	PORTA
+PORT_X3		      EQU	PORTC
+PORT_L3		      EQU	PORTD
+PORT_X4		      EQU	PORTD
+PORT_L4		      EQU	PORTC
+BIT_X0		      EQU	3
+BIT_L0		      EQU	2
+BIT_X1		      EQU	1
+BIT_L1		      EQU	0
+BIT_X2		      EQU	4
+BIT_L2		      EQU	5
+BIT_X3		      EQU	4
+BIT_L3		      EQU	0
+BIT_X4		      EQU	4
+BIT_L4		      EQU	5
+
 PORT_RX		      EQU	PORTC
 BIT_RX		      EQU	7
 
@@ -115,6 +165,26 @@ PORT_T_R	      EQU	PORTC
 TRIS_T_R	      EQU	TRISC
 BIT_T_R		      EQU	3
 
+CHAN_X0R	      EQU	.0
+CHAN_X0G	      EQU	.1
+CHAN_X0B	      EQU	.2
+CHAN_L0R	      EQU	.3
+CHAN_X1R	      EQU	.4
+CHAN_X1G	      EQU	.5
+CHAN_X1B	      EQU	.6
+CHAN_L1R	      EQU	.7
+CHAN_X2R	      EQU	.8
+CHAN_X2G	      EQU	.9
+CHAN_X2B	      EQU	.10
+CHAN_L2R	      EQU	.11
+CHAN_X3R	      EQU	.12
+CHAN_X3G	      EQU	.13
+CHAN_X3B	      EQU	.14
+CHAN_L3R	      EQU	.15
+CHAN_X4R	      EQU	.16
+CHAN_X4G	      EQU	.17
+CHAN_X4B	      EQU	.18
+CHAN_L4R	      EQU	.19
 PLAT_0		      EQU	LATC	; X0R
 PLAT_1		      EQU	LATC	; X0G
 PLAT_2		      EQU	LATC	; X0B
