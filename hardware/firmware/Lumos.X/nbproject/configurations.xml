@@ -67,6 +67,8 @@
       </MPASMWIN-AS>
       <MPASMWIN-LD>
       </MPASMWIN-LD>
+      <Simulator>
+      </Simulator>
       <mpasmsuite>
       </mpasmsuite>
     </conf>

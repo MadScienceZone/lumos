@@ -58,11 +58,15 @@
 ;
 ; Main implementation module.
 ;
-#include "../lumos_config.inc"
-#include "../lumos_set_ssr.inc"
+#include "lumos_config.inc"
+#include "lumos_set_ssr.inc"
 #include "quizshow_config.inc"
-#include "../qscc_hook_main_pins.inc"
-	RADIX		DEC
+#include "qscc_hook_main_pins.inc"
+#include "qscc_bits.inc"
+	RADIX	DEC
+	EXTERN	QUIZSHOW_FLAGS
+	EXTERN	QS_BTN_TMR_T
+	EXTERN	QS_BTN_TMR_U
 ;#include "serial-io.inc"
 
 ; Works on Software Alchemy Quiz Show QSCC and QSRC boards revision 4.0.
@@ -724,7 +728,6 @@ BTN_X0_TIME_L	RES	N_BUTTONS	; button press times (bits 07-00)
 BTN_X0_FLAGS	RES	N_BUTTONS	; button flags
 BTN_X0_LOCKTMR	RES	N_BUTTONS	; number of 1/120 sec remaining in lock
 BTN_X0_DEB_TMR	RES	N_BUTTONS	; number of polls to satisfy debounce logic
-QUIZSHOW_FLAGS	RES	1		; flag bits while running the buttons
 QUIZSHOW_LCKTM	RES	1		; number of 1/120 sec we lock out offenders
 _QUIZSHOW_CODE	CODE
 
@@ -734,10 +737,6 @@ BTN_FLG_LOCKED	EQU	2		; -----1--	Button locked out
 BTN_FLG_MASKED	EQU	1		; ------1-	Button ignored
 BTN_FLG_PRESSED	EQU	0		; -------1	Button pressed already
 
-					; QUIZSHOW_FLAGS
-QS_FLAG_DOING120 EQU	1		; -----1--	Doing "every 1/120 sec tasks" now
-QS_FLAG_ON_120_S EQU	1		; ------1-	Need to do "every 1/120 sec tasks" now
-QS_FLAG_SCANNING EQU	0		; -------1	Scanner running
 ;
 ; Clear all button timers and states
 ;
@@ -766,7 +765,7 @@ CB_IDX	 ++
 QSCC_START:
 	CLRWDT
 	BANKSEL	QUIZSHOW_DATA
-	CLRF	QUIZSHOW_FLAGS, BANKED
+	CLRF	QUIZSHOW_FLAGS, ACCESS
 	MOVLW	.60
 	MOVWF	QUIZSHOW_LCKTM, BANKED			; lockout time is 1/2 second
 	CLEAR_BUTTONS 1
@@ -826,8 +825,8 @@ SCN_DB_ACTIVE_#v(SCN_DBN):
 	; It's still active after 256 polls.  Time to count it as officially on now.
 	BSF	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_ACTIVE, BANKED
 	;
-	; XXX Based on our current state, deal with the consequences of hitting
-	; XXX the button now.
+	; Based on our current state, deal with the consequences of hitting
+	; the button now.
 	;
 	; If already pressed: ignore
 	; ElseIf masked out: ignore
@@ -839,7 +838,7 @@ SCN_DB_ACTIVE_#v(SCN_DBN):
 	BTFSC	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_MASKED, BANKED
 	BRA	SCN_DB_END_#v(SCN_DBN)
 
-	BTFSC	QUIZSHOW_FLAGS, QS_FLAG_SCANNING, BANKED
+	BTFSC	QUIZSHOW_FLAGS, QS_FLAG_SCANNING, ACCESS
 	BRA	SCN_DB_DING_#v(SCN_DBN)
 
 	BSF	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_LOCKED, BANKED
@@ -849,7 +848,12 @@ SCN_DB_ACTIVE_#v(SCN_DBN):
 
 SCN_DB_DING_#v(SCN_DBN):
 	BSF	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_PRESSED, BANKED
-	; XXX copy timer values
+	; copy timer values
+	MOVFF	QS_BTN_TMR_U, BTN_X0_TIME_U+BTN_IDX
+	MOVFF	QS_BTN_TMR_T, BTN_X0_TIME_T+BTN_IDX
+	MOVFF	TMR1L, BTN_X0_TIME_L+BTN_IDX
+	MOVFF	TMR1H, BTN_X0_TIME_H+BTN_IDX
+	; update the lights
 	LOCAL_LIGHT_INDICATOR BTN_IDX, LT, LCK
 	BRA	SCN_DB_END_#v(SCN_DBN)
 	
@@ -858,7 +862,7 @@ SCN_DB_CHANGED_#v(SCN_DBN):
 	CLRF	BTN_X0_DEB_TMR+BTN_IDX, BANKED
 
 SCN_DB_END_#v(SCN_DBN):
-	BTFSS	QUIZSHOW_FLAGS, QS_FLAG_DOING120, BANKED
+	BTFSS	QUIZSHOW_FLAGS, QS_FLAG_DOING120, ACCESS
 	BRA	SCN_DB_DONE_#v(SCN_DBN)
 	;
 	; Every 1/120 second do this:
@@ -910,7 +914,7 @@ LLIM_NOT_LOCKED_#v(LLIM_N):
 	BTFSS	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_MASKED, BANKED
 	BTFSC	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_PRESSED, BANKED
 	BRA	LLIM_OFF_#v(LLIM_N)
-	BTFSS	QUIZSHOW_FLAGS, QS_FLAG_SCANNING, BANKED
+	BTFSS	QUIZSHOW_FLAGS, QS_FLAG_SCANNING, ACCESS
 	BRA	LLIM_OFF_#v(LLIM_N)
 	; We're scanning and not masked or pressed - light up button
 	SET_SSR_OFF LCK
@@ -928,10 +932,10 @@ LLIM_N	++
 	
 
 	BANKSEL	QUIZSHOW_DATA
-	BTFSS	QUIZSHOW_FLAGS, QS_FLAG_ON_120_S, BANKED
+	BTFSS	QUIZSHOW_FLAGS, QS_FLAG_ON_120_S, ACCESS
 	BRA	SCAN_DEBOUNCERS
-	BSF	QUIZSHOW_FLAGS, QS_FLAG_DOING120, BANKED
-	BCF	QUIZSHOW_FLAGS, QS_FLAG_ON_120_S, BANKED
+	BSF	QUIZSHOW_FLAGS, QS_FLAG_DOING120, ACCESS
+	BCF	QUIZSHOW_FLAGS, QS_FLAG_ON_120_S, ACCESS
 
 SCAN_DEBOUNCERS:
 	IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSCC
@@ -957,7 +961,7 @@ SCAN_DEBOUNCERS:
 	  ERROR "Improper LUMOS_CHIP_TYPE setting!"
 	 ENDIF
 	ENDIF
-	BCF	QUIZSHOW_FLAGS, QS_FLAG_DOING120, BANKED
+	BCF	QUIZSHOW_FLAGS, QS_FLAG_DOING120, ACCESS
 	RETURN
 
 
@@ -984,8 +988,16 @@ SCAN_DEBOUNCERS:
 QSCC_CMD6_START:
 	CLRWDT
 	CLEAR_BUTTONS 0
-	BSF	QUIZSHOW_FLAGS, QS_FLAG_SCANNING
-	; XXX start timer
+	BSF	QUIZSHOW_FLAGS, QS_FLAG_SCANNING, ACCESS
+	; start timer
+	CLRF	QS_BTN_TMR_T, ACCESS
+	CLRF	QS_BTN_TMR_U, ACCESS
+	CLRF	TMR1H, ACCESS
+	CLRF	TMR1L, ACCESS
+	BCF	PIR1, TMR1IF, ACCESS
+	BSF	IPR1, TMR1IP, ACCESS
+	BSF	PIE1, TMR1IE, ACCESS
+	BSF	T1CON, TMR1ON, ACCESS
 	; light up non-masked buttons
 	RCALL	SET_ALL_BUTTON_LIGHTS
 	RETURN
@@ -1022,8 +1034,11 @@ SET_ALL_BUTTON_LIGHTS:
 
 QS_STOP_SCANNER:
 	CLRWDT
-	BCF	QUIZSHOW_FLAGS, QS_FLAG_SCANNING
-	; XXX stop timer
+	BCF	QUIZSHOW_FLAGS, QS_FLAG_SCANNING, ACCESS
+	; stop timer
+	BCF	T1CON, TMR1ON, ACCESS
+	BCF	PIE1, TMR1IE, ACCESS
+	BCF	PIR1, TMR1IF, ACCESS
 	; extinguish non-masked buttons
 	RCALL SET_ALL_BUTTON_LIGHTS
 	RETURN

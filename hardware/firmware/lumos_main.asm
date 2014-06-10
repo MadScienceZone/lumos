@@ -59,6 +59,7 @@
 #include "lumos_init.inc"
 #include "serial-io.inc"
 	IF QSCC_PORT
+#include "qscc_bits.inc"
 #include "qscc_init.inc"
 	 GLOBAL	S0_CMD0
 	 GLOBAL	SSR_00_VALUE
@@ -1006,7 +1007,7 @@ EEPROM_USER_END		EQU	0x3FF
 ; DEVICES USED
 ;
 ; TMR0    120 Hz interrupt source (for boards without zero-crossing detector)
-; TMR1
+; TMR1    Button press timer (free-running 1MHz clock)
 ; TMR2    Dimmer slice timer (1/260 of a 120 Hz half-cycle)
 ; TMR3	  Break detector for DMX reception
 ; UART	  SIO module
@@ -2351,6 +2352,9 @@ INT_ZC:
 	BSF	SSR_STATE2, TEST_UPD, ACCESS	; time for next test-mode countdown
 	MOVFF	PHASE_OFFSETH, CUR_PREH
 	MOVFF	PHASE_OFFSETL, CUR_PRE
+	IF QSCC_PORT
+	 #include "qscc_hook_120hz.asm"
+	ENDIF
 	;
 	; handle OPTION button
 	; increment hold counter if we see it pressed, decrement if not.
@@ -2413,6 +2417,10 @@ INT_TMR2_NEXT:
 INT_TMR2_DONE:
 	BCF	PIR1, TMR2IF, ACCESS		; acknowledge interrrupt
 INT_TMR2_END:
+	
+	IF QSCC_PORT
+	 #include "qscc_hook_isr.asm"
+	ENDIF
 
 	RETFIE	FAST
 
@@ -2466,6 +2474,10 @@ KK              RES	1
 TR_I		RES	1
 ;                      --
 ;                      35
+;
+		IF QSCC_PORT
+		 #include "qscc_hook_access_bank.inc"
+		ENDIF
 
 ;==============================================================================
 ; DATA BANK 4

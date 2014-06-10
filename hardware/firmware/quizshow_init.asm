@@ -26,6 +26,7 @@
 ; Device initialization code.  See lumos_main.asm for hardware implementation
 ; details.  Most of the initialization will be done in the Lumos firmware.
 ;
+#include "lumos_config.inc"
 #include "quizshow_config.inc"
 		RADIX		DEC
 ;
@@ -41,5 +42,21 @@ QUIZSHOW_CODE_INIT CODE
 ;
 QSCC_INIT:
 	CLRWDT
+	MOVLW	B'00000000'		; T1CON		Timer 1 Control
+		; 1			; 1-------	Read/write as 16-bit unit
+		;  0			; -0------	Device clock from other source
+		;   00			; --00----	1:1 Prescale
+		;     1    		; ----1---	Timer oscillator enabled
+		;      0		; -----0--	Don't synchronize external clock
+		;       0		; ------0-	Clock source = Fosc/4 (10MHz)
+		;        0		; -------0	Don't start running
+	MOVWF	T1CON, ACCESS
+	
+
+	; Turn on with 	BSF INTCON, GIE/GIEH, PEIE/GIEL
+	; PIR1, TMR1IF
+	; PIE1, TMR1IE
+	; IPR1, TMR1IP
+	; T1CON, TMR1ON
 	RETURN
 	END
