@@ -3187,7 +3187,8 @@ Upon receipt of the single byte \z{11011111} (\z{0xDF}), all QS devices will sim
 clear their button state timers and start timing a new set of response times.  The
 \z{QS\_QUERY} command (\z{0x70a}) is then used to monitor the developing state of responses
 and eventually to halt the scanners.  Note that scanners may stop on their own when they 
-reach their maximum time values (17 minutes, 53.741824 seconds).
+reach their maximum time values (7 minutes, 9.4967296 seconds), but are not guaranteed to 
+do so.
 \end{QS}
 
 \subsection{Unimplemented Single-byte Codes}
@@ -3748,21 +3749,35 @@ The response packet is shown in Figures~\ref{bb:qsquery-reply1}--\ref{bb:qsquery
 \begin{BF}
   \bitbox{1}{\z1} & \bitbox{3}{7} & \bitbox{4}{\Var*{addr}}\\
   \bitbox{1}{\z0} & \bitbox{7}{29}\\
-  \bitbox{1}{\z0} & \bitbox{1}{\strut\Var{s}} & \bitbox{6}{24} \\
-  \begin{rightwordgroup}{\(\times 6\): X, L, A, B, C, D}
-  \bitbox{1}{\strut\Var{m}} &
-	\bitbox{1}{\strut\Var{p}} &
-	\bitbox[lrt]{6}{\strut\Var*{time}}\\
-	\wordbox[lr]{1}{(30-bit value}\\
-	\wordbox[lr]{1}{in $\mu$S)}\\
+  \bitbox{1}{\z0} & \bitbox{1}{\strut\Var{s}} & \bitbox{6}{26} \\
+  \bitbox{1}{\z0} &
+	\bitbox{1}{\color{blue}\rule{\width}{\height}} & 
+	\bitbox{1}{\strut\Var{a}} &
+	\bitbox{1}{\strut\Var{b}} &
+	\bitbox{1}{\strut\Var{c}} &
+	\bitbox{1}{\strut\Var{d}} &
+	\bitbox{1}{\strut\Var{l}} &
+	\bitbox{1}{\strut\Var{x}} \\
+  \bitbox{1}{\z0} &
+	\bitbox{1}{\color{blue}\rule{\width}{\height}} & 
+	\bitbox{1}{\strut\Var{A}} &
+	\bitbox{1}{\strut\Var{B}} &
+	\bitbox{1}{\strut\Var{C}} &
+	\bitbox{1}{\strut\Var{D}} &
+	\bitbox{1}{\strut\Var{L}} &
+	\bitbox{1}{\strut\Var{X}}
+  \begin{rightwordgroup}{\(\times 6\): X, L, A, B, C, D}\\
+	\wordbox[lrt]{1}{\strut\Var*{time}}\\
+	\wordbox[lr]{1}{(32-bit value}\\
+	\wordbox[lr]{1}{$\times$ \SI{100}{\nano\second})}\\
 	\wordbox[lrb]{1}{X button}\\
-	\vdots
+	\wordbox[]{1}{$\vdots$ \\[1ex]} 
 	\end{rightwordgroup}\\
   \bitbox{1}{\z0} & \bitbox{1}{\Var{s}} & 
 	\bitbox[bt]{1}{\z1} &
 	\bitbox[bt]{1}{\z0} &
 	\bitbox[bt]{1}{\z1} &
-	\bitbox{3}{0}\\
+	\bitbox{3}{2}\\
 \end{BF}
 \caption{\z{0x71d} [reply] Response to Full QS Query (QSCC)\label{bb:qsquery-reply4}}
 \end{QS*}
@@ -3773,21 +3788,43 @@ The response packet is shown in Figures~\ref{bb:qsquery-reply1}--\ref{bb:qsquery
 \begin{BF}
   \bitbox{1}{\z1} & \bitbox{3}{7} & \bitbox{4}{\Var*{addr}}\\
   \bitbox{1}{\z0} & \bitbox{7}{29}\\
-  \bitbox{1}{\z0} & \bitbox{1}{\strut\Var{s}} & \bitbox{6}{40} \\
+  \bitbox{1}{\z0} & \bitbox{1}{\strut\Var{s}} & \bitbox{6}{43} \\
+  \bitbox{1}{\z0} &
+	\bitbox{1}{\strut\Var{l$_3$}} &
+	\bitbox{1}{\strut\Var{X$_3$}} &
+	\bitbox{1}{\strut\Var{x$_3$}} &
+	\bitbox{1}{\strut\Var{L$_0$}} &
+	\bitbox{1}{\strut\Var{l$_0$}} &
+	\bitbox{1}{\strut\Var{X$_0$}} &
+	\bitbox{1}{\strut\Var{x$_0$}} \\
+  \bitbox{1}{\z0} &
+	\bitbox{1}{\strut\Var{l$_4$}} &
+	\bitbox{1}{\strut\Var{X$_4$}} &
+	\bitbox{1}{\strut\Var{x$_4$}} &
+	\bitbox{1}{\strut\Var{L$_1$}} &
+	\bitbox{1}{\strut\Var{l$_1$}} &
+	\bitbox{1}{\strut\Var{X$_1$}} &
+	\bitbox{1}{\strut\Var{x$_1$}} \\
+  \bitbox{1}{\z0} &
+	\bitbox{1}{\color{blue}\rule{\width}{\height}} & 
+	\bitbox{1}{\strut\Var{L$_4$}} &
+	\bitbox{1}{\strut\Var{L$_3$}} &
+	\bitbox{1}{\strut\Var{L$_2$}} &
+	\bitbox{1}{\strut\Var{l$_2$}} &
+	\bitbox{1}{\strut\Var{X$_2$}} &
+	\bitbox{1}{\strut\Var{x$_2$}} \\
   \begin{rightwordgroup}{\(\times 10\): X$_0$, L$_0$, X$_1$, L$_1$, etc.}
-  \bitbox{1}{\strut\Var{m}} &
-	\bitbox{1}{\strut\Var{p}} &
-	\bitbox[lrt]{6}{\strut\Var*{time}}\\
-	\wordbox[lr]{1}{(30-bit value}\\
-	\wordbox[lr]{1}{in $\mu$S)}\\
+  \wordbox[lrt]{1}{\strut\Var*{time}}\\
+	\wordbox[lr]{1}{(32-bit value}\\
+	\wordbox[lr]{1}{$\times$ \SI{100}{\nano\second})}\\
 	\wordbox[lrb]{1}{X button}\\
-	\vdots
+	\wordbox[]{1}{$\vdots$ \\[1 ex]}
 	\end{rightwordgroup}\\
   \bitbox{1}{\z0} & \bitbox{1}{\Var{s}} & 
 	\bitbox[bt]{1}{\z1} &
 	\bitbox[bt]{1}{\z0} &
 	\bitbox[bt]{1}{\z1} &
-	\bitbox{3}{0}\\
+	\bitbox{3}{3}\\
 \end{BF}
 \caption{\z{0x71d} [reply] Response to Full QS Query (QSRC)\label{bb:qsquery-reply5}}
 \end{QS*}
@@ -3797,8 +3834,12 @@ Note the different forms of reply which may be returned.  In these replies,
 button has been pressed and counted or 0 if not.  Masks \Var{X}, \Var{L}, etc. are 1 if the button
 is masked out (ignored).
 
-In the full response, a 30-bit time value is returned, which is the number of microseconds that elapsed from
-the time the scanner started until the button was pressed.  The two flag bits have this meaning:
+In the full response, a 32-bit time value is returned, which is the number of tenths of microseconds that elapsed from
+the time the scanner started until the button was pressed.  The bytes are sent in big-endian
+order (starting with the most significant, ending with the least).  This block of times is
+preceded by the two-bit button flags as in the button-status-only query.  
+The two flag bits have this meaning (assuming \Var{m} is the mask bit and \Var{p} is the
+button-pressed bit as described above):
 \begin{center}
  \begin{tabular}{ccl}\toprule
   \bfseries\Var{m} & \bfseries\Var{p} & \bfseries Meaning \\\midrule
@@ -3809,11 +3850,9 @@ the time the scanner started until the button was pressed.  The two flag bits ha
 \bottomrule
  \end{tabular}
 \end{center}
-At least theoretically, it's possible for a button to be pressed in less than 1\,$\mu$s from
-the start time, which would result in the 32-bit value \z{0x40000000}, so don't rely only on the
+At least theoretically, it's possible for a button to be pressed in less than \SI{0.1}{\micro\second} from
+the start time, which would result in the 32-bit value \z{0x00000000}, so don't rely only on the
 time value alone.
-
-   
 
 
 \subsection{\z{0x70b}: Set Button Masks}
@@ -3937,10 +3976,10 @@ is shown in Table~\ref{tbl:textcodes}.
 	\begin{rightwordgroup}{8 bytes (64 pixels)}
 	\wordbox{1}{Left 8 bits}\\
 	\wordbox{1}{Next 8 bits}\\
-	\vdots\\
+	\wordbox[]{1}{$\vdots$ \\[1 ex]}\\
 	\wordbox{1}{Right 8 bits}
 	\end{rightwordgroup}\\
-	\vdots
+	\wordbox[]{1}{$\vdots$ \\[1 ex]}
 	\end{leftwordgroup}\\
 	\bitbox{1}{\z0} & \bitbox{1}{\z1} &
 	\bitbox{1}{\z1} & \bitbox{1}{\z0} &
@@ -4267,8 +4306,9 @@ Codes \z{0x776}--\z{0x77f} are reserved for future use as configuration-mode com
 Sets QS-specific parameters.  
 
 If \Var*{lockout}>0, then any buttons pressed before the scanner begins
-running will cause an automatic temporary masking for \Var*{lockout} tenths
-of a second after being released.
+running will cause an automatic temporary masking for \Var*{lockout} $\times$ \sfrac{1}{120}
+of a second after being released.  The default lockout time upon device power-up
+is \sfrac{1}{2} second.
 \end{QS}
 
 
