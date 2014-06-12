@@ -35,7 +35,7 @@ S0_CMD5:
 	 ; Unimplemented Command
 	 DECFSZ	WREG, W, ACCESS
 	 BRA	S0_CMD6
-	 GOTO	ERR_NOT_IMP		; XXX
+	 GOTO	QSCC_CMD5_START
 
 S0_CMD6:
 	 ; Unimplemented Command

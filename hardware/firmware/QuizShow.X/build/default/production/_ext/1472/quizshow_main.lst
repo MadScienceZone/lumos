@@ -1,4 +1,4 @@
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE  1
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE  1
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -88,7 +88,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00021 ; Portions based on earlier code copyright (c) 2004, 2005, 2006, 2007
                       00022 ; Steven L. Willoughby, Aloha, Oregon, USA.  All Rights Reserved.
                       00023 ;
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE  2
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE  2
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -178,7 +178,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00104       #define QSCC_PORT       (1)
                       00105      ELSE
                       00106       IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSRC
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE  3
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE  3
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -268,7 +268,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00003                 LIST n=90
                       00004 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                       00005 ;@@                                                                         @@
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE  4
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE  4
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -358,7 +358,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00087 SET_SSR_RAPID_FLASH MACRO IDX
                       00088          SET_SSR_PATTERN IDX, 255, 255, 30, BIT_FADE_DOWN|BIT_FADE_CYCLE
                       00089         ENDM
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE  5
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE  5
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -448,7 +448,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00020 ; Based on previous works by the same author, some of which are released
                       00021 ; under the Open Software License, version 3.0, which portions are available
                       00022 ; separately for free download.
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE  6
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE  6
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -538,7 +538,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00104 BIT_0                EQU        2       ; XR
                       00105 BIT_1                EQU        1       ; XG
                       00106 BIT_2                EQU        0       ; XB
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE  7
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE  7
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -628,7 +628,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
   00000F8B            00188 PLAT_0                EQU       LATC    ; X0R
   00000F8B            00189 PLAT_1                EQU       LATC    ; X0G
   00000F8B            00190 PLAT_2                EQU       LATC    ; X0B
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE  8
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE  8
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -714,736 +714,744 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
   00000002            00035 QS_FLAG_DOING120 EQU    2               ; -----1--      Doing "every 1/120 sec tasks" now
   00000001            00036 QS_FLAG_ON_120_S EQU    1               ; ------1-      Need to do "every 1/120 sec tasks" now
   00000000            00037 QS_FLAG_SCANNING EQU    0               ; -------1      Scanner running
-                      00038 #endif
+                      00038 
+                      00039                                         ; BTN_??_FLAGS
+  00000003            00040 BTN_FLG_ACTIVE  EQU     3               ; ----1---      Button being pressed now
+  00000002            00041 BTN_FLG_LOCKED  EQU     2               ; -----1--      Button locked out
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE  9
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+  00000001            00042 BTN_FLG_MASKED  EQU     1               ; ------1-      Button ignored
+  00000000            00043 BTN_FLG_PRESSED EQU     0               ; -------1      Button pressed already
+                      00044 
+  00000C00            00045 QUIZSHOW_DATA   EQU     0xC00
+                      00046 #endif
                       00066         RADIX   DEC
   0000                00067         EXTERN  QUIZSHOW_FLAGS
   0000                00068         EXTERN  QS_BTN_TMR_T
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE  9
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
   0000                00069         EXTERN  QS_BTN_TMR_U
-                      00070 ;#include "serial-io.inc"
-                      00071 
-                      00072 ; Works on Software Alchemy Quiz Show QSCC and QSRC boards revision 4.0.
-                      00073 ;
-                      00074 ; N.B. THE BOARD SELECT BITS IN LUMOS_CONFIG.INC MUST BE SELECTED
-                      00075 ; FOR THE TARGET CONFIGURATION!  EACH ROM IS DIFFERENT!
-                      00076 ;
-                      00077 ; Target Microcontroller is PIC18F4685, Q=40MHz (100nS instruction cycle)
+  0000                00070         GLOBAL  BTN_X0_TIME_T
+  0000                00071         GLOBAL  BTN_X0_TIME_U
+  0000                00072         GLOBAL  BTN_X0_TIME_H
+  0000                00073         GLOBAL  BTN_X0_TIME_L
+  0000                00074         GLOBAL  BTN_X0_FLAGS
+                      00075 ;#include "serial-io.inc"
+                      00076 
+                      00077 ; Works on Software Alchemy Quiz Show QSCC and QSRC boards revision 4.0.
                       00078 ;
-                      00079 ; Serial control (RS-485) at 19.2kbps by default.
-                      00080 ; Configurable from 300 to 250000 baud.
+                      00079 ; N.B. THE BOARD SELECT BITS IN LUMOS_CONFIG.INC MUST BE SELECTED
+                      00080 ; FOR THE TARGET CONFIGURATION!  EACH ROM IS DIFFERENT!
                       00081 ;
-                      00082 ; OPTION BUTTON:
-                      00083 ; XXX The Lumos controllers have an OPTION button which starts configuration
-                      00084 ; XXX mode.  QS*C boards don't have those, so instead boot the unit while
-                      00085 ; XXX holding down the A and D buttons (QSCC) or the L2 and L0 buttons (QSRC)
-                      00086 ; XXX to enter configuration mode.
-                      00087 ; 
-                      00088 ;=============================================================================
-                      00089 ; IMPLEMENTATION NOTES
-                      00090 ;-----------------------------------------------------------------------------
-                      00091 ;
-                      00092 ; The QUIZSHOW controller firmware consists of a number of somewhat 
-                      00093 ; independent subsystems:
-                      00094 ; 
-                      00095 ; LUMOS
-                      00096 ;       The QSCC and QSRC boards are also Lumos SSR controllers which implement
-                      00097 ;       most of the standard Lumos commands.  The various lights used by the
-                      00098 ;       quiz show are mapped to Lumos channels.  The Lumos firmware is included
-                      00099 ;       into the quizshow firmware, with some special switches enabled to adapt
-                      00100 ;       it to this hardware.
-                      00101 ;
-                      00102 ; START
-                      00103 ;       Initializes the microcontroller, starts up the required peripherals,
-                      00104 ;       and enters the main loop
-                      00105 ;
-                      00106 ; SIO
-                      00107 ;       Handles all serial I/O operations in the background (interrupt-driven)
-                      00108 ;       so the rest of the code only needs to be concerned with higher-level
-                      00109 ;       reads and writes.  Buffers hold 256 characters each of input and output.
+                      00082 ; Target Microcontroller is PIC18F4685, Q=40MHz (100nS instruction cycle)
+                      00083 ;
+                      00084 ; Serial control (RS-485) at 19.2kbps by default.
+                      00085 ; Configurable from 300 to 250000 baud.
+                      00086 ;
+                      00087 ; OPTION BUTTON:
+                      00088 ; XXX The Lumos controllers have an OPTION button which starts configuration
+                      00089 ; XXX mode.  QS*C boards don't have those, so instead boot the unit while
+                      00090 ; XXX holding down the A and D buttons (QSCC) or the L2 and L0 buttons (QSRC)
+                      00091 ; XXX to enter configuration mode.
+                      00092 ; 
+                      00093 ;=============================================================================
+                      00094 ; IMPLEMENTATION NOTES
+                      00095 ;-----------------------------------------------------------------------------
+                      00096 ;
+                      00097 ; The QUIZSHOW controller firmware consists of a number of somewhat 
+                      00098 ; independent subsystems:
+                      00099 ; 
+                      00100 ; LUMOS
+                      00101 ;       The QSCC and QSRC boards are also Lumos SSR controllers which implement
+                      00102 ;       most of the standard Lumos commands.  The various lights used by the
+                      00103 ;       quiz show are mapped to Lumos channels.  The Lumos firmware is included
+                      00104 ;       into the quizshow firmware, with some special switches enabled to adapt
+                      00105 ;       it to this hardware.
+                      00106 ;
+                      00107 ; START
+                      00108 ;       Initializes the microcontroller, starts up the required peripherals,
+                      00109 ;       and enters the main loop
                       00110 ;
-                      00111 ; ISR
-                      00112 ;       The interrupt service routine manages a set of counters and timers:
-                      00113 ;       1. We run a 120 Hz timer which provides timing for the dimmers.
-                      00114 ;
-                      00115 ; MAIN_LOOP
-                      00116 ;       Manages the display of the readerboards.
-                      00117 ;       Updates the status of the SSR lines if it's time to do so
-                      00118 ;       Receives a character from the serial line if one's waiting
+                      00111 ; SIO
+                      00112 ;       Handles all serial I/O operations in the background (interrupt-driven)
+                      00113 ;       so the rest of the code only needs to be concerned with higher-level
+                      00114 ;       reads and writes.  Buffers hold 256 characters each of input and output.
+                      00115 ;
+                      00116 ; ISR
+                      00117 ;       The interrupt service routine manages a set of counters and timers:
+                      00118 ;       1. We run a 120 Hz timer which provides timing for the dimmers.
                       00119 ;
-                      00120 ; INTERPRETER
-                      00121 ;       When a byte is received on the serial line, it is processed by
-                      00122 ;       a small state machine.  The current state is held in YY_STATE (named
-                      00123 ;       in honor of the venerable yacc).
+                      00120 ; MAIN_LOOP
+                      00121 ;       Manages the display of the readerboards.
+                      00122 ;       Updates the status of the SSR lines if it's time to do so
+                      00123 ;       Receives a character from the serial line if one's waiting
                       00124 ;
-                      00125 ;-----------------------------------------------------------------------------
-                      00126 ; Command Protocol:
-                      00127 ;                     ___7______6______5______4______3______2______1______0__
-                      00128 ; Command Byte:      |      |                    |                           |
-                      00129 ;                    |   1  |    Command code    |   Target device address   |
-                      00130 ;                    |______|______|______|______|______|______|______|______|
-                      00131 ;
-                      00132 ; Any byte with its MSB set is the beginning of a command.  If the target 
-                      00133 ; device matches this unit's address, the state machine kicks into gear and
-                      00134 ; processes the command (which may require some following data bytes, all
-                      00135 ; of which must have their MSB cleared).  Otherwise, the unit ignores the
-                      00136 ; byte.
-                      00137 ;
-                      00138 ;                     ___7______6______5______4______3______2______1______0__
-                      00139 ; Extended Command:  |      |                    |                           |
-                      00140 ;                    |   1  |          7         |   Target device address   |
-                      00141 ;                    |______|______|______|______|______|______|______|______|
-                      00142 ;                    |      |                                                |
-                      00143 ;                    |   0  |                  Command code                  |
-                      00144 ;                    |______|______|______|______|______|______|______|______|
-                      00145 ;
-                      00146 ; The most common commands are given ID 0-6 so that they may be sent in as few
-                      00147 ; bytes as possible (as few as a single byte), but we have more than 8 commands
-                      00148 ; so we have an extended code.  If the command code is 7 (all bits set), then
-                      00149 ; the following byte contains the actual command code which may be any value
-                      00150 ; from 0-127.
-                      00151 ;
-                      00152 ;                     ___7______6______5______4______3______2______1______0__
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 10
+                      00125 ; INTERPRETER
+                      00126 ;       When a byte is received on the serial line, it is processed by
+                      00127 ;       a small state machine.  The current state is held in YY_STATE (named
+                      00128 ;       in honor of the venerable yacc).
+                      00129 ;
+                      00130 ;-----------------------------------------------------------------------------
+                      00131 ; Command Protocol:
+                      00132 ;                     ___7______6______5______4______3______2______1______0__
+                      00133 ; Command Byte:      |      |                    |                           |
+                      00134 ;                    |   1  |    Command code    |   Target device address   |
+                      00135 ;                    |______|______|______|______|______|______|______|______|
+                      00136 ;
+                      00137 ; Any byte with its MSB set is the beginning of a command.  If the target 
+                      00138 ; device matches this unit's address, the state machine kicks into gear and
+                      00139 ; processes the command (which may require some following data bytes, all
+                      00140 ; of which must have their MSB cleared).  Otherwise, the unit ignores the
+                      00141 ; byte.
+                      00142 ;
+                      00143 ;                     ___7______6______5______4______3______2______1______0__
+                      00144 ; Extended Command:  |      |                    |                           |
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 10
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-                      00153 ; Data Byte:         |      |                                                |
-                      00154 ;                    |   0  |                      Data                      |
-                      00155 ;                    |______|______|______|______|______|______|______|______|
+                      00145 ;                    |   1  |          7         |   Target device address   |
+                      00146 ;                    |______|______|______|______|______|______|______|______|
+                      00147 ;                    |      |                                                |
+                      00148 ;                    |   0  |                  Command code                  |
+                      00149 ;                    |______|______|______|______|______|______|______|______|
+                      00150 ;
+                      00151 ; The most common commands are given ID 0-6 so that they may be sent in as few
+                      00152 ; bytes as possible (as few as a single byte), but we have more than 8 commands
+                      00153 ; so we have an extended code.  If the command code is 7 (all bits set), then
+                      00154 ; the following byte contains the actual command code which may be any value
+                      00155 ; from 0-127.
                       00156 ;
-                      00157 ; Any byte with its MSB cleared is a data byte, and is ignored unless we're
-                      00158 ; in the middle of interpreting a multi-byte command, in which case it's interpreted
-                      00159 ; appropriately as data supporting the command being executed.  This way, other
-                      00160 ; devices which share the same protocol format but not necessarily a compatible
-                      00161 ; command set may safely know which bytes can be ignored without knowing the
-                      00162 ; details of each other's command sets.
-                      00163 ;
-                      00164 ; Two special bytes are recognized:
-                      00165 ;
-                      00166 ;                     ___7______6______5______4______3______2______1______0__
-                      00167 ; MSB Escape:        |      |                                                |
-                      00168 ;                    |   0  |   1      1      1      1      1      1      0  |
-                      00169 ;                    |______|______|______|______|______|______|______|______|
+                      00157 ;                     ___7______6______5______4______3______2______1______0__
+                      00158 ; Data Byte:         |      |                                                |
+                      00159 ;                    |   0  |                      Data                      |
+                      00160 ;                    |______|______|______|______|______|______|______|______|
+                      00161 ;
+                      00162 ; Any byte with its MSB cleared is a data byte, and is ignored unless we're
+                      00163 ; in the middle of interpreting a multi-byte command, in which case it's interpreted
+                      00164 ; appropriately as data supporting the command being executed.  This way, other
+                      00165 ; devices which share the same protocol format but not necessarily a compatible
+                      00166 ; command set may safely know which bytes can be ignored without knowing the
+                      00167 ; details of each other's command sets.
+                      00168 ;
+                      00169 ; Two special bytes are recognized:
                       00170 ;
-                      00171 ; If this ($7E) byte is received, it is ignored but the next byte received will
-                      00172 ; have its MSB bit set.  This allows data bytes to have full 8-bit values without
-                      00173 ; violating the communication protocol described above.  That second byte is not
-                      00174 ; interpreted further.
+                      00171 ;                     ___7______6______5______4______3______2______1______0__
+                      00172 ; MSB Escape:        |      |                                                |
+                      00173 ;                    |   0  |   1      1      1      1      1      1      0  |
+                      00174 ;                    |______|______|______|______|______|______|______|______|
                       00175 ;
-                      00176 ;                     ___7______6______5______4______3______2______1______0__
-                      00177 ; Literal Escape     |      |                                                |
-                      00178 ;                    |   0  |   1      1      1      1      1      1      1  |
-                      00179 ;                    |______|______|______|______|______|______|______|______|
+                      00176 ; If this ($7E) byte is received, it is ignored but the next byte received will
+                      00177 ; have its MSB bit set.  This allows data bytes to have full 8-bit values without
+                      00178 ; violating the communication protocol described above.  That second byte is not
+                      00179 ; interpreted further.
                       00180 ;
-                      00181 ; If this ($7F) byte is received, it is ignored but the next byte is accepted
-                      00182 ; as-is without further interpretation.
-                      00183 ;
-                      00184 ; Specific Example Cases of interest:
-                      00185 ;       Sequence    Resulting byte
-                      00186 ;       $7E $7E     $FE
-                      00187 ;       $7E $7F     $FF
-                      00188 ;       $7F $7E     $7E
-                      00189 ;       $7F $7F     $7F
-                      00190 ;
-                      00191 ; A command byte (received with MSB already set) trumps all of the above.  It is
-                      00192 ; taken as the start of a command and the escape sequence in progress is canceled.
-                      00193 ;
-                      00194 ; Commands recognized (L indicates Lumos commands):
+                      00181 ;                     ___7______6______5______4______3______2______1______0__
+                      00182 ; Literal Escape     |      |                                                |
+                      00183 ;                    |   0  |   1      1      1      1      1      1      1  |
+                      00184 ;                    |______|______|______|______|______|______|______|______|
+                      00185 ;
+                      00186 ; If this ($7F) byte is received, it is ignored but the next byte is accepted
+                      00187 ; as-is without further interpretation.
+                      00188 ;
+                      00189 ; Specific Example Cases of interest:
+                      00190 ;       Sequence    Resulting byte
+                      00191 ;       $7E $7E     $FE
+                      00192 ;       $7E $7F     $FF
+                      00193 ;       $7F $7E     $7E
+                      00194 ;       $7F $7F     $7F
                       00195 ;
-                      00196 ;   COMMAND  CODE  BITS
-                      00197 ;L  BLACKOUT 0     1000aaaa
-                      00198 ;L  ON_OFF   1     1001aaaa 0scccccc            Turn channel <c> on (<s>=1) or off (<s>=0)
-                      00199 ;L  SET_LVL  2     1010aaaa 0hcccccc 0vvvvvvv    Set dimmer level <v>:<h> on channel <c>
-                      00200 ;L  BULK_UPD 3     1011aaaa 0mcccccc ...                Bulk-upload multiple channel levels
-                      00201 ;L  RAMP_LVL 4     1100aaaa Cdcccccc ...         Ramp channel <c> smoothly up (<d>=1) or down (<C>=1 cyc
+                      00196 ; A command byte (received with MSB already set) trumps all of the above.  It is
+                      00197 ; taken as the start of a command and the escape sequence in progress is canceled.
+                      00198 ;
+                      00199 ; Commands recognized (L indicates Lumos commands):
+                      00200 ;
+                      00201 ;   COMMAND  CODE  BITS
+                      00202 ;L  BLACKOUT 0     1000aaaa
+                      00203 ;L  ON_OFF   1     1001aaaa 0scccccc            Turn channel <c> on (<s>=1) or off (<s>=0)
+                      00204 ;L  SET_LVL  2     1010aaaa 0hcccccc 0vvvvvvv    Set dimmer level <v>:<h> on channel <c>
+                      00205 ;L  BULK_UPD 3     1011aaaa 0mcccccc ...                Bulk-upload multiple channel levels
+                      00206 ;L  RAMP_LVL 4     1100aaaa Cdcccccc ...         Ramp channel <c> smoothly up (<d>=1) or down (<C>=1 cyc
                             le)
-                      00202 ;   SCAN_ST  5     1101aaaa                      Start scanning buttons
-                      00203 ;   SCAN_Q   6     1110aaaa 0000000s             Read scan results / Stop
-                      00204 ;   EXTENDED 7     1111aaaa                      Extended command, decoded further in next byte
-                      00205 ;L@ SLEEP    7+0   1111aaaa 00000000 01011010 01011010  Put unit to sleep
-                      00206 ;L@ WAKE     7+1   1111aaaa 00000001 01011010 01011010  Take unit out of sleep mode
-                      00207 ;L  SHUTDOWN 7+2   1111aaaa 00000010 01011000 01011001  Take unit completely offline
-                      00208 ;L< QUERY    7+3   1111aaaa 00000011 00100100 01010100  Report device status
-                      00209 ;X! DEF_SEQ  7+4   1111aaaa 00000100 0iiiiiii ...       Define sequence <i>
-                      00210 ;X  EXEC_SEQ 7+5   1111aaaa 00000101 0iiiiiii           Execute sequence <i> (0=stop)
-                      00211 ;X! CLR_SEQ  7+8   1111aaaa 00001000 01000011 01000001  Erase all stored sequences
-                      00212 ;L  XPRIV    7+9   1111aaaa 00001001                    Forbid priviliged mode
-                      00213 ;            7+10  1111aaaa 00001010                    Reserved for future use
-                      00214 ;             :        :        :                           :     :     :    : 
-                      00215 ;            7+28  1111aaaa 00011100                    Reserved for future use                 
-                      00216 ;   OUT_SCAN 7+29  1111aaaa 00011101                    SCAN_Q reply
-                      00217 ;L  OUT_NAK  7+30  1111aaaa 00011110                    QUERY NAK                               
-                      00218 ;L  OUT_RPLY 7+31  1111aaaa 00011111 ...                Reply to QUERY command_________________ 
-                      00219 ;   IC_***** 7+32  11110000 00100000                    Reserved (Lumos internal)
-                      00220 ;             :        :        :                           :     :   :      :         ////////
-                      00221 ;            7+63  11110000 00111111                    Reserved for new commands______////////
-                      00222 ;*! CF_PHASE 7+64  1111aaaa 010000pp 0ppppppp 01010000 01001111   Phase offset=<p>       CONFIG
-                      00223 ;*! CF_ADDR  7+96  1111aaaa 0110AAAA 01001001 01000001 01000100   Change address to <A>  ||||||
-                      00224 ;*  CF_NOPRV 7+112 1111aaaa 01110000                              Leave privileged mode  ||||||
-                      00225 ;*  CF_CONF  7+113 1111aaaa 01110001 ...                          Configure device       ||||||
-                      00226 ;*! CF_BAUD  7+114 1111aaaa 01110010 0bbbbbbb 00100110            Set baud rate to <b>   ||||||
-                      00227 ;*! CF_RESET 7+115 1111aaaa 01110011 00100100 01110010            Reset factory defaults ||||||
-                      00228 ;*  CF_XPRIV 7+116 1111aaaa 01110100                              Forbid priviliged mode ||||||
-                      00229 ;*           7+117 1111aaaa 01110101                     Reserved for future config cmd  ||||||
-                      00230 ;*                     :        :                            :     :     :      :    :   ||||||
-                      00231 ;*           7+127 1111aaaa 01111111                     Reserved for future config cmd__||||||
-                      00232 ;
-                      00233 ; Legend:
-                      00234 ;   X Not yet implemented; planned for future; subject to change
-                      00235 ;   @ Unit may automatically take this action
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 11
+                      00207 ;   SCAN_ST  5     1101aaaa                      Start scanning buttons
+                      00208 ;   SCAN_Q   6     1110aaaa 0000000s             Read scan results / Stop
+                      00209 ;   EXTENDED 7     1111aaaa                      Extended command, decoded further in next byte
+                      00210 ;L@ SLEEP    7+0   1111aaaa 00000000 01011010 01011010  Put unit to sleep
+                      00211 ;L@ WAKE     7+1   1111aaaa 00000001 01011010 01011010  Take unit out of sleep mode
+                      00212 ;L  SHUTDOWN 7+2   1111aaaa 00000010 01011000 01011001  Take unit completely offline
+                      00213 ;L< QUERY    7+3   1111aaaa 00000011 00100100 01010100  Report device status
+                      00214 ;X! DEF_SEQ  7+4   1111aaaa 00000100 0iiiiiii ...       Define sequence <i>
+                      00215 ;X  EXEC_SEQ 7+5   1111aaaa 00000101 0iiiiiii           Execute sequence <i> (0=stop)
+                      00216 ;X! CLR_SEQ  7+8   1111aaaa 00001000 01000011 01000001  Erase all stored sequences
+                      00217 ;L  XPRIV    7+9   1111aaaa 00001001                    Forbid priviliged mode
+                      00218 ;            7+10  1111aaaa 00001010                    Reserved for future use
+                      00219 ;             :        :        :                           :     :     :    : 
+                      00220 ;            7+28  1111aaaa 00011100                    Reserved for future use                 
+                      00221 ;   OUT_SCAN 7+29  1111aaaa 00011101                    SCAN_Q reply
+                      00222 ;L  OUT_NAK  7+30  1111aaaa 00011110                    QUERY NAK                               
+                      00223 ;L  OUT_RPLY 7+31  1111aaaa 00011111 ...                Reply to QUERY command_________________ 
+                      00224 ;   IC_***** 7+32  11110000 00100000                    Reserved (Lumos internal)
+                      00225 ;             :        :        :                           :     :   :      :         ////////
+                      00226 ;            7+63  11110000 00111111                    Reserved for new commands______////////
+                      00227 ;*! CF_PHASE 7+64  1111aaaa 010000pp 0ppppppp 01010000 01001111   Phase offset=<p>       CONFIG
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 11
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-                      00236 ;   * Privileged configuration-mode command
-                      00237 ;   ! Permanent effect (written to EEPROM)
-                      00238 ;   < Command generates response data (back to host)
-                      00239 ;   a Device address (0-15)
-                      00240 ;   b Baud rate code (0-127), but units may only define a small subset of those values
-                      00241 ;   c Output channel (0-63, but unit may only support a lesser number)
-                      00242 ;   d Direction: up (<d>=1) or down (<d>=0).
-                      00243 ;   h High-res level bit (LSB of 8-bit value when in high-res mode)
-                      00244 ;   m Mode (1=high-res, 0=low-res)
-                      00245 ;   n Number of items affected
-                      00246 ;   s Output state: 0=off, 1=on
-                      00247 ;   v Value of dimmer (0-127) (most significant 7 bits of dimmer value)
-                      00248 ;
-                      00249 ; Payloads for many-byte commands
-                      00250 ;
-                      00251 ; BULK_UPD:  00cccccc 0nnnnnnn v0 v1 v2 ... vn 01010101
-                      00252 ;       Updates <n>+1 channels starting at <c>, giving <v> values for each as per SET_LVL.
+                      00228 ;*! CF_ADDR  7+96  1111aaaa 0110AAAA 01001001 01000001 01000100   Change address to <A>  ||||||
+                      00229 ;*  CF_NOPRV 7+112 1111aaaa 01110000                              Leave privileged mode  ||||||
+                      00230 ;*  CF_CONF  7+113 1111aaaa 01110001 ...                          Configure device       ||||||
+                      00231 ;*! CF_BAUD  7+114 1111aaaa 01110010 0bbbbbbb 00100110            Set baud rate to <b>   ||||||
+                      00232 ;*! CF_RESET 7+115 1111aaaa 01110011 00100100 01110010            Reset factory defaults ||||||
+                      00233 ;*  CF_XPRIV 7+116 1111aaaa 01110100                              Forbid priviliged mode ||||||
+                      00234 ;*           7+117 1111aaaa 01110101                     Reserved for future config cmd  ||||||
+                      00235 ;*                     :        :                            :     :     :      :    :   ||||||
+                      00236 ;*           7+127 1111aaaa 01111111                     Reserved for future config cmd__||||||
+                      00237 ;
+                      00238 ; Legend:
+                      00239 ;   X Not yet implemented; planned for future; subject to change
+                      00240 ;   @ Unit may automatically take this action
+                      00241 ;   * Privileged configuration-mode command
+                      00242 ;   ! Permanent effect (written to EEPROM)
+                      00243 ;   < Command generates response data (back to host)
+                      00244 ;   a Device address (0-15)
+                      00245 ;   b Baud rate code (0-127), but units may only define a small subset of those values
+                      00246 ;   c Output channel (0-63, but unit may only support a lesser number)
+                      00247 ;   d Direction: up (<d>=1) or down (<d>=0).
+                      00248 ;   h High-res level bit (LSB of 8-bit value when in high-res mode)
+                      00249 ;   m Mode (1=high-res, 0=low-res)
+                      00250 ;   n Number of items affected
+                      00251 ;   s Output state: 0=off, 1=on
+                      00252 ;   v Value of dimmer (0-127) (most significant 7 bits of dimmer value)
                       00253 ;
-                      00254 ; RAMP_LVL:  Cdcccccc 0sssssss 0ttttttt   Channel <c> up/down in <s>+1 steps every <t>+1/120 sec
+                      00254 ; Payloads for many-byte commands
                       00255 ;
-                      00256 ; DEF_SEQ:   0iiiiiii 0nnnnnnn (...)*<n+1> 01000100 01110011  Define sequence <i> of length <n+1>
-                      00257 ;                                                             0 is boot sequence, 1-63 is EEPROM
-                      00258 ;                                                             64-127 is RAM.
-                      00259 ;
-                      00260 ; CF_BAUD:   Values recognized:
-                      00261 ;       00000000 ($00)      300 baud
-                      00262 ;       00000001 ($01)      600
-                      00263 ;       00000010 ($02)    1,200
-                      00264 ;       00000011 ($03)    2,400
-                      00265 ;       00000100 ($04)    4,800
-                      00266 ;       00000101 ($05)    9,600
-                      00267 ;       00000110 ($06)   19,200
-                      00268 ;       00000111 ($07)   38,400
-                      00269 ;       00001000 ($08)   57,600
-                      00270 ;       00001001 ($09)  115,200
-                      00271 ;       00001010 ($0A)  250,000
-                      00272 ;
-                      00273 ;
-                      00274 ; Response packet from QUERY command (37 bytes):
-                      00275 ; note the ROM version byte also serves to indicate the format of the response
-                      00276 ; bytes which follow.  If the query packet format changes, the ROM version byte
-                      00277 ; MUST also change.
+                      00256 ; BULK_UPD:  00cccccc 0nnnnnnn v0 v1 v2 ... vn 01010101
+                      00257 ;       Updates <n>+1 channels starting at <c>, giving <v> values for each as per SET_LVL.
+                      00258 ;
+                      00259 ; RAMP_LVL:  Cdcccccc 0sssssss 0ttttttt   Channel <c> up/down in <s>+1 steps every <t>+1/120 sec
+                      00260 ;
+                      00261 ; DEF_SEQ:   0iiiiiii 0nnnnnnn (...)*<n+1> 01000100 01110011  Define sequence <i> of length <n+1>
+                      00262 ;                                                             0 is boot sequence, 1-63 is EEPROM
+                      00263 ;                                                             64-127 is RAM.
+                      00264 ;
+                      00265 ; CF_BAUD:   Values recognized:
+                      00266 ;       00000000 ($00)      300 baud
+                      00267 ;       00000001 ($01)      600
+                      00268 ;       00000010 ($02)    1,200
+                      00269 ;       00000011 ($03)    2,400
+                      00270 ;       00000100 ($04)    4,800
+                      00271 ;       00000101 ($05)    9,600
+                      00272 ;       00000110 ($06)   19,200
+                      00273 ;       00000111 ($07)   38,400
+                      00274 ;       00001000 ($08)   57,600
+                      00275 ;       00001001 ($09)  115,200
+                      00276 ;       00001010 ($0A)  250,000
+                      00277 ;
                       00278 ;
-                      00279 ;    1111aaaa 00011111 00110000 0ABCDdcc 0ccccccc 0ABCDqsf 0ABCDXpp 0ppppppp 
-                      00280 ;        \__/           \_/\__/  \__/|\_________/  \__/|||  \__/|\_________/  
-                      00281 ;          |             maj |     | |   |           | |||   |  |      `--phase
-                      00282 ;          `--reporting    minor   | |   `--DMX      | |||   |  `--config locked?
-                      00283 ;              unit addr  rom      | |      channel  | |||   `--active
-                      00284 ;                         vers.    | |               | ||`--mem full?
-                      00285 ;                                  | `--DMX mode?    | |`--sleeping?
-                      00286 ;                                  `--configured     | `--config mode?
-                      00287 ;                                                    `--masks
-                      00288 ;
-                      00289 ;    0eeeeeee 0eeeeeee 0MMMMMMM 0MMMMMMM 0X0iiiii 0xxxxxxx 
-                      00290 ;     \______________/  \______________/  | \___/  \_____/
-                      00291 ;        `--EEPROM free    `--RAM free    |   |       `--executing seq.
-                      00292 ;                                         |   `--device model
-                      00293 ;                                         `--seq running?
-                      00294 ;
-                      00295 ;    0owE0000 0IIIIIII 0iiiiiii 0PPPPPPP        Sensor trigger info for A
-                      00296 ;    0owE0001 0IIIIIII 0iiiiiii 0PPPPPPP        Sensor trigger info for B
-                      00297 ;    0owE0010 0IIIIIII 0iiiiiii 0PPPPPPP        Sensor trigger info for C
-                      00298 ;    0owE0011 0IIIIIII 0iiiiiii 0PPPPPPP        Sensor trigger info for D
+                      00279 ; Response packet from QUERY command (37 bytes):
+                      00280 ; note the ROM version byte also serves to indicate the format of the response
+                      00281 ; bytes which follow.  If the query packet format changes, the ROM version byte
+                      00282 ; MUST also change.
+                      00283 ;
+                      00284 ;    1111aaaa 00011111 00110000 0ABCDdcc 0ccccccc 0ABCDqsf 0ABCDXpp 0ppppppp 
+                      00285 ;        \__/           \_/\__/  \__/|\_________/  \__/|||  \__/|\_________/  
+                      00286 ;          |             maj |     | |   |           | |||   |  |      `--phase
+                      00287 ;          `--reporting    minor   | |   `--DMX      | |||   |  `--config locked?
+                      00288 ;              unit addr  rom      | |      channel  | |||   `--active
+                      00289 ;                         vers.    | |               | ||`--mem full?
+                      00290 ;                                  | `--DMX mode?    | |`--sleeping?
+                      00291 ;                                  `--configured     | `--config mode?
+                      00292 ;                                                    `--masks
+                      00293 ;
+                      00294 ;    0eeeeeee 0eeeeeee 0MMMMMMM 0MMMMMMM 0X0iiiii 0xxxxxxx 
+                      00295 ;     \______________/  \______________/  | \___/  \_____/
+                      00296 ;        `--EEPROM free    `--RAM free    |   |       `--executing seq.
+                      00297 ;                                         |   `--device model
+                      00298 ;                                         `--seq running?
                       00299 ;
-                      00300 ;    0fffffff 0fffffff 000000pp 0ppppppp ssssssss ssssssss 00110011
-                      00301 ;    \______/ \______/       \_________/ \______S/N______/
-                      00302 ;        |        |               `--phase (channels 24-47)
-                      00303 ;        |        `--fault code (channels 24-47)
-                      00304 ;        `--fault code (channels 0-23)
-                      00305 ;
-                      00306 ; Response to SCAN_Q query commands:
-                      00307 ; Note that the ROM version dictates these changes too, so if this format
-                      00308 ; changes the ROM version MUST change (as reported in the QUERY response
-                      00309 ; above).
-                      00310 ;                               31       23       15       7      0
-                      00311 ;    1111aaaa 00011101 0R0nnnnn tttttttt tttttttt tttttttt tttttttt ...
-                      00312 ;        \__/           | \___/ \_________________________________/
-                      00313 ;          |            |   |                    | (x n)
-                      00314 ;          `--reporting | number of    0=not pressed yet
-                      00315 ;              unit addr| buttons     >0=microseconds elapsed before press
-                      00316 ;                       | reported
-                      00317 ;                       0=scanning stopped
-                      00318 ;                       1=scanner is still running
-                      00319 ;                      
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 12
+                      00300 ;    0owE0000 0IIIIIII 0iiiiiii 0PPPPPPP        Sensor trigger info for A
+                      00301 ;    0owE0001 0IIIIIII 0iiiiiii 0PPPPPPP        Sensor trigger info for B
+                      00302 ;    0owE0010 0IIIIIII 0iiiiiii 0PPPPPPP        Sensor trigger info for C
+                      00303 ;    0owE0011 0IIIIIII 0iiiiiii 0PPPPPPP        Sensor trigger info for D
+                      00304 ;
+                      00305 ;    0fffffff 0fffffff 000000pp 0ppppppp ssssssss ssssssss 00110011
+                      00306 ;    \______/ \______/       \_________/ \______S/N______/
+                      00307 ;        |        |               `--phase (channels 24-47)
+                      00308 ;        |        `--fault code (channels 24-47)
+                      00309 ;        `--fault code (channels 0-23)
+                      00310 ;
+                      00311 ; Response to SCAN_Q query commands:
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 12
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-                      00320 ;    01010001 00101010 
-                      00321 ;
-                      00322 ; QSCC sends 6 buttons: X, L, A, B, C, D.
-                      00323 ; QSRC sends 10 buttons: X0, L0, X1, L1, X2, L2, X3, L3, X4, L4.  
-                      00324 ;
-                      00325 ; Also note that the controller is allowed to send OUT_NAK packets to the
-                      00326 ; host in response to QUERY commands.  This does not complete the exchange,
-                      00327 ; but serves to ask the host to continue waiting if the device won't be able
-                      00328 ; to reply to the QUERY for long enough that it risks a timeout.  The host
-                      00329 ; is under no obligation to respect the OUT_NAK packets.
-                      00330 ;
-                      00331 ;   1111aaaa 00011110 
-                      00332 ;
-                      00333 ; A controller MUST never send data except in response to an explicit
-                      00334 ; request from the host.  Controllers MUST immediately cease sending
-                      00335 ; data upon receiving any bytes on the network (this indicates that
-                      00336 ; the host is no longer waiting for a reply but has moved on to something
-                      00337 ; else or is querying another device now).  No further data may be sent
-                      00338 ; until again explicitly asked for.
-                      00339 ;
-                      00340 ;
-                      00341 ;                     _______________________________________________________
-                      00342 ; Channel ID:        |      |      |                                         |
-                      00343 ;                    |  0   | ON   |               Channel ID                |
-                      00344 ;                    |______|______|______|______|______|______|______|______|
-                      00345 ; The ON bit <6> determines whether the channel is being turned on (1) or 
-                      00346 ; off (0) for the "Set/clear single channel" command.  it is ignored when
-                      00347 ; setting the channel to a specific dimmer value.
-                      00348 ;
-                      00349 ;=============================================================================
-                      00350 ; HARDWARE DESCRIPTION
-                      00351 ;-----------------------------------------------------------------------------
-                      00352 ;
-                      00353 ; The controllers use the PIC18F4685 microcontroller, and have identical
-                      00354 ; circuit boards, although the assignment of I/O pins is very different
-                      00355 ; between them.
-                      00356 ;
-                      00357 ;  PIC18F4685 Microcontroller I/O pin assignments:
-                      00358 ;
-                      00359 ; QSRC    QSCC           ________   _________         QSCC    QSRC 
-                      00360 ; BOARD:  BOARD:        |o       \_/         |        BOARD:  BOARD:
-                      00361 ; /RESET  /RESET -->  1 | /MCLR RE3  PGD RB7 | 40 --> /AL     /X1R   
-                      00362 ; /L1     /L     -->  2 | RA0        PGC RB6 | 39 --> /BL     /X1G    
-                      00363 ; /X2     /X     -->  3 | RA1        PGM RB5 | 38 --> /CL     /X1B   
-                      00364 ; /L0     /D     -->  4 | RA2            RB4 | 37 --> /DL     /L1R  
-                      00365 ; /X0     /C     -->  5 | RA3            RB3 | 36 --> /FR     /X2R  
-                      00366 ; /X2     /B     -->  6 | RA4       INT2 RB2 | 35 --> /FG     /X2G   
-                      00367 ; /L2     /A     -->  7 | RA5       INT1 RB1 | 34 --> /FB     /X2B    
-                      00368 ; /L2R    /LY    <--  8 | RE0       INT0 RB0 | 33 --> /FW     /X4R     
-                      00369 ; /L3R    /LG    <--  9 | RE1            VDD | 32 --- +5V       
-                      00370 ; /L0R    /LR    <-- 10 | RE2            VSS | 31 --- GND      
-                      00371 ;            +5V --- 11 | VDD            RD7 | 30 --> D7      /X3R  
-                      00372 ;            GND --- 12 | VSS            RD6 | 29 --> D6      /X3G  
-                      00373 ;           xtal --- 13 | OSC            RD5 | 28 --> D5      /X3B  
-                      00374 ;             +----- 14 | OSC            RD4 | 27 --- D4 ->   /X4 <-
-                      00375 ; /X0B    /XB    <-- 15 | RC0         RX RC7 | 26 <-- Serial RxD
-                      00376 ; /X0G    /XG    <-- 16 | RC1         TX RC6 | 25 --> Serial TxD
-                      00377 ; /X0R    /XR    <-- 17 | RC2            RC5 | 24 --- PS0 ->  /L4 <-
-                      00378 ; T/R     T/R    <-- 18 | RC3            RC4 | 23 --- PS1 ->  /X3 <- 
-                      00379 ; /L3 ->  D0 <-  --- 19 | RD0            RD3 | 22 --> D3      /X4G  
-                      00380 ; /X4B    D1     <-- 20 | RD1            RD2 | 21 --> D2      /L4R  
-                      00381 ;                       |____________________|
-                      00382 ;
-                      00383 ;
-                      00384 ; ========================================================================
-                      00385 ; PROGRAM MEMORY MAP
-                      00386 ; ______________________________________________________________________________
+                      00312 ; Note that the ROM version dictates these changes too, so if this format
+                      00313 ; changes the ROM version MUST change (as reported in the QUERY response
+                      00314 ; above).
+                      00315 ;                               31       23       15       7      0
+                      00316 ;    1111aaaa 00011101 0R0nnnnn tttttttt tttttttt tttttttt tttttttt ...
+                      00317 ;        \__/           | \___/ \_________________________________/
+                      00318 ;          |            |   |                    | (x n)
+                      00319 ;          `--reporting | number of    0=not pressed yet
+                      00320 ;              unit addr| buttons     >0=microseconds elapsed before press
+                      00321 ;                       | reported
+                      00322 ;                       0=scanning stopped
+                      00323 ;                       1=scanner is still running
+                      00324 ;                      
+                      00325 ;    01010001 00101010 
+                      00326 ;
+                      00327 ; QSCC sends 6 buttons: X, L, A, B, C, D.
+                      00328 ; QSRC sends 10 buttons: X0, L0, X1, L1, X2, L2, X3, L3, X4, L4.  
+                      00329 ;
+                      00330 ; Also note that the controller is allowed to send OUT_NAK packets to the
+                      00331 ; host in response to QUERY commands.  This does not complete the exchange,
+                      00332 ; but serves to ask the host to continue waiting if the device won't be able
+                      00333 ; to reply to the QUERY for long enough that it risks a timeout.  The host
+                      00334 ; is under no obligation to respect the OUT_NAK packets.
+                      00335 ;
+                      00336 ;   1111aaaa 00011110 
+                      00337 ;
+                      00338 ; A controller MUST never send data except in response to an explicit
+                      00339 ; request from the host.  Controllers MUST immediately cease sending
+                      00340 ; data upon receiving any bytes on the network (this indicates that
+                      00341 ; the host is no longer waiting for a reply but has moved on to something
+                      00342 ; else or is querying another device now).  No further data may be sent
+                      00343 ; until again explicitly asked for.
+                      00344 ;
+                      00345 ;
+                      00346 ;                     _______________________________________________________
+                      00347 ; Channel ID:        |      |      |                                         |
+                      00348 ;                    |  0   | ON   |               Channel ID                |
+                      00349 ;                    |______|______|______|______|______|______|______|______|
+                      00350 ; The ON bit <6> determines whether the channel is being turned on (1) or 
+                      00351 ; off (0) for the "Set/clear single channel" command.  it is ignored when
+                      00352 ; setting the channel to a specific dimmer value.
+                      00353 ;
+                      00354 ;=============================================================================
+                      00355 ; HARDWARE DESCRIPTION
+                      00356 ;-----------------------------------------------------------------------------
+                      00357 ;
+                      00358 ; The controllers use the PIC18F4685 microcontroller, and have identical
+                      00359 ; circuit boards, although the assignment of I/O pins is very different
+                      00360 ; between them.
+                      00361 ;
+                      00362 ;  PIC18F4685 Microcontroller I/O pin assignments:
+                      00363 ;
+                      00364 ; QSRC    QSCC           ________   _________         QSCC    QSRC 
+                      00365 ; BOARD:  BOARD:        |o       \_/         |        BOARD:  BOARD:
+                      00366 ; /RESET  /RESET -->  1 | /MCLR RE3  PGD RB7 | 40 --> /AL     /X1R   
+                      00367 ; /L1     /L     -->  2 | RA0        PGC RB6 | 39 --> /BL     /X1G    
+                      00368 ; /X2     /X     -->  3 | RA1        PGM RB5 | 38 --> /CL     /X1B   
+                      00369 ; /L0     /D     -->  4 | RA2            RB4 | 37 --> /DL     /L1R  
+                      00370 ; /X0     /C     -->  5 | RA3            RB3 | 36 --> /FR     /X2R  
+                      00371 ; /X2     /B     -->  6 | RA4       INT2 RB2 | 35 --> /FG     /X2G   
+                      00372 ; /L2     /A     -->  7 | RA5       INT1 RB1 | 34 --> /FB     /X2B    
+                      00373 ; /L2R    /LY    <--  8 | RE0       INT0 RB0 | 33 --> /FW     /X4R     
+                      00374 ; /L3R    /LG    <--  9 | RE1            VDD | 32 --- +5V       
+                      00375 ; /L0R    /LR    <-- 10 | RE2            VSS | 31 --- GND      
+                      00376 ;            +5V --- 11 | VDD            RD7 | 30 --> D7      /X3R  
+                      00377 ;            GND --- 12 | VSS            RD6 | 29 --> D6      /X3G  
+                      00378 ;           xtal --- 13 | OSC            RD5 | 28 --> D5      /X3B  
+                      00379 ;             +----- 14 | OSC            RD4 | 27 --- D4 ->   /X4 <-
+                      00380 ; /X0B    /XB    <-- 15 | RC0         RX RC7 | 26 <-- Serial RxD
+                      00381 ; /X0G    /XG    <-- 16 | RC1         TX RC6 | 25 --> Serial TxD
+                      00382 ; /X0R    /XR    <-- 17 | RC2            RC5 | 24 --- PS0 ->  /L4 <-
+                      00383 ; T/R     T/R    <-- 18 | RC3            RC4 | 23 --- PS1 ->  /X3 <- 
+                      00384 ; /L3 ->  D0 <-  --- 19 | RD0            RD3 | 22 --> D3      /X4G  
+                      00385 ; /X4B    D1     <-- 20 | RD1            RD2 | 21 --> D2      /L4R  
+                      00386 ;                       |____________________|
                       00387 ;
-                      00388 ; 14K50 4685    _________________ ___
-                      00389 ; $00000 $00000 | RESET Vector    | V_RST
-                      00390 ; $00007 $00007 |_________________|___
-                      00391 ; $00008 $00008 | High Int Vector | V_INT_H
-                      00392 ; $00017 $00017 |_________________|___
-                      00393 ; $00018 $00018 | Low Int Vector  | V_INT_L
-                      00394 ; $0001F $0001F |_________________|
-                      00395 ; $00020 $00020 |/////////////////|
-                      00396 ; $000FF $000FF |/////////////////|___
-                      00397 ; $00100 $00100 | Boot code       | _BOOT
-                      00398 ;               |.................|___
-                      00399 ;               | Interrupt hand- | _INT
-                      00400 ;               |  lers           |      
-                      00401 ;               |/////////////////|
-                      00402 ; $007FF $007FF |/////////////////|___
-                      00403 ; $00800 $00800 | Mainline code   | _MAIN
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 13
+                      00388 ;
+                      00389 ; ========================================================================
+                      00390 ; PROGRAM MEMORY MAP
+                      00391 ; ______________________________________________________________________________
+                      00392 ;
+                      00393 ; 14K50 4685    _________________ ___
+                      00394 ; $00000 $00000 | RESET Vector    | V_RST
+                      00395 ; $00007 $00007 |_________________|___
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 13
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-                      00404 ;               |.................|___
-                      00405 ;           ??? | Device init     | LUMOS_CODE_INIT
-                      00406 ;               |_________________|___
-                      00407 ;           ??? | Serial I/O      | _SIO_CODE
-                      00408 ;               | Module          |
-                      00409 ;               |_________________|___
-                      00410 ;               |/////////////////|
-                      00411 ;               |/////////////////|
-                      00412 ;               |/////////////////|
-                      00413 ;               |/////////////////|
-                      00414 ;               |/////////////////|___
-                      00415 ; $02E00 $14000 | EEPROM defaults | _MAIN_EEPROM_TBL
-                      00416 ; $02EFF $14FFF |_________________|___
-                      00417 ; $02F00 $15000 |Serial I/O Mod   | _SIO_LOOKUP_TABLES
-                      00418 ;               |lookup tables    |
-                      00419 ;        $150FF |_________________|___
-                      00420 ;        $15100 |                 |
-                      00421 ;               |                 |
-                      00422 ; $02FEF $16FEF |_________________|___
-                      00423 ; $02FF0 $16FF0 |System Mfg Data  | _SYSTEM_MFG_DATA
-                      00424 ; $02FFF $16FFF |_________________|___
-                      00425 ; $03000 $17000 |                 | 
-                      00426 ; $03FFF $17FFF |_________________|___
-                      00427 ;               |/////////////////|
-                      00428 ;               |/////////////////|
-                      00429 ;$1FFFFF$1FFFFF |/////////////////|___
-                      00430 ;
-                      00431 ;
-                      00432 ; ========================================================================
-                      00433 ; DATA MEMORY MAP (4685)
-                      00434 ;
-                      00435 ;       _________________ ___ ___ ___ ___ ___ ___ ___ ___
-                      00436 ; $000 | global state,   | _ADATA            BANK 0
-                      00437 ; $05F | ISR data, etc.  |                (ACCESS AREA)
-                      00438 ;      |.................|...............................
-                      00439 ; $060 |                 |                   
-                      00440 ;      |_________________|___ ___ ___ ___ ___ ___ ___ ___
-                      00441 ; $100 | Serial I/O TxD  | _SIO_TXBUF_DATA   BANK 1
-                      00442 ;      | ring buffer     |
-                      00443 ;      |_________________|___ ___ ___ ___ ___ ___ ___ ___
-                      00444 ; $200 | Serial I/O RxD  | _SIO_RXBUF_DATA   BANK 2
-                      00445 ;      | ring buffer     |
-                      00446 ;      |_________________|___ ___ ___ ___ ___ ___ ___ ___
-                      00447 ; $300 | Serial I/O mod  | _SIO_VAR_DATA     BANK 3
-                      00448 ;      | variable space  |
-                      00449 ;      |_________________|___ ___ ___ ___ ___ ___ ___ ___
-                      00450 ; $400 | SSR state data  | _SSR_DATA         BANK 4
-                      00451 ;      |                 |
-                      00452 ;      |_________________|___ ___ ___ ___ ___ ___ ___ ___
-                      00453 ; $500 | Parser buffer   | _MAINDATA         BANK 5
-                      00454 ;      |.................|
-                      00455 ; $5?? |                 |
-                      00456 ;      |_________________|___ ___ ___ ___ ___ ___ ___ ___
-                      00457 ; $600 | Stored sequences| _SEQ_DATA         BANK 6
-                      00458 ;      | (1792 bytes)    |
-                      00459 ;              .
-                      00460 ;              .                 
-                      00461 ;              .                
-                      00462 ;      |                 |
-                      00463 ;      |                 |
-                      00464 ;      |_________________|___ ___ ___ ___ ___ ___ ___ ___
-                      00465 ; $C00 | Quizshow Data   | _QUIZSHOW_DATA    BANK C
-                      00466 ;      |                 |
-                      00467 ;      |_________________|___ ___ ___ ___ ___ ___ ___ ___
-                      00468 ; $D00 |                 |                   BANK D
-                      00469 ;      | CAN special     |
-                      00470 ;      | function        |___ ___ ___ ___ ___ ___ ___ ___
-                      00471 ; $E00 | registers       |                   BANK E
-                      00472 ;      | (not used for   |
-                      00473 ;      | Lumos)          |___ ___ ___ ___ ___ ___ ___ ___
-                      00474 ; $F00 |                 |                   BANK F
-                      00475 ;      |                 |
-                      00476 ; $F5F |.................|...............................
-                      00477 ; $F60 | Special Function|                (ACCESS AREA)
-                      00478 ;      | (device) regis- |
-                      00479 ;      | ters            |
-                      00480 ; $FFF |_________________|___ ___ ___ ___ ___ ___ ___ ___
-                      00481 ;
-                      00482 ; ========================================================================
-                      00483 ; EEPROM MEMORY
-                      00484 ;
-                      00485 ;
-                      00486 ;       ______________            ______________ 
-                      00487 ; $000 |_0xFF_________|     $010 | Saved        |
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 14
+                      00396 ; $00008 $00008 | High Int Vector | V_INT_H
+                      00397 ; $00017 $00017 |_________________|___
+                      00398 ; $00018 $00018 | Low Int Vector  | V_INT_L
+                      00399 ; $0001F $0001F |_________________|
+                      00400 ; $00020 $00020 |/////////////////|
+                      00401 ; $000FF $000FF |/////////////////|___
+                      00402 ; $00100 $00100 | Boot code       | _BOOT
+                      00403 ;               |.................|___
+                      00404 ;               | Interrupt hand- | _INT
+                      00405 ;               |  lers           |      
+                      00406 ;               |/////////////////|
+                      00407 ; $007FF $007FF |/////////////////|___
+                      00408 ; $00800 $00800 | Mainline code   | _MAIN
+                      00409 ;               |.................|___
+                      00410 ;           ??? | Device init     | LUMOS_CODE_INIT
+                      00411 ;               |_________________|___
+                      00412 ;           ??? | Serial I/O      | _SIO_CODE
+                      00413 ;               | Module          |
+                      00414 ;               |_________________|___
+                      00415 ;               |/////////////////|
+                      00416 ;               |/////////////////|
+                      00417 ;               |/////////////////|
+                      00418 ;               |/////////////////|
+                      00419 ;               |/////////////////|___
+                      00420 ; $02E00 $14000 | EEPROM defaults | _MAIN_EEPROM_TBL
+                      00421 ; $02EFF $14FFF |_________________|___
+                      00422 ; $02F00 $15000 |Serial I/O Mod   | _SIO_LOOKUP_TABLES
+                      00423 ;               |lookup tables    |
+                      00424 ;        $150FF |_________________|___
+                      00425 ;        $15100 |                 |
+                      00426 ;               |                 |
+                      00427 ; $02FEF $16FEF |_________________|___
+                      00428 ; $02FF0 $16FF0 |System Mfg Data  | _SYSTEM_MFG_DATA
+                      00429 ; $02FFF $16FFF |_________________|___
+                      00430 ; $03000 $17000 |                 | 
+                      00431 ; $03FFF $17FFF |_________________|___
+                      00432 ;               |/////////////////|
+                      00433 ;               |/////////////////|
+                      00434 ;$1FFFFF$1FFFFF |/////////////////|___
+                      00435 ;
+                      00436 ;
+                      00437 ; ========================================================================
+                      00438 ; DATA MEMORY MAP (4685)
+                      00439 ;
+                      00440 ;       _________________ ___ ___ ___ ___ ___ ___ ___ ___
+                      00441 ; $000 | global state,   | _ADATA            BANK 0
+                      00442 ; $05F | ISR data, etc.  |                (ACCESS AREA)
+                      00443 ;      |.................|...............................
+                      00444 ; $060 |                 |                   
+                      00445 ;      |_________________|___ ___ ___ ___ ___ ___ ___ ___
+                      00446 ; $100 | Serial I/O TxD  | _SIO_TXBUF_DATA   BANK 1
+                      00447 ;      | ring buffer     |
+                      00448 ;      |_________________|___ ___ ___ ___ ___ ___ ___ ___
+                      00449 ; $200 | Serial I/O RxD  | _SIO_RXBUF_DATA   BANK 2
+                      00450 ;      | ring buffer     |
+                      00451 ;      |_________________|___ ___ ___ ___ ___ ___ ___ ___
+                      00452 ; $300 | Serial I/O mod  | _SIO_VAR_DATA     BANK 3
+                      00453 ;      | variable space  |
+                      00454 ;      |_________________|___ ___ ___ ___ ___ ___ ___ ___
+                      00455 ; $400 | SSR state data  | _SSR_DATA         BANK 4
+                      00456 ;      |                 |
+                      00457 ;      |_________________|___ ___ ___ ___ ___ ___ ___ ___
+                      00458 ; $500 | Parser buffer   | _MAINDATA         BANK 5
+                      00459 ;      |.................|
+                      00460 ; $5?? |                 |
+                      00461 ;      |_________________|___ ___ ___ ___ ___ ___ ___ ___
+                      00462 ; $600 | Stored sequences| _SEQ_DATA         BANK 6
+                      00463 ;      | (1792 bytes)    |
+                      00464 ;              .
+                      00465 ;              .                 
+                      00466 ;              .                
+                      00467 ;      |                 |
+                      00468 ;      |                 |
+                      00469 ;      |_________________|___ ___ ___ ___ ___ ___ ___ ___
+                      00470 ; $C00 | Quizshow Data   | _QUIZSHOW_DATA    BANK C
+                      00471 ;      |                 |
+                      00472 ;      |_________________|___ ___ ___ ___ ___ ___ ___ ___
+                      00473 ; $D00 |                 |                   BANK D
+                      00474 ;      | CAN special     |
+                      00475 ;      | function        |___ ___ ___ ___ ___ ___ ___ ___
+                      00476 ; $E00 | registers       |                   BANK E
+                      00477 ;      | (not used for   |
+                      00478 ;      | Lumos)          |___ ___ ___ ___ ___ ___ ___ ___
+                      00479 ; $F00 |                 |                   BANK F
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 14
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-                      00488 ; $001 |_Baud_Rate____|     $011 | Sequence     |
-                      00489 ; $002 |_Device_ID____|     $012 | Storage      |
-                      00490 ; $003 | Phase     MSB|     $013 |       |      |
-                      00491 ; $004 |_Offset____LSB|     $014 |       |      |
-                      00492 ; $005 |_DMX_Slot__MSB|     $015 |       |      |
-                      00493 ; $006 |_DMX_Slot__LSB|       .          .
-                      00494 ; $007 |_Sensor_cfg___|       .          .
-                      00495 ; $008 |______________|       .          .
-                      00496 ; $009 |______________|     $3F9 |       |      |
-                      00497 ; $00A |______________|     $3FA |       |      |
-                      00498 ; $00B |______________|     $3FB | (1008 |      |
-                      00499 ; $00C |______________|     $3FC | bytes)|      |
-                      00500 ; $00D |______________|     $3FD |       |      |
-                      00501 ; $00E |______________|     $3FE |       |      |
-                      00502 ; $00F |_0x42_________|     $3FF |_______V______|
-                      00503 ;
-                      00504 ;
-                      00505 
-                      00506 ; ========================================================================
-                      00507 ; DEVICES USED
+                      00480 ;      |                 |
+                      00481 ; $F5F |.................|...............................
+                      00482 ; $F60 | Special Function|                (ACCESS AREA)
+                      00483 ;      | (device) regis- |
+                      00484 ;      | ters            |
+                      00485 ; $FFF |_________________|___ ___ ___ ___ ___ ___ ___ ___
+                      00486 ;
+                      00487 ; ========================================================================
+                      00488 ; EEPROM MEMORY
+                      00489 ;
+                      00490 ;
+                      00491 ;       ______________            ______________ 
+                      00492 ; $000 |_0xFF_________|     $010 | Saved        |
+                      00493 ; $001 |_Baud_Rate____|     $011 | Sequence     |
+                      00494 ; $002 |_Device_ID____|     $012 | Storage      |
+                      00495 ; $003 | Phase     MSB|     $013 |       |      |
+                      00496 ; $004 |_Offset____LSB|     $014 |       |      |
+                      00497 ; $005 |_DMX_Slot__MSB|     $015 |       |      |
+                      00498 ; $006 |_DMX_Slot__LSB|       .          .
+                      00499 ; $007 |_Sensor_cfg___|       .          .
+                      00500 ; $008 |______________|       .          .
+                      00501 ; $009 |______________|     $3F9 |       |      |
+                      00502 ; $00A |______________|     $3FA |       |      |
+                      00503 ; $00B |______________|     $3FB | (1008 |      |
+                      00504 ; $00C |______________|     $3FC | bytes)|      |
+                      00505 ; $00D |______________|     $3FD |       |      |
+                      00506 ; $00E |______________|     $3FE |       |      |
+                      00507 ; $00F |_0x42_________|     $3FF |_______V______|
                       00508 ;
-                      00509 ; TMR0 L  120 Hz interrupt source (for boards without zero-crossing detector)
-                      00510 ; TMR1
-                      00511 ; TMR2 L  Dimmer slice timer (1/260 of a 120 Hz half-cycle)
-                      00512 ; TMR3 L  Break detector for DMX reception
-                      00513 ; UART L  SIO module
-                      00514 ;=============================================================================
-                      00515 ;
-                      00516 ;------------------------------------------------------------------------------
-                      00517 ; Significant Registers (ACCESS BANK)
-                      00518 ;------------------------------------------------------------------------------
-                      00519 ;
-                      00520 ;                     ___7______6______5______4______3______2______1______0__
-                      00521 ; ISR_TMPL_STATUS    |                                                       |
-                      00522 ;                    | Temporary storage for STATUS register in low-pri ISR  |
-                      00523 ;                    |______|______|______|______|______|______|______|______|
-                      00524 ; ISR_TMPL_BSR       |                                                       |
-                      00525 ;                    | Temporary storage for BSR register in low-priority ISR|
-                      00526 ;                    |______|______|______|______|______|______|______|______|
-                      00527 ; ISR_TMPL_WREG      |                                                       |
-                      00528 ;                    | Temporary storage for W register in low-priority ISR  |
-                      00529 ;                    |______|______|______|______|______|______|______|______|
-                      00530 ; MY_ADDRESS         |                           |                           |
-                      00531 ;                    |                           |       Unit address        |
-                      00532 ;                    |______|______|______|______|______|______|______|______|
-                      00533 ; PHASE_OFFSETH      |                                                       |
-                      00534 ;                    |               Phase offset value (MSB)                |
-                      00535 ;                    |______|______|______|______|______|______|______|______|
-                      00536 ; PHASE_OFFSETL      |                                                       |
-                      00537 ;                    |               Phase offset value (LSB)                |
-                      00538 ;                    |______|______|______|______|______|______|______|______|
-                      00539 ; SSR_STATE          |      |      |SLICE |PRIV_ |SLEEP |DRAIN |PRE_  |TEST_ |
-                      00540 ;                    |INCYC |PRECYC| _UPD | MODE |_MODE |_TR   |PRIV  |MODE  |
-                      00541 ;                    |______|______|______|______|______|______|______|______|
-                      00542 ; SSR_STATE2         |TEST_ |TEST_ |TEST_ |ALL_  |PRIV_ |INHIBI|MSB_  |LITER |
-                      00543 ;                    |PAUSE |UPD   |BUTTON|OFF   |FORBID|T_OUTP|ESC   |AL_ESC|
-                      00544 ;                    |______|______|______|______|______|UT____|______|______|
-                      00545 ; DMX_SLOTH          |DMX_EN|DMX_  |DMX_  |                           |DMX Sl|
-                      00546 ;                    |      |SPEED |FRAME |                           |ot MSB|
-                      00547 ;                    |______|______|______|______|______|______|______|______|
-                      00548 ; DMX_SLOTL          |                                                       |
-                      00549 ;                    |       Starting DMX Slot Number - 1 (low 8 bits)       |
-                      00550 ;                    |______|______|______|______|______|______|______|______|
-                      00551 ; YY_STATE           |                                                       |
-                      00552 ;                    |                      Parser State                     |
-                      00553 ;                    |______|______|______|______|______|______|______|______|
-                      00554 ; YY_COMMAND         |                                                       |
-                      00555 ;                    |                      Command Code                     |
-                      00556 ;                    |______|______|______|______|______|______|______|______|
-                      00557 ; YY_CMD_FLAGS       |                                                       |
-                      00558 ;                    |               Command-specific Flag Bits              |
-                      00559 ;                    |______|______|______|______|______|______|______|______|
-                      00560 ; YY_DATA            |                                                       |
-                      00561 ;                    |                      Command Data                     |
-                      00562 ;                    |______|______|______|______|______|______|______|______|
-                      00563 ; YY_LOOKAHEAD_MAX   |                                                       |
-                      00564 ;                    |               Maximum length for look-ahead           |
-                      00565 ;                    |______|______|______|______|______|______|______|______|
-                      00566 ; YY_LOOK_FOR        |                                                       |
-                      00567 ;                    |               Sentinel value to search for            |
-                      00568 ;                    |______|______|______|______|______|______|______|______|
-                      00569 ; YY_BUF_IDX         |                                                       |
-                      00570 ;                    |     Offset in YY_BUFFER where we will write next      |
-                      00571 ;                    |______|______|______|______|______|______|______|______|
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 15
+                      00509 ;
+                      00510 
+                      00511 ; ========================================================================
+                      00512 ; DEVICES USED
+                      00513 ;
+                      00514 ; TMR0 L  120 Hz interrupt source (for boards without zero-crossing detector)
+                      00515 ; TMR1
+                      00516 ; TMR2 L  Dimmer slice timer (1/260 of a 120 Hz half-cycle)
+                      00517 ; TMR3 L  Break detector for DMX reception
+                      00518 ; UART L  SIO module
+                      00519 ;=============================================================================
+                      00520 ;
+                      00521 ;------------------------------------------------------------------------------
+                      00522 ; Significant Registers (ACCESS BANK)
+                      00523 ;------------------------------------------------------------------------------
+                      00524 ;
+                      00525 ;                     ___7______6______5______4______3______2______1______0__
+                      00526 ; ISR_TMPL_STATUS    |                                                       |
+                      00527 ;                    | Temporary storage for STATUS register in low-pri ISR  |
+                      00528 ;                    |______|______|______|______|______|______|______|______|
+                      00529 ; ISR_TMPL_BSR       |                                                       |
+                      00530 ;                    | Temporary storage for BSR register in low-priority ISR|
+                      00531 ;                    |______|______|______|______|______|______|______|______|
+                      00532 ; ISR_TMPL_WREG      |                                                       |
+                      00533 ;                    | Temporary storage for W register in low-priority ISR  |
+                      00534 ;                    |______|______|______|______|______|______|______|______|
+                      00535 ; MY_ADDRESS         |                           |                           |
+                      00536 ;                    |                           |       Unit address        |
+                      00537 ;                    |______|______|______|______|______|______|______|______|
+                      00538 ; PHASE_OFFSETH      |                                                       |
+                      00539 ;                    |               Phase offset value (MSB)                |
+                      00540 ;                    |______|______|______|______|______|______|______|______|
+                      00541 ; PHASE_OFFSETL      |                                                       |
+                      00542 ;                    |               Phase offset value (LSB)                |
+                      00543 ;                    |______|______|______|______|______|______|______|______|
+                      00544 ; SSR_STATE          |      |      |SLICE |PRIV_ |SLEEP |DRAIN |PRE_  |TEST_ |
+                      00545 ;                    |INCYC |PRECYC| _UPD | MODE |_MODE |_TR   |PRIV  |MODE  |
+                      00546 ;                    |______|______|______|______|______|______|______|______|
+                      00547 ; SSR_STATE2         |TEST_ |TEST_ |TEST_ |ALL_  |PRIV_ |INHIBI|MSB_  |LITER |
+                      00548 ;                    |PAUSE |UPD   |BUTTON|OFF   |FORBID|T_OUTP|ESC   |AL_ESC|
+                      00549 ;                    |______|______|______|______|______|UT____|______|______|
+                      00550 ; DMX_SLOTH          |DMX_EN|DMX_  |DMX_  |                           |DMX Sl|
+                      00551 ;                    |      |SPEED |FRAME |                           |ot MSB|
+                      00552 ;                    |______|______|______|______|______|______|______|______|
+                      00553 ; DMX_SLOTL          |                                                       |
+                      00554 ;                    |       Starting DMX Slot Number - 1 (low 8 bits)       |
+                      00555 ;                    |______|______|______|______|______|______|______|______|
+                      00556 ; YY_STATE           |                                                       |
+                      00557 ;                    |                      Parser State                     |
+                      00558 ;                    |______|______|______|______|______|______|______|______|
+                      00559 ; YY_COMMAND         |                                                       |
+                      00560 ;                    |                      Command Code                     |
+                      00561 ;                    |______|______|______|______|______|______|______|______|
+                      00562 ; YY_CMD_FLAGS       |                                                       |
+                      00563 ;                    |               Command-specific Flag Bits              |
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 15
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-                      00572 ; YY_NEXT_STATE      |                                                       |
-                      00573 ;                    |     State to transition to when YY_LOOK_FOR is found  |
-                      00574 ;                    |______|______|______|______|______|______|______|______|
-                      00575 ; YY_YY              |                                                       |
-                      00576 ;                    |     General-purpose storage for use inside commands   |
-                      00577 ;                    |______|______|______|______|______|______|______|______|
-                      00578 ; LAST_ERROR         |                                                       |
-                      00579 ;                    |  Last error code encountered (cleared when reported)  |
-                      00580 ;                    |______|______|______|______|______|______|______|______|
-                      00581 ; CUR_PREH           |                                                       |
-                      00582 ;                    |         Pre-cycle count-down ticks left (MSB)         |
-                      00583 ;                    |______|______|______|______|______|______|______|______|
-                      00584 ; CUR_PRE            |                                                       |
-                      00585 ;                    |         Pre-cycle count-down ticks left (LSB)         |
-                      00586 ;                    |______|______|______|______|______|______|______|______|
-                      00587 ; CUR_SLICE          |                                                       |
-                      00588 ;                    |      Slice number within active portion of cycle      |
-                      00589 ;                    |______|______|______|______|______|______|______|______|
-                      00590 ; TARGET_SSR         |NOT_MY|INVALI|                                         |
-                      00591 ;                    | _SSR |D_SSR |    SSR number for current command       |
-                      00592 ;                    |______|______|______|______|______|______|______|______|
-                      00593 ; OPTION_DEBOUNCE    |                                                       |
-                      00594 ;                    |      Counter to debounce OPTION button presses        |
-                      00595 ;                    |______|______|______|______|______|______|______|______|
-                      00596 ; OPTION_HOLD        |                                                       |
-                      00597 ;                    |      Counter for how long OPTION button is held       |
-                      00598 ;                    |______|______|______|______|______|______|______|______|
-                      00599 ; TEST_CYCLE         |                                                       |
-                      00600 ;                    |        Count-down of ZC cycles until next step        |
-                      00601 ;                    |______|______|______|______|______|______|______|______|
-                      00602 ; TEST_SSR           |             |                                         |
-                      00603 ;                    |             |  current SSR being tested               |
-                      00604 ;                    |______|______|______|______|______|______|______|______|
-                      00605 ; AUTO_OFF_CTRH      |                                                       |
-                      00606 ;                    |         countdown register until auto-power-off (MSB) |
-                      00607 ;                    |______|______|______|______|______|______|______|______|
-                      00608 ; AUTO_OFF_CTRL      |                                                       |
-                      00609 ;                    |         countdown register until auto-power-off (LSB) |
-                      00610 ;                    |______|______|______|______|______|______|______|______|
-                      00611 ; I                  |                                                       |
-                      00612 ;                    |      General-purpose local counter variable           |
-                      00613 ;                    |______|______|______|______|______|______|______|______|
-                      00614 ; J                  |                                                       |
-                      00615 ;                    |      General-purpose local counter variable           |
-                      00616 ;                    |______|______|______|______|______|______|______|______|
-                      00617 ; K                  |                                                       |
-                      00618 ;                    |      General-purpose local counter variable           |
-                      00619 ;                    |______|______|______|______|______|______|______|______|
-                      00620 ; KK                 |                                                       |
-                      00621 ;                    |      General-purpose local counter variable           |
-                      00622 ;                    |______|______|______|______|______|______|______|______|
-                      00623 ; TR_I               |                                                       |
-                      00624 ;                    |      T/R delay timer delay counter                    |
-                      00625 ;                    |______|______|______|______|______|______|______|______|
-                      00626 ;
-                      00627 ;
-                      00628 ;------------------------------------------------------------------------------
-                      00629 ; (SSR_DATA_BANK)
-                      00630 ;------------------------------------------------------------------------------
+                      00564 ;                    |______|______|______|______|______|______|______|______|
+                      00565 ; YY_DATA            |                                                       |
+                      00566 ;                    |                      Command Data                     |
+                      00567 ;                    |______|______|______|______|______|______|______|______|
+                      00568 ; YY_LOOKAHEAD_MAX   |                                                       |
+                      00569 ;                    |               Maximum length for look-ahead           |
+                      00570 ;                    |______|______|______|______|______|______|______|______|
+                      00571 ; YY_LOOK_FOR        |                                                       |
+                      00572 ;                    |               Sentinel value to search for            |
+                      00573 ;                    |______|______|______|______|______|______|______|______|
+                      00574 ; YY_BUF_IDX         |                                                       |
+                      00575 ;                    |     Offset in YY_BUFFER where we will write next      |
+                      00576 ;                    |______|______|______|______|______|______|______|______|
+                      00577 ; YY_NEXT_STATE      |                                                       |
+                      00578 ;                    |     State to transition to when YY_LOOK_FOR is found  |
+                      00579 ;                    |______|______|______|______|______|______|______|______|
+                      00580 ; YY_YY              |                                                       |
+                      00581 ;                    |     General-purpose storage for use inside commands   |
+                      00582 ;                    |______|______|______|______|______|______|______|______|
+                      00583 ; LAST_ERROR         |                                                       |
+                      00584 ;                    |  Last error code encountered (cleared when reported)  |
+                      00585 ;                    |______|______|______|______|______|______|______|______|
+                      00586 ; CUR_PREH           |                                                       |
+                      00587 ;                    |         Pre-cycle count-down ticks left (MSB)         |
+                      00588 ;                    |______|______|______|______|______|______|______|______|
+                      00589 ; CUR_PRE            |                                                       |
+                      00590 ;                    |         Pre-cycle count-down ticks left (LSB)         |
+                      00591 ;                    |______|______|______|______|______|______|______|______|
+                      00592 ; CUR_SLICE          |                                                       |
+                      00593 ;                    |      Slice number within active portion of cycle      |
+                      00594 ;                    |______|______|______|______|______|______|______|______|
+                      00595 ; TARGET_SSR         |NOT_MY|INVALI|                                         |
+                      00596 ;                    | _SSR |D_SSR |    SSR number for current command       |
+                      00597 ;                    |______|______|______|______|______|______|______|______|
+                      00598 ; OPTION_DEBOUNCE    |                                                       |
+                      00599 ;                    |      Counter to debounce OPTION button presses        |
+                      00600 ;                    |______|______|______|______|______|______|______|______|
+                      00601 ; OPTION_HOLD        |                                                       |
+                      00602 ;                    |      Counter for how long OPTION button is held       |
+                      00603 ;                    |______|______|______|______|______|______|______|______|
+                      00604 ; TEST_CYCLE         |                                                       |
+                      00605 ;                    |        Count-down of ZC cycles until next step        |
+                      00606 ;                    |______|______|______|______|______|______|______|______|
+                      00607 ; TEST_SSR           |             |                                         |
+                      00608 ;                    |             |  current SSR being tested               |
+                      00609 ;                    |______|______|______|______|______|______|______|______|
+                      00610 ; AUTO_OFF_CTRH      |                                                       |
+                      00611 ;                    |         countdown register until auto-power-off (MSB) |
+                      00612 ;                    |______|______|______|______|______|______|______|______|
+                      00613 ; AUTO_OFF_CTRL      |                                                       |
+                      00614 ;                    |         countdown register until auto-power-off (LSB) |
+                      00615 ;                    |______|______|______|______|______|______|______|______|
+                      00616 ; I                  |                                                       |
+                      00617 ;                    |      General-purpose local counter variable           |
+                      00618 ;                    |______|______|______|______|______|______|______|______|
+                      00619 ; J                  |                                                       |
+                      00620 ;                    |      General-purpose local counter variable           |
+                      00621 ;                    |______|______|______|______|______|______|______|______|
+                      00622 ; K                  |                                                       |
+                      00623 ;                    |      General-purpose local counter variable           |
+                      00624 ;                    |______|______|______|______|______|______|______|______|
+                      00625 ; KK                 |                                                       |
+                      00626 ;                    |      General-purpose local counter variable           |
+                      00627 ;                    |______|______|______|______|______|______|______|______|
+                      00628 ; TR_I               |                                                       |
+                      00629 ;                    |      T/R delay timer delay counter                    |
+                      00630 ;                    |______|______|______|______|______|______|______|______|
                       00631 ;
-                      00632 ; *** THE FOLLOWING BLOCKS *MUST* BE THE SAME SIZE AS EACH OTHER ***
-                      00633 ;
-                      00634 ;                     ___7______6______5______4______3______2______1______0__
-                      00635 ; SSR_00_VALUE       |                                                       |
-                      00636 ;                    | Brightness value of SSR #00 (00=off, ... FF=fully on) |
-                      00637 ;                    |______|______|______|______|______|______|______|______|
-                      00638 ;                    |                                                       |
-                      00639 ;                    | Brightness value of SSR #01 (00=off, ... FF=fully on) |
-                      00640 ;                    |______|______|______|______|______|______|______|______|
-                      00641 ;                                                .
-                      00642 ;                                                .
-                      00643 ;                     ___________________________.___________________________
-                      00644 ;                    |                                                       |
-                      00645 ;                    | Brightness value of SSR #23 (00=off, ... FF=fully on) |
-                      00646 ;                    |______|______|______|______|______|______|______|______|
-                      00647 ;                    |                                                       |
-                      00648 ;                    | Brightness value of Green   (00=off, ... FF=fully on) |
-                      00649 ;                    |______|______|______|______|______|______|______|______|
-                      00650 ;                    |                                                       |
-                      00651 ;                    | Brightness value of Yellow  (00=off, ... FF=fully on) |
-                      00652 ;                    |______|______|______|______|______|______|______|______|
-                      00653 ;                    |                                                       |
-                      00654 ;                    | Brightness value of Red     (00=off, ... FF=fully on) |
-                      00655 ;                    |______|______|______|______|______|______|______|______|
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 16
+                      00632 ;
+                      00633 ;------------------------------------------------------------------------------
+                      00634 ; (SSR_DATA_BANK)
+                      00635 ;------------------------------------------------------------------------------
+                      00636 ;
+                      00637 ; *** THE FOLLOWING BLOCKS *MUST* BE THE SAME SIZE AS EACH OTHER ***
+                      00638 ;
+                      00639 ;                     ___7______6______5______4______3______2______1______0__
+                      00640 ; SSR_00_VALUE       |                                                       |
+                      00641 ;                    | Brightness value of SSR #00 (00=off, ... FF=fully on) |
+                      00642 ;                    |______|______|______|______|______|______|______|______|
+                      00643 ;                    |                                                       |
+                      00644 ;                    | Brightness value of SSR #01 (00=off, ... FF=fully on) |
+                      00645 ;                    |______|______|______|______|______|______|______|______|
+                      00646 ;                                                .
+                      00647 ;                                                .
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 16
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-                      00656 ;                    | IF MASTER/STANDALONE:                                 |
-                      00657 ;                    | Brightness value of Active  (00=off, ... FF=fully on) |
-                      00658 ;                    |______|______|______|______|______|______|______|______|
-                      00659 ; SSR_00_FLAGS       | FADE | FADE | FADE_|MAX_OF|      |      |      |      |
-                      00660 ;                    | _UP  | _DOWN| CYCLE|F_TIME|      |      |      |      |
-                      00661 ;                    |______|______|______|______|______|______|______|______|
-                      00662 ;                                                .
-                      00663 ;                                                .
-                      00664 ;                     ___________________________.___________________________
-                      00665 ; SSR_00_STEP        |                                                       |
-                      00666 ;                    |          Brightness increment (0..255)                |
-                      00667 ;                    |______|______|______|______|______|______|______|______|
+                      00648 ;                     ___________________________.___________________________
+                      00649 ;                    |                                                       |
+                      00650 ;                    | Brightness value of SSR #23 (00=off, ... FF=fully on) |
+                      00651 ;                    |______|______|______|______|______|______|______|______|
+                      00652 ;                    |                                                       |
+                      00653 ;                    | Brightness value of Green   (00=off, ... FF=fully on) |
+                      00654 ;                    |______|______|______|______|______|______|______|______|
+                      00655 ;                    |                                                       |
+                      00656 ;                    | Brightness value of Yellow  (00=off, ... FF=fully on) |
+                      00657 ;                    |______|______|______|______|______|______|______|______|
+                      00658 ;                    |                                                       |
+                      00659 ;                    | Brightness value of Red     (00=off, ... FF=fully on) |
+                      00660 ;                    |______|______|______|______|______|______|______|______|
+                      00661 ;                    | IF MASTER/STANDALONE:                                 |
+                      00662 ;                    | Brightness value of Active  (00=off, ... FF=fully on) |
+                      00663 ;                    |______|______|______|______|______|______|______|______|
+                      00664 ; SSR_00_FLAGS       | FADE | FADE | FADE_|MAX_OF|      |      |      |      |
+                      00665 ;                    | _UP  | _DOWN| CYCLE|F_TIME|      |      |      |      |
+                      00666 ;                    |______|______|______|______|______|______|______|______|
+                      00667 ;                                                .
                       00668 ;                                                .
-                      00669 ;                                                .
-                      00670 ;                     ___________________________.___________________________
-                      00671 ; SSR_00_SPEED       |                                                       |
-                      00672 ;                    |          Cycles between each step (0..255)            |
-                      00673 ;                    |______|______|______|______|______|______|______|______|
+                      00669 ;                     ___________________________.___________________________
+                      00670 ; SSR_00_STEP        |                                                       |
+                      00671 ;                    |          Brightness increment (0..255)                |
+                      00672 ;                    |______|______|______|______|______|______|______|______|
+                      00673 ;                                                .
                       00674 ;                                                .
-                      00675 ;                                                .
-                      00676 ;                     ___________________________.___________________________
-                      00677 ; SSR_00_COUNTER     |                                                       |
-                      00678 ;                    |          Cycles until next step (0..255)              |
-                      00679 ;                    |______|______|______|______|______|______|______|______|
+                      00675 ;                     ___________________________.___________________________
+                      00676 ; SSR_00_SPEED       |                                                       |
+                      00677 ;                    |          Cycles between each step (0..255)            |
+                      00678 ;                    |______|______|______|______|______|______|______|______|
+                      00679 ;                                                .
                       00680 ;                                                .
-                      00681 ;                                                .
-                      00682 ;                                                .                           
-                      00683 ;
-  0000                00684         GLOBAL  QSCC_START
-  0000                00685         GLOBAL  QSCC_MAIN
-  0000                00686         GLOBAL  QSCC_CMD6_START
-  0000                00687         GLOBAL  QS_STOP_SCANNER
-                      00688 
-                      00689 ;------------------------------------------------------------------------------
-                      00690 ; QUIZSHOW_DATA BANK
-                      00691 ;------------------------------------------------------------------------------
-                      00692 ;
-                      00693 ;                     ___7______6______5______4______3______2______1______0__
-                      00694 ; BTN_X0_TIME_T      |                                                       |
-                      00695 ;                    |         Button press time (uS) <31:24>                |
-                      00696 ;                    |______|______|______|______|______|______|______|______|
-                      00697 ; BTN_X1_TIME_T      |                                                       |
-                      00698 ;                    |         Button press time (uS) <31:24>                |
-                      00699 ;                    |______|______|______|______|______|______|______|______|
-                      00700 ;                                                :
-                      00701 ;                     ___________________________:___________________________
-                      00702 ; BTN_X0_TIME_U      |                                                       |
-                      00703 ;                    |         Button press time (uS) <23:16>                |
+                      00681 ;                     ___________________________.___________________________
+                      00682 ; SSR_00_COUNTER     |                                                       |
+                      00683 ;                    |          Cycles until next step (0..255)              |
+                      00684 ;                    |______|______|______|______|______|______|______|______|
+                      00685 ;                                                .
+                      00686 ;                                                .
+                      00687 ;                                                .                           
+                      00688 ;
+  0000                00689         GLOBAL  QSCC_START
+  0000                00690         GLOBAL  QSCC_MAIN
+  0000                00691         GLOBAL  QSCC_CMD5_START
+  0000                00692         GLOBAL  QS_STOP_SCANNER
+                      00693 
+                      00694 ;------------------------------------------------------------------------------
+                      00695 ; QUIZSHOW_DATA BANK
+                      00696 ;------------------------------------------------------------------------------
+                      00697 ;
+                      00698 ;                     ___7______6______5______4______3______2______1______0__
+                      00699 ; BTN_X0_TIME_T      |                                                       |
+                      00700 ;                    |         Button press time (uS) <31:24>                |
+                      00701 ;                    |______|______|______|______|______|______|______|______|
+                      00702 ; BTN_X1_TIME_T      |                                                       |
+                      00703 ;                    |         Button press time (uS) <31:24>                |
                       00704 ;                    |______|______|______|______|______|______|______|______|
                       00705 ;                                                :
                       00706 ;                     ___________________________:___________________________
-                      00707 ; BTN_X0_TIME_H      |                                                       |
-                      00708 ;                    |         Button press time (uS) <15:8>                 |
+                      00707 ; BTN_X0_TIME_U      |                                                       |
+                      00708 ;                    |         Button press time (uS) <23:16>                |
                       00709 ;                    |______|______|______|______|______|______|______|______|
                       00710 ;                                                :
                       00711 ;                     ___________________________:___________________________
-                      00712 ; BTN_X0_TIME_L      |                                                       |
-                      00713 ;                    |         Button press time (uS) <7:0>                  |
+                      00712 ; BTN_X0_TIME_H      |                                                       |
+                      00713 ;                    |         Button press time (uS) <15:8>                 |
                       00714 ;                    |______|______|______|______|______|______|______|______|
                       00715 ;                                                :
                       00716 ;                     ___________________________:___________________________
-                      00717 ;
-                      00718 ;      .
-                      00719 ;      .        Ditto for L0, X1, L1, X2, L2, X3, L3, X4, L4            (QSRC)
-                      00720 ;      .        Or... for L0, A, B, C, D                                (QSCC)
-                      00721 ;
-  00000C00            00722 QUIZSHOW_DATA   EQU     0xC00
-                      00723 _QUIZSHOW_DATA  UDATA   QUIZSHOW_DATA
-000C00                00724 BTN_X0_TIME_T   RES     N_BUTTONS       ; button press times (bits 31-24)
-000C10                00725 BTN_X0_TIME_U   RES     N_BUTTONS       ; button press times (bits 23-16)
-000C20                00726 BTN_X0_TIME_H   RES     N_BUTTONS       ; button press times (bits 15-08)
-000C30                00727 BTN_X0_TIME_L   RES     N_BUTTONS       ; button press times (bits 07-00)
-000C40                00728 BTN_X0_FLAGS    RES     N_BUTTONS       ; button flags
-000C50                00729 BTN_X0_LOCKTMR  RES     N_BUTTONS       ; number of 1/120 sec remaining in lock
-000C60                00730 BTN_X0_DEB_TMR  RES     N_BUTTONS       ; number of polls to satisfy debounce logic
-000C70                00731 QUIZSHOW_LCKTM  RES     1               ; number of 1/120 sec we lock out offenders
-                      00732 _QUIZSHOW_CODE  CODE
-                      00733 
-                      00734                                         ; BTN_??_FLAGS
-  00000003            00735 BTN_FLG_ACTIVE  EQU     3               ; ----1---      Button being pressed now
-  00000002            00736 BTN_FLG_LOCKED  EQU     2               ; -----1--      Button locked out
-  00000001            00737 BTN_FLG_MASKED  EQU     1               ; ------1-      Button ignored
-  00000000            00738 BTN_FLG_PRESSED EQU     0               ; -------1      Button pressed already
-                      00739 
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 17
+                      00717 ; BTN_X0_TIME_L      |                                                       |
+                      00718 ;                    |         Button press time (uS) <7:0>                  |
+                      00719 ;                    |______|______|______|______|______|______|______|______|
+                      00720 ;                                                :
+                      00721 ;                     ___________________________:___________________________
+                      00722 ;
+                      00723 ;      .
+                      00724 ;      .        Ditto for L0, X1, L1, X2, L2, X3, L3, X4, L4            (QSRC)
+                      00725 ;      .        Or... for L0, A, B, C, D                                (QSCC)
+                      00726 ;
+  00000C00            00727 QUIZSHOW_DATA   EQU     0xC00
+                      00728 _QUIZSHOW_DATA  UDATA   QUIZSHOW_DATA
+000C00                00729 BTN_X0_TIME_T   RES     N_BUTTONS       ; button press times (bits 31-24)
+000C10                00730 BTN_X0_TIME_U   RES     N_BUTTONS       ; button press times (bits 23-16)
+000C20                00731 BTN_X0_TIME_H   RES     N_BUTTONS       ; button press times (bits 15-08)
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 17
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+000C30                00732 BTN_X0_TIME_L   RES     N_BUTTONS       ; button press times (bits 07-00)
+000C40                00733 BTN_X0_FLAGS    RES     N_BUTTONS       ; button flags
+000C50                00734 BTN_X0_LOCKTMR  RES     N_BUTTONS       ; number of 1/120 sec remaining in lock
+000C60                00735 BTN_X0_DEB_TMR  RES     N_BUTTONS       ; number of polls to satisfy debounce logic
+000C70                00736 QUIZSHOW_LCKTM  RES     1               ; number of 1/120 sec we lock out offenders
+                      00737 _QUIZSHOW_CODE  CODE
+                      00738 
+                      00739 
                       00740 ;
                       00741 ; Clear all button timers and states
                       00742 ;
@@ -1520,6 +1528,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 00003A 6B00               M          CLRF   BTN_X0_TIME_L+CB_IDX, BANKED
                           M          IF 1
 00003C 6B00               M           CLRF  BTN_X0_FLAGS+CB_IDX, BANKED
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 18
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 00003E 6B00               M           CLRF  BTN_X0_LOCKTMR+CB_IDX, BANKED
 000040 6B00               M           CLRF  BTN_X0_DEB_TMR+CB_IDX, BANKED
                           M          ELSE
@@ -1528,12 +1542,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
   00000004                M CB_IDX   ++
 000042 6B00               M          CLRF   BTN_X0_TIME_T+CB_IDX, BANKED
 000044 6B00               M          CLRF   BTN_X0_TIME_U+CB_IDX, BANKED
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 18
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 000046 6B00               M          CLRF   BTN_X0_TIME_H+CB_IDX, BANKED
 000048 6B00               M          CLRF   BTN_X0_TIME_L+CB_IDX, BANKED
                           M          IF 1
@@ -1610,6 +1618,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 00009C 6B00               M          CLRF   BTN_X0_TIME_L+CB_IDX, BANKED
                           M          IF 1
 00009E 6B00               M           CLRF  BTN_X0_FLAGS+CB_IDX, BANKED
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 19
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 0000A0 6B00               M           CLRF  BTN_X0_LOCKTMR+CB_IDX, BANKED
 0000A2 6B00               M           CLRF  BTN_X0_DEB_TMR+CB_IDX, BANKED
                           M          ELSE
@@ -1618,12 +1632,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
   0000000B                M CB_IDX   ++
 0000A4 6B00               M          CLRF   BTN_X0_TIME_T+CB_IDX, BANKED
 0000A6 6B00               M          CLRF   BTN_X0_TIME_U+CB_IDX, BANKED
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 19
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 0000A8 6B00               M          CLRF   BTN_X0_TIME_H+CB_IDX, BANKED
 0000AA 6B00               M          CLRF   BTN_X0_TIME_L+CB_IDX, BANKED
                           M          IF 1
@@ -1700,6 +1708,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00775 ;
                       00776 ; Main loop code (in addition to Lumos' main loop code)
                       00777 ;
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 20
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
   0000                00778         EXTERN  SSR_00_VALUE
   0000                00779         EXTERN  SSR_00_FLAGS
   0000                00780         EXTERN  SSR_00_STEP
@@ -1708,12 +1722,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00783 
 000102                00784 QSCC_MAIN:
 000102 0004           00785         CLRWDT
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 20
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
                       00786         ;
                       00787         ; Scan all the buttons to see which trigger something.
                       00788         ; We debounce them by making them hold the same reading for 256 *consecutive*
@@ -1790,6 +1798,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00859         
                       00860 SCN_DB_CHANGED_#v(SCN_DBN):
                       00861         ; Button has changed since last time: reset debounce counter and wait.
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 21
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
                       00862         CLRF    BTN_X0_DEB_TMR+BTN_IDX, BANKED
                       00863 
                       00864 SCN_DB_END_#v(SCN_DBN):
@@ -1798,12 +1812,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00867         ;
                       00868         ; Every 1/120 second do this:
                       00869         ;
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 21
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
                       00870         ; Check for locked-out buttons. We hold them in this state as long as
                       00871         ; they are still being pressed.  Once they let go we start counting down time
                       00872         ; before releasing.
@@ -1880,6 +1888,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00943          SCAN_DEBOUNCE  BTN_IDX_L0, PORT_L0, BIT_L0, CHAN_L0G, CHAN_L0R
                       00944          SCAN_DEBOUNCE  BTN_IDX_A0, PORT_A0, BIT_A0, CHAN_A0L, CHAN_A0L
                       00945          SCAN_DEBOUNCE  BTN_IDX_B0, PORT_B0, BIT_B0, CHAN_B0L, CHAN_B0L
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 22
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
                       00946          SCAN_DEBOUNCE  BTN_IDX_C0, PORT_C0, BIT_C0, CHAN_C0L, CHAN_C0L
                       00947          SCAN_DEBOUNCE  BTN_IDX_D0, PORT_D0, BIT_D0, CHAN_D0L, CHAN_D0L
                       00948         ELSE
@@ -1888,12 +1902,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M         ; Sense button
 00010E B680               M         BTFSC   PORT_X0,  BIT_X0,  ACCESS
 000110 D???               M         BRA     SCN_DB_ACTIVE_0
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 22
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
                           M 
                           M         ; Button registers as being inactive now.  How long has this been the case?
 000112 B700               M         BTFSC   BTN_X0_FLAGS+BTN_IDX_X0, BTN_FLG_ACTIVE, BANKED
@@ -1970,6 +1978,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 00015C 0EA0               M          MOVLW  BIT_FADE_UP|BIT_FADE_CYCLE
 00015E 6F00               M          MOVWF  SSR_00_FLAGS+CHAN_X0R, BANKED
 000160 D???               M         BRA     LLIM_END_0
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 23
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
                           M 
 000162                    M LLIM_NOT_LOCKED_0:
 000162 A300               M         BTFSS   BTN_X0_FLAGS+BTN_IDX_X0, BTN_FLG_MASKED, BANKED
@@ -1978,12 +1992,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000168 A000               M         BTFSS   QUIZSHOW_FLAGS, QS_FLAG_SCANNING, ACCESS
 00016A D???               M         BRA     LLIM_OFF_0
                           M         ; We're scanning and not masked or pressed - light up button
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 23
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
                           M         SET_SSR_OFF CHAN_X0R
                           M          SET_SSR_VALUE CHAN_X0R, 0
 00016C 0104               M         BANKSEL SSR_DATA_BANK
@@ -2060,6 +2068,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0001D8 6F00               M          MOVWF  SSR_00_STEP+CHAN_X0R, BANKED
 0001DA 0E01               M          MOVLW  1
 0001DC 6F00               M          MOVWF  SSR_00_SPEED+CHAN_X0R, BANKED
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 24
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 0001DE 6F00               M          MOVWF  SSR_00_COUNTER+CHAN_X0R, BANKED
 0001E0 0EA0               M          MOVLW  BIT_FADE_UP|BIT_FADE_CYCLE
 0001E2 6F00               M          MOVWF  SSR_00_FLAGS+CHAN_X0R, BANKED
@@ -2068,12 +2082,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0001E6                    M LLIM_NOT_LOCKED_1:
 0001E6 A300               M         BTFSS   BTN_X0_FLAGS+BTN_IDX_X0, BTN_FLG_MASKED, BANKED
 0001E8 B100               M         BTFSC   BTN_X0_FLAGS+BTN_IDX_X0, BTN_FLG_PRESSED, BANKED
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 24
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 0001EA D???               M         BRA     LLIM_OFF_1
 0001EC A000               M         BTFSS   QUIZSHOW_FLAGS, QS_FLAG_SCANNING, ACCESS
 0001EE D???               M         BRA     LLIM_OFF_1
@@ -2150,6 +2158,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000242 2F00               M         DECFSZ  BTN_X0_LOCKTMR+BTN_IDX_X0, F, BANKED    ; locked: count down to unlock time
 000244 D???               M         BRA     SCN_DB_DONE_0
                           M 
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 25
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 000246 9500               M         BCF     BTN_X0_FLAGS+BTN_IDX_X0, BTN_FLG_LOCKED, BANKED
                           M         LOCAL_LIGHT_INDICATOR BTN_IDX_X0, CHAN_X0G, CHAN_X0R
 000248 010C               M         BANKSEL QUIZSHOW_DATA
@@ -2158,12 +2172,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M 
                           M         SET_SSR_OFF CHAN_X0G
                           M          SET_SSR_VALUE CHAN_X0G, 0
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 25
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 00024E 0104               M         BANKSEL SSR_DATA_BANK
 000250 0E00               M          MOVLW  0
 000252 6F00               M          MOVWF  SSR_00_VALUE+CHAN_X0G, BANKED
@@ -2240,6 +2248,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
   00000001                M SCN_DBN ++
                       00951           SCAN_DEBOUNCE BTN_IDX_L0, PORT_L0, BIT_L0, CHAN_L0R, CHAN_L0R
                           M         ; Sense button
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 26
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 0002B8 B480               M         BTFSC   PORT_L0,  BIT_L0,  ACCESS
 0002BA D???               M         BRA     SCN_DB_ACTIVE_1
                           M 
@@ -2248,12 +2262,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0002BE D???               M         BRA     SCN_DB_CHANGED_1
                           M 
                           M         ; Still inactive? keep counting...
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 26
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 0002C0 3F00               M         INCFSZ  BTN_X0_DEB_TMR+BTN_IDX_L0, F, BANKED
 0002C2 D???               M         BRA     SCN_DB_END_1
                           M 
@@ -2330,6 +2338,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 00030E B100               M         BTFSC   BTN_X0_FLAGS+BTN_IDX_L0, BTN_FLG_PRESSED, BANKED
 000310 D???               M         BRA     LLIM_OFF_3
 000312 A000               M         BTFSS   QUIZSHOW_FLAGS, QS_FLAG_SCANNING, ACCESS
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 27
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 000314 D???               M         BRA     LLIM_OFF_3
                           M         ; We're scanning and not masked or pressed - light up button
                           M         SET_SSR_OFF CHAN_L0R
@@ -2338,12 +2352,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000318 0E00               M          MOVLW  0
 00031A 6F00               M          MOVWF  SSR_00_VALUE+CHAN_L0R, BANKED
 00031C 6B00               M          CLRF   SSR_00_STEP+CHAN_L0R, BANKED
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 27
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 00031E 6B00               M          CLRF   SSR_00_SPEED+CHAN_L0R, BANKED
 000320 6B00               M          CLRF   SSR_00_COUNTER+CHAN_L0R, BANKED
 000322 6B00               M          CLRF   SSR_00_FLAGS+CHAN_L0R, BANKED
@@ -2420,6 +2428,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 00038E D???               M         BRA     LLIM_END_4
                           M 
 000390                    M LLIM_NOT_LOCKED_4:
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 28
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 000390 A300               M         BTFSS   BTN_X0_FLAGS+BTN_IDX_L0, BTN_FLG_MASKED, BANKED
 000392 B100               M         BTFSC   BTN_X0_FLAGS+BTN_IDX_L0, BTN_FLG_PRESSED, BANKED
 000394 D???               M         BRA     LLIM_OFF_4
@@ -2428,12 +2442,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M         ; We're scanning and not masked or pressed - light up button
                           M         SET_SSR_OFF CHAN_L0R
                           M          SET_SSR_VALUE CHAN_L0R, 0
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 28
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 00039A 0104               M         BANKSEL SSR_DATA_BANK
 00039C 0E00               M          MOVLW  0
 00039E 6F00               M          MOVWF  SSR_00_VALUE+CHAN_L0R, BANKED
@@ -2510,6 +2518,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0003F4 A500               M         BTFSS   BTN_X0_FLAGS+BTN_IDX_L0, BTN_FLG_LOCKED, BANKED
 0003F6 D???               M         BRA     LLIM_NOT_LOCKED_5
                           M 
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 29
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
                           M         SET_SSR_OFF CHAN_L0R
                           M          SET_SSR_VALUE CHAN_L0R, 0
 0003F8 0104               M         BANKSEL SSR_DATA_BANK
@@ -2518,12 +2532,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0003FE 6B00               M          CLRF   SSR_00_STEP+CHAN_L0R, BANKED
 000400 6B00               M          CLRF   SSR_00_SPEED+CHAN_L0R, BANKED
 000402 6B00               M          CLRF   SSR_00_COUNTER+CHAN_L0R, BANKED
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 29
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 000404 6B00               M          CLRF   SSR_00_FLAGS+CHAN_L0R, BANKED
                           M         SET_SSR_RAPID_FADE CHAN_L0R
                           M          SET_SSR_PATTERN CHAN_L0R, 0, 4, 1, BIT_FADE_UP|BIT_FADE_CYCLE
@@ -2600,6 +2608,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M         ; Button registers as being inactive now.  How long has this been the case?
 000466 B700               M         BTFSC   BTN_X0_FLAGS+BTN_IDX_X1, BTN_FLG_ACTIVE, BANKED
 000468 D???               M         BRA     SCN_DB_CHANGED_2
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 30
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
                           M 
                           M         ; Still inactive? keep counting...
 00046A 3F00               M         INCFSZ  BTN_X0_DEB_TMR+BTN_IDX_X1, F, BANKED
@@ -2608,12 +2622,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M         ; It's still inactive after 256 polls.  Time to count it as officially off now.
 00046E 9700               M         BCF     BTN_X0_FLAGS+BTN_IDX_X1, BTN_FLG_ACTIVE, BANKED
                           M         ;
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 30
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
                           M         ; XXX Based on our current state, deal with the consequences of letting
                           M         ; XXX go of the button now.
                           M         ;
@@ -2690,6 +2698,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M          SET_SSR_VALUE CHAN_X1R, 0
 0004C0 0104               M         BANKSEL SSR_DATA_BANK
 0004C2 0E00               M          MOVLW  0
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 31
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 0004C4 6F00               M          MOVWF  SSR_00_VALUE+CHAN_X1R, BANKED
 0004C6 6B00               M          CLRF   SSR_00_STEP+CHAN_X1R, BANKED
 0004C8 6B00               M          CLRF   SSR_00_SPEED+CHAN_X1R, BANKED
@@ -2698,12 +2712,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M         SET_SSR_STEADY CHAN_X1G
                           M          SET_SSR_VALUE CHAN_X1G, 255
 0004CE 0104               M         BANKSEL SSR_DATA_BANK
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 31
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 0004D0 0EFF               M          MOVLW  255
 0004D2 6F00               M          MOVWF  SSR_00_VALUE+CHAN_X1G, BANKED
 0004D4 6B00               M          CLRF   SSR_00_STEP+CHAN_X1G, BANKED
@@ -2780,6 +2788,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000540 A000               M         BTFSS   QUIZSHOW_FLAGS, QS_FLAG_SCANNING, ACCESS
 000542 D???               M         BRA     LLIM_OFF_7
                           M         ; We're scanning and not masked or pressed - light up button
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 32
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
                           M         SET_SSR_OFF CHAN_X1R
                           M          SET_SSR_VALUE CHAN_X1R, 0
 000544 0104               M         BANKSEL SSR_DATA_BANK
@@ -2788,12 +2802,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 00054A 6B00               M          CLRF   SSR_00_STEP+CHAN_X1R, BANKED
 00054C 6B00               M          CLRF   SSR_00_SPEED+CHAN_X1R, BANKED
 00054E 6B00               M          CLRF   SSR_00_COUNTER+CHAN_X1R, BANKED
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 32
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 000550 6B00               M          CLRF   SSR_00_FLAGS+CHAN_X1R, BANKED
                           M         SET_SSR_STEADY CHAN_X1G
                           M          SET_SSR_VALUE CHAN_X1G, 255
@@ -2870,6 +2878,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0005A4 0E00               M          MOVLW  0
 0005A6 6F00               M          MOVWF  SSR_00_VALUE+CHAN_X1G, BANKED
 0005A8 6B00               M          CLRF   SSR_00_STEP+CHAN_X1G, BANKED
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 33
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 0005AA 6B00               M          CLRF   SSR_00_SPEED+CHAN_X1G, BANKED
 0005AC 6B00               M          CLRF   SSR_00_COUNTER+CHAN_X1G, BANKED
 0005AE 6B00               M          CLRF   SSR_00_FLAGS+CHAN_X1G, BANKED
@@ -2878,12 +2892,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0005B0 0104               M         BANKSEL SSR_DATA_BANK
 0005B2 0E00               M          MOVLW  0
 0005B4 6F00               M          MOVWF  SSR_00_VALUE+CHAN_X1R, BANKED
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 33
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 0005B6 0E04               M          MOVLW  4
 0005B8 6F00               M          MOVWF  SSR_00_STEP+CHAN_X1R, BANKED
 0005BA 0E01               M          MOVLW  1
@@ -2960,6 +2968,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000616 D???               M         BRA     SCN_DB_END_3
                           M 
                           M         ; It's still inactive after 256 polls.  Time to count it as officially off now.
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 34
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 000618 9700               M         BCF     BTN_X0_FLAGS+BTN_IDX_L1, BTN_FLG_ACTIVE, BANKED
                           M         ;
                           M         ; XXX Based on our current state, deal with the consequences of letting
@@ -2968,12 +2982,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M         ; I think actually there aren't any here.
                           M         ;
 00061A D???               M         BRA     SCN_DB_END_3
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 34
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
                           M 
 00061C                    M SCN_DB_ACTIVE_3:
                           M         ; Button registers as being active now.  How long has this been happening?
@@ -3050,6 +3058,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000674 6B00               M          CLRF   SSR_00_COUNTER+CHAN_L1R, BANKED
 000676 6B00               M          CLRF   SSR_00_FLAGS+CHAN_L1R, BANKED
                           M         SET_SSR_STEADY CHAN_L1R
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 35
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
                           M          SET_SSR_VALUE CHAN_L1R, 255
 000678 0104               M         BANKSEL SSR_DATA_BANK
 00067A 0EFF               M          MOVLW  255
@@ -3058,12 +3072,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000680 6B00               M          CLRF   SSR_00_SPEED+CHAN_L1R, BANKED
 000682 6B00               M          CLRF   SSR_00_COUNTER+CHAN_L1R, BANKED
 000684 6B00               M          CLRF   SSR_00_FLAGS+CHAN_L1R, BANKED
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 35
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 000686 D???               M         BRA     LLIM_END_9
                           M 
 000688                    M LLIM_OFF_9:
@@ -3140,6 +3148,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0006F0 0E00               M          MOVLW  0
 0006F2 6F00               M          MOVWF  SSR_00_VALUE+CHAN_L1R, BANKED
 0006F4 6B00               M          CLRF   SSR_00_STEP+CHAN_L1R, BANKED
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 36
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 0006F6 6B00               M          CLRF   SSR_00_SPEED+CHAN_L1R, BANKED
 0006F8 6B00               M          CLRF   SSR_00_COUNTER+CHAN_L1R, BANKED
 0006FA 6B00               M          CLRF   SSR_00_FLAGS+CHAN_L1R, BANKED
@@ -3148,12 +3162,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0006FC 0104               M         BANKSEL SSR_DATA_BANK
 0006FE 0EFF               M          MOVLW  255
 000700 6F00               M          MOVWF  SSR_00_VALUE+CHAN_L1R, BANKED
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 36
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 000702 6B00               M          CLRF   SSR_00_STEP+CHAN_L1R, BANKED
 000704 6B00               M          CLRF   SSR_00_SPEED+CHAN_L1R, BANKED
 000706 6B00               M          CLRF   SSR_00_COUNTER+CHAN_L1R, BANKED
@@ -3230,6 +3238,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M         SET_SSR_RAPID_FADE CHAN_L1R
                           M          SET_SSR_PATTERN CHAN_L1R, 0, 4, 1, BIT_FADE_UP|BIT_FADE_CYCLE
 00075A 0104               M         BANKSEL SSR_DATA_BANK
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 37
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 00075C 0E00               M          MOVLW  0
 00075E 6F00               M          MOVWF  SSR_00_VALUE+CHAN_L1R, BANKED
 000760 0E04               M          MOVLW  4
@@ -3238,12 +3252,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000766 6F00               M          MOVWF  SSR_00_SPEED+CHAN_L1R, BANKED
 000768 6F00               M          MOVWF  SSR_00_COUNTER+CHAN_L1R, BANKED
 00076A 0EA0               M          MOVLW  BIT_FADE_UP|BIT_FADE_CYCLE
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 37
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 00076C 6F00               M          MOVWF  SSR_00_FLAGS+CHAN_L1R, BANKED
 00076E D???               M         BRA     LLIM_END_11
                           M 
@@ -3320,6 +3328,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M         ; XXX go of the button now.
                           M         ;
                           M         ; I think actually there aren't any here.
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 38
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
                           M         ;
 0007C4 D???               M         BRA     SCN_DB_END_4
                           M 
@@ -3328,12 +3342,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0007C6 A700               M         BTFSS   BTN_X0_FLAGS+BTN_IDX_X2, BTN_FLG_ACTIVE, BANKED
 0007C8 D???               M         BRA     SCN_DB_CHANGED_4
                           M 
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 38
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
                           M         ; Still active? keep counting...
 0007CA 3F00               M         INCFSZ  BTN_X0_DEB_TMR+BTN_IDX_X2, F, BANKED
 0007CC D???               M         BRA     SCN_DB_END_4
@@ -3410,6 +3418,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000826 6F00               M          MOVWF  SSR_00_VALUE+CHAN_X2G, BANKED
 000828 6B00               M          CLRF   SSR_00_STEP+CHAN_X2G, BANKED
 00082A 6B00               M          CLRF   SSR_00_SPEED+CHAN_X2G, BANKED
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 39
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 00082C 6B00               M          CLRF   SSR_00_COUNTER+CHAN_X2G, BANKED
 00082E 6B00               M          CLRF   SSR_00_FLAGS+CHAN_X2G, BANKED
 000830 D???               M         BRA     LLIM_END_12
@@ -3418,12 +3432,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M         SET_SSR_OFF CHAN_X2G
                           M          SET_SSR_VALUE CHAN_X2G, 0
 000832 0104               M         BANKSEL SSR_DATA_BANK
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 39
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 000834 0E00               M          MOVLW  0
 000836 6F00               M          MOVWF  SSR_00_VALUE+CHAN_X2G, BANKED
 000838 6B00               M          CLRF   SSR_00_STEP+CHAN_X2G, BANKED
@@ -3500,6 +3508,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M         SET_SSR_STEADY CHAN_X2G
                           M          SET_SSR_VALUE CHAN_X2G, 255
 0008A6 0104               M         BANKSEL SSR_DATA_BANK
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 40
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 0008A8 0EFF               M          MOVLW  255
 0008AA 6F00               M          MOVWF  SSR_00_VALUE+CHAN_X2G, BANKED
 0008AC 6B00               M          CLRF   SSR_00_STEP+CHAN_X2G, BANKED
@@ -3508,12 +3522,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0008B2 6B00               M          CLRF   SSR_00_FLAGS+CHAN_X2G, BANKED
 0008B4 D???               M         BRA     LLIM_END_13
                           M 
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 40
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 0008B6                    M LLIM_OFF_13:
                           M         SET_SSR_OFF CHAN_X2G
                           M          SET_SSR_VALUE CHAN_X2G, 0
@@ -3590,6 +3598,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 00090C 6F00               M          MOVWF  SSR_00_STEP+CHAN_X2R, BANKED
 00090E 0E01               M          MOVLW  1
 000910 6F00               M          MOVWF  SSR_00_SPEED+CHAN_X2R, BANKED
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 41
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 000912 6F00               M          MOVWF  SSR_00_COUNTER+CHAN_X2R, BANKED
 000914 0EA0               M          MOVLW  BIT_FADE_UP|BIT_FADE_CYCLE
 000916 6F00               M          MOVWF  SSR_00_FLAGS+CHAN_X2R, BANKED
@@ -3598,12 +3612,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 00091A                    M LLIM_NOT_LOCKED_14:
 00091A A300               M         BTFSS   BTN_X0_FLAGS+BTN_IDX_X2, BTN_FLG_MASKED, BANKED
 00091C B100               M         BTFSC   BTN_X0_FLAGS+BTN_IDX_X2, BTN_FLG_PRESSED, BANKED
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 41
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 00091E D???               M         BRA     LLIM_OFF_14
 000920 A000               M         BTFSS   QUIZSHOW_FLAGS, QS_FLAG_SCANNING, ACCESS
 000922 D???               M         BRA     LLIM_OFF_14
@@ -3680,6 +3688,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000970                    M SCN_DB_ACTIVE_5:
                           M         ; Button registers as being active now.  How long has this been happening?
 000970 A700               M         BTFSS   BTN_X0_FLAGS+BTN_IDX_L2, BTN_FLG_ACTIVE, BANKED
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 42
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 000972 D???               M         BRA     SCN_DB_CHANGED_5
                           M 
                           M         ; Still active? keep counting...
@@ -3688,12 +3702,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M 
                           M         ; It's still active after 256 polls.  Time to count it as officially on now.
 000978 8700               M         BSF     BTN_X0_FLAGS+BTN_IDX_L2, BTN_FLG_ACTIVE, BANKED
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 42
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
                           M         ;
                           M         ; Based on our current state, deal with the consequences of hitting
                           M         ; the button now.
@@ -3770,6 +3778,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M 
 0009DC                    M LLIM_OFF_15:
                           M         SET_SSR_OFF CHAN_L2R
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 43
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
                           M          SET_SSR_VALUE CHAN_L2R, 0
 0009DC 0104               M         BANKSEL SSR_DATA_BANK
 0009DE 0E00               M          MOVLW  0
@@ -3778,12 +3792,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0009E4 6B00               M          CLRF   SSR_00_SPEED+CHAN_L2R, BANKED
 0009E6 6B00               M          CLRF   SSR_00_COUNTER+CHAN_L2R, BANKED
 0009E8 6B00               M          CLRF   SSR_00_FLAGS+CHAN_L2R, BANKED
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 43
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
                           M         SET_SSR_OFF CHAN_L2R
                           M          SET_SSR_VALUE CHAN_L2R, 0
 0009EA 0104               M         BANKSEL SSR_DATA_BANK
@@ -3860,6 +3868,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000A58 6B00               M          CLRF   SSR_00_SPEED+CHAN_L2R, BANKED
 000A5A 6B00               M          CLRF   SSR_00_COUNTER+CHAN_L2R, BANKED
 000A5C 6B00               M          CLRF   SSR_00_FLAGS+CHAN_L2R, BANKED
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 44
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 000A5E D???               M         BRA     LLIM_END_16
                           M 
 000A60                    M LLIM_OFF_16:
@@ -3868,12 +3882,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000A60 0104               M         BANKSEL SSR_DATA_BANK
 000A62 0E00               M          MOVLW  0
 000A64 6F00               M          MOVWF  SSR_00_VALUE+CHAN_L2R, BANKED
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 44
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 000A66 6B00               M          CLRF   SSR_00_STEP+CHAN_L2R, BANKED
 000A68 6B00               M          CLRF   SSR_00_SPEED+CHAN_L2R, BANKED
 000A6A 6B00               M          CLRF   SSR_00_COUNTER+CHAN_L2R, BANKED
@@ -3950,6 +3958,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000AC2 D???               M         BRA     LLIM_END_17
                           M 
 000AC4                    M LLIM_NOT_LOCKED_17:
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 45
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 000AC4 A300               M         BTFSS   BTN_X0_FLAGS+BTN_IDX_L2, BTN_FLG_MASKED, BANKED
 000AC6 B100               M         BTFSC   BTN_X0_FLAGS+BTN_IDX_L2, BTN_FLG_PRESSED, BANKED
 000AC8 D???               M         BRA     LLIM_OFF_17
@@ -3958,12 +3972,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M         ; We're scanning and not masked or pressed - light up button
                           M         SET_SSR_OFF CHAN_L2R
                           M          SET_SSR_VALUE CHAN_L2R, 0
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 45
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 000ACE 0104               M         BANKSEL SSR_DATA_BANK
 000AD0 0E00               M          MOVLW  0
 000AD2 6F00               M          MOVWF  SSR_00_VALUE+CHAN_L2R, BANKED
@@ -4040,6 +4048,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000B1E 3F00               M         INCFSZ  BTN_X0_DEB_TMR+BTN_IDX_X3, F, BANKED
 000B20 D???               M         BRA     SCN_DB_END_6
                           M 
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 46
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
                           M         ; It's still active after 256 polls.  Time to count it as officially on now.
 000B22 8700               M         BSF     BTN_X0_FLAGS+BTN_IDX_X3, BTN_FLG_ACTIVE, BANKED
                           M         ;
@@ -4048,12 +4062,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M         ;
                           M         ; If already pressed: ignore
                           M         ; ElseIf masked out: ignore
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 46
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
                           M         ; ElseIf locked out: reset lockout timer to start [handled above]
                           M         ; ElseIf scanning: copy timer into button stats, set pressed flag
                           M         ; Else: set lockout state, reset lockout timer
@@ -4130,6 +4138,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000B8A 6F00               M          MOVWF  SSR_00_VALUE+CHAN_X3G, BANKED
 000B8C 6B00               M          CLRF   SSR_00_STEP+CHAN_X3G, BANKED
 000B8E 6B00               M          CLRF   SSR_00_SPEED+CHAN_X3G, BANKED
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 47
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 000B90 6B00               M          CLRF   SSR_00_COUNTER+CHAN_X3G, BANKED
 000B92 6B00               M          CLRF   SSR_00_FLAGS+CHAN_X3G, BANKED
                           M         SET_SSR_OFF CHAN_X3R
@@ -4138,12 +4152,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000B96 0E00               M          MOVLW  0
 000B98 6F00               M          MOVWF  SSR_00_VALUE+CHAN_X3R, BANKED
 000B9A 6B00               M          CLRF   SSR_00_STEP+CHAN_X3R, BANKED
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 47
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 000B9C 6B00               M          CLRF   SSR_00_SPEED+CHAN_X3R, BANKED
 000B9E 6B00               M          CLRF   SSR_00_COUNTER+CHAN_X3R, BANKED
 000BA0 6B00               M          CLRF   SSR_00_FLAGS+CHAN_X3R, BANKED
@@ -4220,6 +4228,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M         SET_SSR_OFF CHAN_X3G
                           M          SET_SSR_VALUE CHAN_X3G, 0
 000C0A 0104               M         BANKSEL SSR_DATA_BANK
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 48
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 000C0C 0E00               M          MOVLW  0
 000C0E 6F00               M          MOVWF  SSR_00_VALUE+CHAN_X3G, BANKED
 000C10 6B00               M          CLRF   SSR_00_STEP+CHAN_X3G, BANKED
@@ -4228,12 +4242,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000C16 6B00               M          CLRF   SSR_00_FLAGS+CHAN_X3G, BANKED
                           M         SET_SSR_OFF CHAN_X3R
                           M          SET_SSR_VALUE CHAN_X3R, 0
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 48
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 000C18 0104               M         BANKSEL SSR_DATA_BANK
 000C1A 0E00               M          MOVLW  0
 000C1C 6F00               M          MOVWF  SSR_00_VALUE+CHAN_X3R, BANKED
@@ -4310,6 +4318,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000C74 A000               M         BTFSS   QUIZSHOW_FLAGS, QS_FLAG_SCANNING, ACCESS
 000C76 D???               M         BRA     LLIM_OFF_20
                           M         ; We're scanning and not masked or pressed - light up button
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 49
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
                           M         SET_SSR_OFF CHAN_X3R
                           M          SET_SSR_VALUE CHAN_X3R, 0
 000C78 0104               M         BANKSEL SSR_DATA_BANK
@@ -4318,12 +4332,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000C7E 6B00               M          CLRF   SSR_00_STEP+CHAN_X3R, BANKED
 000C80 6B00               M          CLRF   SSR_00_SPEED+CHAN_X3R, BANKED
 000C82 6B00               M          CLRF   SSR_00_COUNTER+CHAN_X3R, BANKED
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 49
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 000C84 6B00               M          CLRF   SSR_00_FLAGS+CHAN_X3R, BANKED
                           M         SET_SSR_STEADY CHAN_X3G
                           M          SET_SSR_VALUE CHAN_X3G, 255
@@ -4400,6 +4408,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M         ; Based on our current state, deal with the consequences of hitting
                           M         ; the button now.
                           M         ;
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 50
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
                           M         ; If already pressed: ignore
                           M         ; ElseIf masked out: ignore
                           M         ; ElseIf locked out: reset lockout timer to start [handled above]
@@ -4408,12 +4422,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M         ;       
 000CCE A100               M         BTFSS   BTN_X0_FLAGS+BTN_IDX_L3, BTN_FLG_PRESSED, BANKED
 000CD0 B300               M         BTFSC   BTN_X0_FLAGS+BTN_IDX_L3, BTN_FLG_MASKED, BANKED
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 50
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 000CD2 D???               M         BRA     SCN_DB_END_7
                           M 
 000CD4 B000               M         BTFSC   QUIZSHOW_FLAGS, QS_FLAG_SCANNING, ACCESS
@@ -4490,6 +4498,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M          SET_SSR_VALUE CHAN_L3R, 0
 000D3E 0104               M         BANKSEL SSR_DATA_BANK
 000D40 0E00               M          MOVLW  0
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 51
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 000D42 6F00               M          MOVWF  SSR_00_VALUE+CHAN_L3R, BANKED
 000D44 6B00               M          CLRF   SSR_00_STEP+CHAN_L3R, BANKED
 000D46 6B00               M          CLRF   SSR_00_SPEED+CHAN_L3R, BANKED
@@ -4498,12 +4512,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M         
 000D4C                    M LLIM_END_21:
 000D4C 010C               M         BANKSEL QUIZSHOW_DATA
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 51
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
   00000016                M LLIM_N  ++
 000D4E D???               M         BRA     SCN_DB_END_7
                           M 
@@ -4580,6 +4588,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000DBC 6B00               M          CLRF   SSR_00_SPEED+CHAN_L3R, BANKED
 000DBE 6B00               M          CLRF   SSR_00_COUNTER+CHAN_L3R, BANKED
 000DC0 6B00               M          CLRF   SSR_00_FLAGS+CHAN_L3R, BANKED
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 52
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
                           M         SET_SSR_OFF CHAN_L3R
                           M          SET_SSR_VALUE CHAN_L3R, 0
 000DC2 0104               M         BANKSEL SSR_DATA_BANK
@@ -4588,12 +4602,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000DC8 6B00               M          CLRF   SSR_00_STEP+CHAN_L3R, BANKED
 000DCA 6B00               M          CLRF   SSR_00_SPEED+CHAN_L3R, BANKED
 000DCC 6B00               M          CLRF   SSR_00_COUNTER+CHAN_L3R, BANKED
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 52
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 000DCE 6B00               M          CLRF   SSR_00_FLAGS+CHAN_L3R, BANKED
                           M         
 000DD0                    M LLIM_END_22:
@@ -4670,6 +4678,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000E24 0E00               M          MOVLW  0
 000E26 6F00               M          MOVWF  SSR_00_VALUE+CHAN_L3R, BANKED
 000E28 6B00               M          CLRF   SSR_00_STEP+CHAN_L3R, BANKED
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 53
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 000E2A 6B00               M          CLRF   SSR_00_SPEED+CHAN_L3R, BANKED
 000E2C 6B00               M          CLRF   SSR_00_COUNTER+CHAN_L3R, BANKED
 000E2E 6B00               M          CLRF   SSR_00_FLAGS+CHAN_L3R, BANKED
@@ -4678,12 +4692,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000E30 0104               M         BANKSEL SSR_DATA_BANK
 000E32 0EFF               M          MOVLW  255
 000E34 6F00               M          MOVWF  SSR_00_VALUE+CHAN_L3R, BANKED
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 53
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 000E36 6B00               M          CLRF   SSR_00_STEP+CHAN_L3R, BANKED
 000E38 6B00               M          CLRF   SSR_00_SPEED+CHAN_L3R, BANKED
 000E3A 6B00               M          CLRF   SSR_00_COUNTER+CHAN_L3R, BANKED
@@ -4760,6 +4768,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M         ; ElseIf scanning: copy timer into button stats, set pressed flag
                           M         ; Else: set lockout state, reset lockout timer
                           M         ;       
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 54
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 000E78 A100               M         BTFSS   BTN_X0_FLAGS+BTN_IDX_X4, BTN_FLG_PRESSED, BANKED
 000E7A B300               M         BTFSC   BTN_X0_FLAGS+BTN_IDX_X4, BTN_FLG_MASKED, BANKED
 000E7C D???               M         BRA     SCN_DB_END_8
@@ -4768,12 +4782,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000E80 D???               M         BRA     SCN_DB_DING_8
                           M 
 000E82 8500               M         BSF     BTN_X0_FLAGS+BTN_IDX_X4, BTN_FLG_LOCKED, BANKED
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 54
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 000E84 C??? F???          M         MOVFF   QUIZSHOW_LCKTM, BTN_X0_LOCKTMR+BTN_IDX_X4 
                           M         LOCAL_LIGHT_INDICATOR BTN_IDX_X4, CHAN_X4G, CHAN_X4R
 000E88 010C               M         BANKSEL QUIZSHOW_DATA
@@ -4850,6 +4858,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000EF2 6B00               M          CLRF   SSR_00_COUNTER+CHAN_X4R, BANKED
 000EF4 6B00               M          CLRF   SSR_00_FLAGS+CHAN_X4R, BANKED
                           M         
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 55
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 000EF6                    M LLIM_END_24:
 000EF6 010C               M         BANKSEL QUIZSHOW_DATA
   00000019                M LLIM_N  ++
@@ -4858,12 +4872,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000EFA                    M SCN_DB_DING_8:
 000EFA 8100               M         BSF     BTN_X0_FLAGS+BTN_IDX_X4, BTN_FLG_PRESSED, BANKED
                           M         ; copy timer values
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 55
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 000EFC C??? F???          M         MOVFF   QS_BTN_TMR_U, BTN_X0_TIME_U+BTN_IDX_X4
 000F00 C??? F???          M         MOVFF   QS_BTN_TMR_T, BTN_X0_TIME_T+BTN_IDX_X4
 000F04 CFCE F???          M         MOVFF   TMR1L, BTN_X0_TIME_L+BTN_IDX_X4
@@ -4940,6 +4948,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000F6E 0E00               M          MOVLW  0
 000F70 6F00               M          MOVWF  SSR_00_VALUE+CHAN_X4R, BANKED
 000F72 6B00               M          CLRF   SSR_00_STEP+CHAN_X4R, BANKED
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 56
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 000F74 6B00               M          CLRF   SSR_00_SPEED+CHAN_X4R, BANKED
 000F76 6B00               M          CLRF   SSR_00_COUNTER+CHAN_X4R, BANKED
 000F78 6B00               M          CLRF   SSR_00_FLAGS+CHAN_X4R, BANKED
@@ -4948,12 +4962,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000F7A 010C               M         BANKSEL QUIZSHOW_DATA
   0000001A                M LLIM_N  ++
 000F7C D???               M         BRA     SCN_DB_END_8
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 56
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
                           M         
 000F7E                    M SCN_DB_CHANGED_8:
                           M         ; Button has changed since last time: reset debounce counter and wait.
@@ -5030,6 +5038,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M         SET_SSR_STEADY CHAN_X4G
                           M          SET_SSR_VALUE CHAN_X4G, 255
 000FDA 0104               M         BANKSEL SSR_DATA_BANK
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 57
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 000FDC 0EFF               M          MOVLW  255
 000FDE 6F00               M          MOVWF  SSR_00_VALUE+CHAN_X4G, BANKED
 000FE0 6B00               M          CLRF   SSR_00_STEP+CHAN_X4G, BANKED
@@ -5038,12 +5052,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000FE6 6B00               M          CLRF   SSR_00_FLAGS+CHAN_X4G, BANKED
 000FE8 D???               M         BRA     LLIM_END_26
                           M 
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 57
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 000FEA                    M LLIM_OFF_26:
                           M         SET_SSR_OFF CHAN_X4G
                           M          SET_SSR_VALUE CHAN_X4G, 0
@@ -5120,6 +5128,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M 
 001028 B000               M         BTFSC   QUIZSHOW_FLAGS, QS_FLAG_SCANNING, ACCESS
 00102A D???               M         BRA     SCN_DB_DING_9
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 58
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
                           M 
 00102C 8500               M         BSF     BTN_X0_FLAGS+BTN_IDX_L4, BTN_FLG_LOCKED, BANKED
 00102E C??? F???          M         MOVFF   QUIZSHOW_LCKTM, BTN_X0_LOCKTMR+BTN_IDX_L4 
@@ -5128,12 +5142,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 001034 A500               M         BTFSS   BTN_X0_FLAGS+BTN_IDX_L4, BTN_FLG_LOCKED, BANKED
 001036 D???               M         BRA     LLIM_NOT_LOCKED_27
                           M 
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 58
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
                           M         SET_SSR_OFF CHAN_L4R
                           M          SET_SSR_VALUE CHAN_L4R, 0
 001038 0104               M         BANKSEL SSR_DATA_BANK
@@ -5210,6 +5218,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0010A2 D???               M         BRA     SCN_DB_END_9
                           M 
 0010A4                    M SCN_DB_DING_9:
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 59
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 0010A4 8100               M         BSF     BTN_X0_FLAGS+BTN_IDX_L4, BTN_FLG_PRESSED, BANKED
                           M         ; copy timer values
 0010A6 C??? F???          M         MOVFF   QS_BTN_TMR_U, BTN_X0_TIME_U+BTN_IDX_L4
@@ -5218,12 +5232,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0010B2 CFCF F???          M         MOVFF   TMR1H, BTN_X0_TIME_H+BTN_IDX_L4
                           M         ; update the lights
                           M         LOCAL_LIGHT_INDICATOR BTN_IDX_L4, CHAN_L4R, CHAN_L4R
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 59
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 0010B6 010C               M         BANKSEL QUIZSHOW_DATA
 0010B8 A500               M         BTFSS   BTN_X0_FLAGS+BTN_IDX_L4, BTN_FLG_LOCKED, BANKED
 0010BA D???               M         BRA     LLIM_NOT_LOCKED_28
@@ -5300,6 +5308,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M         
 001124                    M LLIM_END_28:
 001124 010C               M         BANKSEL QUIZSHOW_DATA
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 60
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
   0000001D                M LLIM_N  ++
 001126 D???               M         BRA     SCN_DB_END_9
                           M         
@@ -5308,12 +5322,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 001128 6B00               M         CLRF    BTN_X0_DEB_TMR+BTN_IDX_L4, BANKED
                           M 
 00112A                    M SCN_DB_END_9:
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 60
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 00112A A400               M         BTFSS   QUIZSHOW_FLAGS, QS_FLAG_DOING120, ACCESS
 00112C D???               M         BRA     SCN_DB_DONE_9
                           M         ;
@@ -5390,6 +5398,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 00118C 6B00               M          CLRF   SSR_00_SPEED+CHAN_L4R, BANKED
 00118E 6B00               M          CLRF   SSR_00_COUNTER+CHAN_L4R, BANKED
 001190 6B00               M          CLRF   SSR_00_FLAGS+CHAN_L4R, BANKED
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 61
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 001192 D???               M         BRA     LLIM_END_29
                           M 
 001194                    M LLIM_OFF_29:
@@ -5398,12 +5412,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 001194 0104               M         BANKSEL SSR_DATA_BANK
 001196 0E00               M          MOVLW  0
 001198 6F00               M          MOVWF  SSR_00_VALUE+CHAN_L4R, BANKED
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 61
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 00119A 6B00               M          CLRF   SSR_00_STEP+CHAN_L4R, BANKED
 00119C 6B00               M          CLRF   SSR_00_SPEED+CHAN_L4R, BANKED
 00119E 6B00               M          CLRF   SSR_00_COUNTER+CHAN_L4R, BANKED
@@ -5452,7 +5460,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00985 ; This is stopped via the QS_QUERY command.
                       00986 ; This is a global command, only recognized when sent to address 15.
                       00987 ;
-0011B6                00988 QSCC_CMD6_START:
+0011B6                00988 QSCC_CMD5_START:
 0011B6 0004           00989         CLRWDT
                       00990         CLEAR_BUTTONS 0
   00000000                M CB_IDX  SET     0
@@ -5480,6 +5488,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M          ELSE
 0011CA 9100               M           BCF   BTN_X0_FLAGS+CB_IDX, BTN_FLG_PRESSED, BANKED
                           M          ENDIF
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 62
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
   00000002                M CB_IDX   ++
 0011CC 6B00               M          CLRF   BTN_X0_TIME_T+CB_IDX, BANKED
 0011CE 6B00               M          CLRF   BTN_X0_TIME_U+CB_IDX, BANKED
@@ -5488,12 +5502,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M          IF 0
                           M           CLRF  BTN_X0_FLAGS+CB_IDX, BANKED
                           M           CLRF  BTN_X0_LOCKTMR+CB_IDX, BANKED
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 62
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
                           M           CLRF  BTN_X0_DEB_TMR+CB_IDX, BANKED
                           M          ELSE
 0011D4 9100               M           BCF   BTN_X0_FLAGS+CB_IDX, BTN_FLG_PRESSED, BANKED
@@ -5570,6 +5578,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M          ELSE
 001210 9100               M           BCF   BTN_X0_FLAGS+CB_IDX, BTN_FLG_PRESSED, BANKED
                           M          ENDIF
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 63
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
   00000009                M CB_IDX   ++
 001212 6B00               M          CLRF   BTN_X0_TIME_T+CB_IDX, BANKED
 001214 6B00               M          CLRF   BTN_X0_TIME_U+CB_IDX, BANKED
@@ -5578,12 +5592,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M          IF 0
                           M           CLRF  BTN_X0_FLAGS+CB_IDX, BANKED
                           M           CLRF  BTN_X0_LOCKTMR+CB_IDX, BANKED
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 63
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
                           M           CLRF  BTN_X0_DEB_TMR+CB_IDX, BANKED
                           M          ELSE
 00121A 9100               M           BCF   BTN_X0_FLAGS+CB_IDX, BTN_FLG_PRESSED, BANKED
@@ -5660,6 +5668,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M          ELSE
 001256 9100               M           BCF   BTN_X0_FLAGS+CB_IDX, BTN_FLG_PRESSED, BANKED
                           M          ENDIF
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 64
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
   00000010                M CB_IDX   ++
                           M         ENDW
 001258 8000           00991         BSF     QUIZSHOW_FLAGS, QS_FLAG_SCANNING, ACCESS
@@ -5668,12 +5682,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 00125C 6A00           00994         CLRF    QS_BTN_TMR_U, ACCESS
 00125E 6ACF           00995         CLRF    TMR1H, ACCESS
 001260 6ACE           00996         CLRF    TMR1L, ACCESS
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 64
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 001262 909E           00997         BCF     PIR1, TMR1IF, ACCESS
 001264 809F           00998         BSF     IPR1, TMR1IP, ACCESS
 001266 809D           00999         BSF     PIE1, TMR1IE, ACCESS
@@ -5750,6 +5758,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0012C2 D???               M         BRA     LLIM_END_30
                           M 
 0012C4                    M LLIM_OFF_30:
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 65
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
                           M         SET_SSR_OFF CHAN_X0G
                           M          SET_SSR_VALUE CHAN_X0G, 0
 0012C4 0104               M         BANKSEL SSR_DATA_BANK
@@ -5758,12 +5772,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0012CA 6B00               M          CLRF   SSR_00_STEP+CHAN_X0G, BANKED
 0012CC 6B00               M          CLRF   SSR_00_SPEED+CHAN_X0G, BANKED
 0012CE 6B00               M          CLRF   SSR_00_COUNTER+CHAN_X0G, BANKED
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 65
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 0012D0 6B00               M          CLRF   SSR_00_FLAGS+CHAN_X0G, BANKED
                           M         SET_SSR_OFF CHAN_X0R
                           M          SET_SSR_VALUE CHAN_X0R, 0
@@ -5840,6 +5848,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 001336 0E00               M          MOVLW  0
 001338 6F00               M          MOVWF  SSR_00_VALUE+CHAN_L0R, BANKED
 00133A 6B00               M          CLRF   SSR_00_STEP+CHAN_L0R, BANKED
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 66
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 00133C 6B00               M          CLRF   SSR_00_SPEED+CHAN_L0R, BANKED
 00133E 6B00               M          CLRF   SSR_00_COUNTER+CHAN_L0R, BANKED
 001340 6B00               M          CLRF   SSR_00_FLAGS+CHAN_L0R, BANKED
@@ -5848,12 +5862,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 001342 0104               M         BANKSEL SSR_DATA_BANK
 001344 0E00               M          MOVLW  0
 001346 6F00               M          MOVWF  SSR_00_VALUE+CHAN_L0R, BANKED
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 66
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 001348 6B00               M          CLRF   SSR_00_STEP+CHAN_L0R, BANKED
 00134A 6B00               M          CLRF   SSR_00_SPEED+CHAN_L0R, BANKED
 00134C 6B00               M          CLRF   SSR_00_COUNTER+CHAN_L0R, BANKED
@@ -5930,6 +5938,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M         SET_SSR_OFF CHAN_X1R
                           M          SET_SSR_VALUE CHAN_X1R, 0
 0013B2 0104               M         BANKSEL SSR_DATA_BANK
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 67
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 0013B4 0E00               M          MOVLW  0
 0013B6 6F00               M          MOVWF  SSR_00_VALUE+CHAN_X1R, BANKED
 0013B8 6B00               M          CLRF   SSR_00_STEP+CHAN_X1R, BANKED
@@ -5938,12 +5952,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0013BE 6B00               M          CLRF   SSR_00_FLAGS+CHAN_X1R, BANKED
                           M         
 0013C0                    M LLIM_END_32:
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 67
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 0013C0 010C               M         BANKSEL QUIZSHOW_DATA
   00000021                M LLIM_N  ++
                       01020           LOCAL_LIGHT_INDICATOR BTN_IDX_L1, CHAN_L1R, CHAN_L1R
@@ -6020,6 +6028,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 00142A 6B00               M          CLRF   SSR_00_SPEED+CHAN_L1R, BANKED
 00142C 6B00               M          CLRF   SSR_00_COUNTER+CHAN_L1R, BANKED
 00142E 6B00               M          CLRF   SSR_00_FLAGS+CHAN_L1R, BANKED
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 68
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
                           M         
 001430                    M LLIM_END_33:
 001430 010C               M         BANKSEL QUIZSHOW_DATA
@@ -6028,12 +6042,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 001432 010C               M         BANKSEL QUIZSHOW_DATA
 001434 A500               M         BTFSS   BTN_X0_FLAGS+BTN_IDX_X2, BTN_FLG_LOCKED, BANKED
 001436 D???               M         BRA     LLIM_NOT_LOCKED_34
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 68
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
                           M 
                           M         SET_SSR_OFF CHAN_X2G
                           M          SET_SSR_VALUE CHAN_X2G, 0
@@ -6110,6 +6118,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
   00000023                M LLIM_N  ++
                       01022           LOCAL_LIGHT_INDICATOR BTN_IDX_L2, CHAN_L2R, CHAN_L2R
 0014A2 010C               M         BANKSEL QUIZSHOW_DATA
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 69
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 0014A4 A500               M         BTFSS   BTN_X0_FLAGS+BTN_IDX_L2, BTN_FLG_LOCKED, BANKED
 0014A6 D???               M         BRA     LLIM_NOT_LOCKED_35
                           M 
@@ -6118,12 +6132,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0014A8 0104               M         BANKSEL SSR_DATA_BANK
 0014AA 0E00               M          MOVLW  0
 0014AC 6F00               M          MOVWF  SSR_00_VALUE+CHAN_L2R, BANKED
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 69
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 0014AE 6B00               M          CLRF   SSR_00_STEP+CHAN_L2R, BANKED
 0014B0 6B00               M          CLRF   SSR_00_SPEED+CHAN_L2R, BANKED
 0014B2 6B00               M          CLRF   SSR_00_COUNTER+CHAN_L2R, BANKED
@@ -6200,6 +6208,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                           M         SET_SSR_OFF CHAN_X3G
                           M          SET_SSR_VALUE CHAN_X3G, 0
 001518 0104               M         BANKSEL SSR_DATA_BANK
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 70
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 00151A 0E00               M          MOVLW  0
 00151C 6F00               M          MOVWF  SSR_00_VALUE+CHAN_X3G, BANKED
 00151E 6B00               M          CLRF   SSR_00_STEP+CHAN_X3G, BANKED
@@ -6208,12 +6222,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 001524 6B00               M          CLRF   SSR_00_FLAGS+CHAN_X3G, BANKED
                           M         SET_SSR_RAPID_FADE CHAN_X3R
                           M          SET_SSR_PATTERN CHAN_X3R, 0, 4, 1, BIT_FADE_UP|BIT_FADE_CYCLE
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 70
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 001526 0104               M         BANKSEL SSR_DATA_BANK
 001528 0E00               M          MOVLW  0
 00152A 6F00               M          MOVWF  SSR_00_VALUE+CHAN_X3R, BANKED
@@ -6290,6 +6298,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 001590 6B00               M          CLRF   SSR_00_SPEED+CHAN_L3R, BANKED
 001592 6B00               M          CLRF   SSR_00_COUNTER+CHAN_L3R, BANKED
 001594 6B00               M          CLRF   SSR_00_FLAGS+CHAN_L3R, BANKED
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 71
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
                           M         SET_SSR_RAPID_FADE CHAN_L3R
                           M          SET_SSR_PATTERN CHAN_L3R, 0, 4, 1, BIT_FADE_UP|BIT_FADE_CYCLE
 001596 0104               M         BANKSEL SSR_DATA_BANK
@@ -6298,12 +6312,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 00159C 0E04               M          MOVLW  4
 00159E 6F00               M          MOVWF  SSR_00_STEP+CHAN_L3R, BANKED
 0015A0 0E01               M          MOVLW  1
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 71
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 0015A2 6F00               M          MOVWF  SSR_00_SPEED+CHAN_L3R, BANKED
 0015A4 6F00               M          MOVWF  SSR_00_COUNTER+CHAN_L3R, BANKED
 0015A6 0EA0               M          MOVLW  BIT_FADE_UP|BIT_FADE_CYCLE
@@ -6380,6 +6388,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 001608 0E00               M          MOVLW  0
 00160A 6F00               M          MOVWF  SSR_00_VALUE+CHAN_X4R, BANKED
 00160C 0E04               M          MOVLW  4
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 72
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 00160E 6F00               M          MOVWF  SSR_00_STEP+CHAN_X4R, BANKED
 001610 0E01               M          MOVLW  1
 001612 6F00               M          MOVWF  SSR_00_SPEED+CHAN_X4R, BANKED
@@ -6388,12 +6402,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 001618 6F00               M          MOVWF  SSR_00_FLAGS+CHAN_X4R, BANKED
 00161A D???               M         BRA     LLIM_END_38
                           M 
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 72
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
 00161C                    M LLIM_NOT_LOCKED_38:
 00161C A300               M         BTFSS   BTN_X0_FLAGS+BTN_IDX_X4, BTN_FLG_MASKED, BANKED
 00161E B100               M         BTFSC   BTN_X0_FLAGS+BTN_IDX_X4, BTN_FLG_PRESSED, BANKED
@@ -6470,6 +6478,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 001684 6F00               M          MOVWF  SSR_00_COUNTER+CHAN_L4R, BANKED
 001686 0EA0               M          MOVLW  BIT_FADE_UP|BIT_FADE_CYCLE
 001688 6F00               M          MOVWF  SSR_00_FLAGS+CHAN_L4R, BANKED
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 73
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 00168A D???               M         BRA     LLIM_END_39
                           M 
 00168C                    M LLIM_NOT_LOCKED_39:
@@ -6478,12 +6492,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 001690 D???               M         BRA     LLIM_OFF_39
 001692 A000               M         BTFSS   QUIZSHOW_FLAGS, QS_FLAG_SCANNING, ACCESS
 001694 D???               M         BRA     LLIM_OFF_39
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 73
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
                           M         ; We're scanning and not masked or pressed - light up button
                           M         SET_SSR_OFF CHAN_L4R
                           M          SET_SSR_VALUE CHAN_L4R, 0
@@ -6534,21 +6542,19 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       01030         ENDIF
 0016D2 0012           01031         RETURN
                       01032 
-                      01033 
-                      01034 
-0016D4                01035 QS_STOP_SCANNER:
-0016D4 0004           01036         CLRWDT
-0016D6 9000           01037         BCF     QUIZSHOW_FLAGS, QS_FLAG_SCANNING, ACCESS
-                      01038         ; stop timer
-0016D8 90CD           01039         BCF     T1CON, TMR1ON, ACCESS
-0016DA 909D           01040         BCF     PIE1, TMR1IE, ACCESS
-0016DC 909E           01041         BCF     PIR1, TMR1IF, ACCESS
-                      01042         ; extinguish non-masked buttons
-0016DE D???           01043         RCALL SET_ALL_BUTTON_LIGHTS
-0016E0 0012           01044         RETURN
-                      01045 
-                      01046         END
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 74
+0016D4                01033 QS_STOP_SCANNER:
+0016D4 0004           01034         CLRWDT
+0016D6 9000           01035         BCF     QUIZSHOW_FLAGS, QS_FLAG_SCANNING, ACCESS
+                      01036         ; stop timer
+0016D8 90CD           01037         BCF     T1CON, TMR1ON, ACCESS
+0016DA 909D           01038         BCF     PIE1, TMR1IE, ACCESS
+0016DC 909E           01039         BCF     PIR1, TMR1IF, ACCESS
+                      01040         ; extinguish non-masked buttons
+0016DE D???           01041         RCALL SET_ALL_BUTTON_LIGHTS
+0016E0 0012           01042         RETURN
+                      01043 
+                      01044         END
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 74
 
 
 SYMBOL TABLE
@@ -6638,7 +6644,7 @@ B0D44                             00000004
 B0D45                             00000005
 B0D46                             00000006
 B0D47                             00000007
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 75
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 75
 
 
 SYMBOL TABLE
@@ -6728,7 +6734,7 @@ B1D5                              00000E3B
 B1D50                             00000000
 B1D51                             00000001
 B1D52                             00000002
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 76
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 76
 
 
 SYMBOL TABLE
@@ -6818,7 +6824,7 @@ B2D53                             00000003
 B2D54                             00000004
 B2D55                             00000005
 B2D56                             00000006
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 77
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 77
 
 
 SYMBOL TABLE
@@ -6908,7 +6914,7 @@ B3D57                             00000007
 B3D6                              00000E5C
 B3D60                             00000000
 B3D61                             00000001
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 78
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 78
 
 
 SYMBOL TABLE
@@ -6998,7 +7004,7 @@ B4D61                             00000001
 B4D62                             00000002
 B4D63                             00000003
 B4D64                             00000004
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 79
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 79
 
 
 SYMBOL TABLE
@@ -7088,7 +7094,7 @@ B5D63                             00000003
 B5D64                             00000004
 B5D65                             00000005
 B5D66                             00000006
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 80
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 80
 
 
 SYMBOL TABLE
@@ -7178,7 +7184,7 @@ BTN_IDX_L0                        00000001
 BTN_IDX_L1                        00000003
 BTN_IDX_L2                        00000005
 BTN_IDX_L3                        00000007
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 81
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 81
 
 
 SYMBOL TABLE
@@ -7268,7 +7274,7 @@ CHAN_X4R                          00000010
 CHS0                              00000002
 CHS1                              00000003
 CHS2                              00000004
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 82
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 82
 
 
 SYMBOL TABLE
@@ -7358,7 +7364,7 @@ EEIF                              00000004
 EEIP                              00000004
 EEPGD                             00000007
 EICODE0                           00000000
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 83
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 83
 
 
 SYMBOL TABLE
@@ -7448,7 +7454,7 @@ F3BP_3                            00000007
 F4BP_0                            00000000
 F4BP_1                            00000001
 F4BP_2                            00000002
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 84
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 84
 
 
 SYMBOL TABLE
@@ -7538,7 +7544,7 @@ FP0                               00000000
 FP1                               00000001
 FP2                               00000002
 FP3                               00000003
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 85
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 85
 
 
 SYMBOL TABLE
@@ -7628,7 +7634,7 @@ IPR3                              00000FA5
 IRCF0                             00000004
 IRCF1                             00000005
 IRCF2                             00000006
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 86
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 86
 
 
 SYMBOL TABLE
@@ -7718,7 +7724,7 @@ LLIM_END_35                       00001510
 LLIM_END_36                       00001580
 LLIM_END_37                       000015F0
 LLIM_END_38                       00001660
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 87
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 87
 
 
 SYMBOL TABLE
@@ -7808,7 +7814,7 @@ LLIM_OFF_38                       00001644
 LLIM_OFF_39                       000016B4
 LLIM_OFF_4                        000003B8
 LLIM_OFF_5                        00000444
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 88
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 88
 
 
 SYMBOL TABLE
@@ -7898,7 +7904,7 @@ P1C                               00000006
 P1D                               00000007
 PC                                00000FF9
 PCFG0                             00000000
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 89
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 89
 
 
 SYMBOL TABLE
@@ -7988,7 +7994,7 @@ PRODH                             00000FF4
 PRODL                             00000FF3
 PRSEG0                            00000000
 PRSEG1                            00000001
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 90
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 90
 
 
 SYMBOL TABLE
@@ -8014,7 +8020,7 @@ PSSAC1                            00000003
 PSSBD0                            00000000
 PSSBD1                            00000001
 QSCC_BITS_INC                     
-QSCC_CMD6_START                   000011B6
+QSCC_CMD5_START                   000011B6
 QSCC_MAIN                         00000102
 QSCC_PORT                         (1)
 QSCC_START                        00000000
@@ -8078,7 +8084,7 @@ RC6                               00000006
 RC7                               00000007
 RCEN                              00000003
 RCIDL                             00000006
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 91
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 91
 
 
 SYMBOL TABLE
@@ -8168,7 +8174,7 @@ RXB0D37                           00000007
 RXB0D4                            00000F6A
 RXB0D40                           00000000
 RXB0D41                           00000001
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 92
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 92
 
 
 SYMBOL TABLE
@@ -8258,7 +8264,7 @@ RXB1D36                           00000006
 RXB1D37                           00000007
 RXB1D4                            00000F5A
 RXB1D40                           00000000
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 93
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 93
 
 
 SYMBOL TABLE
@@ -8348,7 +8354,7 @@ RXF15EIDH                         00000D92
 RXF15EIDL                         00000D93
 RXF15EN                           00000007
 RXF15SIDH                         00000D90
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 94
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 94
 
 
 SYMBOL TABLE
@@ -8438,7 +8444,7 @@ RXRTRRO_TXLARB                    00000005
 RXRTR_TXRTR                       00000006
 RXWARN                            00000001
 R_NOT_W                           00000002
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 95
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 95
 
 
 SYMBOL TABLE
@@ -8528,7 +8534,7 @@ SEG2PH1                           00000001
 SEG2PH2                           00000002
 SEG2PHT                           00000007
 SEG2PHTS                          00000007
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 96
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 96
 
 
 SYMBOL TABLE
@@ -8618,7 +8624,7 @@ T0PS0                             00000000
 T0PS1                             00000001
 T0PS2                             00000002
 T0PS3                             00000003
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 97
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 97
 
 
 SYMBOL TABLE
@@ -8708,7 +8714,7 @@ TRISA7                            00000007
 TRISB                             00000F93
 TRISB0                            00000000
 TRISB1                            00000001
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 98
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 98
 
 
 SYMBOL TABLE
@@ -8798,7 +8804,7 @@ TXB0D43                           00000003
 TXB0D44                           00000004
 TXB0D45                           00000005
 TXB0D46                           00000006
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 99
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 99
 
 
 SYMBOL TABLE
@@ -8888,7 +8894,7 @@ TXB1D46                           00000006
 TXB1D47                           00000007
 TXB1D5                            00000F3B
 TXB1D50                           00000000
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 100
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 100
 
 
 SYMBOL TABLE
@@ -8978,7 +8984,7 @@ TXB2D50                           00000000
 TXB2D51                           00000001
 TXB2D52                           00000002
 TXB2D53                           00000003
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 101
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 101
 
 
 SYMBOL TABLE
@@ -9068,7 +9074,7 @@ YY_BUF_LEN                        000000C8
 Z                                 00000002
 _BBSIZ_1024_4L                    000000CF
 _BBSIZ_2048_4L                    000000DF
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 102
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 102
 
 
 SYMBOL TABLE
@@ -9158,7 +9164,7 @@ _OSC_RC_1H                        000000F3
 _OSC_XT_1H                        000000F1
 _PBADEN_OFF_3H                    000000FD
 _PBADEN_ON_3H                     000000FF
-MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-9-2014  21:14:21         PAGE 103
+MPASM 5.53              ../QUIZSHOW_MAIN.ASM   6-12-2014  13:50:08         PAGE 103
 
 
 SYMBOL TABLE

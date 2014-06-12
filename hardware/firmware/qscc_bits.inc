@@ -35,4 +35,12 @@
 QS_FLAG_DOING120 EQU	2		; -----1--	Doing "every 1/120 sec tasks" now
 QS_FLAG_ON_120_S EQU	1		; ------1-	Need to do "every 1/120 sec tasks" now
 QS_FLAG_SCANNING EQU	0		; -------1	Scanner running
+
+					; BTN_??_FLAGS
+BTN_FLG_ACTIVE	EQU	3		; ----1---	Button being pressed now
+BTN_FLG_LOCKED	EQU	2		; -----1--	Button locked out
+BTN_FLG_MASKED	EQU	1		; ------1-	Button ignored
+BTN_FLG_PRESSED	EQU	0		; -------1	Button pressed already
+
+QUIZSHOW_DATA	EQU	0xC00
 #endif

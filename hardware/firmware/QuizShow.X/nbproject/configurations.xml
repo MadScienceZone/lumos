@@ -15,6 +15,7 @@
       <itemPath>../qscc_hook_main_pins.inc</itemPath>
       <itemPath>../lumos_set_ssr.inc</itemPath>
       <itemPath>../quizshow_config.inc</itemPath>
+      <itemPath>../lumos_8bit_escapes.inc</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"

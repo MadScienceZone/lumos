@@ -67,6 +67,11 @@
 	EXTERN	QUIZSHOW_FLAGS
 	EXTERN	QS_BTN_TMR_T
 	EXTERN	QS_BTN_TMR_U
+	GLOBAL	BTN_X0_TIME_T
+	GLOBAL	BTN_X0_TIME_U
+	GLOBAL	BTN_X0_TIME_H
+	GLOBAL	BTN_X0_TIME_L
+	GLOBAL	BTN_X0_FLAGS
 ;#include "serial-io.inc"
 
 ; Works on Software Alchemy Quiz Show QSCC and QSRC boards revision 4.0.
@@ -683,7 +688,7 @@
 ;
 	GLOBAL	QSCC_START
 	GLOBAL	QSCC_MAIN
-	GLOBAL	QSCC_CMD6_START
+	GLOBAL	QSCC_CMD5_START
 	GLOBAL	QS_STOP_SCANNER
 
 ;------------------------------------------------------------------------------
@@ -731,11 +736,6 @@ BTN_X0_DEB_TMR	RES	N_BUTTONS	; number of polls to satisfy debounce logic
 QUIZSHOW_LCKTM	RES	1		; number of 1/120 sec we lock out offenders
 _QUIZSHOW_CODE	CODE
 
-					; BTN_??_FLAGS
-BTN_FLG_ACTIVE	EQU	3		; ----1---	Button being pressed now
-BTN_FLG_LOCKED	EQU	2		; -----1--	Button locked out
-BTN_FLG_MASKED	EQU	1		; ------1-	Button ignored
-BTN_FLG_PRESSED	EQU	0		; -------1	Button pressed already
 
 ;
 ; Clear all button timers and states
@@ -985,7 +985,7 @@ SCAN_DEBOUNCERS:
 ; This is stopped via the QS_QUERY command.
 ; This is a global command, only recognized when sent to address 15.
 ;
-QSCC_CMD6_START:
+QSCC_CMD5_START:
 	CLRWDT
 	CLEAR_BUTTONS 0
 	BSF	QUIZSHOW_FLAGS, QS_FLAG_SCANNING, ACCESS
@@ -1029,8 +1029,6 @@ SET_ALL_BUTTON_LIGHTS:
 	 ENDIF
 	ENDIF
 	RETURN
-
-
 
 QS_STOP_SCANNER:
 	CLRWDT

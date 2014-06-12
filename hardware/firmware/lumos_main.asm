@@ -67,6 +67,7 @@
 	 GLOBAL	SSR_00_STEP
 	 GLOBAL	SSR_00_SPEED
 	 GLOBAL	SSR_00_COUNTER
+	 EXTERN QSCC_INIT
 	ELSE
 #include "flash_update.inc"
 	ENDIF
@@ -1728,58 +1729,7 @@ ERR_BUG	MACRO	ERR_CODE, ERR_CLASS
 	ENDM
 
 #include "lumos_set_ssr.inc"
-
-;
-; Sending 8-bit data bytes in our 7-bit protocol
-; (in data bytes, in other words) requires this
-; escaping mechanism:
-;   If high bit set, send $7E + low 7 bits
-;   Literal $7E is sent as $7F + $7E
-;   Literal $7F is sent as $7F + $7F
-; 
-; Other interesting cases inferred from the above:
-;   $FE is sent as $7E + $7E
-;   $FF is sent as $7E + $7F
-;
-; This calls the SIO_WRITE_W entry point, so the bank
-; will shift as a result.
-;
-SND8BIT	MACRO	VALUE
-	MOVLW	VALUE
-	SEND_8_BIT_W
-	ENDM
-
-S8B_LABEL SET	1
-SEND_8_BIT_W MACRO
-	MOVWF	EIGHTBITSIOBUF, ACCESS
-	MOVLW	0x7F				; sending literal $7F?
-	CPFSEQ	EIGHTBITSIOBUF, ACCESS
-	BRA	S8B_CHK_7E#v(S8B_LABEL)
-	CALL	SIO_WRITE_W			; send $7F to escape first
-	MOVLW	0x7F				; then the literal $7F itself.
-	CALL	SIO_WRITE_W			
-	BRA	S8B_END#v(S8B_LABEL)
-S8B_CHK_7E#v(S8B_LABEL):
-	MOVLW	0x7E				; sending literal $7E?
-	CPFSEQ	EIGHTBITSIOBUF, ACCESS
-	BRA	S8B_CHK_MSB#v(S8B_LABEL)
-	MOVLW	0x7F				; send $7F to escape first
-	CALL	SIO_WRITE_W
-	MOVLW	0x7E				; then the literal $7E itself.
-	CALL	SIO_WRITE_W
-	BRA	S8B_END#v(S8B_LABEL)
-S8B_CHK_MSB#v(S8B_LABEL):
-	BTFSS	EIGHTBITSIOBUF, 7, ACCESS	; MSB set?
-	BRA	S8B_SEND_NORMAL#v(S8B_LABEL)
-	MOVLW	0x7E				; send $7E to escape first
-	CALL	SIO_WRITE_W
-	BCF	EIGHTBITSIOBUF, 7, ACCESS	; clear MSB and (fall-thru to) send it.
-S8B_SEND_NORMAL#v(S8B_LABEL):
-	MOVF	EIGHTBITSIOBUF, W, ACCESS	; send byte
-	CALL	SIO_WRITE_W	
-S8B_END#v(S8B_LABEL):
-S8B_LABEL ++
-	ENDM
+#include "lumos_8bit_escapes.inc"
 
 ;==============================================================================
 ; BOOT BLOCK
@@ -2739,7 +2689,6 @@ END_OPTION_HANDLER:
 	; priv: option held ~2s and release -> test mode
 	; test: option press -> pause, wait for release
 	; pause: option press -> wait for release, test
-	; XXX test/pause: option held ~2s -> priv
 
 	BRA	MAIN
 	
@@ -3126,21 +3075,21 @@ S0_CMD4:
 	MOVWF	YY_STATE, ACCESS	; -> state 5 (wait for channel)
 	RETURN
 
-	IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSCC || LUMOS_CHIP_TYPE == LUMOS_CHIP_QSRC
-	 #include "qscc_hook_5_6.asm"
-	ELSE
+;	IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSCC || LUMOS_CHIP_TYPE == LUMOS_CHIP_QSRC
+;	 #include "qscc_hook_5_6.asm"
+;	ELSE
 S0_CMD5:
 	 ; Unimplemented Command
 	 DECFSZ	WREG, W, ACCESS
 	 BRA	S0_CMD6
-	 GOTO	ERR_NOT_IMP		; XXX
+	 GOTO	ERR_NOT_IMP		; XXX RESERVED FOR FUTURE COMMAND XXX
 
 S0_CMD6:
 	 ; Unimplemented Command
 	 DECFSZ	WREG, W, ACCESS
 	 BRA	S0_CMD7
-	 GOTO	ERR_NOT_IMP		; XXX
-	ENDIF
+	 GOTO	ERR_NOT_IMP		; XXX RESERVED FOR FUTURE COMMAND XXX
+;	ENDIF
 
 S0_CMD7:
 	; Extended commands
@@ -4098,7 +4047,7 @@ S6_9_QUERY:
 	ELSE
 	 IF ROLE_STANDALONE
 	  CALL	TR_ON_DELAY
-	  BSF	PORT_T_R, BIT_T_R, ACCESS		; Fire up our transmitter now
+	  BSF	PLAT_T_R, BIT_T_R, ACCESS		; Fire up our transmitter now
 	  BCF	SSR_STATE2, INHIBIT_OUTPUT, ACCESS	; Allow sending output
 	 ELSE
 	  ERR_BUG 0x0F, ERR_CLASS_INT_COMMAND
@@ -4184,7 +4133,20 @@ S6_9_QUERY:
 	 IF LUMOS_CHIP_TYPE == LUMOS_CHIP_STANDALONE
 	  MOVLW 0x01
 	 ELSE
-	  ERR_BUG 0x10, ERR_CLASS_DEVICE
+	  IF LUMOS_CHIP_TYPE == LUMOS_CHIP_4CHANNEL
+	   MOVLW 0x02
+	  ELSE
+	   IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSCC
+	    MOVLW 0x03
+	   ELSE
+	    IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSRC
+	     MOVLW 0x04
+	    ELSE
+	     ERROR "Invalid chip type selected"
+	     ERR_BUG 0x10, ERR_CLASS_DEVICE
+	    ENDIF
+	   ENDIF
+	  ENDIF
 	 ENDIF
 	ENDIF
 	SEND_8_BIT_W

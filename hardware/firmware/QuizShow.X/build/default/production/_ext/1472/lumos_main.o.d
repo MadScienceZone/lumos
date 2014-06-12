@@ -10,11 +10,11 @@ build/default/production/_ext/1472/lumos_main.o:  \
 	/Users/steve/proj/lumos/trunk/hardware/firmware/quizshow_config.inc  \
 	/Users/steve/proj/lumos/trunk/hardware/firmware/qscc_hook_main_pins.inc  \
 	/Users/steve/proj/lumos/trunk/hardware/firmware/lumos_set_ssr.inc  \
+	/Users/steve/proj/lumos/trunk/hardware/firmware/lumos_8bit_escapes.inc  \
 	/Users/steve/proj/lumos/trunk/hardware/firmware/qscc_hook_120hz.asm  \
 	/Users/steve/proj/lumos/trunk/hardware/firmware/qscc_hook_isr.asm  \
 	/Users/steve/proj/lumos/trunk/hardware/firmware/qscc_hook_access_bank.inc  \
 	/Users/steve/proj/lumos/trunk/hardware/firmware/qscc_hook_global_commands.asm  \
-	/Users/steve/proj/lumos/trunk/hardware/firmware/qscc_hook_5_6.asm  \
 	/Users/steve/proj/lumos/trunk/hardware/firmware/qscc_hook_s6_14.asm  \
 	/Users/steve/proj/lumos/trunk/hardware/firmware/qscc_hook_s9_xa.asm  \
 	/Users/steve/proj/lumos/trunk/hardware/firmware/qscc_hook_s9_priv_6.asm  \
