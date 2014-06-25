@@ -1,5 +1,5 @@
 MPLINK 4.51, LINKER
-Linker Map File - Created Thu Jun 12 13:50:09 2014
+Linker Map File - Created Sat Jun 14 09:32:03 2014
 
                                  Section Info
                   Section       Type    Address   Location Size(Bytes)
@@ -16,7 +16,7 @@ Linker Map File - Created Thu Jun 12 13:50:09 2014
                     _MAIN       code   0x000800    program   0x001fba
          _EEPROM_DEFS_TBL       code   0x014000    program   0x000010
                    .org_0       code   0x015000    program   0x00007e
-           _QUIZSHOW_CODE       code   0x01507e    program   0x0016e2
+           _QUIZSHOW_CODE       code   0x01507e    program   0x001700
                   __SYS__       code   0x016ff0    program   0x000002
 .config_300001_BUILD/DEFAULT/PRODUCTION/_EXT/14    romdata   0x300001    program   0x000001
 .config_300002_BUILD/DEFAULT/PRODUCTION/_EXT/14    romdata   0x300002    program   0x000001
@@ -55,13 +55,13 @@ Linker Map File - Created Thu Jun 12 13:50:09 2014
                             0x000800    0x0017dc      
                             0x014000    0x014007      
                             0x015000    0x01503e      
-                            0x01507e    0x015bee      
+                            0x01507e    0x015bfd      
                             0x016ff0    0x016ff0      
                             0x300001    0x300003      
                             0x300005    0x300006      
                             0x300008    0x30000d      
                             0xf00000    0xf00007      
-            7825 out of 99352 program addresses used, program memory utilization is 7%
+            7840 out of 99352 program addresses used, program memory utilization is 7%
 
 
 
@@ -168,126 +168,126 @@ FACTORY_RESET_JUMPER_CHECK   0x000284    program     static ../lumos_main.asm
                INT_TX_END   0x0005bc    program     static ../lumos_main.asm        
                    INT_ZC   0x0005d2    program     static ../lumos_main.asm        
                INT_ZC_END   0x0005ee    program     static ../lumos_main.asm        
-               LLIM_END_0   0x015224    program     static ../quizshow_main.asm     
-               LLIM_END_1   0x0152a8    program     static ../quizshow_main.asm     
-              LLIM_END_10   0x0157a6    program     static ../quizshow_main.asm     
-              LLIM_END_11   0x015832    program     static ../quizshow_main.asm     
-              LLIM_END_12   0x0158cc    program     static ../quizshow_main.asm     
-              LLIM_END_13   0x015950    program     static ../quizshow_main.asm     
-              LLIM_END_14   0x0159dc    program     static ../quizshow_main.asm     
-              LLIM_END_15   0x015a76    program     static ../quizshow_main.asm     
-              LLIM_END_16   0x015afa    program     static ../quizshow_main.asm     
-              LLIM_END_17   0x015b86    program     static ../quizshow_main.asm     
-              LLIM_END_18   0x015c20    program     static ../quizshow_main.asm     
-              LLIM_END_19   0x015ca4    program     static ../quizshow_main.asm     
-               LLIM_END_2   0x015334    program     static ../quizshow_main.asm     
-              LLIM_END_20   0x015d30    program     static ../quizshow_main.asm     
-              LLIM_END_21   0x015dca    program     static ../quizshow_main.asm     
-              LLIM_END_22   0x015e4e    program     static ../quizshow_main.asm     
-              LLIM_END_23   0x015eda    program     static ../quizshow_main.asm     
-              LLIM_END_24   0x015f74    program     static ../quizshow_main.asm     
-              LLIM_END_25   0x015ff8    program     static ../quizshow_main.asm     
-              LLIM_END_26   0x016084    program     static ../quizshow_main.asm     
-              LLIM_END_27   0x01611e    program     static ../quizshow_main.asm     
-              LLIM_END_28   0x0161a2    program     static ../quizshow_main.asm     
-              LLIM_END_29   0x01622e    program     static ../quizshow_main.asm     
-               LLIM_END_3   0x0153ce    program     static ../quizshow_main.asm     
-              LLIM_END_30   0x01635e    program     static ../quizshow_main.asm     
-              LLIM_END_31   0x0163ce    program     static ../quizshow_main.asm     
-              LLIM_END_32   0x01643e    program     static ../quizshow_main.asm     
-              LLIM_END_33   0x0164ae    program     static ../quizshow_main.asm     
-              LLIM_END_34   0x01651e    program     static ../quizshow_main.asm     
-              LLIM_END_35   0x01658e    program     static ../quizshow_main.asm     
-              LLIM_END_36   0x0165fe    program     static ../quizshow_main.asm     
-              LLIM_END_37   0x01666e    program     static ../quizshow_main.asm     
-              LLIM_END_38   0x0166de    program     static ../quizshow_main.asm     
-              LLIM_END_39   0x01674e    program     static ../quizshow_main.asm     
-               LLIM_END_4   0x015452    program     static ../quizshow_main.asm     
-               LLIM_END_5   0x0154de    program     static ../quizshow_main.asm     
-               LLIM_END_6   0x015578    program     static ../quizshow_main.asm     
-               LLIM_END_7   0x0155fc    program     static ../quizshow_main.asm     
-               LLIM_END_8   0x015688    program     static ../quizshow_main.asm     
-               LLIM_END_9   0x015722    program     static ../quizshow_main.asm     
-        LLIM_NOT_LOCKED_0   0x0151e0    program     static ../quizshow_main.asm     
-        LLIM_NOT_LOCKED_1   0x015264    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_10   0x015762    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_11   0x0157ee    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_12   0x015888    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_13   0x01590c    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_14   0x015998    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_15   0x015a32    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_16   0x015ab6    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_17   0x015b42    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_18   0x015bdc    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_19   0x015c60    program     static ../quizshow_main.asm     
-        LLIM_NOT_LOCKED_2   0x0152f0    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_20   0x015cec    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_21   0x015d86    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_22   0x015e0a    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_23   0x015e96    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_24   0x015f30    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_25   0x015fb4    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_26   0x016040    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_27   0x0160da    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_28   0x01615e    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_29   0x0161ea    program     static ../quizshow_main.asm     
-        LLIM_NOT_LOCKED_3   0x01538a    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_30   0x01631a    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_31   0x01638a    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_32   0x0163fa    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_33   0x01646a    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_34   0x0164da    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_35   0x01654a    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_36   0x0165ba    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_37   0x01662a    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_38   0x01669a    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_39   0x01670a    program     static ../quizshow_main.asm     
-        LLIM_NOT_LOCKED_4   0x01540e    program     static ../quizshow_main.asm     
-        LLIM_NOT_LOCKED_5   0x01549a    program     static ../quizshow_main.asm     
-        LLIM_NOT_LOCKED_6   0x015534    program     static ../quizshow_main.asm     
-        LLIM_NOT_LOCKED_7   0x0155b8    program     static ../quizshow_main.asm     
-        LLIM_NOT_LOCKED_8   0x015644    program     static ../quizshow_main.asm     
-        LLIM_NOT_LOCKED_9   0x0156de    program     static ../quizshow_main.asm     
-               LLIM_OFF_0   0x015208    program     static ../quizshow_main.asm     
-               LLIM_OFF_1   0x01528c    program     static ../quizshow_main.asm     
-              LLIM_OFF_10   0x01578a    program     static ../quizshow_main.asm     
-              LLIM_OFF_11   0x015816    program     static ../quizshow_main.asm     
-              LLIM_OFF_12   0x0158b0    program     static ../quizshow_main.asm     
-              LLIM_OFF_13   0x015934    program     static ../quizshow_main.asm     
-              LLIM_OFF_14   0x0159c0    program     static ../quizshow_main.asm     
-              LLIM_OFF_15   0x015a5a    program     static ../quizshow_main.asm     
-              LLIM_OFF_16   0x015ade    program     static ../quizshow_main.asm     
-              LLIM_OFF_17   0x015b6a    program     static ../quizshow_main.asm     
-              LLIM_OFF_18   0x015c04    program     static ../quizshow_main.asm     
-              LLIM_OFF_19   0x015c88    program     static ../quizshow_main.asm     
-               LLIM_OFF_2   0x015318    program     static ../quizshow_main.asm     
-              LLIM_OFF_20   0x015d14    program     static ../quizshow_main.asm     
-              LLIM_OFF_21   0x015dae    program     static ../quizshow_main.asm     
-              LLIM_OFF_22   0x015e32    program     static ../quizshow_main.asm     
-              LLIM_OFF_23   0x015ebe    program     static ../quizshow_main.asm     
-              LLIM_OFF_24   0x015f58    program     static ../quizshow_main.asm     
-              LLIM_OFF_25   0x015fdc    program     static ../quizshow_main.asm     
-              LLIM_OFF_26   0x016068    program     static ../quizshow_main.asm     
-              LLIM_OFF_27   0x016102    program     static ../quizshow_main.asm     
-              LLIM_OFF_28   0x016186    program     static ../quizshow_main.asm     
-              LLIM_OFF_29   0x016212    program     static ../quizshow_main.asm     
-               LLIM_OFF_3   0x0153b2    program     static ../quizshow_main.asm     
-              LLIM_OFF_30   0x016342    program     static ../quizshow_main.asm     
-              LLIM_OFF_31   0x0163b2    program     static ../quizshow_main.asm     
-              LLIM_OFF_32   0x016422    program     static ../quizshow_main.asm     
-              LLIM_OFF_33   0x016492    program     static ../quizshow_main.asm     
-              LLIM_OFF_34   0x016502    program     static ../quizshow_main.asm     
-              LLIM_OFF_35   0x016572    program     static ../quizshow_main.asm     
-              LLIM_OFF_36   0x0165e2    program     static ../quizshow_main.asm     
-              LLIM_OFF_37   0x016652    program     static ../quizshow_main.asm     
-              LLIM_OFF_38   0x0166c2    program     static ../quizshow_main.asm     
-              LLIM_OFF_39   0x016732    program     static ../quizshow_main.asm     
-               LLIM_OFF_4   0x015436    program     static ../quizshow_main.asm     
-               LLIM_OFF_5   0x0154c2    program     static ../quizshow_main.asm     
-               LLIM_OFF_6   0x01555c    program     static ../quizshow_main.asm     
-               LLIM_OFF_7   0x0155e0    program     static ../quizshow_main.asm     
-               LLIM_OFF_8   0x01566c    program     static ../quizshow_main.asm     
-               LLIM_OFF_9   0x015706    program     static ../quizshow_main.asm     
+               LLIM_END_0   0x015242    program     static ../quizshow_main.asm     
+               LLIM_END_1   0x0152c6    program     static ../quizshow_main.asm     
+              LLIM_END_10   0x0157c4    program     static ../quizshow_main.asm     
+              LLIM_END_11   0x015850    program     static ../quizshow_main.asm     
+              LLIM_END_12   0x0158ea    program     static ../quizshow_main.asm     
+              LLIM_END_13   0x01596e    program     static ../quizshow_main.asm     
+              LLIM_END_14   0x0159fa    program     static ../quizshow_main.asm     
+              LLIM_END_15   0x015a94    program     static ../quizshow_main.asm     
+              LLIM_END_16   0x015b18    program     static ../quizshow_main.asm     
+              LLIM_END_17   0x015ba4    program     static ../quizshow_main.asm     
+              LLIM_END_18   0x015c3e    program     static ../quizshow_main.asm     
+              LLIM_END_19   0x015cc2    program     static ../quizshow_main.asm     
+               LLIM_END_2   0x015352    program     static ../quizshow_main.asm     
+              LLIM_END_20   0x015d4e    program     static ../quizshow_main.asm     
+              LLIM_END_21   0x015de8    program     static ../quizshow_main.asm     
+              LLIM_END_22   0x015e6c    program     static ../quizshow_main.asm     
+              LLIM_END_23   0x015ef8    program     static ../quizshow_main.asm     
+              LLIM_END_24   0x015f92    program     static ../quizshow_main.asm     
+              LLIM_END_25   0x016016    program     static ../quizshow_main.asm     
+              LLIM_END_26   0x0160a2    program     static ../quizshow_main.asm     
+              LLIM_END_27   0x01613c    program     static ../quizshow_main.asm     
+              LLIM_END_28   0x0161c0    program     static ../quizshow_main.asm     
+              LLIM_END_29   0x01624c    program     static ../quizshow_main.asm     
+               LLIM_END_3   0x0153ec    program     static ../quizshow_main.asm     
+              LLIM_END_30   0x01637c    program     static ../quizshow_main.asm     
+              LLIM_END_31   0x0163ec    program     static ../quizshow_main.asm     
+              LLIM_END_32   0x01645c    program     static ../quizshow_main.asm     
+              LLIM_END_33   0x0164cc    program     static ../quizshow_main.asm     
+              LLIM_END_34   0x01653c    program     static ../quizshow_main.asm     
+              LLIM_END_35   0x0165ac    program     static ../quizshow_main.asm     
+              LLIM_END_36   0x01661c    program     static ../quizshow_main.asm     
+              LLIM_END_37   0x01668c    program     static ../quizshow_main.asm     
+              LLIM_END_38   0x0166fc    program     static ../quizshow_main.asm     
+              LLIM_END_39   0x01676c    program     static ../quizshow_main.asm     
+               LLIM_END_4   0x015470    program     static ../quizshow_main.asm     
+               LLIM_END_5   0x0154fc    program     static ../quizshow_main.asm     
+               LLIM_END_6   0x015596    program     static ../quizshow_main.asm     
+               LLIM_END_7   0x01561a    program     static ../quizshow_main.asm     
+               LLIM_END_8   0x0156a6    program     static ../quizshow_main.asm     
+               LLIM_END_9   0x015740    program     static ../quizshow_main.asm     
+        LLIM_NOT_LOCKED_0   0x0151fe    program     static ../quizshow_main.asm     
+        LLIM_NOT_LOCKED_1   0x015282    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_10   0x015780    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_11   0x01580c    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_12   0x0158a6    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_13   0x01592a    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_14   0x0159b6    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_15   0x015a50    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_16   0x015ad4    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_17   0x015b60    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_18   0x015bfa    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_19   0x015c7e    program     static ../quizshow_main.asm     
+        LLIM_NOT_LOCKED_2   0x01530e    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_20   0x015d0a    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_21   0x015da4    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_22   0x015e28    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_23   0x015eb4    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_24   0x015f4e    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_25   0x015fd2    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_26   0x01605e    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_27   0x0160f8    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_28   0x01617c    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_29   0x016208    program     static ../quizshow_main.asm     
+        LLIM_NOT_LOCKED_3   0x0153a8    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_30   0x016338    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_31   0x0163a8    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_32   0x016418    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_33   0x016488    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_34   0x0164f8    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_35   0x016568    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_36   0x0165d8    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_37   0x016648    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_38   0x0166b8    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_39   0x016728    program     static ../quizshow_main.asm     
+        LLIM_NOT_LOCKED_4   0x01542c    program     static ../quizshow_main.asm     
+        LLIM_NOT_LOCKED_5   0x0154b8    program     static ../quizshow_main.asm     
+        LLIM_NOT_LOCKED_6   0x015552    program     static ../quizshow_main.asm     
+        LLIM_NOT_LOCKED_7   0x0155d6    program     static ../quizshow_main.asm     
+        LLIM_NOT_LOCKED_8   0x015662    program     static ../quizshow_main.asm     
+        LLIM_NOT_LOCKED_9   0x0156fc    program     static ../quizshow_main.asm     
+               LLIM_OFF_0   0x015226    program     static ../quizshow_main.asm     
+               LLIM_OFF_1   0x0152aa    program     static ../quizshow_main.asm     
+              LLIM_OFF_10   0x0157a8    program     static ../quizshow_main.asm     
+              LLIM_OFF_11   0x015834    program     static ../quizshow_main.asm     
+              LLIM_OFF_12   0x0158ce    program     static ../quizshow_main.asm     
+              LLIM_OFF_13   0x015952    program     static ../quizshow_main.asm     
+              LLIM_OFF_14   0x0159de    program     static ../quizshow_main.asm     
+              LLIM_OFF_15   0x015a78    program     static ../quizshow_main.asm     
+              LLIM_OFF_16   0x015afc    program     static ../quizshow_main.asm     
+              LLIM_OFF_17   0x015b88    program     static ../quizshow_main.asm     
+              LLIM_OFF_18   0x015c22    program     static ../quizshow_main.asm     
+              LLIM_OFF_19   0x015ca6    program     static ../quizshow_main.asm     
+               LLIM_OFF_2   0x015336    program     static ../quizshow_main.asm     
+              LLIM_OFF_20   0x015d32    program     static ../quizshow_main.asm     
+              LLIM_OFF_21   0x015dcc    program     static ../quizshow_main.asm     
+              LLIM_OFF_22   0x015e50    program     static ../quizshow_main.asm     
+              LLIM_OFF_23   0x015edc    program     static ../quizshow_main.asm     
+              LLIM_OFF_24   0x015f76    program     static ../quizshow_main.asm     
+              LLIM_OFF_25   0x015ffa    program     static ../quizshow_main.asm     
+              LLIM_OFF_26   0x016086    program     static ../quizshow_main.asm     
+              LLIM_OFF_27   0x016120    program     static ../quizshow_main.asm     
+              LLIM_OFF_28   0x0161a4    program     static ../quizshow_main.asm     
+              LLIM_OFF_29   0x016230    program     static ../quizshow_main.asm     
+               LLIM_OFF_3   0x0153d0    program     static ../quizshow_main.asm     
+              LLIM_OFF_30   0x016360    program     static ../quizshow_main.asm     
+              LLIM_OFF_31   0x0163d0    program     static ../quizshow_main.asm     
+              LLIM_OFF_32   0x016440    program     static ../quizshow_main.asm     
+              LLIM_OFF_33   0x0164b0    program     static ../quizshow_main.asm     
+              LLIM_OFF_34   0x016520    program     static ../quizshow_main.asm     
+              LLIM_OFF_35   0x016590    program     static ../quizshow_main.asm     
+              LLIM_OFF_36   0x016600    program     static ../quizshow_main.asm     
+              LLIM_OFF_37   0x016670    program     static ../quizshow_main.asm     
+              LLIM_OFF_38   0x0166e0    program     static ../quizshow_main.asm     
+              LLIM_OFF_39   0x016750    program     static ../quizshow_main.asm     
+               LLIM_OFF_4   0x015454    program     static ../quizshow_main.asm     
+               LLIM_OFF_5   0x0154e0    program     static ../quizshow_main.asm     
+               LLIM_OFF_6   0x01557a    program     static ../quizshow_main.asm     
+               LLIM_OFF_7   0x0155fe    program     static ../quizshow_main.asm     
+               LLIM_OFF_8   0x01568a    program     static ../quizshow_main.asm     
+               LLIM_OFF_9   0x015724    program     static ../quizshow_main.asm     
                LUMOS_INIT   0x00001e    program     extern ../lumos_init.asm        
                      MAIN   0x000800    program     static ../lumos_main.asm        
                   NOT_DMX   0x000864    program     static ../lumos_main.asm        
@@ -295,17 +295,18 @@ FACTORY_RESET_JUMPER_CHECK   0x000284    program     static ../lumos_main.asm
            ON_OFF_YY_DATA   0x000ac6    program     static ../lumos_main.asm        
          PASS_DOWN_ON_OFF   0x000ae6    program     static ../lumos_main.asm        
         PASS_DOWN_SET_LVL   0x000b16    program     static ../lumos_main.asm        
-          QSCC_CMD5_START   0x016234    program     extern ../quizshow_main.asm     
+          QSCC_CMD5_START   0x016252    program     extern ../quizshow_main.asm     
                QSCC_G_C_1   0x000956    program     static ../qscc_hook_global_commands.asm
                QSCC_G_C_2   0x000964    program     static ../qscc_hook_global_commands.asm
                 QSCC_INIT   0x00000e    program     extern ../quizshow_init.asm     
              QSCC_INT_END   0x000614    program     static ../qscc_hook_isr.asm     
             QSCC_INT_TMR1   0x00060a    program     static ../qscc_hook_isr.asm     
-                QSCC_MAIN   0x015180    program     extern ../quizshow_main.asm     
+                QSCC_MAIN   0x01519e    program     extern ../quizshow_main.asm     
+            QSCC_SENS_END   0x015188    program     static ../quizshow_main.asm     
                QSCC_START   0x01507e    program     extern ../quizshow_main.asm     
             QS_QUERY_DONE   0x002006    program     static ../qscc_hook_s17.asm     
             QS_QUERY_PING   0x001ffa    program     static ../qscc_hook_s17.asm     
-          QS_STOP_SCANNER   0x016752    program     extern ../quizshow_main.asm     
+          QS_STOP_SCANNER   0x016770    program     extern ../quizshow_main.asm     
                 READ_DONE   0x00045a    program     static ../serial-io.asm         
                   READ_OK   0x000444    program     static ../serial-io.asm         
           RECEIVE_COMMAND   0x000928    program     static ../lumos_main.asm        
@@ -638,68 +639,68 @@ FACTORY_RESET_JUMPER_CHECK   0x000284    program     static ../lumos_main.asm
           S9_XC_DISP_TEXT   0x001412    program     static ../qscc_hook_s9_xa.asm   
         S9_XD_DISP_BITMAP   0x00142a    program     static ../qscc_hook_s9_xa.asm   
         S9_XE_ERR_COMMAND   0x001442    program     static ../qscc_hook_s9_xa.asm   
-          SCAN_DEBOUNCERS   0x01518c    program     static ../quizshow_main.asm     
-          SCN_DB_ACTIVE_0   0x01519c    program     static ../quizshow_main.asm     
-          SCN_DB_ACTIVE_1   0x015346    program     static ../quizshow_main.asm     
-          SCN_DB_ACTIVE_2   0x0154f0    program     static ../quizshow_main.asm     
-          SCN_DB_ACTIVE_3   0x01569a    program     static ../quizshow_main.asm     
-          SCN_DB_ACTIVE_4   0x015844    program     static ../quizshow_main.asm     
-          SCN_DB_ACTIVE_5   0x0159ee    program     static ../quizshow_main.asm     
-          SCN_DB_ACTIVE_6   0x015b98    program     static ../quizshow_main.asm     
-          SCN_DB_ACTIVE_7   0x015d42    program     static ../quizshow_main.asm     
-          SCN_DB_ACTIVE_8   0x015eec    program     static ../quizshow_main.asm     
-          SCN_DB_ACTIVE_9   0x016096    program     static ../quizshow_main.asm     
-         SCN_DB_CHANGED_0   0x0152ac    program     static ../quizshow_main.asm     
-         SCN_DB_CHANGED_1   0x015456    program     static ../quizshow_main.asm     
-         SCN_DB_CHANGED_2   0x015600    program     static ../quizshow_main.asm     
-         SCN_DB_CHANGED_3   0x0157aa    program     static ../quizshow_main.asm     
-         SCN_DB_CHANGED_4   0x015954    program     static ../quizshow_main.asm     
-         SCN_DB_CHANGED_5   0x015afe    program     static ../quizshow_main.asm     
-         SCN_DB_CHANGED_6   0x015ca8    program     static ../quizshow_main.asm     
-         SCN_DB_CHANGED_7   0x015e52    program     static ../quizshow_main.asm     
-         SCN_DB_CHANGED_8   0x015ffc    program     static ../quizshow_main.asm     
-         SCN_DB_CHANGED_9   0x0161a6    program     static ../quizshow_main.asm     
-            SCN_DB_DING_0   0x015228    program     static ../quizshow_main.asm     
-            SCN_DB_DING_1   0x0153d2    program     static ../quizshow_main.asm     
-            SCN_DB_DING_2   0x01557c    program     static ../quizshow_main.asm     
-            SCN_DB_DING_3   0x015726    program     static ../quizshow_main.asm     
-            SCN_DB_DING_4   0x0158d0    program     static ../quizshow_main.asm     
-            SCN_DB_DING_5   0x015a7a    program     static ../quizshow_main.asm     
-            SCN_DB_DING_6   0x015c24    program     static ../quizshow_main.asm     
-            SCN_DB_DING_7   0x015dce    program     static ../quizshow_main.asm     
-            SCN_DB_DING_8   0x015f78    program     static ../quizshow_main.asm     
-            SCN_DB_DING_9   0x016122    program     static ../quizshow_main.asm     
-            SCN_DB_DONE_0   0x015336    program     static ../quizshow_main.asm     
-            SCN_DB_DONE_1   0x0154e0    program     static ../quizshow_main.asm     
-            SCN_DB_DONE_2   0x01568a    program     static ../quizshow_main.asm     
-            SCN_DB_DONE_3   0x015834    program     static ../quizshow_main.asm     
-            SCN_DB_DONE_4   0x0159de    program     static ../quizshow_main.asm     
-            SCN_DB_DONE_5   0x015b88    program     static ../quizshow_main.asm     
-            SCN_DB_DONE_6   0x015d32    program     static ../quizshow_main.asm     
-            SCN_DB_DONE_7   0x015edc    program     static ../quizshow_main.asm     
-            SCN_DB_DONE_8   0x016086    program     static ../quizshow_main.asm     
-            SCN_DB_DONE_9   0x016230    program     static ../quizshow_main.asm     
-             SCN_DB_END_0   0x0152ae    program     static ../quizshow_main.asm     
-             SCN_DB_END_1   0x015458    program     static ../quizshow_main.asm     
-             SCN_DB_END_2   0x015602    program     static ../quizshow_main.asm     
-             SCN_DB_END_3   0x0157ac    program     static ../quizshow_main.asm     
-             SCN_DB_END_4   0x015956    program     static ../quizshow_main.asm     
-             SCN_DB_END_5   0x015b00    program     static ../quizshow_main.asm     
-             SCN_DB_END_6   0x015caa    program     static ../quizshow_main.asm     
-             SCN_DB_END_7   0x015e54    program     static ../quizshow_main.asm     
-             SCN_DB_END_8   0x015ffe    program     static ../quizshow_main.asm     
-             SCN_DB_END_9   0x0161a8    program     static ../quizshow_main.asm     
-             SCN_DB_LCK_0   0x0152c0    program     static ../quizshow_main.asm     
-             SCN_DB_LCK_1   0x01546a    program     static ../quizshow_main.asm     
-             SCN_DB_LCK_2   0x015614    program     static ../quizshow_main.asm     
-             SCN_DB_LCK_3   0x0157be    program     static ../quizshow_main.asm     
-             SCN_DB_LCK_4   0x015968    program     static ../quizshow_main.asm     
-             SCN_DB_LCK_5   0x015b12    program     static ../quizshow_main.asm     
-             SCN_DB_LCK_6   0x015cbc    program     static ../quizshow_main.asm     
-             SCN_DB_LCK_7   0x015e66    program     static ../quizshow_main.asm     
-             SCN_DB_LCK_8   0x016010    program     static ../quizshow_main.asm     
-             SCN_DB_LCK_9   0x0161ba    program     static ../quizshow_main.asm     
-    SET_ALL_BUTTON_LIGHTS   0x0162ec    program     static ../quizshow_main.asm     
+          SCAN_DEBOUNCERS   0x0151aa    program     static ../quizshow_main.asm     
+          SCN_DB_ACTIVE_0   0x0151ba    program     static ../quizshow_main.asm     
+          SCN_DB_ACTIVE_1   0x015364    program     static ../quizshow_main.asm     
+          SCN_DB_ACTIVE_2   0x01550e    program     static ../quizshow_main.asm     
+          SCN_DB_ACTIVE_3   0x0156b8    program     static ../quizshow_main.asm     
+          SCN_DB_ACTIVE_4   0x015862    program     static ../quizshow_main.asm     
+          SCN_DB_ACTIVE_5   0x015a0c    program     static ../quizshow_main.asm     
+          SCN_DB_ACTIVE_6   0x015bb6    program     static ../quizshow_main.asm     
+          SCN_DB_ACTIVE_7   0x015d60    program     static ../quizshow_main.asm     
+          SCN_DB_ACTIVE_8   0x015f0a    program     static ../quizshow_main.asm     
+          SCN_DB_ACTIVE_9   0x0160b4    program     static ../quizshow_main.asm     
+         SCN_DB_CHANGED_0   0x0152ca    program     static ../quizshow_main.asm     
+         SCN_DB_CHANGED_1   0x015474    program     static ../quizshow_main.asm     
+         SCN_DB_CHANGED_2   0x01561e    program     static ../quizshow_main.asm     
+         SCN_DB_CHANGED_3   0x0157c8    program     static ../quizshow_main.asm     
+         SCN_DB_CHANGED_4   0x015972    program     static ../quizshow_main.asm     
+         SCN_DB_CHANGED_5   0x015b1c    program     static ../quizshow_main.asm     
+         SCN_DB_CHANGED_6   0x015cc6    program     static ../quizshow_main.asm     
+         SCN_DB_CHANGED_7   0x015e70    program     static ../quizshow_main.asm     
+         SCN_DB_CHANGED_8   0x01601a    program     static ../quizshow_main.asm     
+         SCN_DB_CHANGED_9   0x0161c4    program     static ../quizshow_main.asm     
+            SCN_DB_DING_0   0x015246    program     static ../quizshow_main.asm     
+            SCN_DB_DING_1   0x0153f0    program     static ../quizshow_main.asm     
+            SCN_DB_DING_2   0x01559a    program     static ../quizshow_main.asm     
+            SCN_DB_DING_3   0x015744    program     static ../quizshow_main.asm     
+            SCN_DB_DING_4   0x0158ee    program     static ../quizshow_main.asm     
+            SCN_DB_DING_5   0x015a98    program     static ../quizshow_main.asm     
+            SCN_DB_DING_6   0x015c42    program     static ../quizshow_main.asm     
+            SCN_DB_DING_7   0x015dec    program     static ../quizshow_main.asm     
+            SCN_DB_DING_8   0x015f96    program     static ../quizshow_main.asm     
+            SCN_DB_DING_9   0x016140    program     static ../quizshow_main.asm     
+            SCN_DB_DONE_0   0x015354    program     static ../quizshow_main.asm     
+            SCN_DB_DONE_1   0x0154fe    program     static ../quizshow_main.asm     
+            SCN_DB_DONE_2   0x0156a8    program     static ../quizshow_main.asm     
+            SCN_DB_DONE_3   0x015852    program     static ../quizshow_main.asm     
+            SCN_DB_DONE_4   0x0159fc    program     static ../quizshow_main.asm     
+            SCN_DB_DONE_5   0x015ba6    program     static ../quizshow_main.asm     
+            SCN_DB_DONE_6   0x015d50    program     static ../quizshow_main.asm     
+            SCN_DB_DONE_7   0x015efa    program     static ../quizshow_main.asm     
+            SCN_DB_DONE_8   0x0160a4    program     static ../quizshow_main.asm     
+            SCN_DB_DONE_9   0x01624e    program     static ../quizshow_main.asm     
+             SCN_DB_END_0   0x0152cc    program     static ../quizshow_main.asm     
+             SCN_DB_END_1   0x015476    program     static ../quizshow_main.asm     
+             SCN_DB_END_2   0x015620    program     static ../quizshow_main.asm     
+             SCN_DB_END_3   0x0157ca    program     static ../quizshow_main.asm     
+             SCN_DB_END_4   0x015974    program     static ../quizshow_main.asm     
+             SCN_DB_END_5   0x015b1e    program     static ../quizshow_main.asm     
+             SCN_DB_END_6   0x015cc8    program     static ../quizshow_main.asm     
+             SCN_DB_END_7   0x015e72    program     static ../quizshow_main.asm     
+             SCN_DB_END_8   0x01601c    program     static ../quizshow_main.asm     
+             SCN_DB_END_9   0x0161c6    program     static ../quizshow_main.asm     
+             SCN_DB_LCK_0   0x0152de    program     static ../quizshow_main.asm     
+             SCN_DB_LCK_1   0x015488    program     static ../quizshow_main.asm     
+             SCN_DB_LCK_2   0x015632    program     static ../quizshow_main.asm     
+             SCN_DB_LCK_3   0x0157dc    program     static ../quizshow_main.asm     
+             SCN_DB_LCK_4   0x015986    program     static ../quizshow_main.asm     
+             SCN_DB_LCK_5   0x015b30    program     static ../quizshow_main.asm     
+             SCN_DB_LCK_6   0x015cda    program     static ../quizshow_main.asm     
+             SCN_DB_LCK_7   0x015e84    program     static ../quizshow_main.asm     
+             SCN_DB_LCK_8   0x01602e    program     static ../quizshow_main.asm     
+             SCN_DB_LCK_9   0x0161d8    program     static ../quizshow_main.asm     
+    SET_ALL_BUTTON_LIGHTS   0x01630a    program     static ../quizshow_main.asm     
                  SIO_ECHO   0x0003a8    program     extern ../serial-io.asm         
                SIO_ECHO_W   0x0003a4    program     extern ../serial-io.asm         
           SIO_FLUSH_INPUT   0x00035a    program     extern ../serial-io.asm         
@@ -885,7 +886,7 @@ FACTORY_RESET_JUMPER_CHECK   0x000284    program     static ../lumos_main.asm
              SSR_00_SPEED   0x00043c       data     extern ../lumos_main.asm        
               SSR_00_STEP   0x000428       data     extern ../lumos_main.asm        
              SSR_00_VALUE   0x000400       data     extern ../lumos_main.asm        
-                SSR_STATE   0x000006       data     static ../lumos_main.asm        
+                SSR_STATE   0x000006       data     extern ../lumos_main.asm        
                SSR_STATE2   0x000007       data     static ../lumos_main.asm        
                TARGET_SSR   0x000017       data     static ../lumos_main.asm        
                TEST_CYCLE   0x00001a       data     static ../lumos_main.asm        
@@ -1179,8 +1180,8 @@ FACTORY_RESET_JUMPER_CHECK   0x000284    program     static ../lumos_main.asm
                 S9_PRIV_4   0x0014ba    program     static ../lumos_main.asm        
                 CMD_XPRIV   0x0014be    program     static ../lumos_main.asm        
                 S9_PRIV_5   0x0014c4    program     static ../lumos_main.asm        
-       S9_PRIV_6_QS_PARAM   0x0014dc    program     static ../qscc_hook_s9_priv_6.asm
                 S9_PRIV_6   0x0014dc    program     static ../lumos_main.asm        
+       S9_PRIV_6_QS_PARAM   0x0014dc    program     static ../qscc_hook_s9_priv_6.asm
                 S9_PRIV_7   0x0014f4    program     static ../qscc_hook_s9_priv_6.asm
               S9_CF_PHASE   0x0014f8    program     static ../lumos_main.asm        
                S9_CF_ADDR   0x001510    program     static ../lumos_main.asm        
@@ -1486,191 +1487,192 @@ FACTORY_RESET_JUMPER_CHECK   0x000284    program     static ../lumos_main.asm
                  BAUDTBLH   0x01502a    program     static ../serial-io.asm         
                  BAUDTBLL   0x015054    program     static ../serial-io.asm         
                QSCC_START   0x01507e    program     extern ../quizshow_main.asm     
-                QSCC_MAIN   0x015180    program     extern ../quizshow_main.asm     
-          SCAN_DEBOUNCERS   0x01518c    program     static ../quizshow_main.asm     
-          SCN_DB_ACTIVE_0   0x01519c    program     static ../quizshow_main.asm     
-        LLIM_NOT_LOCKED_0   0x0151e0    program     static ../quizshow_main.asm     
-               LLIM_OFF_0   0x015208    program     static ../quizshow_main.asm     
-               LLIM_END_0   0x015224    program     static ../quizshow_main.asm     
-            SCN_DB_DING_0   0x015228    program     static ../quizshow_main.asm     
-        LLIM_NOT_LOCKED_1   0x015264    program     static ../quizshow_main.asm     
-               LLIM_OFF_1   0x01528c    program     static ../quizshow_main.asm     
-               LLIM_END_1   0x0152a8    program     static ../quizshow_main.asm     
-         SCN_DB_CHANGED_0   0x0152ac    program     static ../quizshow_main.asm     
-             SCN_DB_END_0   0x0152ae    program     static ../quizshow_main.asm     
-             SCN_DB_LCK_0   0x0152c0    program     static ../quizshow_main.asm     
-        LLIM_NOT_LOCKED_2   0x0152f0    program     static ../quizshow_main.asm     
-               LLIM_OFF_2   0x015318    program     static ../quizshow_main.asm     
-               LLIM_END_2   0x015334    program     static ../quizshow_main.asm     
-            SCN_DB_DONE_0   0x015336    program     static ../quizshow_main.asm     
-          SCN_DB_ACTIVE_1   0x015346    program     static ../quizshow_main.asm     
-        LLIM_NOT_LOCKED_3   0x01538a    program     static ../quizshow_main.asm     
-               LLIM_OFF_3   0x0153b2    program     static ../quizshow_main.asm     
-               LLIM_END_3   0x0153ce    program     static ../quizshow_main.asm     
-            SCN_DB_DING_1   0x0153d2    program     static ../quizshow_main.asm     
-        LLIM_NOT_LOCKED_4   0x01540e    program     static ../quizshow_main.asm     
-               LLIM_OFF_4   0x015436    program     static ../quizshow_main.asm     
-               LLIM_END_4   0x015452    program     static ../quizshow_main.asm     
-         SCN_DB_CHANGED_1   0x015456    program     static ../quizshow_main.asm     
-             SCN_DB_END_1   0x015458    program     static ../quizshow_main.asm     
-             SCN_DB_LCK_1   0x01546a    program     static ../quizshow_main.asm     
-        LLIM_NOT_LOCKED_5   0x01549a    program     static ../quizshow_main.asm     
-               LLIM_OFF_5   0x0154c2    program     static ../quizshow_main.asm     
-               LLIM_END_5   0x0154de    program     static ../quizshow_main.asm     
-            SCN_DB_DONE_1   0x0154e0    program     static ../quizshow_main.asm     
-          SCN_DB_ACTIVE_2   0x0154f0    program     static ../quizshow_main.asm     
-        LLIM_NOT_LOCKED_6   0x015534    program     static ../quizshow_main.asm     
-               LLIM_OFF_6   0x01555c    program     static ../quizshow_main.asm     
-               LLIM_END_6   0x015578    program     static ../quizshow_main.asm     
-            SCN_DB_DING_2   0x01557c    program     static ../quizshow_main.asm     
-        LLIM_NOT_LOCKED_7   0x0155b8    program     static ../quizshow_main.asm     
-               LLIM_OFF_7   0x0155e0    program     static ../quizshow_main.asm     
-               LLIM_END_7   0x0155fc    program     static ../quizshow_main.asm     
-         SCN_DB_CHANGED_2   0x015600    program     static ../quizshow_main.asm     
-             SCN_DB_END_2   0x015602    program     static ../quizshow_main.asm     
-             SCN_DB_LCK_2   0x015614    program     static ../quizshow_main.asm     
-        LLIM_NOT_LOCKED_8   0x015644    program     static ../quizshow_main.asm     
-               LLIM_OFF_8   0x01566c    program     static ../quizshow_main.asm     
-               LLIM_END_8   0x015688    program     static ../quizshow_main.asm     
-            SCN_DB_DONE_2   0x01568a    program     static ../quizshow_main.asm     
-          SCN_DB_ACTIVE_3   0x01569a    program     static ../quizshow_main.asm     
-        LLIM_NOT_LOCKED_9   0x0156de    program     static ../quizshow_main.asm     
-               LLIM_OFF_9   0x015706    program     static ../quizshow_main.asm     
-               LLIM_END_9   0x015722    program     static ../quizshow_main.asm     
-            SCN_DB_DING_3   0x015726    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_10   0x015762    program     static ../quizshow_main.asm     
-              LLIM_OFF_10   0x01578a    program     static ../quizshow_main.asm     
-              LLIM_END_10   0x0157a6    program     static ../quizshow_main.asm     
-         SCN_DB_CHANGED_3   0x0157aa    program     static ../quizshow_main.asm     
-             SCN_DB_END_3   0x0157ac    program     static ../quizshow_main.asm     
-             SCN_DB_LCK_3   0x0157be    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_11   0x0157ee    program     static ../quizshow_main.asm     
-              LLIM_OFF_11   0x015816    program     static ../quizshow_main.asm     
-              LLIM_END_11   0x015832    program     static ../quizshow_main.asm     
-            SCN_DB_DONE_3   0x015834    program     static ../quizshow_main.asm     
-          SCN_DB_ACTIVE_4   0x015844    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_12   0x015888    program     static ../quizshow_main.asm     
-              LLIM_OFF_12   0x0158b0    program     static ../quizshow_main.asm     
-              LLIM_END_12   0x0158cc    program     static ../quizshow_main.asm     
-            SCN_DB_DING_4   0x0158d0    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_13   0x01590c    program     static ../quizshow_main.asm     
-              LLIM_OFF_13   0x015934    program     static ../quizshow_main.asm     
-              LLIM_END_13   0x015950    program     static ../quizshow_main.asm     
-         SCN_DB_CHANGED_4   0x015954    program     static ../quizshow_main.asm     
-             SCN_DB_END_4   0x015956    program     static ../quizshow_main.asm     
-             SCN_DB_LCK_4   0x015968    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_14   0x015998    program     static ../quizshow_main.asm     
-              LLIM_OFF_14   0x0159c0    program     static ../quizshow_main.asm     
-              LLIM_END_14   0x0159dc    program     static ../quizshow_main.asm     
-            SCN_DB_DONE_4   0x0159de    program     static ../quizshow_main.asm     
-          SCN_DB_ACTIVE_5   0x0159ee    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_15   0x015a32    program     static ../quizshow_main.asm     
-              LLIM_OFF_15   0x015a5a    program     static ../quizshow_main.asm     
-              LLIM_END_15   0x015a76    program     static ../quizshow_main.asm     
-            SCN_DB_DING_5   0x015a7a    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_16   0x015ab6    program     static ../quizshow_main.asm     
-              LLIM_OFF_16   0x015ade    program     static ../quizshow_main.asm     
-              LLIM_END_16   0x015afa    program     static ../quizshow_main.asm     
-         SCN_DB_CHANGED_5   0x015afe    program     static ../quizshow_main.asm     
-             SCN_DB_END_5   0x015b00    program     static ../quizshow_main.asm     
-             SCN_DB_LCK_5   0x015b12    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_17   0x015b42    program     static ../quizshow_main.asm     
-              LLIM_OFF_17   0x015b6a    program     static ../quizshow_main.asm     
-              LLIM_END_17   0x015b86    program     static ../quizshow_main.asm     
-            SCN_DB_DONE_5   0x015b88    program     static ../quizshow_main.asm     
-          SCN_DB_ACTIVE_6   0x015b98    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_18   0x015bdc    program     static ../quizshow_main.asm     
-              LLIM_OFF_18   0x015c04    program     static ../quizshow_main.asm     
-              LLIM_END_18   0x015c20    program     static ../quizshow_main.asm     
-            SCN_DB_DING_6   0x015c24    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_19   0x015c60    program     static ../quizshow_main.asm     
-              LLIM_OFF_19   0x015c88    program     static ../quizshow_main.asm     
-              LLIM_END_19   0x015ca4    program     static ../quizshow_main.asm     
-         SCN_DB_CHANGED_6   0x015ca8    program     static ../quizshow_main.asm     
-             SCN_DB_END_6   0x015caa    program     static ../quizshow_main.asm     
-             SCN_DB_LCK_6   0x015cbc    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_20   0x015cec    program     static ../quizshow_main.asm     
-              LLIM_OFF_20   0x015d14    program     static ../quizshow_main.asm     
-              LLIM_END_20   0x015d30    program     static ../quizshow_main.asm     
-            SCN_DB_DONE_6   0x015d32    program     static ../quizshow_main.asm     
-          SCN_DB_ACTIVE_7   0x015d42    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_21   0x015d86    program     static ../quizshow_main.asm     
-              LLIM_OFF_21   0x015dae    program     static ../quizshow_main.asm     
-              LLIM_END_21   0x015dca    program     static ../quizshow_main.asm     
-            SCN_DB_DING_7   0x015dce    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_22   0x015e0a    program     static ../quizshow_main.asm     
-              LLIM_OFF_22   0x015e32    program     static ../quizshow_main.asm     
-              LLIM_END_22   0x015e4e    program     static ../quizshow_main.asm     
-         SCN_DB_CHANGED_7   0x015e52    program     static ../quizshow_main.asm     
-             SCN_DB_END_7   0x015e54    program     static ../quizshow_main.asm     
-             SCN_DB_LCK_7   0x015e66    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_23   0x015e96    program     static ../quizshow_main.asm     
-              LLIM_OFF_23   0x015ebe    program     static ../quizshow_main.asm     
-              LLIM_END_23   0x015eda    program     static ../quizshow_main.asm     
-            SCN_DB_DONE_7   0x015edc    program     static ../quizshow_main.asm     
-          SCN_DB_ACTIVE_8   0x015eec    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_24   0x015f30    program     static ../quizshow_main.asm     
-              LLIM_OFF_24   0x015f58    program     static ../quizshow_main.asm     
-              LLIM_END_24   0x015f74    program     static ../quizshow_main.asm     
-            SCN_DB_DING_8   0x015f78    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_25   0x015fb4    program     static ../quizshow_main.asm     
-              LLIM_OFF_25   0x015fdc    program     static ../quizshow_main.asm     
-              LLIM_END_25   0x015ff8    program     static ../quizshow_main.asm     
-         SCN_DB_CHANGED_8   0x015ffc    program     static ../quizshow_main.asm     
-             SCN_DB_END_8   0x015ffe    program     static ../quizshow_main.asm     
-             SCN_DB_LCK_8   0x016010    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_26   0x016040    program     static ../quizshow_main.asm     
-              LLIM_OFF_26   0x016068    program     static ../quizshow_main.asm     
-              LLIM_END_26   0x016084    program     static ../quizshow_main.asm     
-            SCN_DB_DONE_8   0x016086    program     static ../quizshow_main.asm     
-          SCN_DB_ACTIVE_9   0x016096    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_27   0x0160da    program     static ../quizshow_main.asm     
-              LLIM_OFF_27   0x016102    program     static ../quizshow_main.asm     
-              LLIM_END_27   0x01611e    program     static ../quizshow_main.asm     
-            SCN_DB_DING_9   0x016122    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_28   0x01615e    program     static ../quizshow_main.asm     
-              LLIM_OFF_28   0x016186    program     static ../quizshow_main.asm     
-              LLIM_END_28   0x0161a2    program     static ../quizshow_main.asm     
-         SCN_DB_CHANGED_9   0x0161a6    program     static ../quizshow_main.asm     
-             SCN_DB_END_9   0x0161a8    program     static ../quizshow_main.asm     
-             SCN_DB_LCK_9   0x0161ba    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_29   0x0161ea    program     static ../quizshow_main.asm     
-              LLIM_OFF_29   0x016212    program     static ../quizshow_main.asm     
-              LLIM_END_29   0x01622e    program     static ../quizshow_main.asm     
-            SCN_DB_DONE_9   0x016230    program     static ../quizshow_main.asm     
-          QSCC_CMD5_START   0x016234    program     extern ../quizshow_main.asm     
-    SET_ALL_BUTTON_LIGHTS   0x0162ec    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_30   0x01631a    program     static ../quizshow_main.asm     
-              LLIM_OFF_30   0x016342    program     static ../quizshow_main.asm     
-              LLIM_END_30   0x01635e    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_31   0x01638a    program     static ../quizshow_main.asm     
-              LLIM_OFF_31   0x0163b2    program     static ../quizshow_main.asm     
-              LLIM_END_31   0x0163ce    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_32   0x0163fa    program     static ../quizshow_main.asm     
-              LLIM_OFF_32   0x016422    program     static ../quizshow_main.asm     
-              LLIM_END_32   0x01643e    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_33   0x01646a    program     static ../quizshow_main.asm     
-              LLIM_OFF_33   0x016492    program     static ../quizshow_main.asm     
-              LLIM_END_33   0x0164ae    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_34   0x0164da    program     static ../quizshow_main.asm     
-              LLIM_OFF_34   0x016502    program     static ../quizshow_main.asm     
-              LLIM_END_34   0x01651e    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_35   0x01654a    program     static ../quizshow_main.asm     
-              LLIM_OFF_35   0x016572    program     static ../quizshow_main.asm     
-              LLIM_END_35   0x01658e    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_36   0x0165ba    program     static ../quizshow_main.asm     
-              LLIM_OFF_36   0x0165e2    program     static ../quizshow_main.asm     
-              LLIM_END_36   0x0165fe    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_37   0x01662a    program     static ../quizshow_main.asm     
-              LLIM_OFF_37   0x016652    program     static ../quizshow_main.asm     
-              LLIM_END_37   0x01666e    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_38   0x01669a    program     static ../quizshow_main.asm     
-              LLIM_OFF_38   0x0166c2    program     static ../quizshow_main.asm     
-              LLIM_END_38   0x0166de    program     static ../quizshow_main.asm     
-       LLIM_NOT_LOCKED_39   0x01670a    program     static ../quizshow_main.asm     
-              LLIM_OFF_39   0x016732    program     static ../quizshow_main.asm     
-              LLIM_END_39   0x01674e    program     static ../quizshow_main.asm     
-          QS_STOP_SCANNER   0x016752    program     extern ../quizshow_main.asm     
+            QSCC_SENS_END   0x015188    program     static ../quizshow_main.asm     
+                QSCC_MAIN   0x01519e    program     extern ../quizshow_main.asm     
+          SCAN_DEBOUNCERS   0x0151aa    program     static ../quizshow_main.asm     
+          SCN_DB_ACTIVE_0   0x0151ba    program     static ../quizshow_main.asm     
+        LLIM_NOT_LOCKED_0   0x0151fe    program     static ../quizshow_main.asm     
+               LLIM_OFF_0   0x015226    program     static ../quizshow_main.asm     
+               LLIM_END_0   0x015242    program     static ../quizshow_main.asm     
+            SCN_DB_DING_0   0x015246    program     static ../quizshow_main.asm     
+        LLIM_NOT_LOCKED_1   0x015282    program     static ../quizshow_main.asm     
+               LLIM_OFF_1   0x0152aa    program     static ../quizshow_main.asm     
+               LLIM_END_1   0x0152c6    program     static ../quizshow_main.asm     
+         SCN_DB_CHANGED_0   0x0152ca    program     static ../quizshow_main.asm     
+             SCN_DB_END_0   0x0152cc    program     static ../quizshow_main.asm     
+             SCN_DB_LCK_0   0x0152de    program     static ../quizshow_main.asm     
+        LLIM_NOT_LOCKED_2   0x01530e    program     static ../quizshow_main.asm     
+               LLIM_OFF_2   0x015336    program     static ../quizshow_main.asm     
+               LLIM_END_2   0x015352    program     static ../quizshow_main.asm     
+            SCN_DB_DONE_0   0x015354    program     static ../quizshow_main.asm     
+          SCN_DB_ACTIVE_1   0x015364    program     static ../quizshow_main.asm     
+        LLIM_NOT_LOCKED_3   0x0153a8    program     static ../quizshow_main.asm     
+               LLIM_OFF_3   0x0153d0    program     static ../quizshow_main.asm     
+               LLIM_END_3   0x0153ec    program     static ../quizshow_main.asm     
+            SCN_DB_DING_1   0x0153f0    program     static ../quizshow_main.asm     
+        LLIM_NOT_LOCKED_4   0x01542c    program     static ../quizshow_main.asm     
+               LLIM_OFF_4   0x015454    program     static ../quizshow_main.asm     
+               LLIM_END_4   0x015470    program     static ../quizshow_main.asm     
+         SCN_DB_CHANGED_1   0x015474    program     static ../quizshow_main.asm     
+             SCN_DB_END_1   0x015476    program     static ../quizshow_main.asm     
+             SCN_DB_LCK_1   0x015488    program     static ../quizshow_main.asm     
+        LLIM_NOT_LOCKED_5   0x0154b8    program     static ../quizshow_main.asm     
+               LLIM_OFF_5   0x0154e0    program     static ../quizshow_main.asm     
+               LLIM_END_5   0x0154fc    program     static ../quizshow_main.asm     
+            SCN_DB_DONE_1   0x0154fe    program     static ../quizshow_main.asm     
+          SCN_DB_ACTIVE_2   0x01550e    program     static ../quizshow_main.asm     
+        LLIM_NOT_LOCKED_6   0x015552    program     static ../quizshow_main.asm     
+               LLIM_OFF_6   0x01557a    program     static ../quizshow_main.asm     
+               LLIM_END_6   0x015596    program     static ../quizshow_main.asm     
+            SCN_DB_DING_2   0x01559a    program     static ../quizshow_main.asm     
+        LLIM_NOT_LOCKED_7   0x0155d6    program     static ../quizshow_main.asm     
+               LLIM_OFF_7   0x0155fe    program     static ../quizshow_main.asm     
+               LLIM_END_7   0x01561a    program     static ../quizshow_main.asm     
+         SCN_DB_CHANGED_2   0x01561e    program     static ../quizshow_main.asm     
+             SCN_DB_END_2   0x015620    program     static ../quizshow_main.asm     
+             SCN_DB_LCK_2   0x015632    program     static ../quizshow_main.asm     
+        LLIM_NOT_LOCKED_8   0x015662    program     static ../quizshow_main.asm     
+               LLIM_OFF_8   0x01568a    program     static ../quizshow_main.asm     
+               LLIM_END_8   0x0156a6    program     static ../quizshow_main.asm     
+            SCN_DB_DONE_2   0x0156a8    program     static ../quizshow_main.asm     
+          SCN_DB_ACTIVE_3   0x0156b8    program     static ../quizshow_main.asm     
+        LLIM_NOT_LOCKED_9   0x0156fc    program     static ../quizshow_main.asm     
+               LLIM_OFF_9   0x015724    program     static ../quizshow_main.asm     
+               LLIM_END_9   0x015740    program     static ../quizshow_main.asm     
+            SCN_DB_DING_3   0x015744    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_10   0x015780    program     static ../quizshow_main.asm     
+              LLIM_OFF_10   0x0157a8    program     static ../quizshow_main.asm     
+              LLIM_END_10   0x0157c4    program     static ../quizshow_main.asm     
+         SCN_DB_CHANGED_3   0x0157c8    program     static ../quizshow_main.asm     
+             SCN_DB_END_3   0x0157ca    program     static ../quizshow_main.asm     
+             SCN_DB_LCK_3   0x0157dc    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_11   0x01580c    program     static ../quizshow_main.asm     
+              LLIM_OFF_11   0x015834    program     static ../quizshow_main.asm     
+              LLIM_END_11   0x015850    program     static ../quizshow_main.asm     
+            SCN_DB_DONE_3   0x015852    program     static ../quizshow_main.asm     
+          SCN_DB_ACTIVE_4   0x015862    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_12   0x0158a6    program     static ../quizshow_main.asm     
+              LLIM_OFF_12   0x0158ce    program     static ../quizshow_main.asm     
+              LLIM_END_12   0x0158ea    program     static ../quizshow_main.asm     
+            SCN_DB_DING_4   0x0158ee    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_13   0x01592a    program     static ../quizshow_main.asm     
+              LLIM_OFF_13   0x015952    program     static ../quizshow_main.asm     
+              LLIM_END_13   0x01596e    program     static ../quizshow_main.asm     
+         SCN_DB_CHANGED_4   0x015972    program     static ../quizshow_main.asm     
+             SCN_DB_END_4   0x015974    program     static ../quizshow_main.asm     
+             SCN_DB_LCK_4   0x015986    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_14   0x0159b6    program     static ../quizshow_main.asm     
+              LLIM_OFF_14   0x0159de    program     static ../quizshow_main.asm     
+              LLIM_END_14   0x0159fa    program     static ../quizshow_main.asm     
+            SCN_DB_DONE_4   0x0159fc    program     static ../quizshow_main.asm     
+          SCN_DB_ACTIVE_5   0x015a0c    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_15   0x015a50    program     static ../quizshow_main.asm     
+              LLIM_OFF_15   0x015a78    program     static ../quizshow_main.asm     
+              LLIM_END_15   0x015a94    program     static ../quizshow_main.asm     
+            SCN_DB_DING_5   0x015a98    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_16   0x015ad4    program     static ../quizshow_main.asm     
+              LLIM_OFF_16   0x015afc    program     static ../quizshow_main.asm     
+              LLIM_END_16   0x015b18    program     static ../quizshow_main.asm     
+         SCN_DB_CHANGED_5   0x015b1c    program     static ../quizshow_main.asm     
+             SCN_DB_END_5   0x015b1e    program     static ../quizshow_main.asm     
+             SCN_DB_LCK_5   0x015b30    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_17   0x015b60    program     static ../quizshow_main.asm     
+              LLIM_OFF_17   0x015b88    program     static ../quizshow_main.asm     
+              LLIM_END_17   0x015ba4    program     static ../quizshow_main.asm     
+            SCN_DB_DONE_5   0x015ba6    program     static ../quizshow_main.asm     
+          SCN_DB_ACTIVE_6   0x015bb6    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_18   0x015bfa    program     static ../quizshow_main.asm     
+              LLIM_OFF_18   0x015c22    program     static ../quizshow_main.asm     
+              LLIM_END_18   0x015c3e    program     static ../quizshow_main.asm     
+            SCN_DB_DING_6   0x015c42    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_19   0x015c7e    program     static ../quizshow_main.asm     
+              LLIM_OFF_19   0x015ca6    program     static ../quizshow_main.asm     
+              LLIM_END_19   0x015cc2    program     static ../quizshow_main.asm     
+         SCN_DB_CHANGED_6   0x015cc6    program     static ../quizshow_main.asm     
+             SCN_DB_END_6   0x015cc8    program     static ../quizshow_main.asm     
+             SCN_DB_LCK_6   0x015cda    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_20   0x015d0a    program     static ../quizshow_main.asm     
+              LLIM_OFF_20   0x015d32    program     static ../quizshow_main.asm     
+              LLIM_END_20   0x015d4e    program     static ../quizshow_main.asm     
+            SCN_DB_DONE_6   0x015d50    program     static ../quizshow_main.asm     
+          SCN_DB_ACTIVE_7   0x015d60    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_21   0x015da4    program     static ../quizshow_main.asm     
+              LLIM_OFF_21   0x015dcc    program     static ../quizshow_main.asm     
+              LLIM_END_21   0x015de8    program     static ../quizshow_main.asm     
+            SCN_DB_DING_7   0x015dec    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_22   0x015e28    program     static ../quizshow_main.asm     
+              LLIM_OFF_22   0x015e50    program     static ../quizshow_main.asm     
+              LLIM_END_22   0x015e6c    program     static ../quizshow_main.asm     
+         SCN_DB_CHANGED_7   0x015e70    program     static ../quizshow_main.asm     
+             SCN_DB_END_7   0x015e72    program     static ../quizshow_main.asm     
+             SCN_DB_LCK_7   0x015e84    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_23   0x015eb4    program     static ../quizshow_main.asm     
+              LLIM_OFF_23   0x015edc    program     static ../quizshow_main.asm     
+              LLIM_END_23   0x015ef8    program     static ../quizshow_main.asm     
+            SCN_DB_DONE_7   0x015efa    program     static ../quizshow_main.asm     
+          SCN_DB_ACTIVE_8   0x015f0a    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_24   0x015f4e    program     static ../quizshow_main.asm     
+              LLIM_OFF_24   0x015f76    program     static ../quizshow_main.asm     
+              LLIM_END_24   0x015f92    program     static ../quizshow_main.asm     
+            SCN_DB_DING_8   0x015f96    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_25   0x015fd2    program     static ../quizshow_main.asm     
+              LLIM_OFF_25   0x015ffa    program     static ../quizshow_main.asm     
+              LLIM_END_25   0x016016    program     static ../quizshow_main.asm     
+         SCN_DB_CHANGED_8   0x01601a    program     static ../quizshow_main.asm     
+             SCN_DB_END_8   0x01601c    program     static ../quizshow_main.asm     
+             SCN_DB_LCK_8   0x01602e    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_26   0x01605e    program     static ../quizshow_main.asm     
+              LLIM_OFF_26   0x016086    program     static ../quizshow_main.asm     
+              LLIM_END_26   0x0160a2    program     static ../quizshow_main.asm     
+            SCN_DB_DONE_8   0x0160a4    program     static ../quizshow_main.asm     
+          SCN_DB_ACTIVE_9   0x0160b4    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_27   0x0160f8    program     static ../quizshow_main.asm     
+              LLIM_OFF_27   0x016120    program     static ../quizshow_main.asm     
+              LLIM_END_27   0x01613c    program     static ../quizshow_main.asm     
+            SCN_DB_DING_9   0x016140    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_28   0x01617c    program     static ../quizshow_main.asm     
+              LLIM_OFF_28   0x0161a4    program     static ../quizshow_main.asm     
+              LLIM_END_28   0x0161c0    program     static ../quizshow_main.asm     
+         SCN_DB_CHANGED_9   0x0161c4    program     static ../quizshow_main.asm     
+             SCN_DB_END_9   0x0161c6    program     static ../quizshow_main.asm     
+             SCN_DB_LCK_9   0x0161d8    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_29   0x016208    program     static ../quizshow_main.asm     
+              LLIM_OFF_29   0x016230    program     static ../quizshow_main.asm     
+              LLIM_END_29   0x01624c    program     static ../quizshow_main.asm     
+            SCN_DB_DONE_9   0x01624e    program     static ../quizshow_main.asm     
+          QSCC_CMD5_START   0x016252    program     extern ../quizshow_main.asm     
+    SET_ALL_BUTTON_LIGHTS   0x01630a    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_30   0x016338    program     static ../quizshow_main.asm     
+              LLIM_OFF_30   0x016360    program     static ../quizshow_main.asm     
+              LLIM_END_30   0x01637c    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_31   0x0163a8    program     static ../quizshow_main.asm     
+              LLIM_OFF_31   0x0163d0    program     static ../quizshow_main.asm     
+              LLIM_END_31   0x0163ec    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_32   0x016418    program     static ../quizshow_main.asm     
+              LLIM_OFF_32   0x016440    program     static ../quizshow_main.asm     
+              LLIM_END_32   0x01645c    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_33   0x016488    program     static ../quizshow_main.asm     
+              LLIM_OFF_33   0x0164b0    program     static ../quizshow_main.asm     
+              LLIM_END_33   0x0164cc    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_34   0x0164f8    program     static ../quizshow_main.asm     
+              LLIM_OFF_34   0x016520    program     static ../quizshow_main.asm     
+              LLIM_END_34   0x01653c    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_35   0x016568    program     static ../quizshow_main.asm     
+              LLIM_OFF_35   0x016590    program     static ../quizshow_main.asm     
+              LLIM_END_35   0x0165ac    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_36   0x0165d8    program     static ../quizshow_main.asm     
+              LLIM_OFF_36   0x016600    program     static ../quizshow_main.asm     
+              LLIM_END_36   0x01661c    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_37   0x016648    program     static ../quizshow_main.asm     
+              LLIM_OFF_37   0x016670    program     static ../quizshow_main.asm     
+              LLIM_END_37   0x01668c    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_38   0x0166b8    program     static ../quizshow_main.asm     
+              LLIM_OFF_38   0x0166e0    program     static ../quizshow_main.asm     
+              LLIM_END_38   0x0166fc    program     static ../quizshow_main.asm     
+       LLIM_NOT_LOCKED_39   0x016728    program     static ../quizshow_main.asm     
+              LLIM_OFF_39   0x016750    program     static ../quizshow_main.asm     
+              LLIM_END_39   0x01676c    program     static ../quizshow_main.asm     
+          QS_STOP_SCANNER   0x016770    program     extern ../quizshow_main.asm     
                   SYS_SNH   0x016ff0    program     static ../lumos_main.asm        
                   SYS_SNL   0x016ff1    program     static ../lumos_main.asm        
           ISR_TMPL_STATUS   0x000000       data     static ../lumos_main.asm        
@@ -1679,7 +1681,7 @@ FACTORY_RESET_JUMPER_CHECK   0x000284    program     static ../lumos_main.asm
                MY_ADDRESS   0x000003       data     static ../lumos_main.asm        
             PHASE_OFFSETH   0x000004       data     static ../lumos_main.asm        
             PHASE_OFFSETL   0x000005       data     static ../lumos_main.asm        
-                SSR_STATE   0x000006       data     static ../lumos_main.asm        
+                SSR_STATE   0x000006       data     extern ../lumos_main.asm        
                SSR_STATE2   0x000007       data     static ../lumos_main.asm        
                 DMX_SLOTH   0x000008       data     static ../lumos_main.asm        
                 DMX_SLOTL   0x000009       data     static ../lumos_main.asm        

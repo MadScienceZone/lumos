@@ -135,6 +135,8 @@
   ENDIF
  ENDIF
 
+; set DMX_ENABLED to 1 to include the experimental DMX-handling code.
+#define DMX_ENABLED 0
 ;
 ; The following public symbols can be used after this file is
 ; included (and this file should be included everywhere before

@@ -61,6 +61,7 @@
 	IF QSCC_PORT
 #include "qscc_bits.inc"
 #include "qscc_init.inc"
+	 GLOBAL SSR_STATE
 	 GLOBAL	S0_CMD0
 	 GLOBAL	SSR_00_VALUE
 	 GLOBAL	SSR_00_FLAGS
@@ -1222,29 +1223,7 @@ EEPROM_USER_END		EQU	0x3FF
 ;                                                .
 ;                                                .
 ;                                                .                           
-;
-; SSR_STATE holds the execution state of the controller, including our
-; main timing chain flags.
-;
-INCYC		EQU	7	; 1-------  We are in a dimmer cycle now
-PRECYC		EQU	6	; -1------  We are in the pre-cycle countdown
-SLICE_UPD	EQU	5	; --1-----  Slice update needs to be done
-PRIV_MODE	EQU	4	; ---1----  We are in privileged (config) mode
-SLEEP_MODE	EQU	3	; ----1---  We are in sleep mode
-DRAIN_TR	EQU	2	; -----1--  Need to drain output queue then turn off transmitter
-PRE_PRIV	EQU	1	; ------1-  Entering privileged mode
-TEST_MODE	EQU	0	; -------1  In self-test mode
-;
-; SSR_STATE2 flags:
-;
-TEST_PAUSE	EQU	7	; 1-------  We're pausing the test mode
-TEST_UPD	EQU	6	; -1------  Time to update the test count-down timer
-TEST_BUTTON	EQU	5	; --1-----  Waiting for button release in test mode
-ALL_OFF		EQU	4	; ---1----  All SSRs are currently completely off
-PRIV_FORBID	EQU	3	; ----1---  Forbidden to enter privileged mode again
-INHIBIT_OUTPUT	EQU	2	; -----1--  Forbid any further output
-MSB_ESC		EQU	1	; ------1-  MSB Escape pending
-LITERAL_ESC	EQU	0	; -------1  Literal Escape pending
+#include "lumos_ssr_state.inc"
 
 ; YY_CMD_FLAGS holds various command flag bits
 ;
@@ -1253,11 +1232,13 @@ YCF_RAMP_CYCLE	EQU	7	; 1-------  Ramp should cycle now
 ;
 ; DMX_SLOTH contains these flags and the high-order bit of the DMX channel
 ;
+	IF DMX_ENABLED
 DMX_EN		EQU	7	; 1-------  DMX mode enabled
 DMX_SPEED	EQU	6	; -1------  UART at DMX speed now
 DMX_FRAME	EQU	5	; --1-----  Start of frame detected
 ;            			; ---XXXX-  Reserved
 DMX_BIT8	EQU	0	; -------1  MSB of DMX channel
+	ENDIF
 
 ;
 ; TARGET_SSR has these flags:

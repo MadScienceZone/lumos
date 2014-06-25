@@ -16,6 +16,9 @@
       <itemPath>../lumos_set_ssr.inc</itemPath>
       <itemPath>../quizshow_config.inc</itemPath>
       <itemPath>../lumos_8bit_escapes.inc</itemPath>
+      <itemPath>../readerboard_7x60.inc</itemPath>
+      <itemPath>../readerboard_7x60_bits.inc</itemPath>
+      <itemPath>../readerboard_7x60_user.inc</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -29,6 +32,7 @@
       <itemPath>../serial-io.asm</itemPath>
       <itemPath>../quizshow_init.asm</itemPath>
       <itemPath>../quizshow_main.asm</itemPath>
+      <itemPath>../readerboard_7x60.asm</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

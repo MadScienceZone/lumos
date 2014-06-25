@@ -45,17 +45,17 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Source Files Quoted if spaced
-SOURCEFILES_QUOTED_IF_SPACED=../lumos_init.asm ../lumos_main.asm ../serial-io.asm ../quizshow_init.asm ../quizshow_main.asm
+SOURCEFILES_QUOTED_IF_SPACED=../lumos_init.asm ../lumos_main.asm ../serial-io.asm ../quizshow_init.asm ../quizshow_main.asm ../readerboard_7x60.asm
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/_ext/1472/lumos_init.o ${OBJECTDIR}/_ext/1472/lumos_main.o ${OBJECTDIR}/_ext/1472/serial-io.o ${OBJECTDIR}/_ext/1472/quizshow_init.o ${OBJECTDIR}/_ext/1472/quizshow_main.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/_ext/1472/lumos_init.o.d ${OBJECTDIR}/_ext/1472/lumos_main.o.d ${OBJECTDIR}/_ext/1472/serial-io.o.d ${OBJECTDIR}/_ext/1472/quizshow_init.o.d ${OBJECTDIR}/_ext/1472/quizshow_main.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/_ext/1472/lumos_init.o ${OBJECTDIR}/_ext/1472/lumos_main.o ${OBJECTDIR}/_ext/1472/serial-io.o ${OBJECTDIR}/_ext/1472/quizshow_init.o ${OBJECTDIR}/_ext/1472/quizshow_main.o ${OBJECTDIR}/_ext/1472/readerboard_7x60.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/_ext/1472/lumos_init.o.d ${OBJECTDIR}/_ext/1472/lumos_main.o.d ${OBJECTDIR}/_ext/1472/serial-io.o.d ${OBJECTDIR}/_ext/1472/quizshow_init.o.d ${OBJECTDIR}/_ext/1472/quizshow_main.o.d ${OBJECTDIR}/_ext/1472/readerboard_7x60.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/_ext/1472/lumos_init.o ${OBJECTDIR}/_ext/1472/lumos_main.o ${OBJECTDIR}/_ext/1472/serial-io.o ${OBJECTDIR}/_ext/1472/quizshow_init.o ${OBJECTDIR}/_ext/1472/quizshow_main.o
+OBJECTFILES=${OBJECTDIR}/_ext/1472/lumos_init.o ${OBJECTDIR}/_ext/1472/lumos_main.o ${OBJECTDIR}/_ext/1472/serial-io.o ${OBJECTDIR}/_ext/1472/quizshow_init.o ${OBJECTDIR}/_ext/1472/quizshow_main.o ${OBJECTDIR}/_ext/1472/readerboard_7x60.o
 
 # Source Files
-SOURCEFILES=../lumos_init.asm ../lumos_main.asm ../serial-io.asm ../quizshow_init.asm ../quizshow_main.asm
+SOURCEFILES=../lumos_init.asm ../lumos_main.asm ../serial-io.asm ../quizshow_init.asm ../quizshow_main.asm ../readerboard_7x60.asm
 
 
 CFLAGS=
@@ -119,6 +119,14 @@ ${OBJECTDIR}/_ext/1472/quizshow_main.o: ../quizshow_main.asm  nbproject/Makefile
 	@${DEP_GEN} -d "${OBJECTDIR}/_ext/1472/quizshow_main.o"
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/quizshow_main.o.d" $(SILENT) -rsi ${MP_AS_DIR} -c18 
 	
+${OBJECTDIR}/_ext/1472/readerboard_7x60.o: ../readerboard_7x60.asm  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} ${OBJECTDIR}/_ext/1472 
+	@${RM} ${OBJECTDIR}/_ext/1472/readerboard_7x60.o.d 
+	@${RM} ${OBJECTDIR}/_ext/1472/readerboard_7x60.o 
+	@${FIXDEPS} dummy.d -e "${OBJECTDIR}/_ext/1472/readerboard_7x60.err" $(SILENT) -c ${MP_AS} $(MP_EXTRA_AS_PRE) -d__DEBUG -d__MPLAB_DEBUGGER_PICKIT2=1 -q -p$(MP_PROCESSOR_OPTION) -u  -l\\\"${OBJECTDIR}/_ext/1472/readerboard_7x60.lst\\\" -e\\\"${OBJECTDIR}/_ext/1472/readerboard_7x60.err\\\" $(ASM_OPTIONS)   -o\\\"${OBJECTDIR}/_ext/1472/readerboard_7x60.o\\\" \\\"../readerboard_7x60.asm\\\" 
+	@${DEP_GEN} -d "${OBJECTDIR}/_ext/1472/readerboard_7x60.o"
+	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/readerboard_7x60.o.d" $(SILENT) -rsi ${MP_AS_DIR} -c18 
+	
 else
 ${OBJECTDIR}/_ext/1472/lumos_init.o: ../lumos_init.asm  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR}/_ext/1472 
@@ -159,6 +167,14 @@ ${OBJECTDIR}/_ext/1472/quizshow_main.o: ../quizshow_main.asm  nbproject/Makefile
 	@${FIXDEPS} dummy.d -e "${OBJECTDIR}/_ext/1472/quizshow_main.err" $(SILENT) -c ${MP_AS} $(MP_EXTRA_AS_PRE) -q -p$(MP_PROCESSOR_OPTION) -u  -l\\\"${OBJECTDIR}/_ext/1472/quizshow_main.lst\\\" -e\\\"${OBJECTDIR}/_ext/1472/quizshow_main.err\\\" $(ASM_OPTIONS)   -o\\\"${OBJECTDIR}/_ext/1472/quizshow_main.o\\\" \\\"../quizshow_main.asm\\\" 
 	@${DEP_GEN} -d "${OBJECTDIR}/_ext/1472/quizshow_main.o"
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/quizshow_main.o.d" $(SILENT) -rsi ${MP_AS_DIR} -c18 
+	
+${OBJECTDIR}/_ext/1472/readerboard_7x60.o: ../readerboard_7x60.asm  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} ${OBJECTDIR}/_ext/1472 
+	@${RM} ${OBJECTDIR}/_ext/1472/readerboard_7x60.o.d 
+	@${RM} ${OBJECTDIR}/_ext/1472/readerboard_7x60.o 
+	@${FIXDEPS} dummy.d -e "${OBJECTDIR}/_ext/1472/readerboard_7x60.err" $(SILENT) -c ${MP_AS} $(MP_EXTRA_AS_PRE) -q -p$(MP_PROCESSOR_OPTION) -u  -l\\\"${OBJECTDIR}/_ext/1472/readerboard_7x60.lst\\\" -e\\\"${OBJECTDIR}/_ext/1472/readerboard_7x60.err\\\" $(ASM_OPTIONS)   -o\\\"${OBJECTDIR}/_ext/1472/readerboard_7x60.o\\\" \\\"../readerboard_7x60.asm\\\" 
+	@${DEP_GEN} -d "${OBJECTDIR}/_ext/1472/readerboard_7x60.o"
+	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/readerboard_7x60.o.d" $(SILENT) -rsi ${MP_AS_DIR} -c18 
 	
 endif
 

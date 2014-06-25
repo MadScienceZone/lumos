@@ -60,6 +60,7 @@
 ;
 #include "lumos_config.inc"
 #include "lumos_set_ssr.inc"
+#include "lumos_ssr_state.inc"
 #include "quizshow_config.inc"
 #include "qscc_hook_main_pins.inc"
 #include "qscc_bits.inc"
@@ -67,6 +68,7 @@
 	EXTERN	QUIZSHOW_FLAGS
 	EXTERN	QS_BTN_TMR_T
 	EXTERN	QS_BTN_TMR_U
+	EXTERN  SSR_STATE
 	GLOBAL	BTN_X0_TIME_T
 	GLOBAL	BTN_X0_TIME_U
 	GLOBAL	BTN_X0_TIME_H
@@ -770,6 +772,20 @@ QSCC_START:
 	MOVWF	QUIZSHOW_LCKTM, BANKED			; lockout time is 1/2 second
 	CLEAR_BUTTONS 1
 	CLRWDT
+	;
+	; Special Modes
+	; If the unit powers up with A+C (X0+L2) held down, it goes into config mode.
+	; XXX If it powers up with L0+X1 held down, it goes into standalone mode. (future)
+	; 
+	MOVLW	QS_SENS_MASK
+	ANDWF	QS_SENS_PORT, W, ACCESS
+	XORLW	QS_SENS_CONF
+	BNZ   	QSCC_SENS_END
+
+	BSF	SSR_STATE, PRIV_MODE, ACCESS
+	SET_SSR_RAPID_FADE 1	; CHANGES BANK!
+
+QSCC_SENS_END:
 	SET_SSR_SLOW_FADE 0	; CHANGES BANK!
 	RETURN
 ;
