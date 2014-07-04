@@ -38,7 +38,6 @@ class GUIConfiguration (object):
         else:
             self.menu_button = '<Button-3>'
 
-
     def load(self, config_obj):
         if config_obj.has_section('gui'):
             if config_obj.has_option('gui', 'virtual_channel_display_order'):
@@ -96,6 +95,8 @@ class Show (object):
         gui:                General GUI display settings.
     '''
     def __init__(self):
+        self.controller_factories = [controller_unit_factory]
+        self.controller_typemaps = [supported_controller_types]
         self._clear()
 
     def _clear(self):
@@ -192,8 +193,19 @@ class Show (object):
                         'channels': 'int',
                     }, self.all_power_sources)
                     unit_args['id'] = unit_ID
-                    self.networks[net_ID].add_unit(unit_ID, controller_unit_factory(
-                        unit_type, network=self.networks[net_ID], **unit_args))
+                    error = unit_obj = None
+                    for factory in self.controller_factories:
+                        try:
+                            unit_obj = factory(unit_type, network=self.networks[net_ID], **unit_args)
+                        except ValueError as e:
+                            error = e
+                        else:
+                            break
+
+                    if not unit_obj:
+                        raise error or ValueError("Can't understand controller unit type \"{0}\"".format(unit_type))
+
+                    self.networks[net_ID].add_unit(unit_ID, unit_obj)
                     self.controllers[unit_ID] = self.networks[net_ID].units[unit_ID]
                     #
                     # CHANNELS IN CONTROLLER UNIT
@@ -655,7 +667,10 @@ class Show (object):
             print >>file, "[unit %s]" % unitID
 #           print >>file, 'network=%s' % unit_network_id[unitID]
             print >>file, 'power_source=%s' % o.power_source.id
-            dump_object_constructor(file, o, supported_controller_types, skip=('power_source', 'network', 'id'))
+            typemap = {}
+            for t in self.controller_typemaps:
+                typemap.update(t)
+            dump_object_constructor(file, o, typemap, skip=('power_source', 'network', 'id'))
             print >>file
             global_channel_list[unitID] = o.channels
         print >>file, '''
@@ -831,6 +846,10 @@ class Show (object):
                 return n
         return None
 
+    def register_controller_factory(self, factory, typemap):
+        "Add a local controller factory to the list to try."
+        self.controller_factories.append(factory)
+        self.controller_typemaps.append(typemap)
 
 
 # XXX call initializeDevice on all controllers
