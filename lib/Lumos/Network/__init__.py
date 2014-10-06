@@ -124,7 +124,8 @@ class NullNetwork (Network):
     """
 
     def __init__(self, description=None, nulltype='generic'):
-        Network.__init__(self, description="[Null instance of {0}]".format(description or 'network'))
+#        Network.__init__(self, description="[Null instance of {0}]".format(description or 'network'))
+        Network.__init__(self, description or 'network')
         self.type = nulltype
         self.diversion = None
 

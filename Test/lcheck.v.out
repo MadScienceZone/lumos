@@ -12,9 +12,9 @@ your actual show setup.
 ------------------------------------------------------------------------------
  COMMUNICATIONS PARAMETERS
   NETWORK  SPEED BPSXR PORT DESCRIPTION
-  floods   1,200 8n1-- 2    [Null instance of X10 network for the floodlights.]
-  misc     9,600 8n1-- 1    [Null instance of Everything that's not a floodlight or a tree.]
-  trees   19,200 8n1-- 0    [Null instance of Separate network of controllers for tree displays.]
+  floods   1,200 8n1-- 2    X10 network for the floodlights.
+  misc     9,600 8n1-- 1    Everything that's not a floodlight or a tree.
+  trees   19,200 8n1-- 0    Separate network of controllers for tree displays.
 ------------------------------------------------------------------------------
  DEVICE CONTROLLERS:
   NETWORK UNIT     POWER DESCRIPTION

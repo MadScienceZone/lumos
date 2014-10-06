@@ -38,6 +38,10 @@ class GUIConfiguration (object):
         else:
             self.menu_button = '<Button-3>'
 
+        self.select_button = '<Button-1>'
+        self.activate_button = '<Double-Button-1>'
+        self.extend_button = '<Shift-Button-1>'
+
     def load(self, config_obj):
         if config_obj.has_section('gui'):
             if config_obj.has_option('gui', 'virtual_channel_display_order'):
@@ -100,6 +104,7 @@ class Show (object):
         self._clear()
 
     def _clear(self):
+        self.loaded = False
         self.all_power_sources = {}
         self.top_power_sources = []
         self.virtual_channels = {}
@@ -295,6 +300,8 @@ class Show (object):
                     color=(show.get(channel_ID, 'color') if show.has_option(channel_ID, 'color') else None),
                     channel=c_obj,
                 )
+
+        self.loaded = True
 
     def load_file(self, filename, open_device=True, virtual_only=False):
         self.load(open(filename), open_device, virtual_only)

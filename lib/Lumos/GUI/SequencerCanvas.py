@@ -1362,9 +1362,10 @@ class Application (SequencerCanvas):
         menu_bar = Tkinter.Menu(self)
         self.master.config(menu=menu_bar)
         self.master.title("Lumos Sequence Editor")
+        self.menu_objects = {}
 
         def create_menu(parent, title, item_list):
-            this_menu = Tkinter.Menu(parent, tearoff=False)
+            self.menu_objects[title] = this_menu = Tkinter.Menu(parent, tearoff=False)
             parent.add_cascade(label=title, menu=this_menu)
             accelerator_idx = {
                 'darwin':   1,
@@ -1397,6 +1398,8 @@ class Application (SequencerCanvas):
             ("Open Sequence...",     (None, "Command-o",),       self.open_file),
             ("Save Sequence",        (None, "Command-s",),       self.save_file),
             ("Save Sequence As...",  (None, "Shift-Command-S",), self.save_file_as),
+            ("---",                  None,                       None),
+            ("Load Configuration...",(None, "Command-l",),       self.load_config),
             ("---",                  None,                       None),
             ("Quit",                 (None, "Command-q"),        self.on_quit),
         ])
@@ -1432,6 +1435,7 @@ class Application (SequencerCanvas):
 
         if self.options.config:
             self.show.load_file(self.options.config, open_device=False, virtual_only=True)
+            self.disable_load_config()
 
         if self.options.sequence:
             self.sequence.load_file(self.options.sequence, self.show.controllers, self.show.virtual_channels)
@@ -1442,6 +1446,23 @@ class Application (SequencerCanvas):
             raise NotImplementedError("-v option not yet implemented")  #XXX
 
         self.refresh()
+
+    def load_config(self, *a):
+        if not self.show.loaded:
+            file_name = tkFileDialog.askopenfilename(
+                filetypes=(('Lumos Show Configuration File', '.conf'), ('All Files', '*')),
+                defaultextension=".conf",
+                initialdir=os.getcwd(),
+                parent=self,
+                title="Load Show Configuration"
+            )
+            if file_name:
+                self.show.load_file(file_name, open_device=False, virtual_only=True)
+                self.refresh()
+        self.disable_load_config()
+
+    def disable_load_config(self):
+        self.menu_objects['File'].entryconfigure('Load Configuration...', state=DISABLED)
 
     def set_title(self):
         self.master.title("Lumos Sequence Editor - {0} {1}".format(
@@ -1561,3 +1582,29 @@ if __name__ == "__main__":
 # bracketleft bracketright backslash semicolon Escape 1 2 ... 0
 # KP_Enter Up Left Down Right Prior Home Next End
 # Super_L (fn)
+#
+# Single click in grid: select cell (becomes "current" target for commands)
+# Shift-click in grid: extend selection to include multiple cells in range
+# Control/Command-click in grid: add individual cells to selection list
+# Click-drag in grid: select range to add (control/command) to selection list
+#
+# Insert:
+#  ON event (over ranges)
+#  OFF event (over ranges)
+#  set-level event (over ranges)  )_depends on channel type; both are set-level
+#  set-color event (over ranges)  )  really
+#  arbitrary event dialog
+#
+# Delete:
+#  events under selection
+# 
+# Edit:
+#  double-click on grid: events under selection 
+#       (arbitrary dialog with common fields enabled)
+#
+# Cut/Copy/Paste events selected
+#
+# Macro functions:
+#  random
+#  shimmer
+#  sparkle
