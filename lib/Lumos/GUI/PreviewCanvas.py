@@ -1235,14 +1235,15 @@ from Lumos.Show     import Show
 from Lumos.Sequence import Sequence
 import argparse
 
-class Application (SequencerCanvas):
+class Application (PreviewCanvas):
     def __init__(self, *a, **k):
-        SequencerCanvas.__init__(self, *a, **k)
-        self.file_name = None
+        PreviewCanvas.__init__(self, *a, **k)
+        self.view_file_name = None
+        self.sequence_file_name = None
 
         menu_bar = Tkinter.Menu(self)
         self.master.config(menu=menu_bar)
-        self.master.title("Lumos Sequence Editor")
+        self.master.title("Lumos Sequence Previewer")
         self.menu_objects = {}
 
         def create_menu(parent, title, item_list):
@@ -1275,53 +1276,50 @@ class Application (SequencerCanvas):
 
         #   menu item               (default, Mac, ...)          command
         create_menu(menu_bar, "File", [
-            ("New Sequence",         (None, "Command-n",),       self.new_file),
-            ("Open Sequence...",     (None, "Command-o",),       self.open_file),
-            ("Save Sequence",        (None, "Command-s",),       self.save_file),
-            ("Save Sequence As...",  (None, "Shift-Command-S",), self.save_file_as),
+            ("New Preview",         (None, "Command-n",),        self.new_file),
+            ("Open Preview...",     (None, "Command-o",),        self.open_file),
+            ("Save Preview",        (None, "Command-s",),        self.save_file),
+            ("Save Preview As...",  (None, "Shift-Command-S",),  self.save_file_as),
+            ("---",                  None,                       None),
+            ("Load Sequence...",     None,                       self.load_sequence),
             ("---",                  None,                       None),
             ("Load Configuration...",(None, "Command-l",),       self.load_config),
             ("---",                  None,                       None),
             ("Quit",                 (None, "Command-q"),        self.on_quit),
         ])
 
-        create_menu(menu_bar, "View", [
-            ("Zoom in",              (None, "Command-+",),       self.zoom_in),
-            ("Zoom out",             (None, 
-                                        ("Command--","Command-minus")),
-                                                                 self.zoom_out),
-            ("Zoom",                 (),                         [
-                ("10 minutes",       (),                            lambda *e: self.zoom_to(600)),
-                ("5 minutes",        (),                            lambda *e: self.zoom_to(300)),
-                ("1 minute",         (),                            lambda *e: self.zoom_to(60)),
-                ("30 seconds",       (),                            lambda *e: self.zoom_to(30)),
-                ("10 seconds",       (),                            lambda *e: self.zoom_to(10)),
-                ("5 seconds",        (),                            lambda *e: self.zoom_to(5)),
-                ("2 seconds",        (),                            lambda *e: self.zoom_to(2)),
-                ("1 second",         (None, "Command-="),           lambda *e: self.zoom_to(1)),
-                ("1/2 second",       (),                            lambda *e: self.zoom_to(.5)),
-                ("1/5 second",       (),                            lambda *e: self.zoom_to(.2)),
-                ("1/10 second",      (),                            lambda *e: self.zoom_to(.1)),
-                ("1/20 second",      (),                            lambda *e: self.zoom_to(.05)),
-                ("1/50 second",      (),                            lambda *e: self.zoom_to(.02)),
-                ("1/100 second",     (),                            lambda *e: self.zoom_to(.01)),
-            ]),
-        ])
-
         parser = argparse.ArgumentParser(description="Test of the SequenceCanvas widget.")
         parser.add_argument('--config',   '-c', help='Show configuration file')
         parser.add_argument('--sequence', '-s', help='Sequence file')
         parser.add_argument('--verbose',  '-v', help='Increase information output level')
+        parser.add_argument('--preview',  '-p', help='Preview view file')
         self.options = parser.parse_args()
+
+        self.disable_load_sequence()
+        self.disable_load_view()
 
         if self.options.config:
             self.show.load_file(self.options.config, open_device=False, virtual_only=True)
             self.disable_load_config()
+            self.enable_load_sequence()
+            self.enable_load_view()
 
         if self.options.sequence:
-            self.sequence.load_file(self.options.sequence, self.show.controllers, self.show.virtual_channels)
-            self.file_name = self.options.sequence
+            if not self.options.config:
+                parser.error("You must load a configuration file in order to load sequences.")
+
+            self.sequence.load_sequence(self.options.sequence, self.show.controllers, self.show.virtual_channels)
+            self.sequence_file_name = self.options.sequence
             self.set_title()
+
+        if self.options.preview:
+            if not self.options.config:
+                parser.error("You must load a configuration file in order to load preview views.")
+
+            self.load_file(self.options.sequence, self.show.controllers, self.show.virtual_channels)
+            self.view.file_name = self.options.sequence
+            self.set_title()
+
 
         if self.options.verbose:
             raise NotImplementedError("-v option not yet implemented")  #XXX
