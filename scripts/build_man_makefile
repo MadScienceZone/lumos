@@ -25,10 +25,10 @@ while (<STDIN>) {
 					die("Can't deal with manpage file $file!\n");
 				}
 				print "$PDF_DIR/", (fileparse($file, qr/\.\d\.in/))[0], '.pdf: ', $mandst, "\n";
-				print "\tgroff -man \$< | ps2pdf -sPaperSize=Letter - \$\@\n";
+				print "\tgroff -man $mandst | ps2pdf -sPaperSize=Letter - \$\@\n";
 				print "\n";
 				print "$mandst: $mansrc\n";
-				print "\t$BASE_DIR/update_manpage < \$< > \$\@\n";
+				print "\t$BASE_DIR/update_manpage < $mansrc > \$\@\n";
 			}
 		}
 		next;
