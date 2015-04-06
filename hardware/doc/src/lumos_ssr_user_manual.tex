@@ -649,12 +649,15 @@ controller before beginning.
 \begin{enumerate}
 	\item	Turn off the Lumos controller or insert a jumper across pins 2--3 of J2.
 		\marginpar{\centerline{\LLimg[width=1.5in]{4dc-j2-23}}}
-	\item	Install a \ix{jumper} across pins 4--5 of J2.
+	\item	Install a \ix{jumper} across pins 5--6 of J2.
 		\marginpar{\centerline{\LLimg[width=1.5in]{4dc-j2-2345}}}
+	\item	Remove any sensors attached to the unit.
+	\item	Insert a jumper wire between sensor input terminals $\overline{\hbox{A}}$ and $\overline{\hbox{B}}$.
 	\item	Power on the Lumos controller or remove the jumper from pins 2--3.
 		\marginpar{\centerline{\LLimg[width=1.5in]{4dc-j2-45}}}
 	\item	When the red, green, and yellow \acronym{LED}s flash rapidly, pull the
-		jumper off pins 4--5.
+		jumper from the sensor inputs.
+	\item	Finally, pull the jumper off pins 5--6.
 \end{enumerate}
 
 If those steps were carried out exactly as described, %the \acronym{LED}s will all flash rapidly and 

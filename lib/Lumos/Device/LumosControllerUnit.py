@@ -512,7 +512,7 @@ class LumosControllerUnit (ControllerUnit):
             raise DeviceProtocolError("Query packet response malformed (len={0})".format(len(reply)))
         if reply[36] != 0x33:
             raise DeviceProtocolError("Query packet response malformed (end={0:02X})".format(reply[34]))
-        if reply[2] != 0x30:
+        if reply[2] != 0x30 and reply[2] != 0x31:
             raise DeviceProtocolError("Query packet version unsupported ({0}.{1})".format((reply[2] >> 4) & 0x07, (reply[2] & 0x0f)))
 
 

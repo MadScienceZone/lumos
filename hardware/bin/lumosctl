@@ -328,6 +328,12 @@ def change_speed(target, io, new_speed):
          57600:  8,
         115200:  9,
         250000: 10,
+        500000: 11,
+       1000000: 12,
+       2000000: 13,
+       2500000: 14,
+       5000000: 15,
+      10000000: 16,
     }
     if new_speed not in supported_speeds:
         raise ValueError("New baud rate must be one of {0}".format(', '.join(map(str, supported_speeds.keys()))))
