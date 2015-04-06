@@ -1,0 +1,11 @@
+V_RST		Restart vector
+V_INT_H		High-priority interrupt vector
+V_INT_L		Low-priority interrupt vector
+_INT		Interrupt service routines
+_BOOT		Cold-start boot loader: initialize system
+_SIO_CODE	Serial I/O routines
+_MAIN		Mainline Lumos firmware routines
+__SYS__		Manufacturing information (serial number)
+_FLASH_UPD	Field firmware update routine
+_EEPROM_DEFS_TBL Factory default settings
+LUMOS_CODE_INIT	System initialization code (called from boot code)

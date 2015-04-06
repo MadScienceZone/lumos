@@ -48,7 +48,7 @@
 	CONFIG	BOREN=OFF		; no brown-out reset
 	CONFIG	WDTEN=ON		; watchdog timer enabled
 	CONFIG	WDTPS=16384		; Watchdog timer postscale 1:16K (~65.5s) [1,2,4,8,...,32768]
-	CONFIG	HFINTOSC=OFF		; System clock waits for HFINTOSC to stabilize
+;	CONFIG	HFINTOSC=OFF		; System clock waits for HFINTOSC to stabilize
 	CONFIG	MCLRE=ON		; /MCLR pin is for /MCLR, not I/O
 	CONFIG	STVREN=ON		; enable stack over/under-flow reset
 	CONFIG	LVP=OFF			; disable low-voltage programming mode
@@ -125,9 +125,6 @@ LUMOS_INIT:
 		; ----XX--	; not used (status bits)
 		; ------00	; system clock from primary osc
 	MOVWF	OSCCON, ACCESS
- IF LUMOS_ARCH == LUMOS_ARCH_14K50
-  ERROR "Missing 14K50 initialization code"
- ENDIF
 ;
 ; Reset Control
 ;
@@ -173,7 +170,7 @@ LUMOS_INIT:
 		; -------0	; INT1 int flag CLEAR
 	MOVWF	INTCON3, ACCESS
 	MOVLW	b'00000000'
-		; 0-------	; parallel slave R/W int OFF
+		; 0-------	; parallel slave R/W int OFF / [K50] unused
 		; -0------	; A/D converter int OFF
 		; --0-----	; UART RX int OFF
 		; ---0----	; UART TX int OFF
@@ -185,13 +182,14 @@ LUMOS_INIT:
 	MOVLW	b'00000000'
 		; 0-------	; OSC fail int OFF
 		; -0------	; comparator int OFF
-		; --X-----	; 
+		; --X-----	;  [K50] comparator 2 int OFF
 		; ---0----	; EEPROM write int OFF
 		; ----0---	; bus collision int OFF
 		; -----0--	; H/L voltage int OFF
 		; ------0-	; TMR3 int OFF
-		; -------0	; ECCP1 int OFF
+		; -------0	; ECCP1 int OFF / [K50] unused
 	MOVWF	PIE2, ACCESS
+ IF LUMOS_ARCH != LUMOS_ARCH_14K50
 	MOVLW	b'00000000'
 		; 0-------	; CAN invalid RX int OFF
 		; -0------	; CAN wakeup int OFF
@@ -202,8 +200,9 @@ LUMOS_INIT:
 		; ------0-	; CAN RX buf 1 int OFF
 		; -------0	; CAN RX buf 0 int OFF
 	MOVWF	PIE3, ACCESS
+ ENDIF
 	MOVLW	b'00000010'
-		; 0-------	; Parallel slave port R/W int = low priority
+		; 0-------	; Parallel slave port R/W int = low priority / [K50] N/A
 		; -0------	; A/D converter int = low priority
 		; --0-----	; UART RX int = low priority
 		; ---0----	; UART TX int = low priority
@@ -215,13 +214,14 @@ LUMOS_INIT:
 	MOVLW	b'00000000'
 		; 0-------	; OSC fail int = low priority
 		; -0------	; Comparator int = low priority
-		; --X-----	; N/A
+		; --X-----	; N/A / [K50] Comparator 2 int = low priority
 		; ---0----	; EEPROM write int = low priority
 		; ----0---	; Bus collisions int = low priority
-		; -----0--	; H/L voltage int = low priority
+		; -----0--	; H/L voltage int = low priority / [K50] USB
 		; ------0-	; TMR3 int = low priority
-		; -------0	; ECCP1 int = low priority
+		; -------0	; ECCP1 int = low priority / [K50] N/A
 	MOVWF	IPR2, ACCESS
+ IF LUMOS_ARCH != LUMOS_ARCH_14K50
 	MOVLW	b'00000000'
 		; 0-------	; CAN RX error int = low priority
 		; -0------	; CAN wakeup int = low priority
@@ -232,79 +232,127 @@ LUMOS_INIT:
 		; ------0-	; CAN RX buf1 int = low priority
 		; -------0	; CAN RX buf0 int = low priority
 	MOVWF	IPR3, ACCESS
-
-
+ ENDIF
 
 	CLRF	PIR1, ACCESS	; Clear all peripheral int flags
 	CLRF	PIR2, ACCESS	; Clear all peripheral int flags
+ IF LUMOS_ARCH != LUMOS_ARCH_14K50
 	CLRF	PIR3, ACCESS	; Clear all peripheral int flags
+ ENDIF
 ;
-; I/O PORT SETUP
+; XXX I/O PORT SETUP
 ;
  	IF QSCC_PORT
 	 #include "qscc_hook_io_setup.asm"
  	ELSE
-	 MOVLW	b'00111100'
+         IF LUMOS_ARCH == LUMOS_ARCH_14K50
+	  CLRF	WPUA, ACCESS	; turn off weak RA pull-up resistors
+	  CLRF	IOCA, ACCESS	; turn off interrupt-on-change for PORTA
+	  CLRF	WPUB, ACCESS	; turn off weak RB pull-up resistors
+	  CLRF	IOCB, ACCESS	; turn off interrupt-on-change for PORTB
+	  CLRF	ANSEL, ACCESS	; disable analog, enable digital I/O
+	  CLRF	ANSELH, ACCESS	; disable analog, enable digital I/O
+	  CLRF	ADCON0, ACCESS	; disable AD converters
+	  CLRF	ADCON1, ACCESS	; disable AD converters
+	  CLRF	ADCON2, ACCESS	; disable AD converters
+	  CLRF	CM1CON0, ACCESS	; disable comparators
+	  CLRF	CM2CON0, ACCESS	; disable comparators
+	 ELSE
+	  MOVLW	b'00111100'
 		; XX------	; N/A
 		; --1111--	; no channel selected
 		; ------0-	; A/D converter idle
 		; -------0	; A/D converter OFF
-	 MOVWF	ADCON0, ACCESS
-	 MOVLW	b'00001111'
+	  MOVWF	ADCON0, ACCESS
+ 	  MOVLW	b'00001111'
 		; XX------	; N/A
-		; --00----	; voltage reference = AVss, AVdd
+		; --00----	; voltage reference = AVss, AVdd 
 		; ----1111	; all I/O pins digital
-	 MOVWF	ADCON1, ACCESS
-	 CLRF	ADCON2, ACCESS	; not needed since we're not using A/D	
-	 CLRF	CVRCON, ACCESS	; turn off comparator voltage reference
-				;
-	 MOVLW 	b'00011111'	; PORT A: 
+	  MOVWF	ADCON1, ACCESS
+	  CLRF	ADCON2, ACCESS	; not needed since we're not using A/D	
+	  CLRF	CVRCON, ACCESS	; turn off comparator voltage reference
+	 ENDIF
+	 
+         IF LUMOS_ARCH == LUMOS_ARCH_14K50
+		;		; PORT A:
+		; //00-/--	; crystal oscillator pins
+		; //--X/--	; not used (MCLR input)
+		; //---/00	; inputs
+	  CLRF	PORTA, ACCESS	
+	  CLRF	LATA, ACCESS
+	  MOVLW	b'00010000' 	; PORT B:
+		; X-X-////	; serial I/O pins
+		; -0--////	; T/R to RECEIVE
+		; ---1////	; SSR pins HIGH (relays off)
+	  MOVWF	PORTB, ACCESS
+	  MOVWF	LATB, ACCESS
+	  MOVWF	b'00000111'	; PORTC:
+		; X-------	; /D input pin
+		; -0------	; /B input pin / RED LED output
+		; --0-----	; /A input pin / ACT LED output
+		; ---0----	;              / GRN LED output
+		; ----0---	; /C input pin / YEL LED output
+		; -----111	; SSR pins HIGH (relays off)
+	  MOVWF	PORTC, ACCESS
+	  MOVWF	LATC, ACCESS
+				;    bit 7 6 5 4 3 2 1 0
+	  MOVLW	b'11111111' 	; PORTA  X X I I I I I I  all inputs or N/A
+	  MOVWF	TRISA, ACCESS
+	  MOVLW b'00000010'	; *** The K50 requires the Int-on-change bit to read
+	  MOVWF IOCA, ACCESS	; *** the port at all regardless of not enabling the interrupt!
+	  MOVLW	b'10101111' 	; PORTB  X O X O X X X X  TX T/R RX /03 X X X X
+	  MOVWF	TRISB, ACCESS
+	  MOVLW	b'11101000' 	; PORTC  I I I O I O O O  /D /B /A GRN /C /02 /01 /00
+	  MOVWF	TRISC, ACCESS
+ 	 ELSE
+	  MOVLW	b'00011111'	; PORT A: 
 		; XX------	; crystal oscillator pins
 		; --0-----	; T/R pin to RECEIVE mode / ACT light OFF
 		; ---11111	; SSR pins HIGH (relays off)
-	 MOVWF	PORTA, ACCESS	; 
-	 MOVWF	LATA, ACCESS
-	 MOVLW	b'10111110' 	; PORT B:
+	  MOVWF	PORTA, ACCESS	; 
+	  MOVWF	LATA, ACCESS
+	  MOVLW	b'10111110' 	; PORT B:
 		; 1-------	; PWRCTL set HIGH (power supply OFF)
 		; -X------	; OPTION button
 		; --11111-	; SSR pins HIGH (relays off)
 		; -------0	; T/R to RECEIVE (standalone board; input on others)
-	 MOVWF	PORTB, ACCESS
-	 MOVWF	LATB, ACCESS
-	 MOVWF	b'00111111'	; PORTC:
+	  MOVWF	PORTB, ACCESS
+	  MOVWF	LATB, ACCESS
+	  MOVWF	b'00111111'	; PORTC:
 		; XX------	; serial I/O pins
 		; --111111	; SSR pins HIGH (relays off)
-	 MOVWF	PORTC, ACCESS
-	 MOVWF	LATC, ACCESS
-	 SETF	PORTD, ACCESS	; PORTD: SSR pins HIGH (relays off)
-	 SETF	LATD, ACCESS
-	 CLRF	PORTE, ACCESS	; PORTE: LEDs LOW (off)
-	 CLRF	LATE, ACCESS
+	  MOVWF	PORTC, ACCESS
+	  MOVWF	LATC, ACCESS
+	  SETF	PORTD, ACCESS	; PORTD: SSR pins HIGH (relays off)
+	  SETF	LATD, ACCESS
+	  CLRF	PORTE, ACCESS	; PORTE: LEDs LOW (off)
+	  CLRF	LATE, ACCESS
 
 				;    bit 7 6 5 4 3 2 1 0
-	 MOVLW	b'11100000' 	; PORTA  X X I O O O O O  all outputs except LEDs (may be sensors)
-	 MOVWF	TRISA, ACCESS
- 	 IF LUMOS_CHIP_TYPE==LUMOS_CHIP_MASTER
-	  MOVLW	b'01000001'	; PORTB  O I O O O O O I  <6> option, <0> INT; rest outputs
-	  MOVWF	TRISB, ACCESS
-  	 ELSE
-  	  IF LUMOS_CHIP_TYPE==LUMOS_CHIP_SLAVE
-	   MOVLW b'00000001'	; PORTB  O X O O O O O I  <0> INT; rest outputs
+	  MOVLW	b'11100000' 	; PORTA  X X I O O O O O  all outputs except LEDs (may be sensors)
+	  MOVWF	TRISA, ACCESS
+ 	  IF LUMOS_CHIP_TYPE==LUMOS_CHIP_MASTER
+	   MOVLW b'01000001'	; PORTB  O I O O O O O I  <6> option, <0> INT; rest outputs
 	   MOVWF TRISB, ACCESS
-          ELSE
-           IF LUMOS_CHIP_TYPE==LUMOS_CHIP_STANDALONE
-	    MOVLW b'01000000'	; PORTB  O I O O O O O O  <6> option; rest outputs
+  	  ELSE
+  	   IF LUMOS_CHIP_TYPE==LUMOS_CHIP_SLAVE
+	    MOVLW b'00000001'	; PORTB  O X O O O O O I  <0> INT; rest outputs
 	    MOVWF TRISB, ACCESS
            ELSE
-    	    ERROR "LUMOS_CHIP_TYPE not set correctly"
+            IF LUMOS_CHIP_TYPE==LUMOS_CHIP_STANDALONE
+	     MOVLW b'01000000'	; PORTB  O I O O O O O O  <6> option; rest outputs
+	     MOVWF TRISB, ACCESS
+            ELSE
+    	     ERROR "LUMOS_CHIP_TYPE not set correctly"
+            ENDIF
            ENDIF
           ENDIF
-         ENDIF
-	 MOVLW	b'11000000'	; <7:6> is serial; rest are output
-	 MOVWF	TRISC, ACCESS
-	 CLRF 	TRISD, ACCESS	; PORTD  O O O O O O O O  all outputs
-	 MOVLW	b'00000111'
-	 MOVWF	TRISE, ACCESS	; PORTE  X X X X X 1 1 1  all inputs (for now, may be sensors)
+	  MOVLW	b'11000000'	; <7:6> is serial; rest are output
+	  MOVWF	TRISC, ACCESS
+	  CLRF 	TRISD, ACCESS	; PORTD  O O O O O O O O  all outputs
+	  MOVLW	b'00000111'
+	  MOVWF	TRISE, ACCESS	; PORTE  X X X X X 1 1 1  all inputs (for now, may be sensors)
+	 ENDIF
 	ENDIF
 ;
 ; Timers
@@ -321,7 +369,7 @@ LUMOS_INIT:
 	CLRF	TMR0L, ACCESS	; reset TMR0 
 	MOVLW	b'10000000'
 		; 1-------	; TMR1 read/write 16 bits at a time
-		; -X------	; N/A
+		; -0------	; N/A / [K50] system clock NOT from timer1
 		; --00----	; TMR1 prescaler = 1:1
 		; ----0---	; TMR1 oscillator power off
 		; -----00-	; TMR1 uses system clock (Fosc/4)
@@ -350,14 +398,16 @@ LUMOS_INIT:
 ;
 ; Misc peripherals
 ;
-	CLRF	HLVDCON, ACCESS	; turn off high/low voltage detection
-	MOVLW	b'00100000'
+        IF LUMOS_ARCH != LUMOS_ARCH_14K50
+	 CLRF	HLVDCON, ACCESS	; turn off high/low voltage detection
+	 MOVLW	b'00100000'
 		; 001XXXXX 	; set CAN module to disable/sleep mode
 		; ----0000	; no interrupts
-	MOVWF	CANSTAT, ACCESS
+	 MOVWF	CANSTAT, ACCESS
+	 CLRF	ECCP1CON, ACCESS; disable ECCP1
+	 CLRF	CMCON, ACCESS	; comparator not used
+	ENDIF
 	CLRF	CCP1CON, ACCESS	; disable CCP1
-	CLRF	ECCP1CON, ACCESS; disable ECCP1
-	CLRF	CMCON, ACCESS	; comparator not used
 ;
 ; Enable watchdog timer
 ;

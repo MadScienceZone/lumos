@@ -320,8 +320,8 @@
 ;          |            |   |                    | (x n)
 ;          `--reporting | number of    0=not pressed yet
 ;              unit addr| buttons     >0=microseconds elapsed before press
-;                       | reported
-;                       0=scanning stopped
+;                       | reported            (range: .000001~4294.967295 s)
+;                       0=scanning stopped       00:00.000001~71:34.967295 
 ;                       1=scanner is still running
 ;                      
 ;    01010001 00101010 

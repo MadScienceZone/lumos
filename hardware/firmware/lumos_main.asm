@@ -411,17 +411,23 @@
 ;	DMX mode if <d>=1, with Lumos channel 0 at DMX channel <c>+1.
 ;	
 ; CF_BAUD:   Values recognized:
-;	00000000 ($00)	    300 baud
-;	00000001 ($01)      600
-;	00000010 ($02)    1,200
-;	00000011 ($03)    2,400
-;	00000100 ($04)    4,800
-;	00000101 ($05)    9,600
-;	00000110 ($06)   19,200
-;	00000111 ($07)   38,400
-;	00001000 ($08)   57,600
-;	00001001 ($09)  115,200
-;	00001010 ($0A)  250,000
+;	00000000 ($00)        300 baud
+;	00000001 ($01)        600
+;	00000010 ($02)      1,200
+;	00000011 ($03)      2,400
+;	00000100 ($04)      4,800
+;	00000101 ($05)      9,600
+;	00000110 ($06)     19,200
+;	00000111 ($07)     38,400
+;	00001000 ($08)     57,600
+;	00001001 ($09)    115,200
+;	00001010 ($0A)    250,000
+;	00001011 ($0B)    500,000
+;	00001100 ($0C)  1,000,000
+;	00001101 ($0D)  2,000,000
+;	00001110 ($0E)  2,500,000
+;	00001111 ($0F)  5,000,000
+;	00010000 ($10) 10,000,000
 ;
 ;
 ; Response packet from QUERY command (37 bytes):
@@ -773,10 +779,10 @@ CYCLE_TMR_PERIOD	 EQU	0x5D3D
 ;           XTAL ---  2 | OSC1       PGD RA0 | 19 --> /PWRCTL
 ;           XTAL ---  3 | OSC2       PGC RA1 | 18 <-- /OPTION
 ;          /MCLR -->  4 | /MCLR         Vusb | 17 
-;    /A  ACT LED <->  5 | RC5            RC0 | 16 --> /SSR3
-;        GRN LED <--  6 | RC4            RC1 | 15 --> /SSR2
-;    /C  YEL LED <->  7 | RC3            RC2 | 14 --> /SSR1
-;    /B  RED LED <->  8 | RC6            RB4 | 13 --> /SSR0
+;    /A  ACT LED <->  5 | RC5            RC0 | 16 --> /SSR0
+;        GRN LED <--  6 | RC4            RC1 | 15 --> /SSR1
+;    /C  YEL LED <->  7 | RC3            RC2 | 14 --> /SSR2
+;    /B  RED LED <->  8 | RC6            RB4 | 13 --> /SSR3
 ;    /D          -->  9 | RC7        RxD RB5 | 12 <-- RxD
 ;            TxD <-- 10 | RB7 TxD        RB6 | 11 --> T/R
 ;                       |____________________|
@@ -786,6 +792,49 @@ CYCLE_TMR_PERIOD	 EQU	0x5D3D
 ; ========================================================================
 ; PROGRAM MEMORY MAP
 ; ______________________________________________________________________________
+; PIC18F14K50, 4-PORT BOARD
+; 
+;           ______________________________
+; 00000000 | Restart vector               | V_RST
+; 00000005 |______________________________|
+; 00000006 |                              | .cinit
+; 00000007 |______________________________|
+; 00000008 | High-priority interrupt      | V_INT_H
+;          | vector                       |
+; 0000000D |______________________________|
+;     :     ______________________________
+; 00000018 | Low-priority interrupt       | V_INT_L
+;          | vector                       |
+; 0000001D |______________________________|
+; 0000001E | Interrupt service routines   | _INT
+; 000000A5 |______________________________|
+;     :     ______________________________
+; 00000100 | Cold-start boot loader:      | _BOOT
+;          | initialize system            |
+; 00000333 |______________________________|
+; 00000334 | Serial I/O routines          | _SIO_CODE
+; 000005C5 |______________________________|
+;     :     ______________________________
+; 00000800 | Mainline Lumos firmware      | _MAIN
+;          | routines                     |
+; 00001C4F |______________________________|
+;     :     ______________________________
+; 00002E00 | Factory default settings     | _EEPROM_DEFS_TBL
+; 00002E0F |______________________________|
+; 00002E10 | System initialization code   | LUMOS_CODE_INIT
+;          | (called from boot code)      |
+; 00002E97 |______________________________|
+;     :     ______________________________
+; 00002F00 |                              | .org_0
+; 00002FBD |______________________________|
+;     :     ______________________________
+; 00002FE0 | Manufacturing information    | __SYS__
+;          | (serial number)              |
+; 00002FE1 |______________________________|
+;     :     ______________________________
+; 00003000 | Field firmware update        | _FLASH_UPD
+;          | routine                      |
+; 000032F5 |______________________________|
 ;
 ; 14K50 4685    _________________ ___
 ; $00000 $00000 | RESET Vector    | V_RST
@@ -844,6 +893,84 @@ _SYSTEM_MFG_DATA	EQU	0x02FE0
 ;
 ;
 ; ========================================================================
+;
+; PIC18F14K50, 4-channel board:
+;      ______________________________
+; 000 | 000 ISR_TMPL_STATUS          | _ADATA
+;     | 001 ISR_TMPL_BSR             |
+;     | 002 ISR_TMPL_WREG            |
+;     | 003 MY_ADDRESS               |
+;     | 004 PHASE_OFFSETH            |
+;     | 005 PHASE_OFFSETL            |
+;     | 006 SSR_STATE                |
+;     | 007 SSR_STATE2               |
+;     | 008 DMX_SLOTH                |
+;     | 009 DMX_SLOTL                |
+;     | 00A YY_STATE                 |
+;     | 00B YY_COMMAND               |
+;     | 00C YY_CMD_FLAGS             |
+;     | 00D YY_DATA                  |
+;     | 00E YY_LOOKAHEAD_MAX         |
+;     | 00F YY_LOOK_FOR              |
+;     | 010 YY_BUF_IDX               |
+;     | 011 YY_NEXT_STATE            |
+;     | 012 YY_YY                    |
+;     | 013 LAST_ERROR               |
+;     | 014 CUR_PREH                 |
+;     | 015 CUR_PRE                  |
+;     | 016 CUR_SLICE                |
+;     | 017 TARGET_SSR               |
+;     | 018 OPTION_DEBOUNCE          |
+;     | 019 OPTION_HOLD              |
+;     | 01A TEST_CYCLE               |
+;     | 01B TEST_SSR                 |
+;     | 01C AUTO_OFF_CTRH            |
+;     | 01D AUTO_OFF_CTRL            |
+;     | 01E EIGHTBITSIOBUF           |
+;     | 01F I                        |
+;     | 020 J                        |
+;     | 021 K                        |
+;     | 022 KK                       |
+;     | 023 TR_I                     |
+; 023 |______________________________|
+;  :   ______________________________
+; 060 | 060 SSR_00_VALUE             | _SSR_DATA
+;     | 068 SSR_00_FLAGS             |
+;     | 070 SSR_00_STEP              |
+;     | 078 SSR_00_SPEED             |
+;     | 080 SSR_00_COUNTER           |
+; 087 |______________________________|
+; 088 | 088 YY_BUFFER                | _MAINDATA
+; 0E1 |______________________________|
+;  :   ______________________________
+; 0E4 | 0E4 SIO_STATUS               | _SIO_VAR_DATA
+;     | 0E5 SIO_INPUT                |
+;     | 0E6 SIO_OUTPUT               |
+;     | 0E7 TX_BUF_START             |
+;     | 0E8 TX_BUF_END               |
+;     | 0E9 RX_BUF_START             |
+;     | 0EA RX_BUF_END               |
+;     | 0EB TX_CHAR                  |
+;     | 0EC SIO_X                    |
+;     | 0ED SIO_TMPPC                |
+;     | 0EE FSR1H_SAVE               |
+;     | 0EF FSR1L_SAVE               |
+;     | 0F0 B32__BIT                 |
+;     | 0F1 B32__OUTCTR              |
+;     | 0F2 B32__FSR0H               |
+;     | 0F3 B32__FSR0L               |
+;     | 0F4 B32__FSR1H               |
+;     | 0F5 B32__FSR1L               |
+;     | 0F6 B32__BCD_ASC             |
+;     | 0FB B32__BIN                 |
+; 0FE |______________________________|
+;  :   ______________________________
+; 100 | 100 TX_BUFFER                | _SIO_TXBUF_DATA
+; 1FF |______________________________|
+; 200 | 200 RX_BUFFER                | _SIO_RXBUF_DATA
+; 2FF |______________________________|
+;
+
 ; DATA MEMORY MAP (4685)
 ;
 ;       _________________ ___ ___ ___ ___ ___ ___ ___ ___
@@ -957,8 +1084,8 @@ _SYSTEM_MFG_DATA	EQU	0x02FE0
 ;
 ;
 __SYS__	CODE_PACK	_SYSTEM_MFG_DATA
-SYS_SNH	DE	0xA4	 	; Device serial number
-SYS_SNL DE	0x45
+SYS_SNH	DE	0xA5	 	; Device serial number
+SYS_SNL DE	0xA0
 
 _EEPROM	CODE_PACK	0xF00000
 	DE	0xFF		; 000: 0xFF constant
@@ -1035,14 +1162,14 @@ EEPROM_USER_END		EQU	0x3FF
 ;          O   O   O   O   O   O   O  INT
 ; PORT RB /PS /OP /00 /01 /02 /03 /04 T/R    24-Board DC    standalone
 ;          O   I_  O   O   O   O   O   O 
-; PORT RB --- T/R --- /00 ///////////////     4-Board DC
+; PORT RB --- T/R --- /03 ///////////////     4-Board DC
 ;         <O>  O  <I>  O  ///////////////
 ;
 ;          7   6   5   4   3   2   1   0
 ; PORT RC --- --- /02 /00 /01 /03 /19 /04    48-Board AC/DC master/slave
 ; PORT RC --- --- /09 /10 /15 /16 /17 /18    24-Board DC    standalone
 ;          <I/O>   O   O   O   O   O   O
-; PORT RC /D  RED ACT GRN YEL /01 /02 /03     4-Board DC
+; PORT RC /D  RED ACT GRN YEL /02 /01 /00     4-Board DC
 ;          I   O   O   O   O   O   O   O
 ;
 ;          7   6   5   4   3   2   1   0
@@ -1265,12 +1392,15 @@ HAS_T_R		 EQU	0
 HAS_ACTIVE	 EQU	1
 HAS_SENSORS	 EQU	1
 HAS_OPTION	 EQU	1
+HAS_STATUS_LEDS	 EQU	1
+HAS_POWER_CTRL	 EQU	1
 
 TRIS_SENS_A	 EQU	TRISE	; Sensor A == RED LED
 PORT_SENS_A	 EQU	PORTE	; Sensor A == RED LED
 BIT_SENS_A	 EQU	2	; Sensor A == RED LED
 TRIS_SENS_B	 EQU	TRISE	; Sensor B == GREEN LED
 PORT_SENS_B	 EQU	PORTE	; Sensor B == GREEN LED
+PLAT_SENS_B	 EQU	LATE	; Sensor B == GREEN LED
 BIT_SENS_B	 EQU	0	; Sensor B == GREEN LED
 TRIS_SENS_C	 EQU	TRISA	; Sensor C == ACTIVE LED
 PORT_SENS_C	 EQU	PORTA	; Sensor C == ACTIVE LED
@@ -1357,6 +1487,8 @@ HAS_T_R		  EQU	1
 HAS_ACTIVE	  EQU	0
 HAS_SENSORS	  EQU	0
 HAS_OPTION	  EQU	0
+HAS_STATUS_LEDS	  EQU	1
+HAS_POWER_CTRL	  EQU	1
 
 PLAT_T_R	  EQU	LATA
 PORT_T_R	  EQU	PORTA
@@ -1437,12 +1569,15 @@ HAS_T_R		   EQU	1
 HAS_ACTIVE	   EQU	1
 HAS_SENSORS	   EQU	1
 HAS_OPTION	   EQU	1
+HAS_STATUS_LEDS	   EQU	1
+HAS_POWER_CTRL	   EQU	1
 
 TRIS_SENS_A	   EQU	TRISE	; Sensor A == RED LED
 PORT_SENS_A	   EQU	PORTE	; Sensor A == RED LED
 BIT_SENS_A	   EQU	2	; Sensor A == RED LED
 TRIS_SENS_B	   EQU	TRISE	; Sensor B == GREEN LED
 PORT_SENS_B	   EQU	PORTE	; Sensor B == GREEN LED
+PLAT_SENS_B	   EQU	LATE	; Sensor B == GREEN LED
 BIT_SENS_B	   EQU	0	; Sensor B == GREEN LED
 TRIS_SENS_C	   EQU	TRISA	; Sensor C == ACTIVE LED
 PORT_SENS_C	   EQU	PORTA	; Sensor C == ACTIVE LED
@@ -1534,12 +1669,15 @@ HAS_T_R		    EQU	1
 HAS_ACTIVE	    EQU	1
 HAS_SENSORS	    EQU	1
 HAS_OPTION	    EQU	1
+HAS_STATUS_LEDS	    EQU	1
+HAS_POWER_CTRL	    EQU	0
 
 TRIS_SENS_A	    EQU	TRISC	; Sensor A == ACTIVE LED
 PORT_SENS_A	    EQU	PORTC	; Sensor A == ACTIVE LED
 BIT_SENS_A	    EQU	5	; Sensor A == ACTIVE LED
 TRIS_SENS_B	    EQU	TRISC	; Sensor B == RED LED
 PORT_SENS_B	    EQU	PORTC	; Sensor B == RED LED
+PLAT_SENS_B	    EQU	LATC 	; Sensor B == RED LED
 BIT_SENS_B	    EQU	6	; Sensor B == RED LED
 TRIS_SENS_C	    EQU	TRISC	; Sensor C == YELLOW LED
 PORT_SENS_C	    EQU	PORTC	; Sensor C == YELLOW LED
@@ -1565,18 +1703,18 @@ BIT_GREEN	    EQU	4
 PORT_OPTION	    EQU	PORTA
 BIT_OPTION	    EQU	1
 
-PLAT_PWR_ON	    EQU	LATA
-BIT_PWR_ON	    EQU	0
+PLAT_PWR_ON	    EQU	LATA	; This doesn't actually reach the hardware
+BIT_PWR_ON	    EQU	0	; but it's harmless to set the bit.
 
-PLAT_0		    EQU	LATB
+PLAT_0		    EQU	LATC
 PLAT_1		    EQU	LATC
 PLAT_2		    EQU	LATC
-PLAT_3		    EQU	LATC
+PLAT_3		    EQU	LATB
 
-BIT_0		    EQU	4
-BIT_1		    EQU	2
-BIT_2		    EQU	1
-BIT_3		    EQU	0
+BIT_0		    EQU	0
+BIT_1		    EQU	1
+BIT_2		    EQU	2
+BIT_3		    EQU	4
 
 SSR_LIGHTS	    EQU	4	; first light ID (as opposed to SSR)
                    ELSE
@@ -1816,8 +1954,12 @@ SSS_SSS:
 	; settings to restore something that we know will work.
 	;
 	CLRWDT
-	CLRF	EEADRH, ACCESS		; EEPROM location $000
-	CLRF	EEADR, ACCESS		; (note interrupts are still off now)
+        IF LUMOS_ARCH == LUMOS_ARCH_14K50
+	 CLRF	EEADR, ACCESS		; (note interrupts are still off now)
+	ELSE
+	 CLRF	EEADRH, ACCESS		; EEPROM location $000
+	 CLRF	EEADR, ACCESS		; (note interrupts are still off now)
+        ENDIF
 	BCF	EECON1, EEPGD, ACCESS	; select DATA EEPROM as target
 	BCF	EECON1, CFGS, ACCESS
 	BCF	EECON1, WREN, ACCESS	; disable writing
@@ -1846,7 +1988,9 @@ SSS_SSS:
 	BCF	EECON1, EEPGD, ACCESS	; Select access to DATA area
 	BCF	EECON1, CFGS, ACCESS
 	;
-	CLRF	EEADRH, ACCESS
+        IF LUMOS_ARCH != LUMOS_ARCH_14K50
+	 CLRF	EEADRH, ACCESS
+	ENDIF
 	MOVLW	1
 	MOVWF	EEADR, ACCESS		; EEPROM location 0x001: baud rate
 	BSF	EECON1, RD, ACCESS
@@ -1870,9 +2014,11 @@ SSS_SSS:
 	MOVFF	EEDATA, DMX_SLOTH
 	;
 	INCF	EEADR, F, ACCESS	; EEPROM location 0x006: DMX slot LSB
-	BSF	EECON1, RD, ACCESS
-	MOVFF	EEDATA, DMX_SLOTL
-	BCF	DMX_SLOTH, DMX_SPEED, ACCESS	; clear flag (we're not running at DMX speed yet)
+	IF DMX_ENABLED
+	 BSF	EECON1, RD, ACCESS
+	 MOVFF	EEDATA, DMX_SLOTL
+	 BCF	DMX_SLOTH, DMX_SPEED, ACCESS	; clear flag (we're not running at DMX speed yet)
+	ENDIF
 	;
 	INCF	EEADR, F, ACCESS	; EEPROM location 0x007: Sensor Configuration
 	IF HAS_SENSORS
@@ -1957,7 +2103,9 @@ CH	 ++
 	;
 	CLRF	PIR1, ACCESS
 	CLRF	PIR2, ACCESS
-	CLRF	PIR3, ACCESS
+        IF LUMOS_ARCH != LUMOS_ARCH_14K50
+	 CLRF	PIR3, ACCESS
+	ENDIF
 	BCF	INTCON, TMR0IF, ACCESS
 	BCF	INTCON, INT0IF, ACCESS
 	BSF	INTCON, GIEH, ACCESS	; Enable high-priority interrupts
@@ -1979,33 +2127,52 @@ CH	 ++
 	IF HAS_POWER_CTRL
 	 BCF	PLAT_PWR_ON, BIT_PWR_ON, ACCESS	; turn on power supply
 	ENDIF
+        IF LUMOS_ARCH == LUMOS_ARCH_14K50
+PORT_TEST_IN	EQU	PORT_SENS_A	; The 14K50 lacks a PWR_ON output pin, so we have to
+PLAT_TEST_OUT	EQU	PLAT_SENS_B	; pick on something else for the factory reset sensor
+BIT_TEST_IN	EQU	BIT_SENS_A	; (jumper the OPTION AND short A+B together when powered on)
+BIT_TEST_OUT	EQU	BIT_SENS_B
+TRIS_TEST_IN	EQU	TRIS_SENS_A
+TRIS_TEST_OUT	EQU	TRIS_SENS_B
+TRISTATE_TEST	EQU	1
+	ELSE
+PORT_TEST_IN	EQU	PORT_OPTION
+PLAT_TEST_OUT	EQU	PLAT_PWR_ON
+BIT_TEST_IN	EQU	BIT_OPTION
+BIT_TEST_OUT	EQU	BIT_PWR_ON
+TRISTATE_TEST	EQU	0
+	ENDIF
 FACTORY_RESET_JUMPER_CHECK:
 	IF HAS_OPTION
 	 RCALL	DELAY_1_12_SEC
 	 BTFSC	PORT_OPTION, BIT_OPTION, ACCESS
 	 BRA	END_FRJC			; OPTION button not jumpered, boot normally
 
+	 IF TRISTATE_TEST
+	  BCF	TRIS_TEST_OUT, BIT_TEST_OUT, ACCESS
+	  BSF	TRIS_TEST_IN, BIT_TEST_IN, ACCESS
+	 ENDIF
 	 CLRWDT					
-	 BSF	PLAT_PWR_ON, BIT_PWR_ON, ACCESS ; try flipping the output bit
+	 BSF	PLAT_TEST_OUT, BIT_TEST_OUT, ACCESS ; try flipping the output bit
 	 RCALL	DELAY_1_12_SEC
-	 BTFSS	PORT_OPTION, BIT_OPTION, ACCESS	; OPTION was down, but not because of the 
+	 BTFSS	PORT_TEST_IN, BIT_TEST_IN, ACCESS	; OPTION was down, but not because of the 
 	 BRA	END_FRJC			; jumper--boot normally
 
-	 BCF	PLAT_PWR_ON, BIT_PWR_ON, ACCESS ; try flipping back
+	 BCF	PLAT_TEST_OUT, BIT_TEST_OUT, ACCESS ; try flipping back
 	 RCALL	DELAY_1_12_SEC
-	 BTFSC	PORT_OPTION, BIT_OPTION, ACCESS	
+	 BTFSC	PORT_TEST_IN, BIT_TEST_IN, ACCESS	
 	 BRA	END_FRJC			
 
-	 BSF	PLAT_PWR_ON, BIT_PWR_ON, ACCESS ; try flipping back last time
+	 BSF	PLAT_TEST_OUT, BIT_TEST_OUT, ACCESS ; try flipping back last time
 	 RCALL	DELAY_1_12_SEC
-	 BTFSS	PORT_OPTION, BIT_OPTION, ACCESS	
+	 BTFSS	PORT_TEST_IN, BIT_TEST_IN, ACCESS	
 	 BRA	END_FRJC			
 
 	;
 	; After perhaps a bit too much caution, we're convinced there's a jumper there.
 	; wait for it to go away now, then do the reset.
-	;                                         ______                ______
-	 BCF	PLAT_PWR_ON, BIT_PWR_ON, ACCESS ; PWRCTL low, watch for PWR_ON->1
+	;                                         
+	 BCF	PLAT_TEST_OUT, BIT_TEST_OUT, ACCESS 	; turn off the test output again
 FRJC_LOOP:
 	 CLRWDT
 	 BTG	PLAT_YELLOW, BIT_YELLOW, ACCESS
@@ -2014,8 +2181,8 @@ FRJC_LOOP:
 	 IF HAS_ACTIVE
 	  BTG	PLAT_ACTIVE, BIT_ACTIVE, ACCESS	
 	 ENDIF
-	 RCALL	DELAY_1_12_SEC
-	 BTFSS	PORT_OPTION, BIT_OPTION, ACCESS
+	 RCALL	DELAY_1_12_SEC				;          ______
+	 BTFSS	PORT_OPTION, BIT_OPTION, ACCESS		; yes, the OPTION is pulled for either platform
 	 BRA	FRJC_LOOP
 	 GOTO	FACTORY_RESET
 	ENDIF
@@ -2037,14 +2204,16 @@ END_FRJC:
 	;	
 	; If we're in DMX mode, change our baud rate to 250,000 bps
 	;
-	BTFSS	DMX_SLOTH, DMX_EN, ACCESS
-	GOTO	MAIN
-	MOVLW	SIO_250000
-	CALL	SIO_SET_BAUD_W
-	BSF	DMX_SLOTH, DMX_SPEED, ACCESS
-	IF HAS_STATUS_LEDS
-	 ;SET_SSR_PATTERN SSR_GREEN, 0, 1, 3, BIT_FADE_UP|BIT_FADE_CYCLE
-	 SET_SSR_DMX_MODE SSR_GREEN
+	IF DMX_ENABLED
+	 BTFSS	DMX_SLOTH, DMX_EN, ACCESS
+	 GOTO	MAIN
+	 MOVLW	SIO_250000
+	 CALL	SIO_SET_BAUD_W
+	 BSF	DMX_SLOTH, DMX_SPEED, ACCESS
+	 IF HAS_STATUS_LEDS
+	  ;SET_SSR_PATTERN SSR_GREEN, 0, 1, 3, BIT_FADE_UP|BIT_FADE_CYCLE
+	  SET_SSR_DMX_MODE SSR_GREEN
+	 ENDIF
 	ENDIF
 	GOTO	MAIN
 
@@ -2069,7 +2238,9 @@ BEGIN_EEPROM_WRITE MACRO START_ADDR
 END_EEPROM_READ MACRO			; THIS CANNOT CHANGE WREG
 	 BSF	INTCON, GIEH, ACCESS	; Enable high-priority interrupts
 	 BSF	INTCON, GIEL, ACCESS	; Enable low-priority interrupts
-	 CLRF	EEADRH, ACCESS
+         IF LUMOS_ARCH != LUMOS_ARCH_14K50
+	  CLRF	EEADRH, ACCESS
+	 ENDIF
 	 CLRF	EEADR, ACCESS
 	ENDM
 	
@@ -2077,13 +2248,17 @@ END_EEPROM_WRITE MACRO
 	 BCF	EECON1, WREN, ACCESS	; disable writing
 	 BSF	INTCON, GIEH, ACCESS	; Enable high-priority interrupts
 	 BSF	INTCON, GIEL, ACCESS	; Enable low-priority interrupts
-	 CLRF	EEADRH, ACCESS
+         IF LUMOS_ARCH != LUMOS_ARCH_14K50
+	  CLRF	EEADRH, ACCESS
+	 ENDIF
 	 CLRF	EEADR, ACCESS
 	ENDM
 
 SET_EEPROM_ADDRESS MACRO ADDR
-	 MOVLW	HIGH(ADDR)		; NOTE interrupts need to be OFF here!
-	 MOVWF	EEADRH, ACCESS
+         IF LUMOS_ARCH != LUMOS_ARCH_14K50
+	  MOVLW	HIGH(ADDR)		; NOTE interrupts need to be OFF here!
+	  MOVWF	EEADRH, ACCESS
+	 ENDIF
 	 MOVLW	LOW(ADDR)
 	 MOVWF	EEADR, ACCESS
 	ENDM
@@ -2454,29 +2629,30 @@ MAIN:
 	CALL	UPDATE_SSR_OUTPUTS
 
 	; DMX mode: poll for framing error to start DMX frame reception
-	BTFSS	DMX_SLOTH, DMX_EN, ACCESS
-	BRA	NOT_DMX
-	BANKSEL	SIO_DATA_START
-	BTFSS	SIO_STATUS, SIO_FERR, BANKED	; Did SIO code find a framing error first?
-	BRA	BRK_DET2			; No, check ourselves then
-	IF HAS_ACTIVE
-         SET_SSR_BLINK_FADE SSR_ACTIVE
-	ENDIF
-	CALL	SIO_GETCHAR			; Yes, then read the byte we received
-	TSTFSZ	SIO_INPUT, BANKED		; ...  is the received byte all zeroes?
-	BRA	NOT_DMX				; No, must not really be a break then
-	BANKSEL	SIO_DATA_START
-	BCF	SIO_STATUS, SIO_FERR, BANKED	; Yes: clear the status and proceed
-	BRA	BRK_DET
+	IF DMX_ENABLED
+	 BTFSS	DMX_SLOTH, DMX_EN, ACCESS
+	 BRA	NOT_DMX
+	 BANKSEL	SIO_DATA_START
+	 BTFSS	SIO_STATUS, SIO_FERR, BANKED	; Did SIO code find a framing error first?
+	 BRA	BRK_DET2			; No, check ourselves then
+	 IF HAS_ACTIVE
+          SET_SSR_BLINK_FADE SSR_ACTIVE
+	 ENDIF
+	 CALL	SIO_GETCHAR			; Yes, then read the byte we received
+	 TSTFSZ	SIO_INPUT, BANKED		; ...  is the received byte all zeroes?
+	 BRA	NOT_DMX				; No, must not really be a break then
+	 BANKSEL	SIO_DATA_START
+	 BCF	SIO_STATUS, SIO_FERR, BANKED	; Yes: clear the status and proceed
+	 BRA	BRK_DET
 BRK_DET2:
-	BTFSS	RCSTA, FERR, ACCESS
-	BRA	NOT_DMX
-	; found framing error -- is it a break?
-	IF HAS_ACTIVE
-	 SET_SSR_BLINK_FADE SSR_ACTIVE
-	ENDIF
-	MOVF	RCREG, W, ACCESS	; read byte, clear FERR, see if data all zeroes
-	BNZ	NOT_DMX			; no, must be line noise, carry on...
+	 BTFSS	RCSTA, FERR, ACCESS
+	 BRA	NOT_DMX
+	 ; found framing error -- is it a break?
+	 IF HAS_ACTIVE
+	  SET_SSR_BLINK_FADE SSR_ACTIVE
+	 ENDIF
+	 MOVF	RCREG, W, ACCESS	; read byte, clear FERR, see if data all zeroes
+	 BNZ	NOT_DMX			; no, must be line noise, carry on...
 BRK_DET:
 	;
 	; BREAK DETECTED
@@ -2486,57 +2662,58 @@ BRK_DET:
 	; the start of our DMX frame.  As a safety measure, if the break lasts longer
 	; than ~8,000uS, we abandon the frame.
 	; 
-	IF HAS_STATUS_LEDS
-  	 SET_SSR_BLINK_FADE SSR_YELLOW
-	ENDIF
-	BCF	PIE1, RCIE, ACCESS	; Disable RxD interrupts for now
-	MOVLW	0xE0
-	MOVWF	TMR3H, ACCESS
-	MOVLW	0xC7
-	MOVWF	TMR3L, ACCESS		; $E0C7 is 7,992 away from overflowing and 56 away
+	 IF HAS_STATUS_LEDS
+  	  SET_SSR_BLINK_FADE SSR_YELLOW
+	 ENDIF
+	 BCF	PIE1, RCIE, ACCESS	; Disable RxD interrupts for now
+	 MOVLW	0xE0
+	 MOVWF	TMR3H, ACCESS
+	 MOVLW	0xC7
+	 MOVWF	TMR3L, ACCESS		; $E0C7 is 7,992 away from overflowing and 56 away
 					; from overflowing the LSB
-	BCF	PIR2, TMR3IF, ACCESS	; Clear overflow status bit
-	BCF	PIE2, TMR3IE, ACCESS	; Don't use as interrupt
-	BSF	T3CON, TMR3ON, ACCESS	; Start Timer 3 Running
+	 BCF	PIR2, TMR3IF, ACCESS	; Clear overflow status bit
+	 BCF	PIE2, TMR3IE, ACCESS	; Don't use as interrupt
+	 BSF	T3CON, TMR3ON, ACCESS	; Start Timer 3 Running
 	;
 	; Watch the RxD line for a transition away from the break
 	;
 WATCH_BREAK:
-	CLRWDT
-	BTFSC	SSR_STATE, SLICE_UPD, ACCESS	; keep updating SSR outputs during this
-	CALL	UPDATE_SSR_OUTPUTS
-	BTFSC	PORT_RX, BIT_RX, ACCESS	; Is the line 0?
-	BRA	BREAK_CONFIRMED
-	BTFSS	PIR2, TMR3IF, ACCESS	; Did we exceed our limit?
-	BRA	WATCH_BREAK
+	 CLRWDT
+	 BTFSC	SSR_STATE, SLICE_UPD, ACCESS	; keep updating SSR outputs during this
+	 CALL	UPDATE_SSR_OUTPUTS
+	 BTFSC	PORT_RX, BIT_RX, ACCESS	; Is the line 0?
+	 BRA	BREAK_CONFIRMED
+	 BTFSS	PIR2, TMR3IF, ACCESS	; Did we exceed our limit?
+	 BRA	WATCH_BREAK
 	;
 	; We've been holding too long, give up on the break signal.
 	; 
-	BCF	T3CON, TMR3ON, ACCESS	; Shut down Timer 3
-	BSF	PIE1, RCIE, ACCESS	; Enable RxD interrupts again
-	BRA	BAD_BREAK
+	 BCF	T3CON, TMR3ON, ACCESS	; Shut down Timer 3
+	 BSF	PIE1, RCIE, ACCESS	; Enable RxD interrupts again
+	 BRA	BAD_BREAK
 
 BREAK_CONFIRMED:
 	;
 	; Break over, reset UART and interpret frame
 	;
-	IF HAS_STATUS_LEDS
- 	 SET_SSR_BLINK_FADE SSR_RED
-	ENDIF
-	BCF	T3CON, TMR3ON, ACCESS	; Shut down Timer 3
-	BSF	PIE1, RCIE, ACCESS	; Enable RxD interrupts again
-	BCF	RCSTA, CREN, ACCESS
-	BSF	RCSTA, CREN, ACCESS
-	MOVLW	0xE0
-	MOVF	TMR3L, W, ACCESS	; Initiate 16-bit read of TMR3 register
-	CPFSEQ	TMR3H, ACCESS		; If MSB of Timer3 advanced, it was >56uS
-	BRA	START_DMX_FRAME		; and therefore the start of the frame
+	 IF HAS_STATUS_LEDS
+ 	  SET_SSR_BLINK_FADE SSR_RED
+	 ENDIF
+	 BCF	T3CON, TMR3ON, ACCESS	; Shut down Timer 3
+	 BSF	PIE1, RCIE, ACCESS	; Enable RxD interrupts again
+	 BCF	RCSTA, CREN, ACCESS
+	 BSF	RCSTA, CREN, ACCESS
+	 MOVLW	0xE0
+	 MOVF	TMR3L, W, ACCESS	; Initiate 16-bit read of TMR3 register
+	 CPFSEQ	TMR3H, ACCESS		; If MSB of Timer3 advanced, it was >56uS
+	 BRA	START_DMX_FRAME		; and therefore the start of the frame
 	;				; If not, it's noise and we interpret as "NOT_DMX"
 	;	 | |
 	;       _| |_
 	;       \   /
 	;        \ /
 	;         V
+	ENDIF
 NOT_DMX:
 	BANKSEL	SIO_DATA_START
 	BTFSC	SIO_STATUS, SIO_FERR, BANKED
@@ -2636,7 +2813,9 @@ OPTION_PRE_PRIV:
 	  MOVLW	0x00
 	  CALL	SIO_WRITE_W
 	 ENDIF
-	 CALL	DMX_EXIT_TEMPORARILY
+	 IF DMX_ENABLED
+	  CALL	DMX_EXIT_TEMPORARILY
+	 ENDIF
 	 BRA END_OPTION_HANDLER
 
 OPTION_NORMAL:						; ----------------------------------------------------NORMAL
@@ -2844,16 +3023,18 @@ ERR_SERIAL_FRAMING:
 	 SET_SSR_STEADY SSR_YELLOW
 	ENDIF
 	RETURN
+	IF DMX_ENABLED
 START_DMX_FRAME:
 	;
 	; We're in DMX mode so a framing error (aka break) is really
 	; not an error, but the start of our data frame!
 	;
-	BSF	DMX_SLOTH, DMX_FRAME, ACCESS
-	IF HAS_STATUS_LEDS
-	 SET_SSR_RAPID_FLASH SSR_YELLOW
+	 BSF	DMX_SLOTH, DMX_FRAME, ACCESS
+	 IF HAS_STATUS_LEDS
+	  SET_SSR_RAPID_FLASH SSR_YELLOW
+	 ENDIF
+	 RETURN
 	ENDIF
-	RETURN
 	
 ERR_SERIAL_OVERRUN:
 	BANKSEL	SIO_DATA_START
@@ -2922,8 +3103,10 @@ CMD_BIT	EQU	7
 	;		store command, then decode it.
 	;
 	CALL	SIO_GETCHAR_W
-	BTFSC	DMX_SLOTH, DMX_SPEED, ACCESS	; check if we're trying to read DMX now
-	GOTO	DMX_RECEIVED_BYTE
+	IF DMX_ENABLED
+	 BTFSC	DMX_SLOTH, DMX_SPEED, ACCESS	; check if we're trying to read DMX now
+	 GOTO	DMX_RECEIVED_BYTE
+	ENDIF
 	;
 	CLRWDT
 	BANKSEL	SIO_DATA_START
@@ -3494,21 +3677,30 @@ S6_1_VALID_2:
 S6_1_CONFIGURE:
 	MOVFF	POSTDEC0, DMX_SLOTL
 	CLRF	DMX_SLOTH, ACCESS
-	BTFSC	INDF0, 0, ACCESS
-	BSF	DMX_SLOTL, 7, ACCESS
-	BTFSC	INDF0, 1, ACCESS
-	BSF	DMX_SLOTH, DMX_BIT8, ACCESS
-	BTFSC	INDF0, 2, ACCESS
-	BSF	DMX_SLOTH, DMX_EN, ACCESS
+	IF DMX_ENABLED
+	 BTFSC	INDF0, 0, ACCESS
+	 BSF	DMX_SLOTL, 7, ACCESS
+	 BTFSC	INDF0, 1, ACCESS
+	 BSF	DMX_SLOTH, DMX_BIT8, ACCESS
+	 BTFSC	INDF0, 2, ACCESS
+	 BSF	DMX_SLOTH, DMX_EN, ACCESS
 	;
 	; Save DMX settings to EEPROM
 	;
-	BEGIN_EEPROM_WRITE EE_DMX_H
-	MOVFF	DMX_SLOTH, EEDATA
-	WRITE_EEPROM_DATA_INC
-	MOVFF	DMX_SLOTL, EEDATA
-	WRITE_EEPROM_DATA
-	END_EEPROM_WRITE
+	 BEGIN_EEPROM_WRITE EE_DMX_H
+	 MOVFF	DMX_SLOTH, EEDATA
+	 WRITE_EEPROM_DATA_INC
+	 MOVFF	DMX_SLOTL, EEDATA
+	 WRITE_EEPROM_DATA
+	 END_EEPROM_WRITE
+	ELSE
+	 BEGIN_EEPROM_WRITE EE_DMX_H
+	 CLRF EEDATA, ACCESS
+	 WRITE_EEPROM_DATA_INC
+	 CLRF EEDATA, ACCESS
+	 WRITE_EEPROM_DATA
+	 END_EEPROM_WRITE
+	ENDIF
 	;
 	; Configure sensors
 	;
@@ -3574,8 +3766,8 @@ S6_2_VALID1:
 
 S6_2_VALID2:
 	LFSR	0, YY_BUFFER
-	MOVLW	0x0B
-	SUBWF	INDF0, W, ACCESS		; test baud rate in range [$00,$0A]
+	MOVLW	0x11
+	SUBWF	INDF0, W, ACCESS		; test baud rate in range [$00,$10]
 	BNC	S6_2_SET_BAUD
 	GOTO	ERR_COMMAND
 
@@ -3585,6 +3777,7 @@ S6_2_SET_BAUD:
 	; never be able to talk to it again...
 	;
 	; limit baud rate value 
+	; XXX UPDATE THIS FOR CURRENT BAUD RATE LIST!
 	MOVLW	0x0F
 	ANDWF	INDF0, F, ACCESS
 	IF ROLE_MASTER
@@ -3919,8 +4112,10 @@ DO_CMD_WAKE:
 	 SET_SSR_NORMAL_MODE SSR_GREEN
 	ENDIF
 	; If in DMX mode, use slower green LED pattern
-	BTFSS	DMX_SLOTH, DMX_SPEED, ACCESS
-	BRA	S6_8_X
+	IF DMX_ENABLED
+	 BTFSS	DMX_SLOTH, DMX_SPEED, ACCESS
+	 BRA	S6_8_X
+	ENDIF
 	IF HAS_STATUS_LEDS
 	 ;SET_SSR_PATTERN SSR_GREEN, 0, 1, 3, BIT_FADE_UP|BIT_FADE_CYCLE
 	 SET_SSR_DMX_MODE SSR_GREEN
@@ -4055,15 +4250,21 @@ S6_9_QUERY:
 	 BTFSC	TRIS_SENS_D, BIT_SENS_D, ACCESS	; and for sensor D
 	 BSF	WREG, 3, ACCESS			; 
 	ENDIF               			; W=0ABCD---  1=sensor configured; 0=LED
-	BTFSC	DMX_SLOTH, DMX_EN, ACCESS
-	BSF	WREG, 2, ACCESS			;   0----d--  DMX enable bit
-	BTFSC	DMX_SLOTH, DMX_BIT8, ACCESS
-	BSF	WREG, 1, ACCESS			;   0-----c-  DMX channel bit 8
-	BTFSC	DMX_SLOTL, 7, ACCESS		; 
-	BSF	WREG, 0, ACCESS			;   0------c  DMX channel bit 7
+	IF DMX_ENABLED
+	 BTFSC	DMX_SLOTH, DMX_EN, ACCESS
+	 BSF	WREG, 2, ACCESS			;   0----d--  DMX enable bit
+	 BTFSC	DMX_SLOTH, DMX_BIT8, ACCESS
+	 BSF	WREG, 1, ACCESS			;   0-----c-  DMX channel bit 8
+	 BTFSC	DMX_SLOTL, 7, ACCESS		; 
+	 BSF	WREG, 0, ACCESS			;   0------c  DMX channel bit 7
+	ENDIF
 	SEND_8_BIT_W				; 03 sensor, DMX status            	<0ABCDdcc> 
-	MOVF	DMX_SLOTL, W, ACCESS		;   0ccccccc  DMX channel bits 6:0
-	ANDLW	0x7F
+	IF DMX_ENABLED
+	 MOVF	DMX_SLOTL, W, ACCESS		;   0ccccccc  DMX channel bits 6:0
+	 ANDLW	0x7F
+	ELSE
+	 CLRF	WREG, ACCESS
+	ENDIF
 	SEND_8_BIT_W				; 04 DMX status
 	CLRF	WREG, ACCESS
 	BTFSC	SSR_STATE, PRIV_MODE, ACCESS	; W=00000qs0
@@ -4722,8 +4923,10 @@ S9_PRIV_0:
 	 ;SET_SSR_SLOW_FADE SSR_GREEN
 	 SET_SSR_NORMAL_MODE SSR_GREEN
 	ENDIF
-	BTFSS	DMX_SLOTH, DMX_SPEED, ACCESS
-	BRA	S9_PRIV_0X
+	IF DMX_ENABLED
+	 BTFSS	DMX_SLOTH, DMX_SPEED, ACCESS
+	 BRA	S9_PRIV_0X
+	ENDIF
 	IF HAS_STATUS_LEDS
 	 ;SET_SSR_PATTERN SSR_GREEN, 0, 1, 3, BIT_FADE_UP|BIT_FADE_CYCLE
 	 SET_SSR_DMX_MODE SSR_GREEN
@@ -4744,7 +4947,9 @@ S9_PRIV_0X:
 	 CALL	SIO_WRITE_W
 	ENDIF
 	CLRF	YY_STATE, ACCESS
-	CALL	DMX_RESUME
+	IF DMX_ENABLED
+ 	 CALL	DMX_RESUME
+	ENDIF
 	RETURN
 
 S9_PRIV_1:
@@ -5307,6 +5512,7 @@ BE_AWAKE_NOW:
 ; (like entering config mode), we need to reset the baud rate to
 ; whatever is configured for non-DMX use.
 ;
+	IF DMX_ENABLED
 DMX_EXIT_TEMPORARILY:
 	CLRWDT
 	BTFSS	DMX_SLOTH, DMX_SPEED, ACCESS
@@ -5493,6 +5699,7 @@ DMX_19:
 	;
 	CLRF	YY_STATE, ACCESS
 	RETURN
+	ENDIF
 	
 HALT_MODE:
 	;

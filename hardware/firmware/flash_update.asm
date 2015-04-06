@@ -238,8 +238,10 @@ FLASH_UPDATE_BOOT:
 		; Boot-time defaults: SLEEP=SLEEP, no INT priorities, BOR enabled
 		; interrupts disabled, All I/O pins inputs (tri-state); WDT off
 		CLRF	T0CON, ACCESS
-		MOVLW	b'00100000'
-		MOVWF	CANSTAT, ACCESS
+        	IF LUMOS_ARCH != LUMOS_ARCH_14K50
+		 MOVLW	b'00100000'
+	 	 MOVWF	CANSTAT, ACCESS
+		ENDIF
 		CLRF	INTCON, ACCESS		; just to be sure!
 		; 
 		; I/O Ports
@@ -247,20 +249,34 @@ FLASH_UPDATE_BOOT:
 		MOVLW	b'00001111'
 		;         ----1111 		; All I/O pins are digital
 		MOVWF	ADCON1, ACCESS
-		MOVLW	b'00000111'
+		
+        	IF LUMOS_ARCH != LUMOS_ARCH_14K50
+		 MOVLW	b'00000111'
 		;	  -----111		; All comparators OFF
-		MOVWF	CMCON, ACCESS
-		;
-		; set up serial port pins
-		;
-		SETF	TRISA, ACCESS		; Initially set all pins as inputs
-		SETF	TRISB, ACCESS		; Initially set all pins as inputs
-		SETF	TRISC, ACCESS		; Initially set all pins as inputs
-		SETF	TRISD, ACCESS		; Initially set all pins as inputs
-		SETF	TRISE, ACCESS		; Initially set all pins as inputs
-		;
-		BSF	TRISC, 7, ACCESS	; RX pin on PORTC<7> is an input
-		BSF	TRISC, 6, ACCESS	; TX pin on PORTC<6> is an output
+		 MOVWF	CMCON, ACCESS
+		 ;
+		 ; set up serial port pins
+		 ;
+		 SETF	TRISA, ACCESS		; Initially set all pins as inputs
+		 SETF	TRISB, ACCESS		; Initially set all pins as inputs
+		 SETF	TRISC, ACCESS		; Initially set all pins as inputs
+		 SETF	TRISD, ACCESS		; Initially set all pins as inputs
+		 SETF	TRISE, ACCESS		; Initially set all pins as inputs
+		 ;
+		 BSF	TRISC, 7, ACCESS	; RX pin on PORTC<7> is an input
+		 BSF	TRISC, 6, ACCESS	; TX pin on PORTC<6> is an output
+		ELSE
+		 ;
+		 ; set up serial port pins
+		 ;
+		 SETF	TRISA, ACCESS		; Initially set all pins as inputs
+		 SETF	TRISB, ACCESS		; Initially set all pins as inputs
+		 SETF	TRISC, ACCESS		; Initially set all pins as inputs
+		 ;
+		 BSF	TRISB, 7, ACCESS	; RX pin on PORTB<7> is an output
+		 BSF	TRISB, 5, ACCESS	; TX pin on PORTB<5> is an input
+
+		ENDIF
 		IF HAS_T_R
 		 BCF	TRIS_T_R, BIT_T_R, ACCESS; T/R bit is output
 		ENDIF
