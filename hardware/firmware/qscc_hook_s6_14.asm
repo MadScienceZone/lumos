@@ -31,6 +31,10 @@
 	ENDIF
 
 S6_14_DATA_QS:
+; XXX needs to be rewritten for the new readerboards
+; XXX needs to be rewritten for the new readerboards
+; XXX needs to be rewritten for the new readerboards
+
 	DECFSZ	WREG, W, ACCESS 
 	BRA	S6_15_DATA
 	;
@@ -81,6 +85,9 @@ S6_14_DISP_TEXT:
 	RETURN
 
 S6_15_DATA:
+; XXX needs to be rewritten for the new readerboards
+; XXX needs to be rewritten for the new readerboards
+; XXX needs to be rewritten for the new readerboards
 	DECFSZ	WREG, W, ACCESS 
 	BRA	S6_16_DATA
 	;
@@ -138,7 +145,7 @@ S6_16_DATA:
 	;  |   0  |   1  |   1  |   1  |             6             | (not saved)
 	;  |______|______|______|______|______|______|______|______|
 	;  |                                                       |
-	;  |                Lockout time (x .1 sec)                | YY_BUFFER+0
+	;  |                Lockout time (x 1/120 sec)             | YY_BUFFER+0
 	;  |______|______|______|______|______|______|______|______|
 	;  |      |                                                |
 	;  |   0  |   0      1      1      0      0      1      0  | YY_BUFFER+1
@@ -166,8 +173,9 @@ S6_16_CF_SET_QS_PARAMS:
 	CPFSEQ	YY_BUFFER+1, ACCESS
 	GOTO	ERR_COMMAND
 	;
-	; XXX set params
+	; set params
 	;
+	MOVFF	YY_BUFFER, QUIZSHOW_LCKTM
 	CLRF	YY_STATE, ACCESS
 	RETURN
 

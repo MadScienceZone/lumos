@@ -99,7 +99,7 @@ QS_QFLG_STOP	EQU	0
 	;   Else If button or full query (p=0)
 	;      ___7______6______5______4______3______2______1______0__      //QSCC//
 	;     |      |      |             PACKET LENGTH               |     ////////
-	; 02  |   0  |   s  |   0      0      0      0      1     0   |     ////////
+	; 02  |   0  |   s  |                                         |     ////////
 	;     |______|______|______|______|______|______|______|______|___  ////////
 	;     |      |      |      BUTTON PRESSED ALREADY?            | |   ////////
 	; 03  |   0  |   0  |   A      B      C      D      L     X   | |   ////////
@@ -110,12 +110,12 @@ QS_QFLG_STOP	EQU	0
 	;
 	;      ___7______6______5______4______3______2______1______0__      \\QSRC\\
 	;     |      |      |              PACKET LENGTH              |     \\\\\\\\
-	; 02  |   0  |   s  |   0      0      0      0      1     0   |     \\\\\\\\
+	; 02  |   0  |   s  |                                         |     \\\\\\\\
 	;     |______|______|______|______|______|______|______|______|___  \\\\\\\\
 	;     |      |  L3  |     X3      |     L0      |     X0      | |   \\\\\\\\ 
 	; 03  |   0  | Press|Masked Press |Masked Press |Masked Press | |   \\\\\\\\
 	;     |______|______|______|______|______|______|______|______| |   \\\\\\\\
-	;     |      |  L4  |     X4      |     L1      |     X1      | |   \\\\\\\\`j
+	;     |      |  L4  |     X4      |     L1      |     X1      | |   \\\\\\\\
 	; 04  |   0  | Press|Masked Press |Masked Press |Masked Press | 3   \\\\\\\\
 	;     |______|______|______|______|______|______|______|______| |   \\\\\\\\
 	;     |      |      |  L4  |  L3  |     L2      |     X2      | |   \\\\\\\\
@@ -205,7 +205,7 @@ QS_QFLG_STOP	EQU	0
 	BSF	PLAT_T_R, BIT_T_R, ACCESS		; Fire up our transmitter now
 	BCF	SSR_STATE2, INHIBIT_OUTPUT, ACCESS	; Allow sending output
 	MOVLW	0xf0
-	ANDWF	MY_ADDRESS, W, ACCESS
+	IORWF	MY_ADDRESS, W, ACCESS
 	CALL	SIO_WRITE_W			; 00 start byte 		<1111aaaa>
 	MOVLW	0x1d				; 01 extended ID byte for       <00011101>
 	CALL	SIO_WRITE_W			;    for this type of reply
@@ -421,7 +421,7 @@ S21_DATA:
 
 UPDATE_BTN_MASK	MACRO BTN_IDX, SRC, BIT
 	 BCF	BTN_X0_FLAGS + BTN_IDX, BTN_FLG_MASKED, BANKED
-	 BTFSS 	SRC, BIT, ACCESS
+	 BTFSC 	SRC, BIT, ACCESS
 	 BSF	BTN_X0_FLAGS + BTN_IDX, BTN_FLG_MASKED, BANKED
 	ENDM
 

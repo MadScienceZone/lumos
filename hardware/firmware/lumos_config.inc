@@ -27,6 +27,7 @@
 ; code to produce the desired version of the ROM.
 ;
 ; 
+
 ;==============================================================================
 ; CONFIGURATION OPTIONS
 ;==============================================================================
@@ -44,9 +45,9 @@
 ;#define LUMOS_CHIP_TYPE		LUMOS_CHIP_MASTER
 ;#define LUMOS_CHIP_TYPE		LUMOS_CHIP_SLAVE
 ;#define LUMOS_CHIP_TYPE		LUMOS_CHIP_STANDALONE
-#define LUMOS_CHIP_TYPE		LUMOS_CHIP_4CHANNEL
+;#define LUMOS_CHIP_TYPE		LUMOS_CHIP_4CHANNEL
 ;#define LUMOS_CHIP_TYPE		LUMOS_CHIP_QSCC
-;#define LUMOS_CHIP_TYPE		LUMOS_CHIP_QSRC
+#define LUMOS_CHIP_TYPE		LUMOS_CHIP_QSRC
 ;
 ;
 ;

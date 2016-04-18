@@ -1,7 +1,7 @@
 ; OSCCON:SCS=00;HS;
 ; vim:set syntax=pic ts=8:
 ;
-		LIST n=90
+		LIST n=87
 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ;@@                                                                         @@
 ;@@ @      @   @  @   @   @@@    @@@          LUMOS: LIGHT ORCHESTRATION    @@
@@ -69,6 +69,7 @@
 	 GLOBAL	SSR_00_SPEED
 	 GLOBAL	SSR_00_COUNTER
 	 EXTERN QSCC_INIT
+	 EXTERN QUIZSHOW_LCKTM
 	ELSE
 #include "flash_update.inc"
 	ENDIF
@@ -2124,65 +2125,79 @@ CH	 ++
 	; and also to provide a way out (power off first and no reset will have happened).
 	;
 	CLRWDT
-	IF HAS_POWER_CTRL
-	 BCF	PLAT_PWR_ON, BIT_PWR_ON, ACCESS	; turn on power supply
-	ENDIF
-        IF LUMOS_ARCH == LUMOS_ARCH_14K50
-PORT_TEST_IN	EQU	PORT_SENS_A	; The 14K50 lacks a PWR_ON output pin, so we have to
-PLAT_TEST_OUT	EQU	PLAT_SENS_B	; pick on something else for the factory reset sensor
-BIT_TEST_IN	EQU	BIT_SENS_A	; (jumper the OPTION AND short A+B together when powered on)
-BIT_TEST_OUT	EQU	BIT_SENS_B
-TRIS_TEST_IN	EQU	TRIS_SENS_A
-TRIS_TEST_OUT	EQU	TRIS_SENS_B
-TRISTATE_TEST	EQU	1
-	ELSE
-PORT_TEST_IN	EQU	PORT_OPTION
-PLAT_TEST_OUT	EQU	PLAT_PWR_ON
-BIT_TEST_IN	EQU	BIT_OPTION
-BIT_TEST_OUT	EQU	BIT_PWR_ON
-TRISTATE_TEST	EQU	0
-	ENDIF
+;	IF HAS_POWER_CTRL
+;	 BCF	PLAT_PWR_ON, BIT_PWR_ON, ACCESS	; turn on power supply
+;	ENDIF
+;        IF LUMOS_ARCH == LUMOS_ARCH_14K50
+;PORT_TEST_IN	EQU	PORT_SENS_A	; The 14K50 lacks a PWR_ON output pin, so we have to
+;PLAT_TEST_OUT	EQU	PLAT_SENS_B	; pick on something else for the factory reset sensor
+;BIT_TEST_IN	EQU	BIT_SENS_A	; (jumper the OPTION AND short A+B together when powered on)
+;BIT_TEST_OUT	EQU	BIT_SENS_B
+;TRIS_TEST_IN	EQU	TRIS_SENS_A
+;TRIS_TEST_OUT	EQU	TRIS_SENS_B
+;TRISTATE_TEST	EQU	1
+;	ELSE
+;PORT_TEST_IN	EQU	PORT_OPTION
+;PLAT_TEST_OUT	EQU	PLAT_PWR_ON
+;BIT_TEST_IN	EQU	BIT_OPTION
+;BIT_TEST_OUT	EQU	BIT_PWR_ON
+;TRISTATE_TEST	EQU	0
+;	ENDIF
 FACTORY_RESET_JUMPER_CHECK:
-	IF HAS_OPTION
-	 RCALL	DELAY_1_12_SEC
-	 BTFSC	PORT_OPTION, BIT_OPTION, ACCESS
-	 BRA	END_FRJC			; OPTION button not jumpered, boot normally
-
-	 IF TRISTATE_TEST
-	  BCF	TRIS_TEST_OUT, BIT_TEST_OUT, ACCESS
-	  BSF	TRIS_TEST_IN, BIT_TEST_IN, ACCESS
+	IF HAS_FACTORY_RESET
+	 IF FRST_TRISTATE_TEST				; set I/O bits for test mode
+	  BCF	FRST_SENDER_T, FRST_SENDER_B, ACCESS	; sender = output
+	  BSF	FRST_RECEIVER_T, FRST_RECEIVER_B, ACCESS; receiver = input
 	 ENDIF
+	 BCF	FRST_SENDER_P, FRST_SENDER_B, ACCESS	; send 0
+	 RCALL	DELAY_1_12_SEC
+	 BTFSC	FRST_RECEIVER_P, FRST_RECEIVER_B, ACCESS; receive 1? (default for buttons)
+	 BRA	END_FRJC				; then we're done
+	 ;
+	 ; 0->0 !! We may have a jumpered connection.  Try flipping the bit
+	 ;
 	 CLRWDT					
-	 BSF	PLAT_TEST_OUT, BIT_TEST_OUT, ACCESS ; try flipping the output bit
+	 BSF	FRST_SENDER_P, FRST_SENDER_B, ACCESS 	; send 1
 	 RCALL	DELAY_1_12_SEC
-	 BTFSS	PORT_TEST_IN, BIT_TEST_IN, ACCESS	; OPTION was down, but not because of the 
-	 BRA	END_FRJC			; jumper--boot normally
-
-	 BCF	PLAT_TEST_OUT, BIT_TEST_OUT, ACCESS ; try flipping back
+	 BTFSS	FRST_RECEIVER_P, FRST_RECEIVER_B, ACCESS
+	 BRA	END_FRJC				; received 0... someone must just be holding
+	 ;						; down button L4 but it's not our jumper.
+	 ; 1->1 !! Try again just to be sure...
+	 ;
+	 CLRWDT					
+	 BCF	FRST_SENDER_P, FRST_SENDER_B, ACCESS 	; send 0
 	 RCALL	DELAY_1_12_SEC
-	 BTFSC	PORT_TEST_IN, BIT_TEST_IN, ACCESS	
-	 BRA	END_FRJC			
-
-	 BSF	PLAT_TEST_OUT, BIT_TEST_OUT, ACCESS ; try flipping back last time
+	 BTFSC	FRST_RECEIVER_P, FRST_RECEIVER_B, ACCESS
+	 BRA	END_FRJC				; received 1... doesn't look like our jumper
+	 ;
+	 ; 0->0 again.. one more time just to be reeeeeeally sure.
+	 ;
+	 CLRWDT					
+	 BSF	FRST_SENDER_P, FRST_SENDER_B, ACCESS 	; send 1
 	 RCALL	DELAY_1_12_SEC
-	 BTFSS	PORT_TEST_IN, BIT_TEST_IN, ACCESS	
-	 BRA	END_FRJC			
-
-	;
-	; After perhaps a bit too much caution, we're convinced there's a jumper there.
-	; wait for it to go away now, then do the reset.
-	;                                         
-	 BCF	PLAT_TEST_OUT, BIT_TEST_OUT, ACCESS 	; turn off the test output again
+	 BTFSS	FRST_RECEIVER_P, FRST_RECEIVER_B, ACCESS
+	 BRA	END_FRJC				; received 0... never mind
+	 ;
+	 ; After perhaps a bit too much caution, we're convinced there's a jumper there.
+	 ; wait for it to go away now, then do the reset.
+	 ;                                         
+	 BSF	FRST_SENDER_P, FRST_SENDER_B, ACCESS 	; send 0 again and wait for jumper pull
+	 BSF	FRST_SIG_A_P, FRST_SIG_A_B, ACCESS
+	 BCF	FRST_SIG_B_P, FRST_SIG_B_B, ACCESS
+	 BSF	FRST_SIG_C_P, FRST_SIG_C_B, ACCESS
 FRJC_LOOP:
+	 ;
+	 ; signal factory reset is imminent by flashing lights
+	 ; until we see the receiver go back to 1 (which is our pull-up
+	 ; resistor grabbing the line again when the jumper isn't
+	 ; there anymore).
+	 ;
 	 CLRWDT
-	 BTG	PLAT_YELLOW, BIT_YELLOW, ACCESS
-	 BTG 	PLAT_GREEN, BIT_GREEN, ACCESS
-	 BTG	PLAT_RED, BIT_RED, ACCESS	
-	 IF HAS_ACTIVE
-	  BTG	PLAT_ACTIVE, BIT_ACTIVE, ACCESS	
-	 ENDIF
-	 RCALL	DELAY_1_12_SEC				;          ______
-	 BTFSS	PORT_OPTION, BIT_OPTION, ACCESS		; yes, the OPTION is pulled for either platform
+	 RCALL	DELAY_1_12_SEC
+	 BTG	FRST_SIG_A_P, FRST_SIG_A_B, ACCESS
+	 BTG	FRST_SIG_B_P, FRST_SIG_B_B, ACCESS
+	 BTG	FRST_SIG_C_P, FRST_SIG_C_B, ACCESS
+	 BTFSS	FRST_RECEIVER_P, FRST_RECEIVER_B, ACCESS ; 0->1 transition is jumper pull
 	 BRA	FRJC_LOOP
 	 GOTO	FACTORY_RESET
 	ENDIF
@@ -3239,7 +3254,10 @@ S0_CMD4:
 	MOVWF	YY_STATE, ACCESS	; -> state 5 (wait for channel)
 	RETURN
 
-;	IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSCC || LUMOS_CHIP_TYPE == LUMOS_CHIP_QSRC
+; Turns out we don't need this here. We already trap CMD5 for the broadcast
+; address, so we don't recognize it again here.  This forces it to be a
+; broadcast-only command.
+;	IF QSCC_PORT
 ;	 #include "qscc_hook_5_6.asm"
 ;	ELSE
 S0_CMD5:

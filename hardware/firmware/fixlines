@@ -1,0 +1,20 @@
+#!/usr/bin/env python
+# vi:set ai sm nu ts=4 sw=4 expandtab:
+
+import sys
+import os
+import re
+
+for filename in sys.argv:
+    print "Fixing {0}...".format(filename)
+    os.rename(filename, filename+'.bak')
+    with open(filename+'.bak', 'r') as in_file:
+        with open(filename, 'w') as out_file:
+            for line in in_file:
+                if re.match(r'^\s+LIST\s+N=\d+', line):
+                    print "Replaced:", line
+                    new = re.sub('LIST\s+N=\d+', 'LIST N=87', line)
+                    print "With:    ", new
+                    out_file.write(new)
+                else:
+                    out_file.write(line)

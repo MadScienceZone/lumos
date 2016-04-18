@@ -33,13 +33,12 @@
 ; RETURN from here will end command interpretation, so if we branch to
 ; a command handler, its return will go back to our caller.
 ;
-	MOVLW	b'10001111'	; 8F: Global Blackout
-	CPFSEQ	SIO_INPUT, BANKED
-	BRA	QSCC_G_C_1
-	GOTO	S0_CMD0
+;	MOVLW	b'10001111'	; 8F: Global Blackout
+;	CPFSEQ	SIO_INPUT, BANKED
+;	BRA	QSCC_G_C_1
+;	GOTO	S0_CMD0
 
 QSCC_G_C_1:
-	GOTO	S0_CMD0
 	MOVLW	b'11011111'	; DF: Global Start
 	CPFSEQ	SIO_INPUT, BANKED
 	BRA	QSCC_G_C_2

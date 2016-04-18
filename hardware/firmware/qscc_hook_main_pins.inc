@@ -35,13 +35,13 @@
 ; QSCC
 ;
     		    IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSCC
-N_BUTTONS	     EQU	6	; X L A B C D
-BTN_IDX_X0	     EQU	0
-BTN_IDX_L0	     EQU	1
-BTN_IDX_A0	     EQU	2
-BTN_IDX_B0	     EQU	3
-BTN_IDX_C0	     EQU	4
-BTN_IDX_D0	     EQU	5
+N_BUTTONS	     EQU	.6	; X L A B C D
+BTN_IDX_X0	     EQU	.0
+BTN_IDX_L0	     EQU	.1
+BTN_IDX_A0	     EQU	.2
+BTN_IDX_B0	     EQU	.3
+BTN_IDX_C0	     EQU	.4
+BTN_IDX_D0	     EQU	.5
 PORT_X0		     EQU	PORTA
 PORT_L0		     EQU	PORTA
 PORT_A0		     EQU	PORTA
@@ -103,7 +103,7 @@ PLAT_10		     EQU	LATB	; FR
 PLAT_11		     EQU	LATB	; FG
 PLAT_12		     EQU	LATB	; FB
 PLAT_13		     EQU	LATB	; FW
-SSR_MAX		     EQU	13
+SSR_MAX		     EQU	.13
 
 BIT_0		     EQU	2	; XR
 BIT_1		     EQU	1	; XG
@@ -119,19 +119,20 @@ BIT_10		     EQU	3	; FR
 BIT_11		     EQU	2	; FG
 BIT_12		     EQU	1	; FB
 BIT_13		     EQU	0	; FW
+
 		    ELSE
     		     IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSRC
-N_BUTTONS	      EQU	10	; X0 L0 X1 L1 ... X4 L4
-BTN_IDX_X0	      EQU	0
-BTN_IDX_L0	      EQU	1
-BTN_IDX_X1	      EQU	2
-BTN_IDX_L1	      EQU	3
-BTN_IDX_X2	      EQU	4
-BTN_IDX_L2	      EQU	5
-BTN_IDX_X3	      EQU	6
-BTN_IDX_L3	      EQU	7
-BTN_IDX_X4	      EQU	8
-BTN_IDX_L4	      EQU	9
+N_BUTTONS	      EQU	.10	; X0 L0 X1 L1 ... X4 L4
+BTN_IDX_X0	      EQU	.0
+BTN_IDX_L0	      EQU	.1
+BTN_IDX_X1	      EQU	.2
+BTN_IDX_L1	      EQU	.3
+BTN_IDX_X2	      EQU	.4
+BTN_IDX_L2	      EQU	.5
+BTN_IDX_X3	      EQU	.6
+BTN_IDX_L3	      EQU	.7
+BTN_IDX_X4	      EQU	.8
+BTN_IDX_L4	      EQU	.9
 
 QS_SENS_PORT	      EQU	PORTA		;      76543210
 QS_SENS_MASK	      EQU	B'00111111'	; RA:  00LXXLXL
@@ -194,6 +195,7 @@ CHAN_X4R	      EQU	.16
 CHAN_X4G	      EQU	.17
 CHAN_X4B	      EQU	.18
 CHAN_L4R	      EQU	.19
+CHAN_HB		      EQU	CHAN_L4R
 PLAT_0		      EQU	LATC	; X0R
 PLAT_1		      EQU	LATC	; X0G
 PLAT_2		      EQU	LATC	; X0B
@@ -214,7 +216,7 @@ PLAT_16		      EQU	LATB	; X4R
 PLAT_17		      EQU	LATD	; X4G
 PLAT_18		      EQU	LATD	; X4B
 PLAT_19		      EQU	LATD	; L4R
-SSR_MAX		      EQU	19
+SSR_MAX		      EQU	.19
 
 BIT_0		      EQU	2	; X0R
 BIT_1		      EQU	1	; X0G
@@ -236,6 +238,22 @@ BIT_16		      EQU	0	; X4R
 BIT_17		      EQU	3	; X4G
 BIT_18		      EQU	1	; X4B
 BIT_19		      EQU	2	; L4R
+
+HAS_FACTORY_RESET    EQU	1	; this unit has factory reset jumper support
+					; wire a special jumper plug for player #5
+					; to connect X input to PGD pin on ISCP port
+					; connect jumper, power on, then pull jumper
+FRST_TRISTATE_TEST   EQU	0	; need to change tristate bits for test pins
+FRST_RECEIVER_P	     EQU	PORT_X4	; pin to receive jumpered signal
+FRST_RECEIVER_B	     EQU	BIT_X4	; bit to receive jumpered signal
+FRST_SENDER_P	     EQU	LATB	; pin to send jumpered signal	PGD=<B7>
+FRST_SENDER_B	     EQU	7	; bit to send jumpered signal
+FRST_SIG_A_P	     EQU	PLAT_19	; lights to flash for factory reset (on)
+FRST_SIG_A_B	     EQU	BIT_19	; lights to flash for factory reset
+FRST_SIG_B_P	     EQU	PLAT_0	; lights to flash for factory reset (off)
+FRST_SIG_B_B	     EQU	BIT_0	; lights to flash for factory reset
+FRST_SIG_C_P	     EQU	PLAT_2	; lights to flash for factory reset (on)
+FRST_SIG_C_B	     EQU	BIT_2	; lights to flash for factory reset
 		     ENDIF
 		    ENDIF
 

@@ -14,23 +14,23 @@
 # You can invoke make with the values of the macros:
 # $ makeMP_CC="/opt/microchip/mplabc30/v3.30c/bin/pic30-gcc" ...  
 #
-PATH_TO_IDE_BIN=/Applications/microchip/mplabx/mplab_ide.app/Contents/Resources/mplab_ide/mplab_ide/modules/../../bin/
+PATH_TO_IDE_BIN=/Applications/microchip/mplabx/v3.26/mplab_ide.app/Contents/Resources/mplab_ide/mplab_ide/modules/../../bin/
 # Adding MPLAB X bin directory to path.
-PATH:=/Applications/microchip/mplabx/mplab_ide.app/Contents/Resources/mplab_ide/mplab_ide/modules/../../bin/:$(PATH)
+PATH:=/Applications/microchip/mplabx/v3.26/mplab_ide.app/Contents/Resources/mplab_ide/mplab_ide/modules/../../bin/:$(PATH)
 # Path to java used to run MPLAB X when this makefile was created
-MP_JAVA_PATH="/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/bin/"
+MP_JAVA_PATH="/Applications/microchip/mplabx/v3.26/sys/java/jre1.8.0_65.jre/Contents/Home/bin/"
 OS_CURRENT="$(shell uname -s)"
 # MP_CC is not defined
 # MP_CPPC is not defined
 # MP_BC is not defined
-MP_AS="/Applications/microchip/mplabx/mpasmx/mpasmx"
-MP_LD="/Applications/microchip/mplabx/mpasmx/mplink"
-MP_AR="/Applications/microchip/mplabx/mpasmx/mplib"
-DEP_GEN=${MP_JAVA_PATH}java -jar "/Applications/microchip/mplabx/mplab_ide.app/Contents/Resources/mplab_ide/mplab_ide/modules/../../bin/extractobjectdependencies.jar" 
+MP_AS="/Applications/microchip/mplabx/v3.26/mpasmx/mpasmx"
+MP_LD="/Applications/microchip/mplabx/v3.26/mpasmx/mplink"
+MP_AR="/Applications/microchip/mplabx/v3.26/mpasmx/mplib"
+DEP_GEN=${MP_JAVA_PATH}java -jar "/Applications/microchip/mplabx/v3.26/mplab_ide.app/Contents/Resources/mplab_ide/mplab_ide/modules/../../bin/extractobjectdependencies.jar"
 # MP_CC_DIR is not defined
 # MP_CPPC_DIR is not defined
 # MP_BC_DIR is not defined
-MP_AS_DIR="/Applications/microchip/mplabx/mpasmx"
-MP_LD_DIR="/Applications/microchip/mplabx/mpasmx"
-MP_AR_DIR="/Applications/microchip/mplabx/mpasmx"
+MP_AS_DIR="/Applications/microchip/mplabx/v3.26/mpasmx"
+MP_LD_DIR="/Applications/microchip/mplabx/v3.26/mpasmx"
+MP_AR_DIR="/Applications/microchip/mplabx/v3.26/mpasmx"
 # MP_BC_DIR is not defined

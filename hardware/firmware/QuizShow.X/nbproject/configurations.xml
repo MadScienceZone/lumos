@@ -16,9 +16,8 @@
       <itemPath>../lumos_set_ssr.inc</itemPath>
       <itemPath>../quizshow_config.inc</itemPath>
       <itemPath>../lumos_8bit_escapes.inc</itemPath>
-      <itemPath>../readerboard_7x60.inc</itemPath>
-      <itemPath>../readerboard_7x60_bits.inc</itemPath>
-      <itemPath>../readerboard_7x60_user.inc</itemPath>
+      <itemPath>../lumos_ssr_state.inc</itemPath>
+      <itemPath>../quizshow.inc</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -32,7 +31,6 @@
       <itemPath>../serial-io.asm</itemPath>
       <itemPath>../quizshow_init.asm</itemPath>
       <itemPath>../quizshow_main.asm</itemPath>
-      <itemPath>../readerboard_7x60.asm</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -53,7 +51,7 @@
         <targetPluginBoard></targetPluginBoard>
         <platformTool>PICkit2PlatformTool</platformTool>
         <languageToolchain>MPASMWIN</languageToolchain>
-        <languageToolchainVersion>5.53</languageToolchainVersion>
+        <languageToolchainVersion>5.66</languageToolchainVersion>
         <platform>4</platform>
       </toolsSet>
       <compileType>
@@ -61,8 +59,11 @@
           <linkerLibItems>
           </linkerLibItems>
         </linkerTool>
+        <archiverTool>
+        </archiverTool>
         <loading>
           <useAlternateLoadableFile>false</useAlternateLoadableFile>
+          <parseOnProdLoad>true</parseOnProdLoad>
           <alternateLoadableFile></alternateLoadableFile>
         </loading>
       </compileType>
@@ -90,6 +91,11 @@
         <property key="map-file" value="${DISTDIR}/${PROJECTNAME}.${IMAGE_TYPE}.map"/>
       </MPASMWIN-LD>
       <PICkit2PlatformTool>
+        <property key="pk2settings.3state" value="false"/>
+        <property key="pk2settings.preserveee" value="false"/>
+        <property key="pk2settings.setvddvoltage" value=""/>
+        <property key="pk2settings.userpgmexec" value="true"/>
+        <property key="pk2settings.usetargetpower" value="false"/>
       </PICkit2PlatformTool>
       <mpasmsuite>
         <property key="absolute-mode" value="false"/>

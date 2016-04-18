@@ -1,6 +1,6 @@
 ; vim:set syntax=pic ts=8:
 ;
-		LIST n=90
+		LIST n=87
 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ;@@                                                                         @@
 ;@@  @@@   @   @  @@@@@  @@@@@                QUIZ SHOW HARDWARE CONTROLLER @@
@@ -74,6 +74,7 @@
 	GLOBAL	BTN_X0_TIME_H
 	GLOBAL	BTN_X0_TIME_L
 	GLOBAL	BTN_X0_FLAGS
+	GLOBAL  QUIZSHOW_LCKTM
 ;#include "serial-io.inc"
 
 ; Works on Software Alchemy Quiz Show QSCC and QSRC boards revision 4.0.
@@ -783,10 +784,10 @@ QSCC_START:
 	BNZ   	QSCC_SENS_END
 
 	BSF	SSR_STATE, PRIV_MODE, ACCESS
-	SET_SSR_RAPID_FADE 1	; CHANGES BANK!
+	SET_SSR_RAPID_FADE CHAN_HB	; CHANGES BANK!
 
 QSCC_SENS_END:
-	SET_SSR_SLOW_FADE 0	; CHANGES BANK!
+	SET_SSR_NORMAL_MODE CHAN_HB	; CHANGES BANK!
 	RETURN
 ;
 ; Main loop code (in addition to Lumos' main loop code)
@@ -799,116 +800,128 @@ QSCC_SENS_END:
 
 QSCC_MAIN:
 	CLRWDT
-	;
-	; Scan all the buttons to see which trigger something.
-	; We debounce them by making them hold the same reading for 256 *consecutive*
-	; polls before figuring it changed.
-	;
+;
+;
+; SCAN_DEBOUNCE <BTN_IDX>, <PORT>, <BIT>, <LT>, <N>, <LCK>
+;	Updates the state of the specified button.
+;	Uses the button's debounce counter to buffer transition noise.
+;	when the counter fills or drains completely, the ACTIVE status
+;	bit flips to note the official real-time state of the button.
+;	This triggers local action on LOCKED status and registering
+;	button presses while scanning.  Controls local lights only
+;	to the extent mandated for these actions.
+;
 SCN_DBN	SET	0
-
-SCAN_DEBOUNCE MACRO BTN_IDX, BTN_PORT, BTN_BIT, LT, LCK
-	; Sense button
-	BTFSC	BTN_PORT, BTN_BIT, ACCESS
-	BRA	SCN_DB_ACTIVE_#v(SCN_DBN)
-
-	; Button registers as being inactive now.  How long has this been the case?
-	BTFSC	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_ACTIVE, BANKED
-	BRA	SCN_DB_CHANGED_#v(SCN_DBN)
-
-	; Still inactive? keep counting...
-	INCFSZ	BTN_X0_DEB_TMR+BTN_IDX, F, BANKED
-	BRA	SCN_DB_END_#v(SCN_DBN)
-
-	; It's still inactive after 256 polls.  Time to count it as officially off now.
+SCAN_DEBOUNCE MACRO BTN_IDX, BTN_PORT, BTN_BIT, LT, LTN, LCK
+	BANKSEL	QUIZSHOW_DATA
+	CLRWDT
+	;
+	; Sense button state: 
+	;  0=pressed
+	;  1=released
+	;
+	BTFSS	BTN_PORT, BTN_BIT, ACCESS
+	BRA	SCN_DB_DOWN_#v(SCN_DBN)	; pressed? branch
+	;
+	; button senses as "up". drain debounce counter if possible
+	;
+	TSTFSZ  BTN_X0_DEB_TMR+BTN_IDX, BANKED
+	BRA	SCN_DB_DRAIN_#v(SCN_DBN)
+	;
+	; The button is officially "up".  If this is news, respond
+	; to this change now.  All we need to do is note the status
+	; change. Everything else happens later when the code notices
+	; this flag state.
+	;
 	BCF	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_ACTIVE, BANKED
-	;
-	; XXX Based on our current state, deal with the consequences of letting
-	; XXX go of the button now.
-	;
-	; I think actually there aren't any here.
-	;
-	BRA	SCN_DB_END_#v(SCN_DBN)
+	BRA	SCN_DB_DONE_#v(SCN_DBN)
 
-SCN_DB_ACTIVE_#v(SCN_DBN):
-	; Button registers as being active now.  How long has this been happening?
-	BTFSS	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_ACTIVE, BANKED
-	BRA	SCN_DB_CHANGED_#v(SCN_DBN)
-
-	; Still active? keep counting...
-	INCFSZ	BTN_X0_DEB_TMR+BTN_IDX, F, BANKED
-	BRA	SCN_DB_END_#v(SCN_DBN)
-
-	; It's still active after 256 polls.  Time to count it as officially on now.
-	BSF	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_ACTIVE, BANKED
+SCN_DB_DRAIN_#v(SCN_DBN):
 	;
-	; Based on our current state, deal with the consequences of hitting
-	; the button now.
+	; Drain the button debounce counter
 	;
-	; If already pressed: ignore
-	; ElseIf masked out: ignore
-	; ElseIf locked out: reset lockout timer to start [handled above]
-	; ElseIf scanning: copy timer into button stats, set pressed flag
-	; Else: set lockout state, reset lockout timer
-	; 	
-	BTFSS	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_PRESSED, BANKED
-	BTFSC	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_MASKED, BANKED
-	BRA	SCN_DB_END_#v(SCN_DBN)
+	DECF	BTN_X0_DEB_TMR+BTN_IDX, F, BANKED
+	BRA	SCN_DB_DONE_#v(SCN_DBN)
 
-	BTFSC	QUIZSHOW_FLAGS, QS_FLAG_SCANNING, ACCESS
-	BRA	SCN_DB_DING_#v(SCN_DBN)
-
+SCN_DB_RST_LCK_#v(SCN_DBN):
+	;
+	; The button needs to be locked out!
+	; We found them pushing the button when they weren't supposed to.
+	;
 	BSF	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_LOCKED, BANKED
-	MOVFF	QUIZSHOW_LCKTM, BTN_X0_LOCKTMR+BTN_IDX	
-	LOCAL_LIGHT_INDICATOR BTN_IDX, LT, LCK
-	BRA	SCN_DB_END_#v(SCN_DBN)
+	MOVFF	QUIZSHOW_LCKTM, BTN_X0_LOCKTMR+BTN_IDX
+	LOCAL_LIGHT_INDICATOR BTN_IDX, LT, LTN, LCK
+	BRA	SCN_DB_DONE_#v(SCN_DBN)
 
-SCN_DB_DING_#v(SCN_DBN):
+SCN_DB_DOWN_#v(SCN_DBN):
+	;
+	; button senses as "down". fill debounce counter if possible
+	;
+	INCFSZ	BTN_X0_DEB_TMR+BTN_IDX, F, BANKED
+	BRA	SCN_DB_DONE_#v(SCN_DBN)
+	;
+	; counter was full (since we overflowed it to 0 again). so
+	; the button is officially "down".  Put the counter back
+	; to 255 and proceed with what it means for the button to be
+	; officially down.
+	;
+	SETF	BTN_X0_DEB_TMR+BTN_IDX, BANKED
+	BTFSC	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_ACTIVE, BANKED
+	BRA	SCN_DB_DONE_#v(SCN_DBN)	
+	;
+	; We didn't know the button was down yet. Let's see what
+	; that changes...
+	;
+	BSF	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_ACTIVE, BANKED	; mark as "down"
+	BTFSC	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_LOCKED, BANKED	; is it locked?
+	BRA	SCN_DB_RST_LCK_#v(SCN_DBN)			; stay locked longer
+	BTFSC	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_MASKED, BANKED	; is it masked?
+	BRA	SCN_DB_DONE_#v(SCN_DBN)				; then ignore it
+	BTFSC	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_PRESSED, BANKED	; already noted?
+	BRA	SCN_DB_DONE_#v(SCN_DBN)				; then we're already done
+	BTFSS	QUIZSHOW_FLAGS, QS_FLAG_SCANNING, ACCESS	; legal to press?
+	BRA	SCN_DB_RST_LCK_#v(SCN_DBN)			; if not, lock out!
+	;
+	; The button was pressed legally and this is the first time we
+	; noticed it. Record it as the official press for this button.
+	;
 	BSF	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_PRESSED, BANKED
-	; copy timer values
+	BCF	INTCON, 7, ACCESS				; disable interrupts
+	BCF	INTCON, 6, ACCESS				; disable interrupts
 	MOVFF	QS_BTN_TMR_U, BTN_X0_TIME_U+BTN_IDX
 	MOVFF	QS_BTN_TMR_T, BTN_X0_TIME_T+BTN_IDX
 	MOVFF	TMR1L, BTN_X0_TIME_L+BTN_IDX
 	MOVFF	TMR1H, BTN_X0_TIME_H+BTN_IDX
-	; update the lights
-	LOCAL_LIGHT_INDICATOR BTN_IDX, LT, LCK
+	BSF	INTCON, 7, ACCESS				; enable interrupts
+	BSF	INTCON, 6, ACCESS				; enable interrupts
+	LOCAL_LIGHT_INDICATOR BTN_IDX, LT, LTN, LCK
+
+SCN_DB_DONE_#v(SCN_DBN):
+	;
+	; We're done with the button debouncing operations.
+	;
+	; If we're processing the 120Hz cleanup operations, do them now
+	; for this button.
+	;
+	BTFSS	QUIZSHOW_FLAGS, QS_FLAG_DOING120, ACCESS
 	BRA	SCN_DB_END_#v(SCN_DBN)
-	
-SCN_DB_CHANGED_#v(SCN_DBN):
-	; Button has changed since last time: reset debounce counter and wait.
-	CLRF	BTN_X0_DEB_TMR+BTN_IDX, BANKED
+	;
+	; If the button is locked out, decrement its timer. If it reaches
+	; zero, we can release the lock now.
+	;
+	BTFSC	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_LOCKED, BANKED
+	DECFSZ	BTN_X0_LOCKTMR+BTN_IDX, F, BANKED
+	BRA	SCN_DB_END_#v(SCN_DBN)
+	BCF	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_LOCKED, BANKED	; release the lock
+	BCF	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_LCK_ACK, BANKED
+	LOCAL_LIGHT_INDICATOR BTN_IDX, LT, LTN, LCK
 
 SCN_DB_END_#v(SCN_DBN):
-	BTFSS	QUIZSHOW_FLAGS, QS_FLAG_DOING120, ACCESS
-	BRA	SCN_DB_DONE_#v(SCN_DBN)
-	;
-	; Every 1/120 second do this:
-	;
-	; Check for locked-out buttons. We hold them in this state as long as
-	; they are still being pressed.  Once they let go we start counting down time
-	; before releasing.
-	;
-	BTFSS	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_LOCKED, BANKED
-	BRA	SCN_DB_DONE_#v(SCN_DBN)
-
-	BTFSS	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_ACTIVE, BANKED
-	BRA	SCN_DB_LCK_#v(SCN_DBN)
-
-	MOVFF	QUIZSHOW_LCKTM, BTN_X0_LOCKTMR+BTN_IDX	; active+locked: reset and hold timer
-	BRA	SCN_DB_DONE_#v(SCN_DBN)
-
-SCN_DB_LCK_#v(SCN_DBN):
-	DECFSZ	BTN_X0_LOCKTMR+BTN_IDX, F, BANKED	; locked: count down to unlock time
-	BRA	SCN_DB_DONE_#v(SCN_DBN)
-
-	BCF	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_LOCKED, BANKED
-	LOCAL_LIGHT_INDICATOR BTN_IDX, LT, LCK
-	
-SCN_DB_DONE_#v(SCN_DBN):
 SCN_DBN	++
 	ENDM
 
 ;
-; LOCAL_LIGHT_INDICATOR <button index>, <light index>
+; LOCAL_LIGHT_INDICATOR <button index>, <light index>, <lights>, <lock light>
 ;	Turns on lights to indicate button state that we manage locally here
 ;	on the console (as opposed to what the external host does)
 ;	
@@ -917,35 +930,56 @@ SCN_DBN	++
 ; 
 ;
 LLIM_N	SET	0
-LOCAL_LIGHT_INDICATOR MACRO BTN_IDX, LT, LCK
+LOCAL_LIGHT_INDICATOR MACRO BTN_IDX, LT, LTN, LCK
 	BANKSEL	QUIZSHOW_DATA
-	BTFSS	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_LOCKED, BANKED
+	BTFSC	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_LOCKED, BANKED
+	BTFSC	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_LCK_ACK, BANKED
 	BRA	LLIM_NOT_LOCKED_#v(LLIM_N)
-
-	SET_SSR_OFF LT
+	;
+	; light up for locked mode for the first time
+	;
+	BSF	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_LCK_ACK, BANKED	; don't do it again
+LLIM_LTN SET	LTN
+	WHILE LLIM_LTN > 0
+LLIM_LTN --
+	 SET_SSR_OFF #v(LT+LLIM_LTN)
+	ENDW
 	SET_SSR_RAPID_FADE LCK
 	BRA	LLIM_END_#v(LLIM_N)
 
 LLIM_NOT_LOCKED_#v(LLIM_N):
-	BTFSS	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_MASKED, BANKED
+	BTFSC	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_MASKED, BANKED
+	BRA	LLIM_OFF_#v(LLIM_N)
 	BTFSC	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_PRESSED, BANKED
 	BRA	LLIM_OFF_#v(LLIM_N)
 	BTFSS	QUIZSHOW_FLAGS, QS_FLAG_SCANNING, ACCESS
 	BRA	LLIM_OFF_#v(LLIM_N)
-	; We're scanning and not masked or pressed - light up button
-	SET_SSR_OFF LCK
-	SET_SSR_STEADY LT
+	;
+	; scanning and not pressed or masked? light up fully
+	;
+LLIM_LTN SET	LTN
+	WHILE LLIM_LTN > 0
+LLIM_LTN --
+	 SET_SSR_STEADY #v(LT+LLIM_LTN)
+	ENDW
 	BRA	LLIM_END_#v(LLIM_N)
-
-LLIM_OFF_#v(LLIM_N):
-	SET_SSR_OFF LT
-	SET_SSR_OFF LCK
 	
+LLIM_OFF_#v(LLIM_N):
+	;
+	; button pressed or masked, or scan is off; 
+	; turn off until the host computer
+	; stops the scan and awards the winner
+	;
+LLIM_LTN SET 	LTN
+	WHILE LLIM_LTN > 0
+LLIM_LTN --
+	 SET_SSR_OFF #v(LT+LLIM_LTN)
+	ENDW
+
 LLIM_END_#v(LLIM_N):
 	BANKSEL	QUIZSHOW_DATA
 LLIM_N	++
 	ENDM
-	
 
 	BANKSEL	QUIZSHOW_DATA
 	BTFSS	QUIZSHOW_FLAGS, QS_FLAG_ON_120_S, ACCESS
@@ -955,24 +989,24 @@ LLIM_N	++
 
 SCAN_DEBOUNCERS:
 	IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSCC
-	 SCAN_DEBOUNCE	BTN_IDX_X0, PORT_X0, BIT_X0, CHAN_X0G, CHAN_X0R
-	 SCAN_DEBOUNCE	BTN_IDX_L0, PORT_L0, BIT_L0, CHAN_L0G, CHAN_L0R
-	 SCAN_DEBOUNCE	BTN_IDX_A0, PORT_A0, BIT_A0, CHAN_A0L, CHAN_A0L
-	 SCAN_DEBOUNCE	BTN_IDX_B0, PORT_B0, BIT_B0, CHAN_B0L, CHAN_B0L
-	 SCAN_DEBOUNCE	BTN_IDX_C0, PORT_C0, BIT_C0, CHAN_C0L, CHAN_C0L
-	 SCAN_DEBOUNCE	BTN_IDX_D0, PORT_D0, BIT_D0, CHAN_D0L, CHAN_D0L
+	 SCAN_DEBOUNCE	BTN_IDX_X0, PORT_X0, BIT_X0, CHAN_X0R, 3, CHAN_X0R
+	 SCAN_DEBOUNCE	BTN_IDX_L0, PORT_L0, BIT_L0, CHAN_L0R, 2, CHAN_L0R
+	 SCAN_DEBOUNCE	BTN_IDX_A0, PORT_A0, BIT_A0, CHAN_A0L, 1, CHAN_A0L
+	 SCAN_DEBOUNCE	BTN_IDX_B0, PORT_B0, BIT_B0, CHAN_B0L, 1, CHAN_B0L
+	 SCAN_DEBOUNCE	BTN_IDX_C0, PORT_C0, BIT_C0, CHAN_C0L, 1, CHAN_C0L
+	 SCAN_DEBOUNCE	BTN_IDX_D0, PORT_D0, BIT_D0, CHAN_D0L, 1, CHAN_D0L
 	ELSE
 	 IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSRC
-	  SCAN_DEBOUNCE	BTN_IDX_X0, PORT_X0, BIT_X0, CHAN_X0G, CHAN_X0R
-	  SCAN_DEBOUNCE	BTN_IDX_L0, PORT_L0, BIT_L0, CHAN_L0R, CHAN_L0R
-	  SCAN_DEBOUNCE	BTN_IDX_X1, PORT_X1, BIT_X1, CHAN_X1G, CHAN_X1R
-	  SCAN_DEBOUNCE	BTN_IDX_L1, PORT_L1, BIT_L1, CHAN_L1R, CHAN_L1R
-	  SCAN_DEBOUNCE	BTN_IDX_X2, PORT_X2, BIT_X2, CHAN_X2G, CHAN_X2R
-	  SCAN_DEBOUNCE	BTN_IDX_L2, PORT_L2, BIT_L2, CHAN_L2R, CHAN_L2R
-	  SCAN_DEBOUNCE	BTN_IDX_X3, PORT_X3, BIT_X3, CHAN_X3G, CHAN_X3R
-	  SCAN_DEBOUNCE	BTN_IDX_L3, PORT_L3, BIT_L3, CHAN_L3R, CHAN_L3R
-	  SCAN_DEBOUNCE	BTN_IDX_X4, PORT_X4, BIT_X4, CHAN_X4G, CHAN_X4R
-	  SCAN_DEBOUNCE	BTN_IDX_L4, PORT_L4, BIT_L4, CHAN_L4R, CHAN_L4R
+	  SCAN_DEBOUNCE	BTN_IDX_X0, PORT_X0, BIT_X0, CHAN_X0R, 3, CHAN_X0R
+	  SCAN_DEBOUNCE	BTN_IDX_L0, PORT_L0, BIT_L0, CHAN_L0R, 1, CHAN_L0R
+	  SCAN_DEBOUNCE	BTN_IDX_X1, PORT_X1, BIT_X1, CHAN_X1R, 3, CHAN_X1R
+	  SCAN_DEBOUNCE	BTN_IDX_L1, PORT_L1, BIT_L1, CHAN_L1R, 1, CHAN_L1R
+	  SCAN_DEBOUNCE	BTN_IDX_X2, PORT_X2, BIT_X2, CHAN_X2R, 3, CHAN_X2R
+	  SCAN_DEBOUNCE	BTN_IDX_L2, PORT_L2, BIT_L2, CHAN_L2R, 1, CHAN_L2R
+	  SCAN_DEBOUNCE	BTN_IDX_X3, PORT_X3, BIT_X3, CHAN_X3R, 3, CHAN_X3R
+	  SCAN_DEBOUNCE	BTN_IDX_L3, PORT_L3, BIT_L3, CHAN_L3R, 1, CHAN_L3R
+	  SCAN_DEBOUNCE	BTN_IDX_X4, PORT_X4, BIT_X4, CHAN_X4R, 3, CHAN_X4R
+	  SCAN_DEBOUNCE	BTN_IDX_L4, PORT_L4, BIT_L4, CHAN_L4R, 1, CHAN_L4R
 	 ELSE
 	  ERROR "Improper LUMOS_CHIP_TYPE setting!"
 	 ENDIF
@@ -997,7 +1031,7 @@ SCAN_DEBOUNCERS:
 ;
 ; Start scanning for button presses
 ;
-; Resets all button timers and debounce circuits, starts scanning
+; Resets all button timers and pressed state, starts scanning
 ; This is stopped via the QS_QUERY command.
 ; This is a global command, only recognized when sent to address 15.
 ;
@@ -1022,24 +1056,24 @@ SET_ALL_BUTTON_LIGHTS:
 	CLRWDT
 	BANKSEL	QUIZSHOW_DATA
 	IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSCC
-	 LOCAL_LIGHT_INDICATOR BTN_IDX_X0, CHAN_X0G, CHAN_X0R
-	 LOCAL_LIGHT_INDICATOR BTN_IDX_L0, CHAN_L0G, CHAN_L0R
-	 LOCAL_LIGHT_INDICATOR BTN_IDX_A0, CHAN_A0L, CHAN_A0L
-	 LOCAL_LIGHT_INDICATOR BTN_IDX_B0, CHAN_B0L, CHAN_B0L
-	 LOCAL_LIGHT_INDICATOR BTN_IDX_C0, CHAN_C0L, CHAN_C0L
-	 LOCAL_LIGHT_INDICATOR BTN_IDX_D0, CHAN_D0L, CHAN_D0L
+	 LOCAL_LIGHT_INDICATOR BTN_IDX_X0, CHAN_X0R, 3, CHAN_X0R
+	 LOCAL_LIGHT_INDICATOR BTN_IDX_L0, CHAN_L0R, 2, CHAN_L0R
+	 LOCAL_LIGHT_INDICATOR BTN_IDX_A0, CHAN_A0L, 1, CHAN_A0L
+	 LOCAL_LIGHT_INDICATOR BTN_IDX_B0, CHAN_B0L, 1, CHAN_B0L
+	 LOCAL_LIGHT_INDICATOR BTN_IDX_C0, CHAN_C0L, 1, CHAN_C0L
+	 LOCAL_LIGHT_INDICATOR BTN_IDX_D0, CHAN_D0L, 1, CHAN_D0L
 	ELSE
  	 IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSRC
-	  LOCAL_LIGHT_INDICATOR BTN_IDX_X0, CHAN_X0G, CHAN_X0R
-	  LOCAL_LIGHT_INDICATOR BTN_IDX_L0, CHAN_L0R, CHAN_L0R
-	  LOCAL_LIGHT_INDICATOR BTN_IDX_X1, CHAN_X1G, CHAN_X1R
-	  LOCAL_LIGHT_INDICATOR BTN_IDX_L1, CHAN_L1R, CHAN_L1R
-	  LOCAL_LIGHT_INDICATOR BTN_IDX_X2, CHAN_X2G, CHAN_X2R
-	  LOCAL_LIGHT_INDICATOR BTN_IDX_L2, CHAN_L2R, CHAN_L2R
-	  LOCAL_LIGHT_INDICATOR BTN_IDX_X3, CHAN_X3G, CHAN_X3R
-	  LOCAL_LIGHT_INDICATOR BTN_IDX_L3, CHAN_L3R, CHAN_L3R
-	  LOCAL_LIGHT_INDICATOR BTN_IDX_X4, CHAN_X4G, CHAN_X4R
-	  LOCAL_LIGHT_INDICATOR BTN_IDX_L4, CHAN_L4R, CHAN_L4R
+	  LOCAL_LIGHT_INDICATOR BTN_IDX_X0, CHAN_X0R, 3, CHAN_X0R
+	  LOCAL_LIGHT_INDICATOR BTN_IDX_L0, CHAN_L0R, 1, CHAN_L0R
+	  LOCAL_LIGHT_INDICATOR BTN_IDX_X1, CHAN_X1R, 3, CHAN_X1R
+	  LOCAL_LIGHT_INDICATOR BTN_IDX_L1, CHAN_L1R, 1, CHAN_L1R
+	  LOCAL_LIGHT_INDICATOR BTN_IDX_X2, CHAN_X2R, 3, CHAN_X2R
+	  LOCAL_LIGHT_INDICATOR BTN_IDX_L2, CHAN_L2R, 1, CHAN_L2R
+	  LOCAL_LIGHT_INDICATOR BTN_IDX_X3, CHAN_X3R, 3, CHAN_X3R
+	  LOCAL_LIGHT_INDICATOR BTN_IDX_L3, CHAN_L3R, 1, CHAN_L3R
+	  LOCAL_LIGHT_INDICATOR BTN_IDX_X4, CHAN_X4R, 3, CHAN_X4R
+	  LOCAL_LIGHT_INDICATOR BTN_IDX_L4, CHAN_L4R, 1, CHAN_L4R
 	 ELSE
 	  ERROR "Incorrect chip type setting!"
 	 ENDIF
