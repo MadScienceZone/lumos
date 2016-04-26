@@ -4,7 +4,7 @@
 # $Header: /tmp/cvsroot/lumos/lib/Lumos/Network/Networks.py,v 1.4 2008-12-31 00:25:19 steve Exp $
 #
 # Lumos Light Orchestration System
-# Copyright (c) 2005, 2006, 2007, 2008 by Steven L. Willoughby, Aloha,
+# Copyright (c) 2005, 2006, 2007, 2008, 2016 by Steven L. Willoughby, Aloha,
 # Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
 # License version 3.0.
 #
@@ -28,6 +28,7 @@ from Lumos.Network.SerialNetwork      import SerialNetwork
 from Lumos.Network.SerialBitNetwork   import SerialBitNetwork
 from Lumos.Network.ParallelNetwork    import ParallelNetwork
 from Lumos.Network.ParallelBitNetwork import ParallelBitNetwork
+from Lumos.Network.TestNetwork        import TestNetwork
 
 #
 # List of supported network drivers, mapping the name as used
@@ -38,7 +39,8 @@ supported_network_types = {
     'serial':    SerialNetwork,
     'serialbit': SerialBitNetwork,
     'parallel':  ParallelNetwork,
-    'parbit':    ParallelBitNetwork
+    'parbit':    ParallelBitNetwork,
+    'test':      TestNetwork
 }
 
 def network_factory(type, **kwargs):

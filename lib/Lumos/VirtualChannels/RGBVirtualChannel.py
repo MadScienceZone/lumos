@@ -43,7 +43,7 @@ class RGBVirtualChannel (VirtualChannel):
             raise ValueError('RGB virtual channel requires three underlying hardware channel objects (red, green, blue)')
         self.channel = channel
         self.type = 'rgb'
-        self.current_raw_value = (0,0,0)
+        self.current_raw_value = [0,0,0]
 
     def all_hardware_channels(self):
         return self.channel
@@ -52,7 +52,7 @@ class RGBVirtualChannel (VirtualChannel):
         if not 0 <= subidx <= 2:
             raise ValueError('subidx "{1}" for RGB virtual channel "{0}" out of range'.format(
                 self.id, subidx))
-        newvalue = self.current_raw_value
+        newvalue = self.current_raw_value[:]
         newvalue[subidx] = value
         self.current_raw_value = self.normalize_level_value(self.denormalize_level_value(newvalue))
         
@@ -80,7 +80,7 @@ class RGBVirtualChannel (VirtualChannel):
 
         affected_controllers = set()
         ev_list = []
-        new_color_values = self.current_raw_value
+        new_color_values = self.current_raw_value[:]
 
         for color_idx, color_name in enumerate(('red', 'green', 'blue')):
             hw_channel        = self.channel[color_idx]
@@ -99,6 +99,6 @@ class RGBVirtualChannel (VirtualChannel):
                         ev_list.append((event_time, hw_controller.flush, (), base_priority+1))
 
         if self.current_raw_value != new_color_values:
-            self.current_raw_value = new_color_values
+            self.current_raw_value = new_color_values[:]
 
         return (affected_controllers, ev_list)

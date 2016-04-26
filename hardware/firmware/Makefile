@@ -1,4 +1,16 @@
-listings: \
+all:	listings pdf
+
+hex:
+	cp QuizShow.X/dist/default/production/QuizShow.X.production.hex QuizShow.hex
+
+map:
+	cp QuizShow.X/dist/default/production/QuizShow.X.production.map QuizShow.map
+	./memorymap.py QuizShow.map QuizShow.desc QuizShow_map.txt
+
+listings:
+	cp QuizShow.X/build/default/production/_ext/1472/*.lst .
+
+pdf: \
 	flash_update.asm.pdf flash_update.inc.pdf \
 	flash_update_bits.inc.pdf flash_update_user.inc.pdf \
 	readerboard_32x16_ada.asm.pdf readerboard_32x16_ada.inc.pdf \
@@ -16,7 +28,7 @@ listings: \
 	serial-io-bits.inc.pdf serial-io-user.inc.pdf \
 	serial-io.asm.pdf serial-io.inc.pdf \
 	lumos_init.lst.pdf lumos_main.lst.pdf quizshow_init.lst.pdf \
-	quizshow_main.lst.pdf serial-io.lst.pdf
+	quizshow_main.lst.pdf serial-io.lst.pdf QuizShow_map.txt.pdf
 
 distclean:
 	rm -f *.pdf
@@ -30,4 +42,7 @@ ENSCRIPTOPTS = -2 -G -H3 -j -M 11x17 -o - -r --highlight-bar-gray=0.90 --mark-wr
 	enscript $(ENSCRIPTOPTS) $< | ps2pdf - $@
 	
 %.lst.pdf: %.lst
+	enscript $(ENSCRIPTOPTS) $< | ps2pdf - $@
+
+%.txt.pdf: %.txt
 	enscript $(ENSCRIPTOPTS) $< | ps2pdf - $@

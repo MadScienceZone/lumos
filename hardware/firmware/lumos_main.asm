@@ -1,7 +1,7 @@
 ; OSCCON:SCS=00;HS;
 ; vim:set syntax=pic ts=8:
 ;
-		LIST n=87
+		LIST N=86
 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ;@@                                                                         @@
 ;@@ @      @   @  @   @   @@@    @@@          LUMOS: LIGHT ORCHESTRATION    @@

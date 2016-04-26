@@ -25,6 +25,11 @@
 # USE THIS PRODUCT AT YOUR OWN RISK.
 # 
 
+class DeviceTimeoutError (Exception):
+    def __init__(self, read_so_far, *args, **kw):
+        Exception.__init__(self, *args, **kw)
+        self.read_so_far = read_so_far
+
 class Network (object):
     """
     This class describes each network of controllers.  Each network

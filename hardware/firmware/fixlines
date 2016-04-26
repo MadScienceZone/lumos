@@ -5,15 +5,15 @@ import sys
 import os
 import re
 
-for filename in sys.argv:
+for filename in sys.argv[1:]:
     print "Fixing {0}...".format(filename)
     os.rename(filename, filename+'.bak')
     with open(filename+'.bak', 'r') as in_file:
         with open(filename, 'w') as out_file:
             for line in in_file:
-                if re.match(r'^\s+LIST\s+N=\d+', line):
+                if re.match(r'^\s+LIST\s+N=\d+', line, flags=re.IGNORECASE):
                     print "Replaced:", line
-                    new = re.sub('LIST\s+N=\d+', 'LIST N=87', line)
+                    new = re.sub('LIST\s+N=\d+', 'LIST N=86', line, flags=re.IGNORECASE)
                     print "With:    ", new
                     out_file.write(new)
                 else:
