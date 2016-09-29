@@ -190,6 +190,7 @@ else:
                 return data
 
         def open(self):
+            print `self.port`, `self.baudrate`, `self.bits`, `self._parity`, `self.stop`, `self.xonxoff`, `self.rtscts`
             self.dev = serial.Serial(
                 port=self.port, 
                 baudrate=self.baudrate, 
@@ -389,7 +390,8 @@ else:
             if self.verbose:
                 self.verbose.write(time.ctime()+" {0}: getting input (bytes={1}, mode_switch={2}, timeout={3}):\n".format(self.description, bytes, `mode_switch`, timeout))
 
-            self.dev.setTimeout(timeout)
+            #self.dev.setTimeout(timeout)
+            self.dev.timeout=timeout
             if mode_switch and self.txmode == 'half':
                 self.receive_mode()
 

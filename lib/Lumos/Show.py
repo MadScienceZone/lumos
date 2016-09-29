@@ -127,7 +127,11 @@ class Show (object):
         self._clear()
 
         show = ConfigParser.SafeConfigParser()
-        show.readfp(file)
+        if isinstance(file, (list, tuple)):
+            for f in file:
+                show.readfp(f)
+        else:
+            show.readfp(file)
         self._load_from_config(show, open_device, virtual_only)
 
     def _search_for_sub_sources(self, show, parent_ID, parent_obj):
@@ -304,7 +308,10 @@ class Show (object):
         self.loaded = True
 
     def load_file(self, filename, open_device=True, virtual_only=False):
-        self.load(open(filename), open_device, virtual_only)
+        if isinstance(filename, (list, tuple)):
+            self.load([open(f) for f in filename], open_device, virtual_only)
+        else:
+            self.load(open(filename), open_device, virtual_only)
 
     def _dump_ps_tree(self, file, parent):
         if parent.subordinates:

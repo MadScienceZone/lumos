@@ -316,7 +316,7 @@ space between
 .RB \*(lq power \*(rq
 and the ID tag name).
 .LP
-Each power source section has two data fields:
+Each power source section has these data fields:
 .TP
 .BI amps= real
 The 
@@ -325,6 +325,9 @@ load available on that circuit to our show.
 .B "If other (i.e., non-Lumos-controlled) loads are on the same circuit, reduce this value by the"
 .B "maximum load of all those other devices.  This value is the maximum current load Lumos should"
 .B "pull from that power source."
+.TP
+.BI volts= real
+The voltage supplied by this power source.  Defaults to 120 if not specified.
 .TP
 .BI disp_order= int
 The GUI display position of this source relative to its siblings (subordinate power
@@ -517,6 +520,42 @@ If this value is not present, it defaults to
 Whether to use RTS/CTS (hardware) flow control on the line. 
 If this value is not present, it defaults to
 .BR no .
+.TP
+.BR duplex=full | half
+Specifies whether this network operates in full- or half-duplex.  For
+an RS-232 (standard) serial port, this would be full-duplex, which is
+the default if this field is left unspecified.  Full-duplex networks
+are assumed to be able to receive and transmit data at the same time
+without any particular special handling.  Half-duplex networks, on
+the other hand, require control actions to switch the hardware between
+transmit and receive mode.  This requires the 
+.BR txmode ,
+.BR txlevel ,
+and
+.B txdelay
+fields (q.v.).
+.TP
+.BR txmode=dtr | rts
+For half-duplex networks, the transmitter is controlled by either the
+DTR (data terminal ready) or RTS (request to send) lines on the serial
+port.  By default, DTR is assumed if this field is not specified.
+.TP
+.BR txlevel=1 | 0
+For half-duplex networks, the transmitter control on the DTR or RTS line
+is set so that the transmitter is active with the line is asserted (if
+.BR txlevel = 1 )
+or deasserted (if
+.BR txleve = 0 ).
+The default is 
+.B 1
+if this field is not specified.
+.TP
+.BI txdelay= n
+For half-duplex networks, Lumos will pause for
+.I n
+milliseconds before and after changing the transmitter control line (DTR or RTS)
+when switching between transmit and receive modes.  The default is 2 ms if 
+this field is not specified.
 .RE
 .TP
 .B serialbit
@@ -573,6 +612,87 @@ network on the first system serial port, running at 19,200 bits/sec,
 units connected here, which will be described in sections called
 .RB \*(lq [unit\ treea1] \*(rq,
 et al.
+.SS "Virtual Channels"
+.LP
+At the lower hardware-managing levels of Lumos, we deal in terms of
+hardware controller units, their channels, and the devices plugged into
+them.  However, that's not always the most intuitive or convenient level
+to work with when managing sequences and planning shows.  At the higher
+human-interface levels of the software, we deal in terms of so-called
+\*(lqvirtual channels\*(rq which are more abstract models of the show
+elements.  At this level, we only care about setting dimmer levels or
+turning things on and off.  This also allows for easily working with
+more complex things such as multi-color or multi-function devices as
+a single \*(lqchannel\*(rq we can manipulate more easily.
+.LP
+A virtual channel is explicitly declared by adding a stanza for it
+in the show configuration file, named 
+.RB \*(lq [virtual
+.IB id ]\fR\*(rq.\fP
+The 
+.I id
+must be unique within the show.  The fields in this stanza include:
+.TP
+.BI type= name
+The type of virtual channel.  May be one of the following:
+.RS
+.TP
+.B toggle
+A channel which may simply be turned on or off.
+.TP
+.B dimmer
+A channel capable of being dimmed on a scale from 0\-100%.
+.TP
+.B rgb
+A complex type of device which can emit any color by mixing 
+levels of red, green, and blue light.  This requires three
+distinct channels at the hardware level (one for each primary
+color), but to the user building sequences it's simply a single
+thing that can be set to different colors.
+.RE
+.TP
+.BI channel= unit . channel
+This defines the hardware channel to which the virtual channel
+refers.  For devices (e.g., RGB) which use more than one hardware
+channel, this is a space-separated list of channel IDs.  The order
+they are listed depends on the type of device:
+.RS
+.TP
+.B rgb
+The channel IDs for the red, green, and blue color controls are
+listed in that order.
+.RE
+.TP
+.BI name= name
+A user-friendly descriptive name for the virtual channel.  This is
+what will be displayed in the sequence editor.  Defaults to the
+underlying hardware channel's name if this field is not given,
+or the 
+virtual channel 
+.I id
+as a last resort.
+.TP
+.BI color=# rrggbb
+Specifies the color to use in the sequence editor to represent this channel
+(Except RGB-type devices).  The values
+.IR rr ,
+.IR gg ,
+and
+.I bb
+are two-digit hexadecimal numbers representing the level of red, green, and blue,
+respectively, to mix to make the desired color.
+.LP
+Virtual channels may also be implicitly declared in the show configuration file,
+for simple toggle and dimmer type devices.  Simply add a 
+.B virtual
+field to the channel stanza (see below).  If no explicit stanza exists for that
+virtual channel, one will be created automatically.  The type of the virtual
+channel will be toggle if the hardware is indicated to not be dimmable, 
+and dimmer otherwise.
+.LP
+If no mention whatsoever is made of a virtual channel associated with a given
+hardware channel, a virtual channel is created implicitly for it, with a unique
+ID generated based on the controller and channel IDs.
 .SS "Controller Units"
 .LP
 Each network lists what controllers are plugged into it (in the
@@ -584,7 +704,7 @@ section named
 .IB tag ]\fR\*(rq\fP,
 which contains the following paramters:
 .TP
-.BI power= tag
+.BI power_source= tag
 The 
 .I tag
 ID (see \*(lqPower Sources\*(rq) for the power circuit supplying the
@@ -875,10 +995,11 @@ for an X-10 style controller.)
 Each channel is described in its own section named as
 .RB \*(lq [chan
 .IB unit . channel\fR].\*(rq\fP
-The base set of values required for any channel are described first.
-Depending on the controller unit type, additional fields may also be
-required.  (In the current release, there are no additional fields, but
-this may change in future releases.)
+'\"The base set of values required for any channel are described first.
+'\"Depending on the controller unit type, additional fields may also be
+'\"required.  (In the current release, there are no additional fields, but
+'\"this may change in future releases.)
+The following fields are expected for channel definitions:
 .TP
 .BI name= text
 A short, descriptive name of the load plugged into this channel.
@@ -886,7 +1007,7 @@ A short, descriptive name of the load plugged into this channel.
 .BI load= real
 The number of amps this load will consume.
 .TP
-.BI power= tag
+.BI power_source= tag
 Normally, channels all get power from the single power source supplying their
 controller unit.  If a channel happens to get power from some other source,
 that is specified here by adding a 
@@ -917,7 +1038,7 @@ not cause it to go into dimmer mode anyway.
 connect anything to a dimmable controller output which
 would be damaged if it happens to be dimmed.
 .TP
-.BI warm= int
+.BI warm= real
 The minimum dimmer level (as a percentage) to keep this load
 at all times.  This is intended to keep bulbs always warm, by
 dimming them to a low level where they won't be (too) visible
@@ -943,6 +1064,20 @@ on the same circuit.  If not specified, it defaults to the resolution
 specified for the controller.  In most cases, this should
 .I not
 be specified.
+.TP
+.BI virtual= name
+Specifies the name of the virtual channel to be created for this 
+hardware channel, in lieu of creating an entire explicit 
+.B [virtual
+.IB id ]
+stanza for it.
+.TP
+.BI color=# rrggbb
+Specifies the color used to display the virtual channel associated with
+this device channel.  Only used in conjunction with the
+.B virtual
+field.  [Default: 
+.BR #FFFFFF .]
 .LP
 Some examples:
 .RS
@@ -952,7 +1087,13 @@ Some examples:
 .B "[chan treea1.0]"
 .B "name=Tree1 RED 1"
 .B "load=.3"
+.B "virtual=Tree red string #1"
+.B " "
 .B "# X-10 controller 'floodX10', channel C1"
+.B "[virtual snowman]"
+.B "type=toggle"
+.B "channel=floodX10.C1"
+.B " "
 .B "[chan floodX10.C1]"
 .B "name=Snowman power"
 .B "load=2"

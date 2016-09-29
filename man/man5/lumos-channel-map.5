@@ -13,7 +13,6 @@
 .TH LUMOS-CHANNEL-MAP 5
 '\"
 '\" LUMOS DOCUMENTATION:
-'\" $Header: /tmp/cvsroot/lumos/man/man5/lumos-channel-map.5,v 1.3 2008-12-30 22:58:02 steve Exp $
 '\"
 '\" Lumos Light Orchestration System
 '\" Copyright (c) 2005-2009, 2011, 2012, 2013 by Steven L. Willoughy, Aloha, OR, USA.
@@ -41,8 +40,10 @@ Lumos Channel Map File \- Assignment of Vixen Channels to Lumos Channels
 .SH SYNOPSIS
 .LP
 .B #Comment
-.LP
-.IB idx , name , controller , channel
+.br
+.IB CMV , 2 , comments...
+.br
+.IB idx , name , channelname \fR[\fP, subchannel\fR]\fP
 .SH DESCRIPTION
 .LP
 This document describes the format of files used by Lumos to define
@@ -53,9 +54,134 @@ show.
 The overall file format is standard CSV (comma-separated value).
 This allows you to edit the file using a spreadsheet program
 (e.g., OpenOffice Calc*, GNU Gnumeric*, or Microsoft Office Excel*) if that's 
-preferred, so long as you save the file into CSV format.
+preferred, so long as you save the file into CSV format.  Specific details
+about the CSV file format as used here are provided below under
+.RB \*(lq "CSV FILE FORMAT" .\*(rq
 .LP
-Specifically:
+Each line in the file is a \*(lqrecord\*(rq which describes a discrete bit of
+information of interest.  Records are themselves composed of \*(lqfields\*(rq
+which are separated from each other by commas.
+.SS Comments
+.LP
+Any record whose first field begins with a 
+.B #
+character is assumed to be a comment, and the entire record
+is ignored.  Be aware, however, that all the rules
+for the CSV file format must still be adhered to.
+.SS "Version Declaration"
+.LP
+The first non-comment record in the file
+.I must
+be a version declaration record.  The first field has the constant value
+.RB \*(lq CMV \*(rq.
+The second field contains an integer which indicates the format version
+this file uses.  This document describes version 2, so for all files used
+with Lumos as of this writing, the version declaration record should read
+.RB \*(lq CMV,2 \*(rq.
+If the version number is 1 (or no 
+.B CMV
+record exists at all), file format version 1 is assumed.  See the historical
+notes below for what that version entailed.  New files should only be written
+in the most recent file format supported by Lumos.
+.LP
+Any fields after the second are ignored completely, and may be used as comments.
+.SS Mappings
+.LP
+A mapping record describes a single assignment of an external
+(e.g., Vixen) output channel to a single Lumos channel, in this format:
+.LP
+.RS
+.IB idx , name , channelname
+.RE
+or
+.RS
+.IB idx , name , channelname , subchannel
+.RE
+.LP
+The source (Vixen) channel is specified in the first two fields, which 
+are:
+.TP 13
+.I idx
+The index number of the channel.  The first channel appearing in the
+sequence file is number 0, the next is 1, and so on.
+.TP
+.I name
+The text name of the channel as displayed in the Vixen sequence editing grid.
+.LP
+If you generate this file via 
+.BR vixen2lumos (1)
+with the
+.B \-\-genmap
+option, both
+.I idx
+and
+.I name
+fields will be filled in.  However, it is permitted for one of these to 
+be empty.  If only
+.I idx
+is given, whatever channel is in that position in the sequence file will 
+be used.  If 
+.I name
+is given, the channel with that name is found.  If both are used, they must
+both apply (i.e., the named channel must be at that index position in the file).
+.LP
+The same source channel may not be mapped more than one time, however multiple
+source channels may be mapped to the same destination channel (merging
+their events so any action taken on either of the original channels
+affects the same Lumos channel).
+.LP
+The destination channel is specified by the third and (optionally) fourth fields:
+.TP 13
+.I channelname
+The name of the virtual channel as known to the Lumos sequence editor, defined
+in the Lumos
+show configuration file.
+.TP
+.I subchannel
+If the channel is of a type which includes multiple control points (such as 
+an RGB light with separate red, green, and blue controls), and the Vixen sequence
+treats each of those control points as a separate channel, you need to indicate
+how those separate Vixen channels map to the components of the more complex Lumos
+virtual channel.  For example, if Vixen channels 4, 5, and 6 correspond to the
+red, green, and blue components of an RGB light known to Lumos as the virtual channel
+\*(lqflood16\*(rq, the mapping lines would look like this:
+.RS
+.RS
+.na
+.nf
+.B 4,,flood16,0
+.B 5,,flood16,1
+.B 6,,flood16,2
+.ad
+.fi
+.RE
+.LP
+The particular association of subchannels depends upon the type of virtual channel,
+and is in fact interpreted by the appropriate virtual channel object class within
+Lumos.  The standard virtual channel types as of this writing are:
+.RS
+.TP
+.B dimmer
+Dimmers do not have subchannels.
+.TP
+.B rgb
+These have three hardware channels, one for each primary color to be mixed.  For
+the lumos channel map file, use subchannel number 
+.B 0
+for red,
+.B 1
+for green, and
+.B 2
+for blue.
+.TP
+.B toggle
+Toggles do not have subchannels.
+.RE
+.RE
+.SH "CSV FILE FORMAT"
+.LP
+The specific dialect of comma-separated value (CSV) file used by
+this program follows these rules:
 .TP 
 (1)
 The file is organized into a sequential collection of records,
@@ -98,76 +224,20 @@ Blank space around commas should
 be included in the file unless you intend for the field
 contents to include those spaces as part of the data
 field.
-.SS Comments
-.LP
-Any record whose first field begins with a 
-.B #
-character is assumed to be a comment, and the entire record
-is ignored.  Be aware, however, that all the rules
-for the CSV file format must still be adhered to.
-.SS Mappings
-.LP
-A mapping record describes a single assignment of an external
-(e.g., Vixen) output channel to a single Lumos channel, in this format:
-.LP
-.RS
-.IB idx , name , controller , channel
-.RE
-.LP
-The source (Vixen) channel is specified in the first two fields, which 
-are:
-.TP 13
-.I idx
-The index number of the channel.  The first channel appearing in the
-sequence file is number 0, the next is 1, and so on.
-.TP
-.I name
-The text name of the channel as displayed in the Vixen sequence editing grid.
-.LP
-If you generate this file via 
-.BR vixen2lumos (1)
-with the
-.B \-\-genmap
-option, both
-.I idx
-and
-.I name
-fields will be filled in.  However, it is permitted for one of these to 
-be empty.  If only
-.I idx
-is given, whatever channel is in that position in the sequence file will 
-be used.  If 
-.I name
-is given, the channel with that name is found.  If both are used, they must
-both apply (i.e., the named channel must be at that index position in the file).
-.LP
-The same source channel may not be mapped more than one time, however multiple
-source channels may be mapped to the same destination channel (merging
-their events so any action taken on either of the original channels
-affects the same Lumos channel).
-.LP
-The destination channel is specified by the third and fourth fields:
-.TP 13
-.I controller
-The name of the controller supplying this channel, as defined in the Lumos
-show configuration file.
-.TP
-.I channel
-The channel name within the designated controller.
 .SH EXAMPLE
 .LP
 A mapping from the first three Vixen channels (called
 \*(lqA\*(rq, \*(lqB\*(rq, and \*(lqC\*(rq) to, respectively,
-Lumos controller \*(lqfloods\*(rq channel 12 and \*(lqtrees\*(rq
-channels 1 and 2, would look like this:
+Lumos controller channels \*(lqfloods12,\*(rq \*(lqtrees1,\*(rq and \*(lqtrees2\*(rq
+would look like this:
 .LP
 .RS
 .nf
 .na
 # Lumos map file for my show
-0,A,floods,12
-1,B,trees,1
-2,C,trees,2
+0,A,floods12
+1,B,trees1
+2,C,trees2
 .ad
 .fi
 .RE
@@ -179,9 +249,9 @@ could be used:
 .nf
 .na
 # Lumos map file for my show
-,A,floods,12
-,B,trees,1
-,C,trees,2
+,A,floods12
+,B,trees1
+,C,trees2
 .ad
 .fi
 .RE
@@ -213,6 +283,22 @@ Steve Willoughby / steve@alchemy.com
 This file format first appeared for
 .B vixen2lumos
 as part of the Lumos 0.3 software release.
+.LP
+Version 2 of this file, documented here, appeared in Lumos version 1.0
+.SS "File Format Version 1"
+.LP
+Older mapping file formats (version 1) did not support the concept of virtual
+channels but rather mapped Vixen channels to Lumos hardware channels.  In that
+version, the mapping records had the form
+.RS
+.IB idx , name , controller , channel
+.RE
+where
+.I controller
+and
+.I channel
+were the names defined in the Lumos show configuration file for a particular
+controller and channel.
 .SH NOTES
 .LP
 *Names of third-party products or organizations are the property of their respective owners and may be trademarks owned by them.

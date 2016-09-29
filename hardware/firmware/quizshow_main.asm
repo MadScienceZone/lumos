@@ -497,8 +497,8 @@
 ; $002 |_Device_ID____|     $012 | Storage      |
 ; $003 | Phase     MSB|     $013 |       |      |
 ; $004 |_Offset____LSB|     $014 |       |      |
-; $005 |_DMX_Slot__MSB|     $015 |       |      |
-; $006 |_DMX_Slot__LSB|       .          .
+; $005 | DMX Slot  MSB|     $015 |       |      |
+; $006 |___________LSB|       .          .
 ; $007 |_Sensor_cfg___|       .          .
 ; $008 |______________|       .          .
 ; $009 |______________|     $3F9 |       |      |
@@ -866,15 +866,15 @@ SCN_DB_DOWN_#v(SCN_DBN):
 	; officially down.
 	;
 	SETF	BTN_X0_DEB_TMR+BTN_IDX, BANKED
-	BTFSC	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_ACTIVE, BANKED
-	BRA	SCN_DB_DONE_#v(SCN_DBN)	
+	BTFSC	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_LOCKED, BANKED	; is it locked?
+	BRA	SCN_DB_RST_LCK_#v(SCN_DBN)			; stay locked longer
+	BTFSC	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_ACTIVE, BANKED	; if we already saw the button press
+	BRA	SCN_DB_DONE_#v(SCN_DBN)				;   then we don't need to do anything more
 	;
 	; We didn't know the button was down yet. Let's see what
 	; that changes...
 	;
 	BSF	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_ACTIVE, BANKED	; mark as "down"
-	BTFSC	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_LOCKED, BANKED	; is it locked?
-	BRA	SCN_DB_RST_LCK_#v(SCN_DBN)			; stay locked longer
 	BTFSC	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_MASKED, BANKED	; is it masked?
 	BRA	SCN_DB_DONE_#v(SCN_DBN)				; then ignore it
 	BTFSC	BTN_X0_FLAGS+BTN_IDX, BTN_FLG_PRESSED, BANKED	; already noted?

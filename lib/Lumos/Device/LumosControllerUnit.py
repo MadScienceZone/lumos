@@ -557,6 +557,12 @@ class LumosControllerUnit (ControllerUnit):
         elif reply[12] & 0x1F == 2:
             status.hardware_type = 'lumos4dc'
             status.channels = 4
+        elif reply[12] & 0x1F == 3:
+            status.hardware_type = 'qscc'
+            status.channels = 14
+        elif reply[12] & 0x1F == 4:
+            status.hardware_type = 'qsrc'
+            status.channels = 20
         else:
             status.hardware_type, status.channels = self._unknown_device_type(reply[12] & 0x1F);
 
