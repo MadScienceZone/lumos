@@ -53,6 +53,7 @@ except ImportError:
             self.txlevel=self._bool(txlevel)
             self.txdelay=self._int(txdelay)
             self.verbose = None
+            self._protocol_debug = None
 
         def set_baud_rate(self, new_speed):
             self.baudrate = self._int(new_speed)
@@ -139,6 +140,7 @@ else:
             self.txdelay = self._int(txdelay)
             self.verbose = None
             self.diversion = None
+            self._protocol_debug = None
 
             if txmode not in ('dtr', 'rts'):
                 raise ValueError('{0} is not a valid transmit mode line name'.format(txmode))
@@ -254,6 +256,8 @@ else:
             if self.verbose:
                 self.verbose.write(time.ctime()+" Sending to {0} (port {1}):\n".format(self.description, self.port))
                 self.hexdump(cmd)
+                if self._protocol_debug is not None:
+                    self._protocol_debug(cmd, self.verbose)
 
             if self.diversion is not None:
                 self.diversion.append(cmd)
@@ -434,6 +438,8 @@ else:
             if self.verbose:
                 self.verbose.write(time.ctime()+" Input data received:\n")
                 self.hexdump(buffer)
+                if self._protocol_debug is not None:
+                    self._protocol_debug(buffer, self.verbose)
 
             if mode_switch and self.txmode == 'half':
                 self.transmit_mode()

@@ -26,7 +26,8 @@ lcheck \- Check integrity of show configuration file
 .SH SYNOPSIS
 .B lcheck
 .RB [ \-\-verbose ]
-.IR files ...
+.IR file [\fB,\fP file ...]
+\&...
 .br
 .B lcheck
 .B \-\-help
@@ -65,6 +66,33 @@ is wise to avoid letting the max load as reported by
 .B lcheck
 exceed the stated capacity of the power source, even if you don't intend to 
 run all the loads at once.
+.LP
+The 
+.I file
+parameter is either the name of a single comprehensive configuration file,
+or a comma-delimited list of filenames, each containing a part of the show
+configuration (e.g., one for network parameters, one for virtual channels,
+etc.).  Multiple such parameters may be given, with each representing a 
+distinct show configuration.  For example:
+.LP
+.RS
+.na
+.nf
+.B "lcheck s1.conf,s1a.conf,s1b.conf s2.conf,s2a.conf"
+.fi
+.ad
+.RE
+.LP
+In this case, the show described by files
+.IR s1.conf ,
+.IR s1a.conf ,
+and
+.I s1b.conf
+is checked and reported, then the show described by files
+.I s2.conf
+and 
+.I s2a.conf
+is checked and reported.
 .SH OPTIONS
 .LP
 The following options may be given to

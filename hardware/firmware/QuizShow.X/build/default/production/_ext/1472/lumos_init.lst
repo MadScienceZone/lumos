@@ -1,4 +1,4 @@
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE  1
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE  1
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -6,7 +6,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 
                       00001 ; vim:set syntax=pic ts=8:
                       00002 ;
-                      00003                 LIST n=90
+                      00003                 LIST N=86
                       00004 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                       00005 ;@@                                                                         @@
                       00006 ;@@ @      @   @  @   @   @@@    @@@          LUMOS: LIGHT ORCHESTRATION    @@
@@ -35,7 +35,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00029 #include "lumos_config.inc"
                       00001 ; vim:set syntax=pic ts=8:
                       00002 ;
-                      00003                 LIST n=90
+                      00003                 LIST N=86
                       00004 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                       00005 ;@@                                                                         @@
                       00006 ;@@ @      @   @  @   @   @@@    @@@          LUMOS: LIGHT ORCHESTRATION    @@
@@ -62,174 +62,178 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00027 ; code to produce the desired version of the ROM.
                       00028 ;
                       00029 ; 
-                      00030 ;==============================================================================
-                      00031 ; CONFIGURATION OPTIONS
-                      00032 ;==============================================================================
-                      00033 #ifndef LUMOS_CONFIG_INC
-                      00034 #define LUMOS_CONFIG_INC
-                      00035 #define LUMOS_CHIP_MASTER       0x41    ; 48-channel master CPU
-                      00036 #define LUMOS_CHIP_SLAVE        0x42    ; 48-channel slave CPU
-                      00037 #define LUMOS_CHIP_STANDALONE   0x43    ; 24-channel CPU
-                      00038 #define LUMOS_CHIP_4CHANNEL     0x44    ; 4-channel CPU
-                      00039 #define LUMOS_CHIP_QSCC         0x45    ; Private code; custom hardware
-                      00040 #define LUMOS_CHIP_QSRC         0x46    ; Private code; custom hardware
-                      00041 ;
-                      00042 ; Un-comment one of these to select board type for this ROM image:
-                      00043 ;
-                      00044 ;#define LUMOS_CHIP_TYPE                LUMOS_CHIP_MASTER
-                      00045 ;#define LUMOS_CHIP_TYPE                LUMOS_CHIP_SLAVE
-                      00046 ;#define LUMOS_CHIP_TYPE                LUMOS_CHIP_STANDALONE
-                      00047 ;#define LUMOS_CHIP_TYPE                LUMOS_CHIP_4CHANNEL
-                      00048 ;#define LUMOS_CHIP_TYPE                LUMOS_CHIP_QSCC
-                      00049 #define LUMOS_CHIP_TYPE         LUMOS_CHIP_QSRC
-                      00050 ;
+                      00030 
+                      00031 ;==============================================================================
+                      00032 ; CONFIGURATION OPTIONS
+                      00033 ;==============================================================================
+                      00034 #ifndef LUMOS_CONFIG_INC
+                      00035 #define LUMOS_CONFIG_INC
+                      00036 #define LUMOS_CHIP_MASTER       0x41    ; 48-channel master CPU
+                      00037 #define LUMOS_CHIP_SLAVE        0x42    ; 48-channel slave CPU
+                      00038 #define LUMOS_CHIP_STANDALONE   0x43    ; 24-channel CPU
+                      00039 #define LUMOS_CHIP_4CHANNEL     0x44    ; 4-channel CPU
+                      00040 #define LUMOS_CHIP_QSCC         0x45    ; Private code; custom hardware
+                      00041 #define LUMOS_CHIP_QSRC         0x46    ; Private code; custom hardware
+                      00042 ;
+                      00043 ; Un-comment one of these to select board type for this ROM image:
+                      00044 ;
+                      00045 ;#define LUMOS_CHIP_TYPE                LUMOS_CHIP_MASTER
+                      00046 ;#define LUMOS_CHIP_TYPE                LUMOS_CHIP_SLAVE
+                      00047 ;#define LUMOS_CHIP_TYPE                LUMOS_CHIP_STANDALONE
+                      00048 ;#define LUMOS_CHIP_TYPE                LUMOS_CHIP_4CHANNEL
+                      00049 ;#define LUMOS_CHIP_TYPE                LUMOS_CHIP_QSCC
+                      00050 #define LUMOS_CHIP_TYPE         LUMOS_CHIP_QSRC
                       00051 ;
-                      00052 ;
-                      00053 #define LUMOS_ZC                0x55
-                      00054 #define LUMOS_INTERNAL          0x58
-                      00055 
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE  2
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE  2
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-                      00056  IF LUMOS_CHIP_TYPE == LUMOS_CHIP_MASTER || LUMOS_CHIP_TYPE == LUMOS_CHIP_SLAVE
-                      00057   #define LUMOS_SLICE_TIMER LUMOS_ZC
-                      00058  ELSE
-                      00059   IF LUMOS_CHIP_TYPE == LUMOS_CHIP_STANDALONE || LUMOS_CHIP_TYPE == LUMOS_CHIP_4CHANNEL || LUMOS_CHIP_TY
+                      00052 ;
+                      00053 ;
+                      00054 #define LUMOS_ZC                0x55
+                      00055 #define LUMOS_INTERNAL          0x58
+                      00056 
+                      00057  IF LUMOS_CHIP_TYPE == LUMOS_CHIP_MASTER || LUMOS_CHIP_TYPE == LUMOS_CHIP_SLAVE
+                      00058   #define LUMOS_SLICE_TIMER LUMOS_ZC
+                      00059  ELSE
+                      00060   IF LUMOS_CHIP_TYPE == LUMOS_CHIP_STANDALONE || LUMOS_CHIP_TYPE == LUMOS_CHIP_4CHANNEL || LUMOS_CHIP_TY
                             PE == LUMOS_CHIP_QSCC || LUMOS_CHIP_TYPE == LUMOS_CHIP_QSRC
-                      00060    #define LUMOS_SLICE_TIMER LUMOS_INTERNAL
-                      00061   ELSE
-                      00062    ERROR "LUMOS_CHIP_TYPE must be set to MASTER, SLAVE, 4CHANNEL, or STANDALONE"
-                      00063   ENDIF
-                      00064  ENDIF
-                      00065  
-                      00066  IF LUMOS_SLICE_TIMER != LUMOS_ZC && LUMOS_SLICE_TIMER != LUMOS_INTERNAL
-                      00067   ERROR "LUMOS_SLICE_TIMER must be set to ZC or INTERNAL"
-                      00068  ENDIF
-                      00069 
+                      00061    #define LUMOS_SLICE_TIMER LUMOS_INTERNAL
+                      00062   ELSE
+                      00063    ERROR "LUMOS_CHIP_TYPE must be set to MASTER, SLAVE, 4CHANNEL, QSCC, QSRC, or STANDALONE"
+                      00064   ENDIF
+                      00065  ENDIF
+                      00066  
+                      00067  IF LUMOS_SLICE_TIMER != LUMOS_ZC && LUMOS_SLICE_TIMER != LUMOS_INTERNAL
+                      00068   ERROR "LUMOS_SLICE_TIMER must be set to ZC or INTERNAL"
+                      00069  ENDIF
                       00070 
-                      00071  IF LUMOS_CHIP_TYPE == LUMOS_CHIP_MASTER
-                      00072   #define ROLE_MASTER       (1)
-                      00073   #define ROLE_SLAVE        (0)
-                      00074   #define ROLE_STANDALONE   (0)
-                      00075   #define NUM_CHANNELS      (.48)
-                      00076   #define QSCC_PORT         (0)
-                      00077  ELSE
-                      00078   IF LUMOS_CHIP_TYPE == LUMOS_CHIP_SLAVE
-                      00079    #define ROLE_MASTER      (0)
-                      00080    #define ROLE_SLAVE       (1)
-                      00081    #define ROLE_STANDALONE  (0)
-                      00082    #define NUM_CHANNELS     (.48)
-                      00083    #define QSCC_PORT        (0)
-                      00084   ELSE
-                      00085    IF LUMOS_CHIP_TYPE == LUMOS_CHIP_STANDALONE
-                      00086     #define ROLE_MASTER     (0)
-                      00087     #define ROLE_SLAVE      (0)
-                      00088     #define ROLE_STANDALONE (1)
-                      00089     #define NUM_CHANNELS    (.24)
-                      00090     #define QSCC_PORT       (0)
-                      00091    ELSE
-                      00092     IF LUMOS_CHIP_TYPE == LUMOS_CHIP_4CHANNEL
-                      00093      #define ROLE_MASTER     (0)
-                      00094      #define ROLE_SLAVE      (0)
-                      00095      #define ROLE_STANDALONE (1)
-                      00096      #define NUM_CHANNELS    (.4)
-                      00097      #define QSCC_PORT       (0)
-                      00098     ELSE
-                      00099      IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSCC
-                      00100       #define ROLE_MASTER     (0)
-                      00101       #define ROLE_SLAVE      (0)
-                      00102       #define ROLE_STANDALONE (1)
-                      00103       #define NUM_CHANNELS    (.14)
-                      00104       #define QSCC_PORT       (1)
-                      00105      ELSE
-                      00106       IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSRC
-                      00107        #define ROLE_MASTER     (0)
-                      00108        #define ROLE_SLAVE      (0)
-                      00109        #define ROLE_STANDALONE (1)
-                      00110        #define NUM_CHANNELS    (.20)
-                      00111        #define QSCC_PORT       (1)
-                      00112       ELSE
-                      00113        ERROR "Invalid LUMOS_CHIP_TYPE"
-                      00114       ENDIF
-                      00115      ENDIF
-                      00116     ENDIF
-                      00117    ENDIF
-                      00118   ENDIF
-                      00119  ENDIF
-                      00120 
-                      00121 #define LUMOS_ARCH_4685  (0x4685)
-                      00122 #define LUMOS_ARCH_14K50 (0x1450)
-                      00123 
-                      00124  IF LUMOS_CHIP_TYPE == LUMOS_CHIP_MASTER || LUMOS_CHIP_TYPE == LUMOS_CHIP_SLAVE || LUMOS_CHIP_TYPE == LU
+                      00071 
+                      00072  IF LUMOS_CHIP_TYPE == LUMOS_CHIP_MASTER
+                      00073   #define ROLE_MASTER       (1)
+                      00074   #define ROLE_SLAVE        (0)
+                      00075   #define ROLE_STANDALONE   (0)
+                      00076   #define NUM_CHANNELS      (.48)
+                      00077   #define QSCC_PORT         (0)
+                      00078  ELSE
+                      00079   IF LUMOS_CHIP_TYPE == LUMOS_CHIP_SLAVE
+                      00080    #define ROLE_MASTER      (0)
+                      00081    #define ROLE_SLAVE       (1)
+                      00082    #define ROLE_STANDALONE  (0)
+                      00083    #define NUM_CHANNELS     (.48)
+                      00084    #define QSCC_PORT        (0)
+                      00085   ELSE
+                      00086    IF LUMOS_CHIP_TYPE == LUMOS_CHIP_STANDALONE
+                      00087     #define ROLE_MASTER     (0)
+                      00088     #define ROLE_SLAVE      (0)
+                      00089     #define ROLE_STANDALONE (1)
+                      00090     #define NUM_CHANNELS    (.24)
+                      00091     #define QSCC_PORT       (0)
+                      00092    ELSE
+                      00093     IF LUMOS_CHIP_TYPE == LUMOS_CHIP_4CHANNEL
+                      00094      #define ROLE_MASTER     (0)
+                      00095      #define ROLE_SLAVE      (0)
+                      00096      #define ROLE_STANDALONE (1)
+                      00097      #define NUM_CHANNELS    (.4)
+                      00098      #define QSCC_PORT       (0)
+                      00099     ELSE
+                      00100      IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSCC
+                      00101       #define ROLE_MASTER     (0)
+                      00102       #define ROLE_SLAVE      (0)
+                      00103       #define ROLE_STANDALONE (1)
+                      00104       #define NUM_CHANNELS    (.14)
+                      00105       #define QSCC_PORT       (1)
+                      00106      ELSE
+                      00107       IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSRC
+                      00108        #define ROLE_MASTER     (0)
+                      00109        #define ROLE_SLAVE      (0)
+                      00110        #define ROLE_STANDALONE (1)
+                      00111        #define NUM_CHANNELS    (.20)
+                      00112        #define QSCC_PORT       (1)
+                      00113       ELSE
+                      00114        ERROR "Invalid LUMOS_CHIP_TYPE"
+                      00115       ENDIF
+                      00116      ENDIF
+                      00117     ENDIF
+                      00118    ENDIF
+                      00119   ENDIF
+                      00120  ENDIF
+                      00121 
+                      00122 #define LUMOS_ARCH_4685  (0x4685)
+                      00123 #define LUMOS_ARCH_14K50 (0x1450)
+                      00124 
+                      00125  IF LUMOS_CHIP_TYPE == LUMOS_CHIP_MASTER || LUMOS_CHIP_TYPE == LUMOS_CHIP_SLAVE || LUMOS_CHIP_TYPE == LU
                             MOS_CHIP_STANDALONE || LUMOS_CHIP_TYPE == LUMOS_CHIP_QSCC || LUMOS_CHIP_TYPE == LUMOS_CHIP_QSRC
-                      00125   #define LUMOS_ARCH LUMOS_ARCH_4685
-                      00126   PROCESSOR 18F4685
-                      00127   #include <p18f4685.inc>
+                      00126   #define LUMOS_ARCH LUMOS_ARCH_4685
+                      00127   PROCESSOR 18F4685
+                      00128   #include <p18f4685.inc>
                       00001         LIST
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE  3
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
                       00002 
                       00003 ;==========================================================================
-                      00004 ;  MPASM PIC18F4685 processor include
-                      00005 ; 
-                      00006 ;  (c) Copyright 1999-2013 Microchip Technology, All rights reserved
-                      00007 ;==========================================================================
-                      00008 
-                      05130         LIST
-                      00128  ELSE
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE  3
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
-                      00129   IF LUMOS_CHIP_TYPE == LUMOS_CHIP_4CHANNEL
-                      00130    #define LUMOS_ARCH LUMOS_ARCH_14K50
-                      00131    PROCESSOR 18F14K50
-                      00132    #include <p18f14k50.inc>
-                      00133   ELSE
-                      00134    ERROR "Invalid LUMOS_CHIP_TYPE"
-                      00135   ENDIF
-                      00136  ENDIF
-                      00137 
-                      00138 ;
-                      00139 ; The following public symbols can be used after this file is
-                      00140 ; included (and this file should be included everywhere before
-                      00141 ; anything else is included, and in lieu of PROCESSOR directives
-                      00142 ; or #includes which bring in processor-specific bits--this file
-                      00143 ; will do that for you):
-                      00144 ;
-                      00145 ; LUMOS_CHIP_TYPE:  Will be one of the following, to show what the intent
-                      00146 ;                   of the target chip will be and what its particular 
-                      00147 ;                   I/O pin assignments are, role in the overall circuit, etc.
-                      00148 ;                   (use the ROLE_* values where possible, though, in your logic)
-                      00149 ;
-                      00150 ;       LUMOS_CHIP_MASTER       - 48-channel (2-CPU) controller, master CPU
-                      00151 ;       LUMOS_CHIP_SLAVE        - 48-channel (2-CPU) controller, slave CPU
-                      00152 ;       LUMOS_CHIP_STANDALONE   - 24-channel (1-CPU) controller, sole CPU
-                      00153 ;       LUMOS_CHIP_4CHANNEL     - 4-channel  (1-CPU) controller, sole CPU
-                      00154 ;       LUMOS_CHIP_QSCC         - private configuration for custom hardware
-                      00155 ;       LUMOS_CHIP_QSRC         - private configuration for custom hardware
-                      00156 ;
-                      00157 ; LUMOS_SLICE_TIMER: Will be one of the following, to specify where the PWM
-                      00158 ;                   slice timer sync pulse is coming from:
+                      00004 ; Build date : Feb 01 2016
+                      00005 ;  MPASM PIC18F4685 processor include
+                      00006 ; 
+                      00007 ;  (c) Copyright 1999-2016 Microchip Technology, All rights reserved
+                      00008 ;==========================================================================
+                      00009 
+                      05131         LIST
+                      00129  ELSE
+                      00130   IF LUMOS_CHIP_TYPE == LUMOS_CHIP_4CHANNEL
+                      00131    #define LUMOS_ARCH LUMOS_ARCH_14K50
+                      00132    PROCESSOR 18F14K50
+                      00133    #include <p18f14k50.inc>
+                      00134   ELSE
+                      00135    ERROR "Invalid LUMOS_CHIP_TYPE"
+                      00136   ENDIF
+                      00137  ENDIF
+                      00138 
+                      00139 ; set DMX_ENABLED to 1 to include the experimental DMX-handling code.
+                      00140 #define DMX_ENABLED 0
+                      00141 ;
+                      00142 ; The following public symbols can be used after this file is
+                      00143 ; included (and this file should be included everywhere before
+                      00144 ; anything else is included, and in lieu of PROCESSOR directives
+                      00145 ; or #includes which bring in processor-specific bits--this file
+                      00146 ; will do that for you):
+                      00147 ;
+                      00148 ; LUMOS_CHIP_TYPE:  Will be one of the following, to show what the intent
+                      00149 ;                   of the target chip will be and what its particular 
+                      00150 ;                   I/O pin assignments are, role in the overall circuit, etc.
+                      00151 ;                   (use the ROLE_* values where possible, though, in your logic)
+                      00152 ;
+                      00153 ;       LUMOS_CHIP_MASTER       - 48-channel (2-CPU) controller, master CPU
+                      00154 ;       LUMOS_CHIP_SLAVE        - 48-channel (2-CPU) controller, slave CPU
+                      00155 ;       LUMOS_CHIP_STANDALONE   - 24-channel (1-CPU) controller, sole CPU
+                      00156 ;       LUMOS_CHIP_4CHANNEL     - 4-channel  (1-CPU) controller, sole CPU
+                      00157 ;       LUMOS_CHIP_QSCC         - private configuration for custom hardware
+                      00158 ;       LUMOS_CHIP_QSRC         - private configuration for custom hardware
                       00159 ;
-                      00160 ;       LUMOS_ZC        - Hardware zero-crossing detector to PIC interrupt pin
-                      00161 ;       LUMOS_INTERNAL  - Internal timing system (using PIC timer module)
+                      00160 ; LUMOS_SLICE_TIMER: Will be one of the following, to specify where the PWM
+                      00161 ;                   slice timer sync pulse is coming from:
                       00162 ;
-                      00163 ; LUMOS_ARCH:       Will be one of the following, to show what PIC device
-                      00164 ;                   is targeted, strictly to determine chip-specific details,
-                      00165 ;                   not how Lumos is using it.
-                      00166 ;
-                      00167 ;       "14K50"         - The PIC18F14K50
-                      00168 ;       "4685"          - The PIC18F4685
+                      00163 ;       LUMOS_ZC        - Hardware zero-crossing detector to PIC interrupt pin
+                      00164 ;       LUMOS_INTERNAL  - Internal timing system (using PIC timer module)
+                      00165 ;
+                      00166 ; LUMOS_ARCH:       Will be one of the following, to show what PIC device
+                      00167 ;                   is targeted, strictly to determine chip-specific details,
+                      00168 ;                   not how Lumos is using it.
                       00169 ;
-                      00170 ; ROLE_MASTER           - (bool) true if this chip is the master in master/slave arrangement
-                      00171 ; ROLE_SLAVE            - (bool) true if this chip is the slave in master/slave arrangement
-                      00172 ; ROLE_STANDALONE       - (bool) true if this is the only chip, must run entire board function
-                      00173 ; NUM_CHANNELS          - (int) number of output SSR channels
-                      00174 #endif
+                      00170 ;       "14K50"         - The PIC18F14K50
+                      00171 ;       "4685"          - The PIC18F4685
+                      00172 ;
+                      00173 ; ROLE_MASTER           - (bool) true if this chip is the master in master/slave arrangement
+                      00174 ; ROLE_SLAVE            - (bool) true if this chip is the slave in master/slave arrangement
+                      00175 ; ROLE_STANDALONE       - (bool) true if this is the only chip, must run entire board function
+                      00176 ; NUM_CHANNELS          - (int) number of output SSR channels
+                      00177 #endif
                       00030                 RADIX           DEC
                       00031 ;
                       00032 ;==============================================================================
@@ -252,7 +256,13 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00048         CONFIG  BOREN=OFF               ; no brown-out reset
                       00049         CONFIG  WDTEN=ON                ; watchdog timer enabled
                       00050         CONFIG  WDTPS=16384             ; Watchdog timer postscale 1:16K (~65.5s) [1,2,4,8,...,32768]
-                      00051         CONFIG  HFINTOSC=OFF            ; System clock waits for HFINTOSC to stabilize
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE  4
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00051 ;       CONFIG  HFINTOSC=OFF            ; System clock waits for HFINTOSC to stabilize
                       00052         CONFIG  MCLRE=ON                ; /MCLR pin is for /MCLR, not I/O
                       00053         CONFIG  STVREN=ON               ; enable stack over/under-flow reset
                       00054         CONFIG  LVP=OFF                 ; disable low-voltage programming mode
@@ -268,12 +278,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00064 ;
                       00065  ELSE
                       00066   IF LUMOS_ARCH == LUMOS_ARCH_4685
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE  4
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
                       00067 ;
                       00068 ;       18F4685 fuses
                       00069 ;
@@ -335,109 +339,115 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00125                 ; ----XX--      ; not used (status bits)
                       00126                 ; ------00      ; system clock from primary osc
 000004 6ED3           00127         MOVWF   OSCCON, ACCESS
-                      00128  IF LUMOS_ARCH == LUMOS_ARCH_14K50
-                      00129   ERROR "Missing 14K50 initialization code"
-                      00130  ENDIF
-                      00131 ;
-                      00132 ; Reset Control
-                      00133 ;
-000006 0E9F           00134         MOVLW   b'10011111'     ;
-                      00135                 ; 1-------      ; use interrupt prioriries
-                      00136                 ; -0------      ; disable brown-out reset
-                      00137                 ; --X-----      ; 
-                      00138                 ; ---1----      ; RESET state clear
-                      00139                 ; ----1---      ; WDT state clear
-                      00140                 ; -----1--      ; Power-down detection clear
-                      00141                 ; ------1-      ; POR clear
-                      00142                 ; -------1      ; BOR clear
-000008 6ED0           00143         MOVWF   RCON, ACCESS
-                      00144 ;
-                      00145 ; Interrupt Control
-                      00146 ;
-00000A 0E00           00147         MOVLW   b'00000000'     ;
-                      00148                 ; 0-------      ; High-priority interrupts OFF
-                      00149                 ; -0------      ; Low-priority interrupts OFF
-                      00150                 ; --0-----      ; TMR0 int enable OFF
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE  5
+                      00128 ;
+                      00129 ; Reset Control
+                      00130 ;
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE  5
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-                      00151                 ; ---0----      ; INT0 int enable OFF
-                      00152                 ; ----0---      ; PORTB int on change OFF
-                      00153                 ; -----0--      ; TMR0 int flag CLEAR
-                      00154                 ; ------0-      ; INT0 int flag CLEAR
-                      00155                 ; -------0      ; PORTB int on change flag CLEAR
-00000C 6EF2           00156         MOVWF   INTCON, ACCESS
-00000E 0EB4           00157         MOVLW   b'10110100'
-                      00158                 ; 1-------      ; PORTB pull-up OFF
-                      00159                 ; -0------      ; INT0 on falling edge
-                      00160                 ; --1-----      ; INT1 on rising edge
-                      00161                 ; ---1----      ; INT2 on rising edge
-                      00162                 ; ----X-X-      ; N/A
-                      00163                 ; -----1--      ; TMR0 = high priority
-                      00164                 ; -------0      ; PORTB IoC = low priority
-000010 6EF1           00165         MOVWF   INTCON2, ACCESS
-000012 0E00           00166         MOVLW   b'00000000'
-                      00167                 ; 0-------      ; INT2 = low priority
-                      00168                 ; -0------      ; INT1 = low priority
-                      00169                 ; --X--X--      ; N/A
-                      00170                 ; ---0----      ; INT2 int enable OFF
-                      00171                 ; ----0---      ; INT1 int enable OFF
-                      00172                 ; ------0-      ; INT2 int flag CLEAR
-                      00173                 ; -------0      ; INT1 int flag CLEAR
-000014 6EF0           00174         MOVWF   INTCON3, ACCESS
-000016 0E00           00175         MOVLW   b'00000000'
-                      00176                 ; 0-------      ; parallel slave R/W int OFF
-                      00177                 ; -0------      ; A/D converter int OFF
-                      00178                 ; --0-----      ; UART RX int OFF
-                      00179                 ; ---0----      ; UART TX int OFF
-                      00180                 ; ----0---      ; Synchronous int OFF
-                      00181                 ; -----0--      ; CCP1 int OFF
-                      00182                 ; ------0-      ; TMR2 int OFF
-                      00183                 ; -------0      ; TMR1 int OFF
-000018 6E9D           00184         MOVWF   PIE1, ACCESS
-00001A 0E00           00185         MOVLW   b'00000000'
-                      00186                 ; 0-------      ; OSC fail int OFF
-                      00187                 ; -0------      ; comparator int OFF
-                      00188                 ; --X-----      ; 
-                      00189                 ; ---0----      ; EEPROM write int OFF
-                      00190                 ; ----0---      ; bus collision int OFF
-                      00191                 ; -----0--      ; H/L voltage int OFF
-                      00192                 ; ------0-      ; TMR3 int OFF
-                      00193                 ; -------0      ; ECCP1 int OFF
-00001C 6EA0           00194         MOVWF   PIE2, ACCESS
-00001E 0E00           00195         MOVLW   b'00000000'
-                      00196                 ; 0-------      ; CAN invalid RX int OFF
-                      00197                 ; -0------      ; CAN wakeup int OFF
-                      00198                 ; --0-----      ; CAN error int OFF
-                      00199                 ; ---0----      ; CAN TX buf 2 int OFF
-                      00200                 ; ----0---      ; CAN TX buf 1 int OFF 
-                      00201                 ; -----0--      ; CAN TX buf 0 int OFF
-                      00202                 ; ------0-      ; CAN RX buf 1 int OFF
-                      00203                 ; -------0      ; CAN RX buf 0 int OFF
-000020 6EA3           00204         MOVWF   PIE3, ACCESS
-000022 0E02           00205         MOVLW   b'00000010'
-                      00206                 ; 0-------      ; Parallel slave port R/W int = low priority
-                      00207                 ; -0------      ; A/D converter int = low priority
-                      00208                 ; --0-----      ; UART RX int = low priority
-                      00209                 ; ---0----      ; UART TX int = low priority
-                      00210                 ; ----0---      ; Synchronous port = low priority
-                      00211                 ; -----0--      ; CCP1 int = low priority
-                      00212                 ; ------1-      ; TMR2 int = high priority
-                      00213                 ; -------0      ; TMR1 int = low priority
-000024 6E9F           00214         MOVWF   IPR1, ACCESS
-000026 0E00           00215         MOVLW   b'00000000'
-                      00216                 ; 0-------      ; OSC fail int = low priority
-                      00217                 ; -0------      ; Comparator int = low priority
-                      00218                 ; --X-----      ; N/A
-                      00219                 ; ---0----      ; EEPROM write int = low priority
-                      00220                 ; ----0---      ; Bus collisions int = low priority
-                      00221                 ; -----0--      ; H/L voltage int = low priority
-                      00222                 ; ------0-      ; TMR3 int = low priority
-                      00223                 ; -------0      ; ECCP1 int = low priority
-000028 6EA2           00224         MOVWF   IPR2, ACCESS
+000006 0E9F           00131         MOVLW   b'10011111'     ;
+                      00132                 ; 1-------      ; use interrupt prioriries
+                      00133                 ; -0------      ; disable brown-out reset
+                      00134                 ; --X-----      ; 
+                      00135                 ; ---1----      ; RESET state clear
+                      00136                 ; ----1---      ; WDT state clear
+                      00137                 ; -----1--      ; Power-down detection clear
+                      00138                 ; ------1-      ; POR clear
+                      00139                 ; -------1      ; BOR clear
+000008 6ED0           00140         MOVWF   RCON, ACCESS
+                      00141 ;
+                      00142 ; Interrupt Control
+                      00143 ;
+00000A 0E00           00144         MOVLW   b'00000000'     ;
+                      00145                 ; 0-------      ; High-priority interrupts OFF
+                      00146                 ; -0------      ; Low-priority interrupts OFF
+                      00147                 ; --0-----      ; TMR0 int enable OFF
+                      00148                 ; ---0----      ; INT0 int enable OFF
+                      00149                 ; ----0---      ; PORTB int on change OFF
+                      00150                 ; -----0--      ; TMR0 int flag CLEAR
+                      00151                 ; ------0-      ; INT0 int flag CLEAR
+                      00152                 ; -------0      ; PORTB int on change flag CLEAR
+00000C 6EF2           00153         MOVWF   INTCON, ACCESS
+00000E 0EB4           00154         MOVLW   b'10110100'
+                      00155                 ; 1-------      ; PORTB pull-up OFF
+                      00156                 ; -0------      ; INT0 on falling edge
+                      00157                 ; --1-----      ; INT1 on rising edge
+                      00158                 ; ---1----      ; INT2 on rising edge
+                      00159                 ; ----X-X-      ; N/A
+                      00160                 ; -----1--      ; TMR0 = high priority
+                      00161                 ; -------0      ; PORTB IoC = low priority
+000010 6EF1           00162         MOVWF   INTCON2, ACCESS
+000012 0E00           00163         MOVLW   b'00000000'
+                      00164                 ; 0-------      ; INT2 = low priority
+                      00165                 ; -0------      ; INT1 = low priority
+                      00166                 ; --X--X--      ; N/A
+                      00167                 ; ---0----      ; INT2 int enable OFF
+                      00168                 ; ----0---      ; INT1 int enable OFF
+                      00169                 ; ------0-      ; INT2 int flag CLEAR
+                      00170                 ; -------0      ; INT1 int flag CLEAR
+000014 6EF0           00171         MOVWF   INTCON3, ACCESS
+000016 0E00           00172         MOVLW   b'00000000'
+                      00173                 ; 0-------      ; parallel slave R/W int OFF / [K50] unused
+                      00174                 ; -0------      ; A/D converter int OFF
+                      00175                 ; --0-----      ; UART RX int OFF
+                      00176                 ; ---0----      ; UART TX int OFF
+                      00177                 ; ----0---      ; Synchronous int OFF
+                      00178                 ; -----0--      ; CCP1 int OFF
+                      00179                 ; ------0-      ; TMR2 int OFF
+                      00180                 ; -------0      ; TMR1 int OFF
+000018 6E9D           00181         MOVWF   PIE1, ACCESS
+00001A 0E00           00182         MOVLW   b'00000000'
+                      00183                 ; 0-------      ; OSC fail int OFF
+                      00184                 ; -0------      ; comparator int OFF
+                      00185                 ; --X-----      ;  [K50] comparator 2 int OFF
+                      00186                 ; ---0----      ; EEPROM write int OFF
+                      00187                 ; ----0---      ; bus collision int OFF
+                      00188                 ; -----0--      ; H/L voltage int OFF
+                      00189                 ; ------0-      ; TMR3 int OFF
+                      00190                 ; -------0      ; ECCP1 int OFF / [K50] unused
+00001C 6EA0           00191         MOVWF   PIE2, ACCESS
+                      00192  IF LUMOS_ARCH != LUMOS_ARCH_14K50
+00001E 0E00           00193         MOVLW   b'00000000'
+                      00194                 ; 0-------      ; CAN invalid RX int OFF
+                      00195                 ; -0------      ; CAN wakeup int OFF
+                      00196                 ; --0-----      ; CAN error int OFF
+                      00197                 ; ---0----      ; CAN TX buf 2 int OFF
+                      00198                 ; ----0---      ; CAN TX buf 1 int OFF 
+                      00199                 ; -----0--      ; CAN TX buf 0 int OFF
+                      00200                 ; ------0-      ; CAN RX buf 1 int OFF
+                      00201                 ; -------0      ; CAN RX buf 0 int OFF
+000020 6EA3           00202         MOVWF   PIE3, ACCESS
+                      00203  ENDIF
+000022 0E02           00204         MOVLW   b'00000010'
+                      00205                 ; 0-------      ; Parallel slave port R/W int = low priority / [K50] N/A
+                      00206                 ; -0------      ; A/D converter int = low priority
+                      00207                 ; --0-----      ; UART RX int = low priority
+                      00208                 ; ---0----      ; UART TX int = low priority
+                      00209                 ; ----0---      ; Synchronous port = low priority
+                      00210                 ; -----0--      ; CCP1 int = low priority
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE  6
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00211                 ; ------1-      ; TMR2 int = high priority
+                      00212                 ; -------0      ; TMR1 int = low priority
+000024 6E9F           00213         MOVWF   IPR1, ACCESS
+000026 0E00           00214         MOVLW   b'00000000'
+                      00215                 ; 0-------      ; OSC fail int = low priority
+                      00216                 ; -0------      ; Comparator int = low priority
+                      00217                 ; --X-----      ; N/A / [K50] Comparator 2 int = low priority
+                      00218                 ; ---0----      ; EEPROM write int = low priority
+                      00219                 ; ----0---      ; Bus collisions int = low priority
+                      00220                 ; -----0--      ; H/L voltage int = low priority / [K50] USB
+                      00221                 ; ------0-      ; TMR3 int = low priority
+                      00222                 ; -------0      ; ECCP1 int = low priority / [K50] N/A
+000028 6EA2           00223         MOVWF   IPR2, ACCESS
+                      00224  IF LUMOS_ARCH != LUMOS_ARCH_14K50
 00002A 0E00           00225         MOVLW   b'00000000'
                       00226                 ; 0-------      ; CAN RX error int = low priority
                       00227                 ; -0------      ; CAN wakeup int = low priority
@@ -448,26 +458,21 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00232                 ; ------0-      ; CAN RX buf1 int = low priority
                       00233                 ; -------0      ; CAN RX buf0 int = low priority
 00002C 6EA5           00234         MOVWF   IPR3, ACCESS
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE  6
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
-                      00235 
+                      00235  ENDIF
                       00236 
-                      00237 
-00002E 6A9E           00238         CLRF    PIR1, ACCESS    ; Clear all peripheral int flags
-000030 6AA1           00239         CLRF    PIR2, ACCESS    ; Clear all peripheral int flags
+00002E 6A9E           00237         CLRF    PIR1, ACCESS    ; Clear all peripheral int flags
+000030 6AA1           00238         CLRF    PIR2, ACCESS    ; Clear all peripheral int flags
+                      00239  IF LUMOS_ARCH != LUMOS_ARCH_14K50
 000032 6AA4           00240         CLRF    PIR3, ACCESS    ; Clear all peripheral int flags
-                      00241 ;
-                      00242 ; I/O PORT SETUP
-                      00243 ;
-                      00244         IF QSCC_PORT
-                      00245          #include "qscc_hook_io_setup.asm"
+                      00241  ENDIF
+                      00242 ;
+                      00243 ; XXX I/O PORT SETUP
+                      00244 ;
+                      00245         IF QSCC_PORT
+                      00246          #include "qscc_hook_io_setup.asm"
                       00001 ; vim:set syntax=pic ts=8:
                       00002 ;
-                      00003                 LIST n=90
+                      00003                 LIST N=86
                       00004 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                       00005 ;@@                                                                         @@
                       00006 ;@@  @@@   @   @  @@@@@  @@@@@                QUIZ SHOW HARDWARE CONTROLLER @@
@@ -509,6 +514,12 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00042                 ; --00----      ; voltage reference = AVss, AVdd
                       00043                 ; ----1111      ; all I/O pins digital
 00003A 6EC1           00044         MOVWF   ADCON1, ACCESS
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE  7
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
 00003C 6AC0           00045         CLRF    ADCON2, ACCESS  ; not needed since we're not using A/D  
 00003E 6AB5           00046         CLRF    CVRCON, ACCESS  ; turn off comparator voltage reference
                       00047                                 ;
@@ -538,12 +549,6 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000052 6A8D           00071         CLRF    LATE, ACCESS    ;
                       00072         ;
                       00073         ; I/O direction bits
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE  7
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
                       00074         ;
                       00075         IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSCC
                       00076          ;     7 6 5 4 3 2 1 0
@@ -579,151 +584,206 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00106           ERROR "LUMOS_CHIP_TYPE not set correctly"
                       00107          ENDIF
                       00108         ENDIF
-                      00246         ELSE
-                      00247          MOVLW  b'00111100'
-                      00248                 ; XX------      ; N/A
-                      00249                 ; --1111--      ; no channel selected
-                      00250                 ; ------0-      ; A/D converter idle
-                      00251                 ; -------0      ; A/D converter OFF
-                      00252          MOVWF  ADCON0, ACCESS
-                      00253          MOVLW  b'00001111'
-                      00254                 ; XX------      ; N/A
-                      00255                 ; --00----      ; voltage reference = AVss, AVdd
-                      00256                 ; ----1111      ; all I/O pins digital
-                      00257          MOVWF  ADCON1, ACCESS
-                      00258          CLRF   ADCON2, ACCESS  ; not needed since we're not using A/D  
-                      00259          CLRF   CVRCON, ACCESS  ; turn off comparator voltage reference
-                      00260                                 ;
-                      00261          MOVLW  b'00011111'     ; PORT A: 
-                      00262                 ; XX------      ; crystal oscillator pins
-                      00263                 ; --0-----      ; T/R pin to RECEIVE mode / ACT light OFF
-                      00264                 ; ---11111      ; SSR pins HIGH (relays off)
-                      00265          MOVWF  PORTA, ACCESS   ; 
-                      00266          MOVWF  LATA, ACCESS
-                      00267          MOVLW  b'10111110'     ; PORT B:
-                      00268                 ; 1-------      ; PWRCTL set HIGH (power supply OFF)
-                      00269                 ; -X------      ; OPTION button
-                      00270                 ; --11111-      ; SSR pins HIGH (relays off)
-                      00271                 ; -------0      ; T/R to RECEIVE (standalone board; input on others)
-                      00272          MOVWF  PORTB, ACCESS
-                      00273          MOVWF  LATB, ACCESS
-                      00274          MOVWF  b'00111111'     ; PORTC:
-                      00275                 ; XX------      ; serial I/O pins
-                      00276                 ; --111111      ; SSR pins HIGH (relays off)
-                      00277          MOVWF  PORTC, ACCESS
-                      00278          MOVWF  LATC, ACCESS
-                      00279          SETF   PORTD, ACCESS   ; PORTD: SSR pins HIGH (relays off)
-                      00280          SETF   LATD, ACCESS
-                      00281          CLRF   PORTE, ACCESS   ; PORTE: LEDs LOW (off)
-                      00282          CLRF   LATE, ACCESS
-                      00283 
-                      00284                                 ;    bit 7 6 5 4 3 2 1 0
-                      00285          MOVLW  b'11100000'     ; PORTA  X X I O O O O O  all outputs except LEDs (may be sensors)
-                      00286          MOVWF  TRISA, ACCESS
-                      00287          IF LUMOS_CHIP_TYPE==LUMOS_CHIP_MASTER
-                      00288           MOVLW b'01000001'     ; PORTB  O I O O O O O I  <6> option, <0> INT; rest outputs
-                      00289           MOVWF TRISB, ACCESS
-                      00290          ELSE
-                      00291           IF LUMOS_CHIP_TYPE==LUMOS_CHIP_SLAVE
-                      00292            MOVLW b'00000001'    ; PORTB  O X O O O O O I  <0> INT; rest outputs
-                      00293            MOVWF TRISB, ACCESS
-                      00294           ELSE
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE  8
+                      00247         ELSE
+                      00248          IF LUMOS_ARCH == LUMOS_ARCH_14K50
+                      00249           CLRF  WPUA, ACCESS    ; turn off weak RA pull-up resistors
+                      00250           CLRF  IOCA, ACCESS    ; turn off interrupt-on-change for PORTA
+                      00251           CLRF  WPUB, ACCESS    ; turn off weak RB pull-up resistors
+                      00252           CLRF  IOCB, ACCESS    ; turn off interrupt-on-change for PORTB
+                      00253           CLRF  ANSEL, ACCESS   ; disable analog, enable digital I/O
+                      00254           CLRF  ANSELH, ACCESS  ; disable analog, enable digital I/O
+                      00255           CLRF  ADCON0, ACCESS  ; disable AD converters
+                      00256           CLRF  ADCON1, ACCESS  ; disable AD converters
+                      00257           CLRF  ADCON2, ACCESS  ; disable AD converters
+                      00258           CLRF  CM1CON0, ACCESS ; disable comparators
+                      00259           CLRF  CM2CON0, ACCESS ; disable comparators
+                      00260          ELSE
+                      00261           MOVLW b'00111100'
+                      00262                 ; XX------      ; N/A
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE  8
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-                      00295            IF LUMOS_CHIP_TYPE==LUMOS_CHIP_STANDALONE
-                      00296             MOVLW b'01000000'   ; PORTB  O I O O O O O O  <6> option; rest outputs
-                      00297             MOVWF TRISB, ACCESS
-                      00298            ELSE
-                      00299             ERROR "LUMOS_CHIP_TYPE not set correctly"
-                      00300            ENDIF
-                      00301           ENDIF
-                      00302          ENDIF
-                      00303          MOVLW  b'11000000'     ; <7:6> is serial; rest are output
-                      00304          MOVWF  TRISC, ACCESS
-                      00305          CLRF   TRISD, ACCESS   ; PORTD  O O O O O O O O  all outputs
-                      00306          MOVLW  b'00000111'
-                      00307          MOVWF  TRISE, ACCESS   ; PORTE  X X X X X 1 1 1  all inputs (for now, may be sensors)
-                      00308         ENDIF
-                      00309 ;
-                      00310 ; Timers
-                      00311 ;
-000062 0E10           00312         MOVLW   b'00010000'
-                      00313                 ; 0-------      ; TMR0 off
-                      00314                 ; -0------      ; TMR0 16 bits, not 8
-                      00315                 ; --0-----      ; TMR0 clock source from system clock
-                      00316                 ; ---1----      ; TMR0 triggered on falling edge
-                      00317                 ; ----0---      ; TMR0 does use prescaler
-                      00318                 ; -----000      ; TMR0 prescaler=1:2
-000064 6ED5           00319         MOVWF   T0CON, ACCESS
-000066 6AD7           00320         CLRF    TMR0H, ACCESS
-000068 6AD6           00321         CLRF    TMR0L, ACCESS   ; reset TMR0 
-00006A 0E80           00322         MOVLW   b'10000000'
-                      00323                 ; 1-------      ; TMR1 read/write 16 bits at a time
-                      00324                 ; -X------      ; N/A
-                      00325                 ; --00----      ; TMR1 prescaler = 1:1
-                      00326                 ; ----0---      ; TMR1 oscillator power off
-                      00327                 ; -----00-      ; TMR1 uses system clock (Fosc/4)
-                      00328                 ; -------0      ; TMR1 off
-00006C 6ECD           00329         MOVWF   T1CON, ACCESS
-00006E 6ACF           00330         CLRF    TMR1H, ACCESS   ; (written with low byte)
-000070 6ACE           00331         CLRF    TMR1L, ACCESS   ; reset TMR1
-000072 0E08           00332         MOVLW   b'00001000'
-                      00333                 ; X-------      ; N/A
-                      00334                 ; -0001---      ; TMR2 postscaler = 1:2
-                      00335                 ; -----0--      ; TMR2 off
-                      00336                 ; ------00      ; TMR2 prescaler = 1:1
-000074 6ECA           00337         MOVWF   T2CON, ACCESS
-000076 6ACC           00338         CLRF    TMR2, ACCESS    ; reset TMR2 counter
-000078 6ACB           00339         CLRF    PR2, ACCESS     ; clear TMR2 period
-00007A 0E80           00340         MOVLW   b'10000000'     
-                      00341                 ; 1-------      ; TMR3 read 16 bits at a time
-                      00342                 ; -0--0---      ; TMR1 is source for ECCP1/CCP1
-                      00343                 ; --00----      ; TMR3 prescaler = 1:1
-                      00344                 ; -----00-      ; TMR3 from system clock (Fosc/4)
-                      00345                 ; -------0      ; TMR3 off
-00007C 6EB1           00346         MOVWF   T3CON, ACCESS
-00007E 6AB3           00347         CLRF    TMR3H, ACCESS   ; (written with low byte)
-000080 6AB2           00348         CLRF    TMR3L, ACCESS   ; clear TMR3
-                      00349 
-                      00350 ;
-                      00351 ; Misc peripherals
-                      00352 ;
-000082 6AD2           00353         CLRF    HLVDCON, ACCESS ; turn off high/low voltage detection
-000084 0E20           00354         MOVLW   b'00100000'
-                      00355                 ; 001XXXXX      ; set CAN module to disable/sleep mode
-                      00356                 ; ----0000      ; no interrupts
-000086 6E6E           00357         MOVWF   CANSTAT, ACCESS
-000088 6ABD           00358         CLRF    CCP1CON, ACCESS ; disable CCP1
-00008A 6ABA           00359         CLRF    ECCP1CON, ACCESS; disable ECCP1
-00008C 6AB4           00360         CLRF    CMCON, ACCESS   ; comparator not used
-                      00361 ;
-                      00362 ; Enable watchdog timer
-                      00363 ;
-00008E 0E01           00364         MOVLW   b'00000001'
-                      00365                 ; XXXXXXX1      ; WDT ON
-000090 6ED1           00366         MOVWF   WDTCON, ACCESS
-                      00367 ;
-                      00368 ; Ready for other module initialization, etc.
-                      00369 ;
-                      00370         IF QSCC_PORT
-                      00371          #include qscc_init.inc
+                      00263                 ; --1111--      ; no channel selected
+                      00264                 ; ------0-      ; A/D converter idle
+                      00265                 ; -------0      ; A/D converter OFF
+                      00266           MOVWF ADCON0, ACCESS
+                      00267           MOVLW b'00001111'
+                      00268                 ; XX------      ; N/A
+                      00269                 ; --00----      ; voltage reference = AVss, AVdd 
+                      00270                 ; ----1111      ; all I/O pins digital
+                      00271           MOVWF ADCON1, ACCESS
+                      00272           CLRF  ADCON2, ACCESS  ; not needed since we're not using A/D  
+                      00273           CLRF  CVRCON, ACCESS  ; turn off comparator voltage reference
+                      00274          ENDIF
+                      00275          
+                      00276          IF LUMOS_ARCH == LUMOS_ARCH_14K50
+                      00277                 ;               ; PORT A:
+                      00278                 ; //00-/--      ; crystal oscillator pins
+                      00279                 ; //--X/--      ; not used (MCLR input)
+                      00280                 ; //---/00      ; inputs
+                      00281           CLRF  PORTA, ACCESS   
+                      00282           CLRF  LATA, ACCESS
+                      00283           MOVLW b'00010000'     ; PORT B:
+                      00284                 ; X-X-////      ; serial I/O pins
+                      00285                 ; -0--////      ; T/R to RECEIVE
+                      00286                 ; ---1////      ; SSR pins HIGH (relays off)
+                      00287           MOVWF PORTB, ACCESS
+                      00288           MOVWF LATB, ACCESS
+                      00289           MOVWF b'00000111'     ; PORTC:
+                      00290                 ; X-------      ; /D input pin
+                      00291                 ; -0------      ; /B input pin / RED LED output
+                      00292                 ; --0-----      ; /A input pin / ACT LED output
+                      00293                 ; ---0----      ;              / GRN LED output
+                      00294                 ; ----0---      ; /C input pin / YEL LED output
+                      00295                 ; -----111      ; SSR pins HIGH (relays off)
+                      00296           MOVWF PORTC, ACCESS
+                      00297           MOVWF LATC, ACCESS
+                      00298                                 ;    bit 7 6 5 4 3 2 1 0
+                      00299           MOVLW b'11111111'     ; PORTA  X X I I I I I I  all inputs or N/A
+                      00300           MOVWF TRISA, ACCESS
+                      00301           MOVLW b'00000010'     ; *** The K50 requires the Int-on-change bit to read
+                      00302           MOVWF IOCA, ACCESS    ; *** the port at all regardless of not enabling the interrupt!
+                      00303           MOVLW b'10101111'     ; PORTB  X O X O X X X X  TX T/R RX /03 X X X X
+                      00304           MOVWF TRISB, ACCESS
+                      00305           MOVLW b'11101000'     ; PORTC  I I I O I O O O  /D /B /A GRN /C /02 /01 /00
+                      00306           MOVWF TRISC, ACCESS
+                      00307          ELSE
+                      00308           MOVLW b'00011111'     ; PORT A: 
+                      00309                 ; XX------      ; crystal oscillator pins
+                      00310                 ; --0-----      ; T/R pin to RECEIVE mode / ACT light OFF
+                      00311                 ; ---11111      ; SSR pins HIGH (relays off)
+                      00312           MOVWF PORTA, ACCESS   ; 
+                      00313           MOVWF LATA, ACCESS
+                      00314           MOVLW b'10111110'     ; PORT B:
+                      00315                 ; 1-------      ; PWRCTL set HIGH (power supply OFF)
+                      00316                 ; -X------      ; OPTION button
+                      00317                 ; --11111-      ; SSR pins HIGH (relays off)
+                      00318                 ; -------0      ; T/R to RECEIVE (standalone board; input on others)
+                      00319           MOVWF PORTB, ACCESS
+                      00320           MOVWF LATB, ACCESS
+                      00321           MOVWF b'00111111'     ; PORTC:
+                      00322                 ; XX------      ; serial I/O pins
+                      00323                 ; --111111      ; SSR pins HIGH (relays off)
+                      00324           MOVWF PORTC, ACCESS
+                      00325           MOVWF LATC, ACCESS
+                      00326           SETF  PORTD, ACCESS   ; PORTD: SSR pins HIGH (relays off)
+                      00327           SETF  LATD, ACCESS
+                      00328           CLRF  PORTE, ACCESS   ; PORTE: LEDs LOW (off)
+                      00329           CLRF  LATE, ACCESS
+                      00330 
+                      00331                                 ;    bit 7 6 5 4 3 2 1 0
+                      00332           MOVLW b'11100000'     ; PORTA  X X I O O O O O  all outputs except LEDs (may be sensors)
+                      00333           MOVWF TRISA, ACCESS
+                      00334           IF LUMOS_CHIP_TYPE==LUMOS_CHIP_MASTER
+                      00335            MOVLW b'01000001'    ; PORTB  O I O O O O O I  <6> option, <0> INT; rest outputs
+                      00336            MOVWF TRISB, ACCESS
+                      00337           ELSE
+                      00338            IF LUMOS_CHIP_TYPE==LUMOS_CHIP_SLAVE
+                      00339             MOVLW b'00000001'   ; PORTB  O X O O O O O I  <0> INT; rest outputs
+                      00340             MOVWF TRISB, ACCESS
+                      00341            ELSE
+                      00342             IF LUMOS_CHIP_TYPE==LUMOS_CHIP_STANDALONE
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE  9
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00343              MOVLW b'01000000'  ; PORTB  O I O O O O O O  <6> option; rest outputs
+                      00344              MOVWF TRISB, ACCESS
+                      00345             ELSE
+                      00346              ERROR "LUMOS_CHIP_TYPE not set correctly"
+                      00347             ENDIF
+                      00348            ENDIF
+                      00349           ENDIF
+                      00350           MOVLW b'11000000'     ; <7:6> is serial; rest are output
+                      00351           MOVWF TRISC, ACCESS
+                      00352           CLRF  TRISD, ACCESS   ; PORTD  O O O O O O O O  all outputs
+                      00353           MOVLW b'00000111'
+                      00354           MOVWF TRISE, ACCESS   ; PORTE  X X X X X 1 1 1  all inputs (for now, may be sensors)
+                      00355          ENDIF
+                      00356         ENDIF
+                      00357 ;
+                      00358 ; Timers
+                      00359 ;
+000062 0E10           00360         MOVLW   b'00010000'
+                      00361                 ; 0-------      ; TMR0 off
+                      00362                 ; -0------      ; TMR0 16 bits, not 8
+                      00363                 ; --0-----      ; TMR0 clock source from system clock
+                      00364                 ; ---1----      ; TMR0 triggered on falling edge
+                      00365                 ; ----0---      ; TMR0 does use prescaler
+                      00366                 ; -----000      ; TMR0 prescaler=1:2
+000064 6ED5           00367         MOVWF   T0CON, ACCESS
+000066 6AD7           00368         CLRF    TMR0H, ACCESS
+000068 6AD6           00369         CLRF    TMR0L, ACCESS   ; reset TMR0 
+00006A 0E80           00370         MOVLW   b'10000000'
+                      00371                 ; 1-------      ; TMR1 read/write 16 bits at a time
+                      00372                 ; -0------      ; N/A / [K50] system clock NOT from timer1
+                      00373                 ; --00----      ; TMR1 prescaler = 1:1
+                      00374                 ; ----0---      ; TMR1 oscillator power off
+                      00375                 ; -----00-      ; TMR1 uses system clock (Fosc/4)
+                      00376                 ; -------0      ; TMR1 off
+00006C 6ECD           00377         MOVWF   T1CON, ACCESS
+00006E 6ACF           00378         CLRF    TMR1H, ACCESS   ; (written with low byte)
+000070 6ACE           00379         CLRF    TMR1L, ACCESS   ; reset TMR1
+000072 0E08           00380         MOVLW   b'00001000'
+                      00381                 ; X-------      ; N/A
+                      00382                 ; -0001---      ; TMR2 postscaler = 1:2
+                      00383                 ; -----0--      ; TMR2 off
+                      00384                 ; ------00      ; TMR2 prescaler = 1:1
+000074 6ECA           00385         MOVWF   T2CON, ACCESS
+000076 6ACC           00386         CLRF    TMR2, ACCESS    ; reset TMR2 counter
+000078 6ACB           00387         CLRF    PR2, ACCESS     ; clear TMR2 period
+00007A 0E80           00388         MOVLW   b'10000000'     
+                      00389                 ; 1-------      ; TMR3 read 16 bits at a time
+                      00390                 ; -0--0---      ; TMR1 is source for ECCP1/CCP1
+                      00391                 ; --00----      ; TMR3 prescaler = 1:1
+                      00392                 ; -----00-      ; TMR3 from system clock (Fosc/4)
+                      00393                 ; -------0      ; TMR3 off
+00007C 6EB1           00394         MOVWF   T3CON, ACCESS
+00007E 6AB3           00395         CLRF    TMR3H, ACCESS   ; (written with low byte)
+000080 6AB2           00396         CLRF    TMR3L, ACCESS   ; clear TMR3
+                      00397 
+                      00398 ;
+                      00399 ; Misc peripherals
+                      00400 ;
+                      00401         IF LUMOS_ARCH != LUMOS_ARCH_14K50
+000082 6AD2           00402          CLRF   HLVDCON, ACCESS ; turn off high/low voltage detection
+000084 0E20           00403          MOVLW  b'00100000'
+                      00404                 ; 001XXXXX      ; set CAN module to disable/sleep mode
+                      00405                 ; ----0000      ; no interrupts
+000086 6E6E           00406          MOVWF  CANSTAT, ACCESS
+000088 6ABA           00407          CLRF   ECCP1CON, ACCESS; disable ECCP1
+00008A 6AB4           00408          CLRF   CMCON, ACCESS   ; comparator not used
+                      00409         ENDIF
+00008C 6ABD           00410         CLRF    CCP1CON, ACCESS ; disable CCP1
+                      00411 ;
+                      00412 ; Enable watchdog timer
+                      00413 ;
+00008E 0E01           00414         MOVLW   b'00000001'
+                      00415                 ; XXXXXXX1      ; WDT ON
+000090 6ED1           00416         MOVWF   WDTCON, ACCESS
+                      00417 ;
+                      00418 ; Ready for other module initialization, etc.
+                      00419 ;
+                      00420         IF QSCC_PORT
+                      00421          #include qscc_init.inc
                       00001 ; vim:set syntax=pic ts=8:
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 10
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
                       00002 ;
-                      00003                 LIST n=90
+                      00003                 LIST N=86
                       00004 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                       00005 ;@@                                                                         @@
                       00006 ;@@  @@@   @   @  @@@@@  @@@@@                QUIZ SHOW HARDWARE CONTROLLER @@
                       00007 ;@@ @   @  @   @    @        @                FIRMWARE VERSION 4.0          @@ 
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE  9
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
                       00008 ;@@ @   @  @   @    @       @                                               @@
                       00009 ;@@ @   @  @   @    @      @                  FOR HARDWARE REVISION 4.0     @@
                       00010 ;@@ @ @ @  @   @    @     @                   QSCC - QUIZ SHOW CONTESTANT   @@
@@ -748,7 +808,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00029 #include "quizshow_config.inc"
                       00001 ; vim:set syntax=pic ts=8:
                       00002 ;
-                      00003                 LIST n=90
+                      00003                 LIST N=86
                       00004 ;@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                       00005 ;@@                                                                         @@
                       00006 ;@@  @@@   @   @  @@@@@  @@@@@                QUIZ SHOW HARDWARE CONTROLLER @@
@@ -793,11 +853,11 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00039 
                       00040 ;
                       00041 ;
-000092 EC?? F???      00372          CALL   QSCC_INIT
-                      00373         ENDIF
-000096 0012           00374         RETURN
-                      00375         END
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE 10
+000092 EC?? F???      00422          CALL   QSCC_INIT
+                      00423         ENDIF
+000096 0012           00424         RETURN
+                      00425         END
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 11
 
 
 SYMBOL TABLE
@@ -883,16 +943,16 @@ B0D40                             00000000
 B0D41                             00000001
 B0D42                             00000002
 B0D43                             00000003
-B0D44                             00000004
-B0D45                             00000005
-B0D46                             00000006
-B0D47                             00000007
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE 11
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 12
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+B0D44                             00000004
+B0D45                             00000005
+B0D46                             00000006
+B0D47                             00000007
 B0D5                              00000E2B
 B0D50                             00000000
 B0D51                             00000001
@@ -969,6 +1029,12 @@ B1D40                             00000000
 B1D41                             00000001
 B1D42                             00000002
 B1D43                             00000003
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 13
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 B1D44                             00000004
 B1D45                             00000005
 B1D46                             00000006
@@ -977,12 +1043,6 @@ B1D5                              00000E3B
 B1D50                             00000000
 B1D51                             00000001
 B1D52                             00000002
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE 12
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 B1D53                             00000003
 B1D54                             00000004
 B1D55                             00000005
@@ -1055,6 +1115,12 @@ B2D40                             00000000
 B2D41                             00000001
 B2D42                             00000002
 B2D43                             00000003
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 14
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 B2D44                             00000004
 B2D45                             00000005
 B2D46                             00000006
@@ -1067,12 +1133,6 @@ B2D53                             00000003
 B2D54                             00000004
 B2D55                             00000005
 B2D56                             00000006
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE 13
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 B2D57                             00000007
 B2D6                              00000E4C
 B2D60                             00000000
@@ -1141,6 +1201,12 @@ B3D40                             00000000
 B3D41                             00000001
 B3D42                             00000002
 B3D43                             00000003
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 15
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 B3D44                             00000004
 B3D45                             00000005
 B3D46                             00000006
@@ -1157,12 +1223,6 @@ B3D57                             00000007
 B3D6                              00000E5C
 B3D60                             00000000
 B3D61                             00000001
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE 14
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 B3D62                             00000002
 B3D63                             00000003
 B3D64                             00000004
@@ -1227,6 +1287,12 @@ B4D4                              00000E6A
 B4D40                             00000000
 B4D41                             00000001
 B4D42                             00000002
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 16
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 B4D43                             00000003
 B4D44                             00000004
 B4D45                             00000005
@@ -1247,12 +1313,6 @@ B4D61                             00000001
 B4D62                             00000002
 B4D63                             00000003
 B4D64                             00000004
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE 15
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 B4D65                             00000005
 B4D66                             00000006
 B4D67                             00000007
@@ -1313,6 +1373,12 @@ B5D36                             00000006
 B5D37                             00000007
 B5D4                              00000E7A
 B5D40                             00000000
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 17
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 B5D41                             00000001
 B5D42                             00000002
 B5D43                             00000003
@@ -1337,12 +1403,6 @@ B5D63                             00000003
 B5D64                             00000004
 B5D65                             00000005
 B5D66                             00000006
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE 16
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 B5D67                             00000007
 B5D7                              00000E7D
 B5D70                             00000000
@@ -1399,6 +1459,12 @@ CANCON_RO1                        00000F4F
 CANCON_RO2                        00000F3F
 CANCON_RO3                        00000F2F
 CANCON_RO4                        00000E7F
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 18
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 CANCON_RO5                        00000E6F
 CANCON_RO6                        00000E5F
 CANCON_RO7                        00000E4F
@@ -1427,12 +1493,6 @@ CCP1M1                            00000001
 CCP1M2                            00000002
 CCP1M3                            00000003
 CCPR1                             00000FBE
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE 17
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 CCPR1H                            00000FBF
 CCPR1L                            00000FBE
 CFGS                              00000006
@@ -1485,9 +1545,16 @@ DFLC2                             00000002
 DFLC3                             00000003
 DFLC4                             00000004
 DLC0                              00000000
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 19
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 DLC1                              00000001
 DLC2                              00000002
 DLC3                              00000003
+DMX_ENABLED                       0
 DONE                              00000001
 D_A                               00000005
 D_NOT_A                           00000005
@@ -1517,12 +1584,6 @@ EEADRH                            00000FAA
 EECON1                            00000FA6
 EECON2                            00000FA7
 EEDATA                            00000FA8
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE 18
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 EEIE                              00000004
 EEIF                              00000004
 EEIP                              00000004
@@ -1570,6 +1631,12 @@ EXIDE                             00000003
 EXIDEN                            00000003
 F                                 00000005
 F0BP_0                            00000000
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 20
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 F0BP_1                            00000001
 F0BP_2                            00000002
 F0BP_3                            00000003
@@ -1607,12 +1674,6 @@ F2BP_2                            00000002
 F2BP_3                            00000003
 F3BP_0                            00000004
 F3BP_1                            00000005
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE 19
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 F3BP_2                            00000006
 F3BP_3                            00000007
 F4BP_0                            00000000
@@ -1656,6 +1717,12 @@ FIL11_1                           00000007
 FIL12_0                           00000000
 FIL12_1                           00000001
 FIL13_0                           00000002
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 21
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 FIL13_1                           00000003
 FIL14_0                           00000004
 FIL14_1                           00000005
@@ -1697,12 +1764,6 @@ FLC4                              00000004
 FLT0                              00000000
 FP0                               00000000
 FP1                               00000001
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE 20
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 FP2                               00000002
 FP3                               00000003
 FREE                              00000004
@@ -1742,6 +1803,12 @@ IBOV                              00000005
 ICODE0                            00000000
 ICODE1                            00000001
 ICODE2                            00000002
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 22
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 ICODE3                            00000003
 ICODE4                            00000004
 IDLEN                             00000007
@@ -1787,12 +1854,6 @@ IRVST                             00000005
 IRXIE                             00000007
 IRXIF                             00000007
 IRXIP                             00000007
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE 21
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 IVRST                             00000005
 JTOFF                             00000001
 JTOFF_FILHIT1                     00000001
@@ -1828,6 +1889,12 @@ LATC5                             00000005
 LATC6                             00000006
 LATC7                             00000007
 LATD                              00000F8C
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 23
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 LATD0                             00000000
 LATD1                             00000001
 LATD2                             00000002
@@ -1877,12 +1944,6 @@ MSEL2                             00000DF2
 MSEL3                             00000DF3
 N                                 00000004
 NOT_A                             00000005
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE 22
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 NOT_ADDRESS                       00000005
 NOT_BOR                           00000000
 NOT_CS                            00000002
@@ -1914,6 +1975,12 @@ OSCFIF                            00000007
 OSCFIP                            00000007
 OSCTUNE                           00000F9B
 OSTS                              00000003
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 24
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 OV                                00000003
 P                                 00000004
 P1A                               00000004
@@ -1967,12 +2034,6 @@ POSTINC2                          00000FDE
 PR2                               00000FCB
 PREINC0                           00000FEC
 PREINC1                           00000FE4
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE 23
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 PREINC2                           00000FDC
 PROD                              00000FF3
 PRODH                             00000FF4
@@ -2000,6 +2061,12 @@ PSSBD0                            00000000
 PSSBD1                            00000001
 QSCC_CMD5_START                   00000000
 QSCC_INIT                         00000000
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 25
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 QSCC_MAIN                         00000000
 QSCC_PORT                         (1)
 QSCC_START                        00000000
@@ -2057,12 +2124,6 @@ RCEN                              00000003
 RCIDL                             00000006
 RCIE                              00000005
 RCIF                              00000005
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE 24
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 RCIP                              00000005
 RCON                              00000FD0
 RCREG                             00000FAE
@@ -2086,6 +2147,12 @@ REC0                              00000000
 REC1                              00000001
 REC2                              00000002
 REC3                              00000003
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 26
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 REC4                              00000004
 REC5                              00000005
 REC6                              00000006
@@ -2147,12 +2214,6 @@ RXB0D40                           00000000
 RXB0D41                           00000001
 RXB0D42                           00000002
 RXB0D43                           00000003
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE 25
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 RXB0D44                           00000004
 RXB0D45                           00000005
 RXB0D46                           00000006
@@ -2172,6 +2233,12 @@ RXB0D61                           00000001
 RXB0D62                           00000002
 RXB0D63                           00000003
 RXB0D64                           00000004
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 27
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 RXB0D65                           00000005
 RXB0D66                           00000006
 RXB0D67                           00000007
@@ -2237,12 +2304,6 @@ RXB1D4                            00000F5A
 RXB1D40                           00000000
 RXB1D41                           00000001
 RXB1D42                           00000002
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE 26
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 RXB1D43                           00000003
 RXB1D44                           00000004
 RXB1D45                           00000005
@@ -2258,6 +2319,12 @@ RXB1D55                           00000005
 RXB1D56                           00000006
 RXB1D57                           00000007
 RXB1D6                            00000F5C
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 28
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 RXB1D60                           00000000
 RXB1D61                           00000001
 RXB1D62                           00000002
@@ -2327,12 +2394,6 @@ RXF15EN                           00000007
 RXF15SIDH                         00000D90
 RXF15SIDL                         00000D91
 RXF1EIDH                          00000F06
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE 27
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 RXF1EIDL                          00000F07
 RXF1EN                            00000001
 RXF1SIDH                          00000F04
@@ -2344,6 +2405,12 @@ RXF2SIDH                          00000F08
 RXF2SIDL                          00000F09
 RXF3EIDH                          00000F0E
 RXF3EIDL                          00000F0F
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 29
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 RXF3EN                            00000003
 RXF3SIDH                          00000F0C
 RXF3SIDL                          00000F0D
@@ -2417,12 +2484,6 @@ RXWARN                            00000001
 R_NOT_W                           00000002
 R_W                               00000002
 S                                 00000003
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE 28
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 SAM                               00000006
 SBOREN                            00000006
 SCK                               00000003
@@ -2430,6 +2491,12 @@ SCKP                              00000004
 SCL                               00000003
 SCS0                              00000000
 SCS1                              00000001
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 30
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 SDA                               00000004
 SDFLC                             00000DD8
 SDI                               00000004
@@ -2507,15 +2574,15 @@ T0PS0                             00000000
 T0PS1                             00000001
 T0PS2                             00000002
 T0PS3                             00000003
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE 29
+T0SE                              00000004
+T13CKI                            00000000
+T1CKPS0                           00000004
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 31
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
-T0SE                              00000004
-T13CKI                            00000000
-T1CKPS0                           00000004
 T1CKPS1                           00000005
 T1CON                             00000FCD
 T1INSYNC                          00000002
@@ -2596,13 +2663,13 @@ TRISA6                            00000006
 TRISA7                            00000007
 TRISB                             00000F93
 TRISB0                            00000000
-TRISB1                            00000001
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE 30
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 32
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+TRISB1                            00000001
 TRISB2                            00000002
 TRISB3                            00000003
 TRISB4                            00000004
@@ -2682,17 +2749,17 @@ TXB0D4                            00000F4A
 TXB0D40                           00000000
 TXB0D41                           00000001
 TXB0D42                           00000002
-TXB0D43                           00000003
-TXB0D44                           00000004
-TXB0D45                           00000005
-TXB0D46                           00000006
-TXB0D47                           00000007
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE 31
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 33
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
+TXB0D43                           00000003
+TXB0D44                           00000004
+TXB0D45                           00000005
+TXB0D46                           00000006
+TXB0D47                           00000007
 TXB0D5                            00000F4B
 TXB0D50                           00000000
 TXB0D51                           00000001
@@ -2768,6 +2835,12 @@ TXB1D37                           00000007
 TXB1D4                            00000F3A
 TXB1D40                           00000000
 TXB1D41                           00000001
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 34
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 TXB1D42                           00000002
 TXB1D43                           00000003
 TXB1D44                           00000004
@@ -2777,12 +2850,6 @@ TXB1D47                           00000007
 TXB1D5                            00000F3B
 TXB1D50                           00000000
 TXB1D51                           00000001
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE 32
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 TXB1D52                           00000002
 TXB1D53                           00000003
 TXB1D54                           00000004
@@ -2854,6 +2921,12 @@ TXB2D36                           00000006
 TXB2D37                           00000007
 TXB2D4                            00000F2A
 TXB2D40                           00000000
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 35
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 TXB2D41                           00000001
 TXB2D42                           00000002
 TXB2D43                           00000003
@@ -2867,12 +2940,6 @@ TXB2D51                           00000001
 TXB2D52                           00000002
 TXB2D53                           00000003
 TXB2D54                           00000004
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE 33
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 TXB2D55                           00000005
 TXB2D56                           00000006
 TXB2D57                           00000007
@@ -2940,6 +3007,12 @@ WAKIE                             00000006
 WAKIF                             00000006
 WAKIP                             00000006
 WCOL                              00000007
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 36
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 WDTCON                            00000FD1
 WIN0                              00000001
 WIN0_FP1                          00000001
@@ -2957,12 +3030,6 @@ _BBSIZ_1024_4L                    000000CF
 _BBSIZ_2048_4L                    000000DF
 _BBSIZ_4096_4L                    000000EF
 _BOREN_BOACTIVE_2L                000000FD
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE 34
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 _BOREN_BOHW_2L                    000000FF
 _BOREN_OFF_2L                     000000F9
 _BOREN_SBORENCTRL_2L              000000FB
@@ -3026,6 +3093,12 @@ _IDLOC5                           00200005
 _IDLOC6                           00200006
 _IDLOC7                           00200007
 _IESO_OFF_1H                      0000007F
+MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 37
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
 _IESO_ON_1H                       000000FF
 _LPT1OSC_OFF_3H                   000000FB
 _LPT1OSC_ON_3H                    000000FF
@@ -3047,12 +3120,6 @@ _PBADEN_OFF_3H                    000000FD
 _PBADEN_ON_3H                     000000FF
 _PWRT_OFF_2L                      000000FF
 _PWRT_ON_2L                       000000FE
-MPASM 5.53                 ../LUMOS_INIT.ASM   6-14-2014  9:31:57         PAGE 35
-
-
-SYMBOL TABLE
-  LABEL                             VALUE 
-
 _STVREN_OFF_4L                    000000FE
 _STVREN_ON_4L                     000000FF
 _WDTPS_1024_2H                    000000F5

@@ -5,7 +5,7 @@
 # $Header: /tmp/cvsroot/lumos/bin/lcheck,v 1.5 2009-01-04 21:43:48 steve Exp $
 #
 # Lumos Light Orchestration System
-# Copyright (c) 2005, 2006, 2007, 2008, 2009, 2012, 2013 by Steven L. Willoughby, Aloha,
+# Copyright (c) 2005, 2006, 2007, 2008, 2009, 2012, 2013, 2016 by Steven L. Willoughby, Aloha,
 # Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
 # License version 3.0.
 #
@@ -47,9 +47,9 @@ def trace(level, msg):
 for file in files:
     if options.verbose: print "Checking", file
     s = Show()
-    s.load(open(file), open_device=False)
+    s.load_file(file.split(','), open_device=False)
     if options.verbose:
-        print "SHOW DESCRIBED BY FILE '%s':" % file
+        print "SHOW DESCRIBED BY FILE(S) '%s':" % file
         print " Title:", s.title
         print " Description:", s.description
         print "-" * 78

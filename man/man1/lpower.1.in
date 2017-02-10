@@ -103,6 +103,10 @@ This is necessary for Lumos programs such as
 .B lpower
 to know what hardware is part of the show, how to communicate with it, and
 therefore how to interpret what the sequence files are describing.
+Note that the
+.I file
+parameter may consist of multiple comma-delimited filenames if the show configuration
+is stored in several files.
 .TP
 .BI \-g " file"
 .RB ( \-\-graph\-data=\fIfile\fP )

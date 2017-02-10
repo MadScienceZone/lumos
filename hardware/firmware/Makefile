@@ -10,6 +10,10 @@ map:
 listings:
 	cp QuizShow.X/build/default/production/_ext/1472/*.lst .
 
+burn: 
+	./pk2cmd -W -E -PPIC18F4685  -FQuizShow.hex -M -Y
+	
+
 pdf: \
 	flash_update.asm.pdf flash_update.inc.pdf \
 	flash_update_bits.inc.pdf flash_update_user.inc.pdf \

@@ -4,7 +4,7 @@
 # VIXEN SEQUENCE TO LUMOS SEQUENCE IMPORT UTILITY
 #
 # Lumos Light Orchestration System
-# Copyright (c) 2005, 2006, 2007, 2008, 2014 by Steven L. Willoughby, Aloha,
+# Copyright (c) 2005, 2006, 2007, 2008, 2014, 2016 by Steven L. Willoughby, Aloha,
 # Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
 # License version 3.0.
 #
@@ -228,7 +228,7 @@ if options.genmap:
 #########################################################################
 
 show = Show()
-show.load_file(options.conf, open_device=False)
+show.load_file(options.conf.split(','), open_device=False)
 
 #########################################################################
 # -m                                                                    #

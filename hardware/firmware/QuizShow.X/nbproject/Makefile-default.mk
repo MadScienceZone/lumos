@@ -78,7 +78,7 @@ endif
 	${MAKE}  -f nbproject/Makefile-default.mk dist/${CND_CONF}/${IMAGE_TYPE}/QuizShow.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}
 
 MP_PROCESSOR_OPTION=18f4685
-MP_LINKER_DEBUG_OPTION=-r=ROM@0x17DC0:0x17FFF -r=RAM@GPR:0xCF4:0xCFF
+MP_LINKER_DEBUG_OPTION= 
 # ------------------------------------------------------------------------------------
 # Rules for buildStep: assemble
 ifeq ($(TYPE_IMAGE), DEBUG_RUN)
@@ -86,7 +86,7 @@ ${OBJECTDIR}/_ext/1472/lumos_init.o: ../lumos_init.asm  nbproject/Makefile-${CND
 	@${MKDIR} "${OBJECTDIR}/_ext/1472" 
 	@${RM} ${OBJECTDIR}/_ext/1472/lumos_init.o.d 
 	@${RM} ${OBJECTDIR}/_ext/1472/lumos_init.o 
-	@${FIXDEPS} dummy.d -e "${OBJECTDIR}/_ext/1472/lumos_init.err" $(SILENT) -c ${MP_AS} $(MP_EXTRA_AS_PRE) -d__DEBUG -d__MPLAB_DEBUGGER_PICKIT2=1 -q -p$(MP_PROCESSOR_OPTION) -u  -l\\\"${OBJECTDIR}/_ext/1472/lumos_init.lst\\\" -e\\\"${OBJECTDIR}/_ext/1472/lumos_init.err\\\" $(ASM_OPTIONS)   -o\\\"${OBJECTDIR}/_ext/1472/lumos_init.o\\\" \\\"../lumos_init.asm\\\" 
+	@${FIXDEPS} dummy.d -e "${OBJECTDIR}/_ext/1472/lumos_init.err" $(SILENT) -c ${MP_AS} $(MP_EXTRA_AS_PRE) -d__DEBUG -d__MPLAB_DEBUGGER_SIMULATOR=1 -q -p$(MP_PROCESSOR_OPTION) -u  -l\\\"${OBJECTDIR}/_ext/1472/lumos_init.lst\\\" -e\\\"${OBJECTDIR}/_ext/1472/lumos_init.err\\\" $(ASM_OPTIONS)   -o\\\"${OBJECTDIR}/_ext/1472/lumos_init.o\\\" \\\"../lumos_init.asm\\\" 
 	@${DEP_GEN} -d "${OBJECTDIR}/_ext/1472/lumos_init.o"
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/lumos_init.o.d" $(SILENT) -rsi ${MP_AS_DIR} -c18 
 	
@@ -94,7 +94,7 @@ ${OBJECTDIR}/_ext/1472/lumos_main.o: ../lumos_main.asm  nbproject/Makefile-${CND
 	@${MKDIR} "${OBJECTDIR}/_ext/1472" 
 	@${RM} ${OBJECTDIR}/_ext/1472/lumos_main.o.d 
 	@${RM} ${OBJECTDIR}/_ext/1472/lumos_main.o 
-	@${FIXDEPS} dummy.d -e "${OBJECTDIR}/_ext/1472/lumos_main.err" $(SILENT) -c ${MP_AS} $(MP_EXTRA_AS_PRE) -d__DEBUG -d__MPLAB_DEBUGGER_PICKIT2=1 -q -p$(MP_PROCESSOR_OPTION) -u  -l\\\"${OBJECTDIR}/_ext/1472/lumos_main.lst\\\" -e\\\"${OBJECTDIR}/_ext/1472/lumos_main.err\\\" $(ASM_OPTIONS)   -o\\\"${OBJECTDIR}/_ext/1472/lumos_main.o\\\" \\\"../lumos_main.asm\\\" 
+	@${FIXDEPS} dummy.d -e "${OBJECTDIR}/_ext/1472/lumos_main.err" $(SILENT) -c ${MP_AS} $(MP_EXTRA_AS_PRE) -d__DEBUG -d__MPLAB_DEBUGGER_SIMULATOR=1 -q -p$(MP_PROCESSOR_OPTION) -u  -l\\\"${OBJECTDIR}/_ext/1472/lumos_main.lst\\\" -e\\\"${OBJECTDIR}/_ext/1472/lumos_main.err\\\" $(ASM_OPTIONS)   -o\\\"${OBJECTDIR}/_ext/1472/lumos_main.o\\\" \\\"../lumos_main.asm\\\" 
 	@${DEP_GEN} -d "${OBJECTDIR}/_ext/1472/lumos_main.o"
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/lumos_main.o.d" $(SILENT) -rsi ${MP_AS_DIR} -c18 
 	
@@ -102,7 +102,7 @@ ${OBJECTDIR}/_ext/1472/serial-io.o: ../serial-io.asm  nbproject/Makefile-${CND_C
 	@${MKDIR} "${OBJECTDIR}/_ext/1472" 
 	@${RM} ${OBJECTDIR}/_ext/1472/serial-io.o.d 
 	@${RM} ${OBJECTDIR}/_ext/1472/serial-io.o 
-	@${FIXDEPS} dummy.d -e "${OBJECTDIR}/_ext/1472/serial-io.err" $(SILENT) -c ${MP_AS} $(MP_EXTRA_AS_PRE) -d__DEBUG -d__MPLAB_DEBUGGER_PICKIT2=1 -q -p$(MP_PROCESSOR_OPTION) -u  -l\\\"${OBJECTDIR}/_ext/1472/serial-io.lst\\\" -e\\\"${OBJECTDIR}/_ext/1472/serial-io.err\\\" $(ASM_OPTIONS)   -o\\\"${OBJECTDIR}/_ext/1472/serial-io.o\\\" \\\"../serial-io.asm\\\" 
+	@${FIXDEPS} dummy.d -e "${OBJECTDIR}/_ext/1472/serial-io.err" $(SILENT) -c ${MP_AS} $(MP_EXTRA_AS_PRE) -d__DEBUG -d__MPLAB_DEBUGGER_SIMULATOR=1 -q -p$(MP_PROCESSOR_OPTION) -u  -l\\\"${OBJECTDIR}/_ext/1472/serial-io.lst\\\" -e\\\"${OBJECTDIR}/_ext/1472/serial-io.err\\\" $(ASM_OPTIONS)   -o\\\"${OBJECTDIR}/_ext/1472/serial-io.o\\\" \\\"../serial-io.asm\\\" 
 	@${DEP_GEN} -d "${OBJECTDIR}/_ext/1472/serial-io.o"
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/serial-io.o.d" $(SILENT) -rsi ${MP_AS_DIR} -c18 
 	
@@ -110,7 +110,7 @@ ${OBJECTDIR}/_ext/1472/quizshow_init.o: ../quizshow_init.asm  nbproject/Makefile
 	@${MKDIR} "${OBJECTDIR}/_ext/1472" 
 	@${RM} ${OBJECTDIR}/_ext/1472/quizshow_init.o.d 
 	@${RM} ${OBJECTDIR}/_ext/1472/quizshow_init.o 
-	@${FIXDEPS} dummy.d -e "${OBJECTDIR}/_ext/1472/quizshow_init.err" $(SILENT) -c ${MP_AS} $(MP_EXTRA_AS_PRE) -d__DEBUG -d__MPLAB_DEBUGGER_PICKIT2=1 -q -p$(MP_PROCESSOR_OPTION) -u  -l\\\"${OBJECTDIR}/_ext/1472/quizshow_init.lst\\\" -e\\\"${OBJECTDIR}/_ext/1472/quizshow_init.err\\\" $(ASM_OPTIONS)   -o\\\"${OBJECTDIR}/_ext/1472/quizshow_init.o\\\" \\\"../quizshow_init.asm\\\" 
+	@${FIXDEPS} dummy.d -e "${OBJECTDIR}/_ext/1472/quizshow_init.err" $(SILENT) -c ${MP_AS} $(MP_EXTRA_AS_PRE) -d__DEBUG -d__MPLAB_DEBUGGER_SIMULATOR=1 -q -p$(MP_PROCESSOR_OPTION) -u  -l\\\"${OBJECTDIR}/_ext/1472/quizshow_init.lst\\\" -e\\\"${OBJECTDIR}/_ext/1472/quizshow_init.err\\\" $(ASM_OPTIONS)   -o\\\"${OBJECTDIR}/_ext/1472/quizshow_init.o\\\" \\\"../quizshow_init.asm\\\" 
 	@${DEP_GEN} -d "${OBJECTDIR}/_ext/1472/quizshow_init.o"
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/quizshow_init.o.d" $(SILENT) -rsi ${MP_AS_DIR} -c18 
 	
@@ -118,7 +118,7 @@ ${OBJECTDIR}/_ext/1472/quizshow_main.o: ../quizshow_main.asm  nbproject/Makefile
 	@${MKDIR} "${OBJECTDIR}/_ext/1472" 
 	@${RM} ${OBJECTDIR}/_ext/1472/quizshow_main.o.d 
 	@${RM} ${OBJECTDIR}/_ext/1472/quizshow_main.o 
-	@${FIXDEPS} dummy.d -e "${OBJECTDIR}/_ext/1472/quizshow_main.err" $(SILENT) -c ${MP_AS} $(MP_EXTRA_AS_PRE) -d__DEBUG -d__MPLAB_DEBUGGER_PICKIT2=1 -q -p$(MP_PROCESSOR_OPTION) -u  -l\\\"${OBJECTDIR}/_ext/1472/quizshow_main.lst\\\" -e\\\"${OBJECTDIR}/_ext/1472/quizshow_main.err\\\" $(ASM_OPTIONS)   -o\\\"${OBJECTDIR}/_ext/1472/quizshow_main.o\\\" \\\"../quizshow_main.asm\\\" 
+	@${FIXDEPS} dummy.d -e "${OBJECTDIR}/_ext/1472/quizshow_main.err" $(SILENT) -c ${MP_AS} $(MP_EXTRA_AS_PRE) -d__DEBUG -d__MPLAB_DEBUGGER_SIMULATOR=1 -q -p$(MP_PROCESSOR_OPTION) -u  -l\\\"${OBJECTDIR}/_ext/1472/quizshow_main.lst\\\" -e\\\"${OBJECTDIR}/_ext/1472/quizshow_main.err\\\" $(ASM_OPTIONS)   -o\\\"${OBJECTDIR}/_ext/1472/quizshow_main.o\\\" \\\"../quizshow_main.asm\\\" 
 	@${DEP_GEN} -d "${OBJECTDIR}/_ext/1472/quizshow_main.o"
 	@${FIXDEPS} "${OBJECTDIR}/_ext/1472/quizshow_main.o.d" $(SILENT) -rsi ${MP_AS_DIR} -c18 
 	
@@ -170,7 +170,7 @@ endif
 ifeq ($(TYPE_IMAGE), DEBUG_RUN)
 dist/${CND_CONF}/${IMAGE_TYPE}/QuizShow.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbproject/Makefile-${CND_CONF}.mk    
 	@${MKDIR} dist/${CND_CONF}/${IMAGE_TYPE} 
-	${MP_LD} $(MP_EXTRA_LD_PRE)   -p$(MP_PROCESSOR_OPTION)  -w -x -u_DEBUG -z__ICD2RAM=1 -m"${DISTDIR}/${PROJECTNAME}.${IMAGE_TYPE}.map"   -z__MPLAB_BUILD=1  -z__MPLAB_DEBUG=1 -z__MPLAB_DEBUGGER_PICKIT2=1 $(MP_LINKER_DEBUG_OPTION) -odist/${CND_CONF}/${IMAGE_TYPE}/QuizShow.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}  ${OBJECTFILES_QUOTED_IF_SPACED}     
+	${MP_LD} $(MP_EXTRA_LD_PRE)   -p$(MP_PROCESSOR_OPTION)  -w -x -u_DEBUG -z__ICD2RAM=1 -m"${DISTDIR}/${PROJECTNAME}.${IMAGE_TYPE}.map"   -z__MPLAB_BUILD=1  -z__MPLAB_DEBUG=1 -z__MPLAB_DEBUGGER_SIMULATOR=1 $(MP_LINKER_DEBUG_OPTION) -odist/${CND_CONF}/${IMAGE_TYPE}/QuizShow.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}  ${OBJECTFILES_QUOTED_IF_SPACED}     
 else
 dist/${CND_CONF}/${IMAGE_TYPE}/QuizShow.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbproject/Makefile-${CND_CONF}.mk   
 	@${MKDIR} dist/${CND_CONF}/${IMAGE_TYPE} 

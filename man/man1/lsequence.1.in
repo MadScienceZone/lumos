@@ -123,6 +123,10 @@ before the show can be actually performed, however.)
 .B Lsequence
 only looks at the virtual channel definitions in this file, as well
 as some other general Lumos information.
+Note that the
+.I file
+parameter may consist of multiple comma-delimited filenames if the show configuration
+is stored in several files.
 '\".TP
 '\".BI \-D " file"
 '\".RB ( \-\-debug=\fIfile\fP )

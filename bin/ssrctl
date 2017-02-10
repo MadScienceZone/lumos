@@ -37,7 +37,7 @@ parser.set_defaults(config='lumos.conf')
 #========================================================================
 
 show = Show()
-show.load_file(options.config, open_device=(not options.test))
+show.load_file(options.config.split(','), open_device=(not options.test))
 
 seq = Sequence()
 

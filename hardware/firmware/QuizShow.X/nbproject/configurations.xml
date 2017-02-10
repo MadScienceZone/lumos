@@ -49,7 +49,7 @@
         <targetDevice>PIC18F4685</targetDevice>
         <targetHeader></targetHeader>
         <targetPluginBoard></targetPluginBoard>
-        <platformTool>PICkit2PlatformTool</platformTool>
+        <platformTool>Simulator</platformTool>
         <languageToolchain>MPASMWIN</languageToolchain>
         <languageToolchainVersion>5.66</languageToolchainVersion>
         <platform>4</platform>

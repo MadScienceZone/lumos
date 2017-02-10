@@ -44,6 +44,40 @@ individual data elements which can appear in the file.
 After creating or editing this file, run
 .BR lcheck (1)
 on it to check for errors.
+.SH "MULTIPLE FILE SUPPORT"
+.LP
+The Lumos software evaluates the configuration file as a single monolithic
+description of all aspects of the show configuration.  This description may,
+however, be split into multiple physical files.  When running the Lumos commands,
+you simply list the set of files to be read in a comma-separated list rather
+than a single filename.
+.LP
+For example, a single file 
+.I show.conf
+may be specified on the command line invocation of most Lumos commands as
+.RS
+.na
+.nf
+.B "\-c show.conf"
+.fi
+.ad
+.RE
+but if the configuration were split into three pieces called
+.IR power.conf ,
+.IR nets.conf ,
+and
+.IR show.conf ,
+Then the option would be written as
+.RS
+.na
+.nf
+.B "\-c show.conf,power.conf,nets.conf"
+.fi
+.ad
+.RE
+Since Lumos simply loads all the named files and interprets them at once,
+it does not matter how the configuration data are split between the files,
+although each file needs to be properly formatted into stanzas.
 .SH "FORMAT OVERVIEW"
 .SS Sections
 .LP
@@ -997,7 +1031,7 @@ The number of amps this load will consume.
 Normally, channels all get power from the single power source supplying their
 controller unit.  If a channel happens to get power from some other source,
 that is specified here by adding a 
-.RB \*(lq power \*(rq
+.RB \*(lq power_source \*(rq
 value and naming the source for that individual channel.  This is common for
 X-10 controllers, which are actually separate modules for each channel, and may
 be plugged into different circuits than each other.  The Lumos SSR controller
