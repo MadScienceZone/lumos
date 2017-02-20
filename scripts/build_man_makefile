@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/local/bin/perl
 # vim:set syntax=perl:
 use File::Basename;
 

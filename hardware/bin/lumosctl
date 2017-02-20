@@ -47,7 +47,7 @@ class NotImplemenetedError (Exception): pass
 # -H --load-hex-sequence
 def parse_arguments():
     global options
-    parser = optparse.OptionParser(usage='%prog [-dFhkPRrSvXz] [-A ADDR] [-a ADDR] [-B SPD] [-b SPD] [-C FILE] [-c FILE] [-D LIST] [-E LIST] [-L LVL] [-m mS] [-P PH] [-p PORT] [-s FILE] [-T MODE] [-t ...] [-x DPX] [channel-levels...]', version='%prog, version 1.0')
+    parser = optparse.OptionParser(usage='%prog [-dFhkPRrSvXz] [-A ADDR] [-a ADDR] [-B SPD] [-b SPD] [-C FILE] [-c FILE] [-D LIST] [-E LIST] [-K HEX] [-L LVL] [-m mS] [-P PH] [-p PORT] [-q BYTES] [-s FILE] [-T MODE] [-t ...] [-x DPX] [-Z SEC] [channel-levels...]', version='%prog, version 1.0')
     parser.add_option('-a', '--address',        metavar='ADDR', type='int', help='Unit address (0-15) [%default]')
     parser.add_option('-S', '--clear-sequences', action='store_true', help='Delete all stored sequences from the device.')
     parser.add_option('-D', '--disable-sensor',  metavar='LIST', help='Disable sensor(s) ABCD in LIST')
@@ -64,6 +64,8 @@ def parse_arguments():
     parser.add_option('-P', '--probe', action='store_true', help='Discover Lumos devices on network')
     parser.add_option('-R', '--report', action='store_true', help='Report device status to standard output.')
     parser.add_option('-r', '--read-only', action='store_true', help="Don't read device status")
+    parser.add_option('-q', '--receive', metavar='BYTES', action='store', type='int', help='read a number of bytes from device')
+    parser.add_option('-K', '--send', metavar='HEX', action='store', help='send raw hex data to device')
     parser.add_option('-t', '--sensor', metavar='TRIG', action='append', help='Set trigger event for sensor.')
     parser.add_option('-A', '--set-address', metavar='ADDR', type='int', help='Change unit address (0-15)')
     parser.add_option('-B', '--set-baud-rate', metavar='SPD', type='int', help='Change unit baud rate.')
@@ -71,12 +73,13 @@ def parse_arguments():
     parser.add_option('-z', '--sleep', action='store_true', help='Put device into sleep mode.')
     parser.add_option('-X', '--shutdown', action='store_true', help='Shut down controller unit.')
     parser.add_option('-b', '--speed', metavar='SPD', type='int', help='Baud rate to use to talk to device. [%default]')
+    parser.add_option('-Z', '--timeout', metavar='SEC', type='float', help='Read timeout [%default]')
     parser.add_option('-m', '--txdelay', metavar='mS', type='int', help='Transmitter control delay (mS) [%default]')
     parser.add_option('-L', '--txlevel', metavar='LVL', type='int', help='Transmitter control logic level (0-1) [%default]')
     parser.add_option('-T', '--txmode', metavar='MODE', action='store', choices=['dtr', 'rts'], help='Transmitter control line [%default]')
     parser.add_option('-w', '--wake', action='store_true', help='Take device out of sleep mode.')
     parser.add_option('-v', '--verbose', action='count', help='Increase output level.')
-    parser.set_defaults(address=0, duplex='full', port=0, speed=19200, txmode='dtr', txlevel=1, txdelay=2)
+    parser.set_defaults(address=0, duplex='full', port=0, speed=19200, txmode='dtr', timeout=1, txlevel=1, txdelay=2)
 
     (options, operations) = parser.parse_args()
 
@@ -136,6 +139,27 @@ def parse_arguments():
         sensor_triggers.append((m.group(1), m.group(2), fields[1], fields[2], fields[3]))
     return options, operations, sensor_triggers, parser
 
+def hexdump(data):
+    for i in range(0, len(data), 16):
+        sys.stdout.write("{0:04X}  ".format(i))
+        for j in range(0, 16):
+            sys.stdout.write("{0:02X} ".format(ord(data[i+j])) if i+j < len(data) else "   ")
+            if j == 7:
+                sys.stdout.write("  ")
+        sys.stdout.write("  |")
+        for j in range(0, 16):
+            if i+j < len(data):
+                c = data[i+j]
+                if 20 <= ord(c) <= 127:
+                    sys.stdout.write(c)
+                else:
+                    sys.stdout.write(".")
+            else:
+                sys.stdout.write(" ")
+            if j == 7:
+                sys.stdout.write(" ")
+        sys.stdout.write( "|\n")
+
 def setup_lumos(options):
     #
     # Build Lumos context
@@ -181,7 +205,7 @@ def getstatus(target):
     "Get current device state and return it."
 
     try:
-        devstatus = target.raw_query_device_status(timeout=5)
+        devstatus = target.raw_query_device_status(timeout=options.timeout)
     except DeviceTimeoutError as e:
         raise IOError("No response received from device at address {0} (read {1} byte{2} before timeout)".format(
             target.address, len(e.read_so_far), '' if not e.read_so_far else 's'))
@@ -255,6 +279,8 @@ def report_on(device):
             )
         
 def probe(target):
+    global options
+
     devices = []
     old_address = target.address
 
@@ -262,7 +288,7 @@ def probe(target):
         trace(1, "Probing io.{0:02d}...".format(address), eol=False)
         target.address = address
         try:
-            device = target.raw_query_device_status(timeout=1)
+            device = target.raw_query_device_status(timeout=options.timeout)
         except DeviceTimeoutError:
             trace(1, "nothing detected")
         else:
@@ -640,6 +666,34 @@ def main():
     #
     if options.shutdown:
         target.raw_control('shutdown')
+    #
+    # send raw data bytes to the device
+    # (we will impose the 7/8-bit protocol automatically)
+    #
+    if options.send:
+        # yes, I know it's wrong to call a private method, but really this should
+        # not be private to us.
+        #send_buffer = target._8_bit_string([int(i, 16) for i in options.send.split()])
+        send_buffer = ''.join([chr(int(i, 16)) for i in options.send.split()])
+        print "Sending {0} byte{1} to device:".format(len(send_buffer), '' if len(send_buffer)==1 else 's')
+        hexdump(send_buffer)
+        target.flush()
+        target.network.send(send_buffer)
+        target.flush()
+    #
+    # receive raw data bytes from the device
+    # (we will interpret the 7/8-bit protocol automatically)
+    #
+    if options.receive:
+        print "Receiving {0} byte{1} from device...".format(options.receive,
+            '' if options.receive == 1 else 's')
+        rec_buffer = ''
+        try:
+            rec_buffer = target.network.input(bytes=options.receive, timeout=options.timeout)
+        except DeviceTimeoutError:
+            print "(read timed out)"
+        #hexdump(target._8_bit_decode_string([ord(i) for i in rec_buffer]))
+        hexdump(rec_buffer)
     #
     # carry out the requested level changes
     #
