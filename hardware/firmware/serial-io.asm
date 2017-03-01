@@ -414,6 +414,7 @@ SIO_SET_BAUD_W:
 	MOVWF	SIO_X, BANKED
 	CALL	BAUDTBLH
 	MOVWF	SPBRGH, ACCESS
+	BANKSEL	SIO_DATA_START
 	MOVF	SIO_X, W, BANKED
 	CALL	BAUDTBLL
 	MOVWF	SPBRG, ACCESS
@@ -431,29 +432,36 @@ SIO_ECHO:
 	RCALL	SIO_PUTCHAR_W		; output "M-" then the stripped char
 	MOVLW	'-'
 	RCALL	SIO_PUTCHAR_W
+	BANKSEL	SIO_DATA_START
 	BCF	SIO_OUTPUT, 7, BANKED	; strip high bit
 ECHO_7BITS:
 	MOVLW	0x7F			; is the character DELETE?
+	BANKSEL	SIO_DATA_START
 	CPFSEQ	SIO_OUTPUT, BANKED
 	BRA	ECHO_NOT_DELETE		; no: go on to next test
 	MOVLW	'^'			; yes: print as "^?"
 	RCALL	SIO_PUTCHAR_W
 	MOVLW	'?'
+	BANKSEL	SIO_DATA_START
 	MOVWF	SIO_OUTPUT, BANKED
 ECHO_NOT_DELETE:
 	MOVLW	0x1B			; is the character ESCAPE?
+	BANKSEL	SIO_DATA_START
 	CPFSEQ	SIO_OUTPUT, BANKED
 	BRA	ECHO_NOT_ESCAPE		; no: go on...
 	MOVLW	'$'
 	MOVWF	SIO_OUTPUT, BANKED	; yes: print as "$"
 ECHO_NOT_ESCAPE:
+	BANKSEL	SIO_DATA_START
 	BTFSS	SIO_OUTPUT, 6, BANKED	; is it a control character?
 	BTFSC	SIO_OUTPUT, 5, BANKED	; (i.e., bits <7:5>=000)
 	BRA	ECHO_PLAIN		; no: print normally
 	MOVLW	'^'
 	RCALL	SIO_PUTCHAR_W		; yes: print as "^<char>"
+	BANKSEL	SIO_DATA_START
 	BSF	SIO_OUTPUT, 6, BANKED	; set bit 6 to shift to upper-case char
 ECHO_PLAIN:
+	BANKSEL	SIO_DATA_START
 	MOVF	SIO_OUTPUT, W, BANKED	; pick up final character to print
 	RCALL	SIO_PUTCHAR_W		; and output it.
 	RETURN
@@ -470,6 +478,7 @@ SIO_PUTCHAR_W:
 SPIN_FOR_BUF_DRAIN:
 	BTFSS	SIO_STATUS, TXDATA_QUEUE, BANKED; Check to see if buffer full
 	BRA	WRITE_OK			; OK because it's totally empty
+	BANKSEL	SIO_DATA_START
 	MOVF	TX_BUF_START, W, BANKED		; Next check for START==END
 	CPFSEQ	TX_BUF_END, BANKED
 	BRA	WRITE_OK			; START != END, so we're good.
@@ -496,6 +505,7 @@ WRITE_OK:					; OK to write byte into next slot in the buffer
 	MOVLW	HIGH(TX_BUFFER)
 	MOVWF	FSR1H, ACCESS
 	MOVFF	TX_CHAR, INDF1			; move character into Tx buffer
+	BANKSEL	SIO_DATA_START
 	BSF	SIO_STATUS, TXDATA_QUEUE, BANKED; flag that data are in the buffer now
 	INCF	TX_BUF_END, F, BANKED		; increment pointer (will wrap around)
 	BSF	PIE1, TXIE, ACCESS		; enable TX interrupt to send to H/W
@@ -512,6 +522,7 @@ SIO_NEWLINE:
 
 SIO_READ_W:
 	RCALL	SIO_READ
+	BANKSEL	SIO_DATA_START
 	MOVF	SIO_INPUT, W, BANKED
 	RETURN
 
@@ -528,6 +539,7 @@ READ_OK:					; get next byte out of buffer
 	MOVLW	HIGH(RX_BUFFER)
 	MOVWF	FSR1H, ACCESS
 	MOVFF	INDF1, SIO_INPUT		; retrieve byte at start of buffer
+	BANKSEL	SIO_DATA_START
 	INCF	RX_BUF_START, F, BANKED		; advance pointer (will wrap around)
 	MOVF	RX_BUF_START, W, BANKED		; have we run out of data? (start == end)
 	CPFSEQ	RX_BUF_END, BANKED
@@ -538,6 +550,7 @@ READ_DONE:
 
 SIO_GETCHAR_W:
 	RCALL	SIO_GETCHAR
+	BANKSEL	SIO_DATA_START
 	MOVF	SIO_INPUT, W, BANKED
 	RETURN
 
@@ -566,6 +579,7 @@ SIO_PRINT_HEX:
 	SWAPF	SIO_X, W, BANKED	; Get first nybble
 	CALL	HEXTBL			; Convert to ASCII character in W
 	CALL	SIO_PUTCHAR_W		; and print
+	BANKSEL	SIO_DATA_START
 	MOVF	SIO_X, W, BANKED	; Get last nybble
 	CALL	HEXTBL			;
 	CALL	SIO_PUTCHAR_W		;
@@ -597,6 +611,7 @@ B32__BIN2BCD:
 B32__B2BCD_BIT:
 	LFSR	FSR0, B32__BCD_ASC
 	MOVLW	.5
+	BANKSEL	SIO_DATA_START
 	MOVWF	B32__OUTCTR, BANKED
 	
 B32__B2BCD_LOOP:
@@ -608,6 +623,7 @@ B32__B2BCD_LOOP:
 	BTFSC	INDF0, 7		; high result > 7?
 	ANDLW	0x0F			; yes
 	SUBWF	POSTINC0, F		; results <=7, subtract back
+	BANKSEL	SIO_DATA_START
 	DECFSZ	B32__OUTCTR, F, BANKED	
 	BRA	B32__B2BCD_LOOP
 	; 
@@ -680,6 +696,7 @@ B32__BCD2A_LOOP:
 	ANDLW	0x0F
 	ADDLW	'0'
 	MOVWF	POSTDEC1
+	BANKSEL	SIO_DATA_START
 	DECFSZ	B32__OUTCTR, F, BANKED
 	BRA	B32__BCD2A_LOOP
 	MOVFF	B32__FSR0H, FSR0H		; Restore old FSR values
@@ -722,6 +739,7 @@ TX_OK:						; push next byte out of buffer
 	MOVLW	HIGH(TX_BUFFER)
 	MOVWF	FSR1H, ACCESS
 	MOVFF	INDF1, TXREG			; transmit byte at buffer position
+	BANKSEL	SIO_DATA_START
 	INCF	TX_BUF_START, F, BANKED		; advance pointer (will wrap around)
 	MOVF	TX_BUF_START, W, BANKED		; have we run out of data? (start == end)
 	CPFSEQ	TX_BUF_END, BANKED
@@ -755,6 +773,7 @@ RX_OK:						; OK to write byte into next slot in the buffer
 	MOVLW	HIGH(RX_BUFFER)
 	MOVWF	FSR1H, ACCESS
 	MOVFF	RCREG, INDF1			; move received byte into buffer
+	BANKSEL	SIO_DATA_START
 	BSF	SIO_STATUS, RXDATA_QUEUE, BANKED; flag that data are in the buffer now
 	INCF	RX_BUF_END, F, BANKED		; increment pointer (will wrap around)
 	MOVFF	FSR1H_SAVE, FSR1H		; restore caller's FSR1 pointer
@@ -762,10 +781,12 @@ RX_OK:						; OK to write byte into next slot in the buffer
 	RETURN
 
 ERR_FRAMING:
+	BANKSEL	SIO_DATA_START
 	BSF	SIO_STATUS, SIO_FERR, BANKED	; flag framing error for caller to handle
 	RETURN					; I believe this clears on next valid Rx byte
 
 ERR_OVERRUN:
+	BANKSEL	SIO_DATA_START
 	BSF	SIO_STATUS, SIO_ORUN, BANKED	; flag overrun error for caller to handle
 	BCF	RCSTA, CREN, ACCESS		; reset error by disabling serial receiver
 	BSF	RCSTA, CREN, ACCESS		; and then enabling it again.

@@ -1,4 +1,4 @@
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE  1
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE  1
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -84,7 +84,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00049 ;#define LUMOS_CHIP_TYPE                LUMOS_CHIP_QSCC
                       00050 #define LUMOS_CHIP_TYPE         LUMOS_CHIP_QSRC
                       00051 ;
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE  2
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE  2
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -170,7 +170,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00127   PROCESSOR 18F4685
                       00128   #include <p18f4685.inc>
                       00001         LIST
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE  3
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE  3
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -256,7 +256,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00048         CONFIG  BOREN=OFF               ; no brown-out reset
                       00049         CONFIG  WDTEN=ON                ; watchdog timer enabled
                       00050         CONFIG  WDTPS=16384             ; Watchdog timer postscale 1:16K (~65.5s) [1,2,4,8,...,32768]
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE  4
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE  4
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -342,7 +342,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00128 ;
                       00129 ; Reset Control
                       00130 ;
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE  5
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE  5
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -428,7 +428,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00208                 ; ---0----      ; UART TX int = low priority
                       00209                 ; ----0---      ; Synchronous port = low priority
                       00210                 ; -----0--      ; CCP1 int = low priority
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE  6
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE  6
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -514,7 +514,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00042                 ; --00----      ; voltage reference = AVss, AVdd
                       00043                 ; ----1111      ; all I/O pins digital
 00003A 6EC1           00044         MOVWF   ADCON1, ACCESS
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE  7
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE  7
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -600,7 +600,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00260          ELSE
                       00261           MOVLW b'00111100'
                       00262                 ; XX------      ; N/A
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE  8
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE  8
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -686,7 +686,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00340             MOVWF TRISB, ACCESS
                       00341            ELSE
                       00342             IF LUMOS_CHIP_TYPE==LUMOS_CHIP_STANDALONE
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE  9
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE  9
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -772,7 +772,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00420         IF QSCC_PORT
                       00421          #include qscc_init.inc
                       00001 ; vim:set syntax=pic ts=8:
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 10
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE 10
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -857,7 +857,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00423         ENDIF
 000096 0012           00424         RETURN
                       00425         END
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 11
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE 11
 
 
 SYMBOL TABLE
@@ -943,7 +943,7 @@ B0D40                             00000000
 B0D41                             00000001
 B0D42                             00000002
 B0D43                             00000003
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 12
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE 12
 
 
 SYMBOL TABLE
@@ -1029,7 +1029,7 @@ B1D40                             00000000
 B1D41                             00000001
 B1D42                             00000002
 B1D43                             00000003
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 13
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE 13
 
 
 SYMBOL TABLE
@@ -1115,7 +1115,7 @@ B2D40                             00000000
 B2D41                             00000001
 B2D42                             00000002
 B2D43                             00000003
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 14
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE 14
 
 
 SYMBOL TABLE
@@ -1201,7 +1201,7 @@ B3D40                             00000000
 B3D41                             00000001
 B3D42                             00000002
 B3D43                             00000003
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 15
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE 15
 
 
 SYMBOL TABLE
@@ -1287,7 +1287,7 @@ B4D4                              00000E6A
 B4D40                             00000000
 B4D41                             00000001
 B4D42                             00000002
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 16
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE 16
 
 
 SYMBOL TABLE
@@ -1373,7 +1373,7 @@ B5D36                             00000006
 B5D37                             00000007
 B5D4                              00000E7A
 B5D40                             00000000
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 17
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE 17
 
 
 SYMBOL TABLE
@@ -1459,7 +1459,7 @@ CANCON_RO1                        00000F4F
 CANCON_RO2                        00000F3F
 CANCON_RO3                        00000F2F
 CANCON_RO4                        00000E7F
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 18
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE 18
 
 
 SYMBOL TABLE
@@ -1545,7 +1545,7 @@ DFLC2                             00000002
 DFLC3                             00000003
 DFLC4                             00000004
 DLC0                              00000000
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 19
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE 19
 
 
 SYMBOL TABLE
@@ -1631,7 +1631,7 @@ EXIDE                             00000003
 EXIDEN                            00000003
 F                                 00000005
 F0BP_0                            00000000
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 20
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE 20
 
 
 SYMBOL TABLE
@@ -1717,7 +1717,7 @@ FIL11_1                           00000007
 FIL12_0                           00000000
 FIL12_1                           00000001
 FIL13_0                           00000002
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 21
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE 21
 
 
 SYMBOL TABLE
@@ -1803,7 +1803,7 @@ IBOV                              00000005
 ICODE0                            00000000
 ICODE1                            00000001
 ICODE2                            00000002
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 22
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE 22
 
 
 SYMBOL TABLE
@@ -1889,7 +1889,7 @@ LATC5                             00000005
 LATC6                             00000006
 LATC7                             00000007
 LATD                              00000F8C
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 23
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE 23
 
 
 SYMBOL TABLE
@@ -1975,7 +1975,7 @@ OSCFIF                            00000007
 OSCFIP                            00000007
 OSCTUNE                           00000F9B
 OSTS                              00000003
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 24
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE 24
 
 
 SYMBOL TABLE
@@ -2061,7 +2061,7 @@ PSSBD0                            00000000
 PSSBD1                            00000001
 QSCC_CMD5_START                   00000000
 QSCC_INIT                         00000000
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 25
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE 25
 
 
 SYMBOL TABLE
@@ -2147,7 +2147,7 @@ REC0                              00000000
 REC1                              00000001
 REC2                              00000002
 REC3                              00000003
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 26
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE 26
 
 
 SYMBOL TABLE
@@ -2233,7 +2233,7 @@ RXB0D61                           00000001
 RXB0D62                           00000002
 RXB0D63                           00000003
 RXB0D64                           00000004
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 27
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE 27
 
 
 SYMBOL TABLE
@@ -2319,7 +2319,7 @@ RXB1D55                           00000005
 RXB1D56                           00000006
 RXB1D57                           00000007
 RXB1D6                            00000F5C
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 28
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE 28
 
 
 SYMBOL TABLE
@@ -2405,7 +2405,7 @@ RXF2SIDH                          00000F08
 RXF2SIDL                          00000F09
 RXF3EIDH                          00000F0E
 RXF3EIDL                          00000F0F
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 29
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE 29
 
 
 SYMBOL TABLE
@@ -2491,7 +2491,7 @@ SCKP                              00000004
 SCL                               00000003
 SCS0                              00000000
 SCS1                              00000001
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 30
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE 30
 
 
 SYMBOL TABLE
@@ -2577,7 +2577,7 @@ T0PS3                             00000003
 T0SE                              00000004
 T13CKI                            00000000
 T1CKPS0                           00000004
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 31
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE 31
 
 
 SYMBOL TABLE
@@ -2663,7 +2663,7 @@ TRISA6                            00000006
 TRISA7                            00000007
 TRISB                             00000F93
 TRISB0                            00000000
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 32
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE 32
 
 
 SYMBOL TABLE
@@ -2749,7 +2749,7 @@ TXB0D4                            00000F4A
 TXB0D40                           00000000
 TXB0D41                           00000001
 TXB0D42                           00000002
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 33
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE 33
 
 
 SYMBOL TABLE
@@ -2835,7 +2835,7 @@ TXB1D37                           00000007
 TXB1D4                            00000F3A
 TXB1D40                           00000000
 TXB1D41                           00000001
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 34
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE 34
 
 
 SYMBOL TABLE
@@ -2921,7 +2921,7 @@ TXB2D36                           00000006
 TXB2D37                           00000007
 TXB2D4                            00000F2A
 TXB2D40                           00000000
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 35
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE 35
 
 
 SYMBOL TABLE
@@ -3007,7 +3007,7 @@ WAKIE                             00000006
 WAKIF                             00000006
 WAKIP                             00000006
 WCOL                              00000007
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 36
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE 36
 
 
 SYMBOL TABLE
@@ -3093,7 +3093,7 @@ _IDLOC5                           00200005
 _IDLOC6                           00200006
 _IDLOC7                           00200007
 _IESO_OFF_1H                      0000007F
-MPASM 5.66                 ../LUMOS_INIT.ASM   10-13-2016  20:27:27         PAGE 37
+MPASM 5.66                 ../LUMOS_INIT.ASM   3-1-2017  12:21:15         PAGE 37
 
 
 SYMBOL TABLE

@@ -1,4 +1,4 @@
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE  1
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE  1
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -84,7 +84,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00019 ; License, version 3.0.
                       00020 ;
                       00021 ; Portions based on earlier code copyright (c) 2004, 2005, 2006, 2007
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE  2
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE  2
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -170,7 +170,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00098      #define QSCC_PORT       (0)
                       00099     ELSE
                       00100      IF LUMOS_CHIP_TYPE == LUMOS_CHIP_QSCC
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE  3
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE  3
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -256,7 +256,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00167 ;                   is targeted, strictly to determine chip-specific details,
                       00168 ;                   not how Lumos is using it.
                       00169 ;
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE  4
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE  4
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -342,7 +342,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00048 ; $F9F IPR1          |      |      |      |      |      |      |      |      |
                       00049 ;                    |      |      | RXIP | TXIP |      |      |      |      |
                       00050 ;                    |______|______|______|______|______|______|______|______|
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE  5
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE  5
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -428,7 +428,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00128 
                       00129 _SIO_TXBUF_DATA UDATA   SIO_TX_BUFFER_START
 000100                00130 TX_BUFFER:
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE  6
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE  6
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -514,7 +514,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00208 ; [H_______] 1 Pushing "H" into the buffer means writing it to [E++],
                       00209 ;  ^^          so E points to the next available location.
                       00210 ;  SE
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE  7
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE  7
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -600,7 +600,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000000                00288 SIO_INIT:
 000000 0004           00289         CLRWDT
 000002 0103           00290         BANKSEL SIO_DATA_START
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE  8
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE  8
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -686,7 +686,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 000040 6EB8           00368         MOVWF   BAUDCON, ACCESS
                       00369 ;
                       00370 ; STEP 4. Enable interrupts (DOES NOT enable global interrupts; that is
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE  9
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE  9
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -738,462 +738,489 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 00007C 6F00           00414         MOVWF   SIO_X, BANKED
 00007E EC?? F???      00415         CALL    BAUDTBLH
 000082 6EB0           00416         MOVWF   SPBRGH, ACCESS
-000084 5100           00417         MOVF    SIO_X, W, BANKED
-000086 EC?? F???      00418         CALL    BAUDTBLL
-00008A 6EAF           00419         MOVWF   SPBRG, ACCESS
-00008C 0012           00420         RETURN
-                      00421 
-00008E                00422 SIO_ECHO_W:
-00008E 0103           00423         BANKSEL SIO_DATA_START
-000090 6F00           00424         MOVWF   SIO_OUTPUT, BANKED
-000092                00425 SIO_ECHO:
-000092 0004           00426         CLRWDT
-000094 0103           00427         BANKSEL SIO_DATA_START
-000096 AF00           00428         BTFSS   SIO_OUTPUT, 7, BANKED   ; is char 7-bit clean?
-000098 D???           00429         BRA     ECHO_7BITS              ; yes: skip this next bit
-00009A 0E4D           00430         MOVLW   'M'                     
-00009C D???           00431         RCALL   SIO_PUTCHAR_W           ; output "M-" then the stripped char
-00009E 0E2D           00432         MOVLW   '-'
-0000A0 D???           00433         RCALL   SIO_PUTCHAR_W
-0000A2 9F00           00434         BCF     SIO_OUTPUT, 7, BANKED   ; strip high bit
-0000A4                00435 ECHO_7BITS:
-0000A4 0E7F           00436         MOVLW   0x7F                    ; is the character DELETE?
-0000A6 6300           00437         CPFSEQ  SIO_OUTPUT, BANKED
-0000A8 D???           00438         BRA     ECHO_NOT_DELETE         ; no: go on to next test
-0000AA 0E5E           00439         MOVLW   '^'                     ; yes: print as "^?"
-0000AC D???           00440         RCALL   SIO_PUTCHAR_W
-0000AE 0E3F           00441         MOVLW   '?'
-0000B0 6F00           00442         MOVWF   SIO_OUTPUT, BANKED
-0000B2                00443 ECHO_NOT_DELETE:
-0000B2 0E1B           00444         MOVLW   0x1B                    ; is the character ESCAPE?
-0000B4 6300           00445         CPFSEQ  SIO_OUTPUT, BANKED
-0000B6 D???           00446         BRA     ECHO_NOT_ESCAPE         ; no: go on...
-0000B8 0E24           00447         MOVLW   '$'
-0000BA 6F00           00448         MOVWF   SIO_OUTPUT, BANKED      ; yes: print as "$"
-0000BC                00449 ECHO_NOT_ESCAPE:
-0000BC AD00           00450         BTFSS   SIO_OUTPUT, 6, BANKED   ; is it a control character?
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE 10
+000084 0103           00417         BANKSEL SIO_DATA_START
+000086 5100           00418         MOVF    SIO_X, W, BANKED
+000088 EC?? F???      00419         CALL    BAUDTBLL
+00008C 6EAF           00420         MOVWF   SPBRG, ACCESS
+00008E 0012           00421         RETURN
+                      00422 
+000090                00423 SIO_ECHO_W:
+000090 0103           00424         BANKSEL SIO_DATA_START
+000092 6F00           00425         MOVWF   SIO_OUTPUT, BANKED
+000094                00426 SIO_ECHO:
+000094 0004           00427         CLRWDT
+000096 0103           00428         BANKSEL SIO_DATA_START
+000098 AF00           00429         BTFSS   SIO_OUTPUT, 7, BANKED   ; is char 7-bit clean?
+00009A D???           00430         BRA     ECHO_7BITS              ; yes: skip this next bit
+00009C 0E4D           00431         MOVLW   'M'                     
+00009E D???           00432         RCALL   SIO_PUTCHAR_W           ; output "M-" then the stripped char
+0000A0 0E2D           00433         MOVLW   '-'
+0000A2 D???           00434         RCALL   SIO_PUTCHAR_W
+0000A4 0103           00435         BANKSEL SIO_DATA_START
+0000A6 9F00           00436         BCF     SIO_OUTPUT, 7, BANKED   ; strip high bit
+0000A8                00437 ECHO_7BITS:
+0000A8 0E7F           00438         MOVLW   0x7F                    ; is the character DELETE?
+0000AA 0103           00439         BANKSEL SIO_DATA_START
+0000AC 6300           00440         CPFSEQ  SIO_OUTPUT, BANKED
+0000AE D???           00441         BRA     ECHO_NOT_DELETE         ; no: go on to next test
+0000B0 0E5E           00442         MOVLW   '^'                     ; yes: print as "^?"
+0000B2 D???           00443         RCALL   SIO_PUTCHAR_W
+0000B4 0E3F           00444         MOVLW   '?'
+0000B6 0103           00445         BANKSEL SIO_DATA_START
+0000B8 6F00           00446         MOVWF   SIO_OUTPUT, BANKED
+0000BA                00447 ECHO_NOT_DELETE:
+0000BA 0E1B           00448         MOVLW   0x1B                    ; is the character ESCAPE?
+0000BC 0103           00449         BANKSEL SIO_DATA_START
+0000BE 6300           00450         CPFSEQ  SIO_OUTPUT, BANKED
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE 10
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-0000BE BB00           00451         BTFSC   SIO_OUTPUT, 5, BANKED   ; (i.e., bits <7:5>=000)
-0000C0 D???           00452         BRA     ECHO_PLAIN              ; no: print normally
-0000C2 0E5E           00453         MOVLW   '^'
-0000C4 D???           00454         RCALL   SIO_PUTCHAR_W           ; yes: print as "^<char>"
-0000C6 8D00           00455         BSF     SIO_OUTPUT, 6, BANKED   ; set bit 6 to shift to upper-case char
-0000C8                00456 ECHO_PLAIN:
-0000C8 5100           00457         MOVF    SIO_OUTPUT, W, BANKED   ; pick up final character to print
-0000CA D???           00458         RCALL   SIO_PUTCHAR_W           ; and output it.
-0000CC 0012           00459         RETURN
-                      00460 
-0000CE                00461 SIO_PUTCHAR:
-0000CE 0103           00462         BANKSEL SIO_DATA_START
-0000D0 5100           00463         MOVF    SIO_OUTPUT, W, BANKED
-                      00464 
-0000D2                00465 SIO_PUTCHAR_W:
-0000D2 0004           00466         CLRWDT                                  
-0000D4 0103           00467         BANKSEL SIO_DATA_START
-0000D6 6F00           00468         MOVWF   TX_CHAR, BANKED                 
-                      00469 
-0000D8                00470 SPIN_FOR_BUF_DRAIN:
-0000D8 A100           00471         BTFSS   SIO_STATUS, TXDATA_QUEUE, BANKED; Check to see if buffer full
-0000DA D???           00472         BRA     WRITE_OK                        ; OK because it's totally empty
-0000DC 5100           00473         MOVF    TX_BUF_START, W, BANKED         ; Next check for START==END
-0000DE 6300           00474         CPFSEQ  TX_BUF_END, BANKED
-0000E0 D???           00475         BRA     WRITE_OK                        ; START != END, so we're good.
-0000E2 D???           00476         BRA     SPIN_FOR_BUF_DRAIN              ; loop back until buffer not full
+0000C0 D???           00451         BRA     ECHO_NOT_ESCAPE         ; no: go on...
+0000C2 0E24           00452         MOVLW   '$'
+0000C4 6F00           00453         MOVWF   SIO_OUTPUT, BANKED      ; yes: print as "$"
+0000C6                00454 ECHO_NOT_ESCAPE:
+0000C6 0103           00455         BANKSEL SIO_DATA_START
+0000C8 AD00           00456         BTFSS   SIO_OUTPUT, 6, BANKED   ; is it a control character?
+0000CA BB00           00457         BTFSC   SIO_OUTPUT, 5, BANKED   ; (i.e., bits <7:5>=000)
+0000CC D???           00458         BRA     ECHO_PLAIN              ; no: print normally
+0000CE 0E5E           00459         MOVLW   '^'
+0000D0 D???           00460         RCALL   SIO_PUTCHAR_W           ; yes: print as "^<char>"
+0000D2 0103           00461         BANKSEL SIO_DATA_START
+0000D4 8D00           00462         BSF     SIO_OUTPUT, 6, BANKED   ; set bit 6 to shift to upper-case char
+0000D6                00463 ECHO_PLAIN:
+0000D6 0103           00464         BANKSEL SIO_DATA_START
+0000D8 5100           00465         MOVF    SIO_OUTPUT, W, BANKED   ; pick up final character to print
+0000DA D???           00466         RCALL   SIO_PUTCHAR_W           ; and output it.
+0000DC 0012           00467         RETURN
+                      00468 
+0000DE                00469 SIO_PUTCHAR:
+0000DE 0103           00470         BANKSEL SIO_DATA_START
+0000E0 5100           00471         MOVF    SIO_OUTPUT, W, BANKED
+                      00472 
+0000E2                00473 SIO_PUTCHAR_W:
+0000E2 0004           00474         CLRWDT                                  
+0000E4 0103           00475         BANKSEL SIO_DATA_START
+0000E6 6F00           00476         MOVWF   TX_CHAR, BANKED                 
                       00477 
-0000E4                00478 SIO_WRITE:
-0000E4 0103           00479         BANKSEL SIO_DATA_START
-0000E6 5100           00480         MOVF    SIO_OUTPUT, W, BANKED
-                      00481 
-0000E8                00482 SIO_WRITE_W:
-0000E8 0004           00483         CLRWDT                                  
-0000EA 0103           00484         BANKSEL SIO_DATA_START
-0000EC 6F00           00485         MOVWF   TX_CHAR, BANKED                 
-0000EE A100           00486         BTFSS   SIO_STATUS, TXDATA_QUEUE, BANKED; Check to see if buffer full
-0000F0 D???           00487         BRA     WRITE_OK                        ; OK because it's totally empty
-0000F2 5100           00488         MOVF    TX_BUF_START, W, BANKED         ; Next check for START==END
-0000F4 6300           00489         CPFSEQ  TX_BUF_END, BANKED
-0000F6 D???           00490         BRA     WRITE_OK                        ; START != END, so we're good.
-0000F8 8500           00491         BSF     SIO_STATUS, TXDATA_FULL, BANKED ; flag buffer as full and give up
-0000FA 0012           00492         RETURN
-                      00493         
-0000FC                00494 WRITE_OK:                                       ; OK to write byte into next slot in the buffer
-0000FC C??? FFE1      00495         MOVFF   TX_BUF_END, FSR1L               ; load buffer pointer
-000100 0E??           00496         MOVLW   HIGH(TX_BUFFER)
-000102 6EE2           00497         MOVWF   FSR1H, ACCESS
-000104 C??? FFE7      00498         MOVFF   TX_CHAR, INDF1                  ; move character into Tx buffer
-000108 8100           00499         BSF     SIO_STATUS, TXDATA_QUEUE, BANKED; flag that data are in the buffer now
-00010A 2B00           00500         INCF    TX_BUF_END, F, BANKED           ; increment pointer (will wrap around)
-00010C 889D           00501         BSF     PIE1, TXIE, ACCESS              ; enable TX interrupt to send to H/W
-00010E 0012           00502         RETURN
-                      00503 
-000110                00504 SIO_NEWLINE:
-000110 0004           00505         CLRWDT
-000112 0E0D           00506         MOVLW   0x0D
-000114 D???           00507         RCALL   SIO_PUTCHAR_W
-000116 0E0A           00508         MOVLW   0x0A
-000118 D???           00509         RCALL   SIO_PUTCHAR_W
-00011A 0012           00510         RETURN
-                      00511 
-                      00512 
-00011C                00513 SIO_READ_W:
-00011C D???           00514         RCALL   SIO_READ
-00011E 5100           00515         MOVF    SIO_INPUT, W, BANKED
-000120 0012           00516         RETURN
-                      00517 
-000122                00518 SIO_READ:
-000122 0004           00519         CLRWDT
-000124 0103           00520         BANKSEL SIO_DATA_START
-000126 B300           00521         BTFSC   SIO_STATUS, RXDATA_QUEUE, BANKED; Is data waiting to be read?
-000128 D???           00522         BRA     READ_OK                         ; yes, branch down to handle it
-00012A 6B00           00523         CLRF    SIO_INPUT, BANKED               ; no, return zero
-00012C 0012           00524         RETURN
-                      00525 
-00012E                00526 READ_OK:                                        ; get next byte out of buffer
-00012E C??? FFE1      00527         MOVFF   RX_BUF_START, FSR1L             ; load buffer pointer
-000132 0E??           00528         MOVLW   HIGH(RX_BUFFER)
-000134 6EE2           00529         MOVWF   FSR1H, ACCESS
-000136 CFE7 F???      00530         MOVFF   INDF1, SIO_INPUT                ; retrieve byte at start of buffer
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE 11
+0000E8                00478 SPIN_FOR_BUF_DRAIN:
+0000E8 A100           00479         BTFSS   SIO_STATUS, TXDATA_QUEUE, BANKED; Check to see if buffer full
+0000EA D???           00480         BRA     WRITE_OK                        ; OK because it's totally empty
+0000EC 0103           00481         BANKSEL SIO_DATA_START
+0000EE 5100           00482         MOVF    TX_BUF_START, W, BANKED         ; Next check for START==END
+0000F0 6300           00483         CPFSEQ  TX_BUF_END, BANKED
+0000F2 D???           00484         BRA     WRITE_OK                        ; START != END, so we're good.
+0000F4 D???           00485         BRA     SPIN_FOR_BUF_DRAIN              ; loop back until buffer not full
+                      00486 
+0000F6                00487 SIO_WRITE:
+0000F6 0103           00488         BANKSEL SIO_DATA_START
+0000F8 5100           00489         MOVF    SIO_OUTPUT, W, BANKED
+                      00490 
+0000FA                00491 SIO_WRITE_W:
+0000FA 0004           00492         CLRWDT                                  
+0000FC 0103           00493         BANKSEL SIO_DATA_START
+0000FE 6F00           00494         MOVWF   TX_CHAR, BANKED                 
+000100 A100           00495         BTFSS   SIO_STATUS, TXDATA_QUEUE, BANKED; Check to see if buffer full
+000102 D???           00496         BRA     WRITE_OK                        ; OK because it's totally empty
+000104 5100           00497         MOVF    TX_BUF_START, W, BANKED         ; Next check for START==END
+000106 6300           00498         CPFSEQ  TX_BUF_END, BANKED
+000108 D???           00499         BRA     WRITE_OK                        ; START != END, so we're good.
+00010A 8500           00500         BSF     SIO_STATUS, TXDATA_FULL, BANKED ; flag buffer as full and give up
+00010C 0012           00501         RETURN
+                      00502         
+00010E                00503 WRITE_OK:                                       ; OK to write byte into next slot in the buffer
+00010E C??? FFE1      00504         MOVFF   TX_BUF_END, FSR1L               ; load buffer pointer
+000112 0E??           00505         MOVLW   HIGH(TX_BUFFER)
+000114 6EE2           00506         MOVWF   FSR1H, ACCESS
+000116 C??? FFE7      00507         MOVFF   TX_CHAR, INDF1                  ; move character into Tx buffer
+00011A 0103           00508         BANKSEL SIO_DATA_START
+00011C 8100           00509         BSF     SIO_STATUS, TXDATA_QUEUE, BANKED; flag that data are in the buffer now
+00011E 2B00           00510         INCF    TX_BUF_END, F, BANKED           ; increment pointer (will wrap around)
+000120 889D           00511         BSF     PIE1, TXIE, ACCESS              ; enable TX interrupt to send to H/W
+000122 0012           00512         RETURN
+                      00513 
+000124                00514 SIO_NEWLINE:
+000124 0004           00515         CLRWDT
+000126 0E0D           00516         MOVLW   0x0D
+000128 D???           00517         RCALL   SIO_PUTCHAR_W
+00012A 0E0A           00518         MOVLW   0x0A
+00012C D???           00519         RCALL   SIO_PUTCHAR_W
+00012E 0012           00520         RETURN
+                      00521 
+                      00522 
+000130                00523 SIO_READ_W:
+000130 D???           00524         RCALL   SIO_READ
+000132 0103           00525         BANKSEL SIO_DATA_START
+000134 5100           00526         MOVF    SIO_INPUT, W, BANKED
+000136 0012           00527         RETURN
+                      00528 
+000138                00529 SIO_READ:
+000138 0004           00530         CLRWDT
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE 11
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-00013A 2B00           00531         INCF    RX_BUF_START, F, BANKED         ; advance pointer (will wrap around)
-00013C 5100           00532         MOVF    RX_BUF_START, W, BANKED         ; have we run out of data? (start == end)
-00013E 6300           00533         CPFSEQ  RX_BUF_END, BANKED
-000140 D???           00534         BRA     READ_DONE                       ; no, leave everything alone for next time
-000142 9300           00535         BCF     SIO_STATUS, RXDATA_QUEUE, BANKED; yes, clear the queue bit (buffer empty)
-000144                00536 READ_DONE:
-000144 0012           00537         RETURN
-                      00538 
-000146                00539 SIO_GETCHAR_W:
-000146 D???           00540         RCALL   SIO_GETCHAR
-000148 5100           00541         MOVF    SIO_INPUT, W, BANKED
-00014A 0012           00542         RETURN
-                      00543 
-00014C                00544 SIO_GETCHAR:
-00014C 0103           00545         BANKSEL SIO_DATA_START
-00014E 0004           00546 GC_SPIN CLRWDT
-000150 A300           00547         BTFSS   SIO_STATUS, RXDATA_QUEUE, BANKED; wait here until data arrives
-000152 D???           00548         BRA     GC_SPIN
-000154 D???           00549         BRA     SIO_READ
+00013A 0103           00531         BANKSEL SIO_DATA_START
+00013C B300           00532         BTFSC   SIO_STATUS, RXDATA_QUEUE, BANKED; Is data waiting to be read?
+00013E D???           00533         BRA     READ_OK                         ; yes, branch down to handle it
+000140 6B00           00534         CLRF    SIO_INPUT, BANKED               ; no, return zero
+000142 0012           00535         RETURN
+                      00536 
+000144                00537 READ_OK:                                        ; get next byte out of buffer
+000144 C??? FFE1      00538         MOVFF   RX_BUF_START, FSR1L             ; load buffer pointer
+000148 0E??           00539         MOVLW   HIGH(RX_BUFFER)
+00014A 6EE2           00540         MOVWF   FSR1H, ACCESS
+00014C CFE7 F???      00541         MOVFF   INDF1, SIO_INPUT                ; retrieve byte at start of buffer
+000150 0103           00542         BANKSEL SIO_DATA_START
+000152 2B00           00543         INCF    RX_BUF_START, F, BANKED         ; advance pointer (will wrap around)
+000154 5100           00544         MOVF    RX_BUF_START, W, BANKED         ; have we run out of data? (start == end)
+000156 6300           00545         CPFSEQ  RX_BUF_END, BANKED
+000158 D???           00546         BRA     READ_DONE                       ; no, leave everything alone for next time
+00015A 9300           00547         BCF     SIO_STATUS, RXDATA_QUEUE, BANKED; yes, clear the queue bit (buffer empty)
+00015C                00548 READ_DONE:
+00015C 0012           00549         RETURN
                       00550 
-                      00551 ;==============================================================================
-                      00552 ; HIGHER LEVEL I/O FUNCIONS
-                      00553 ;==============================================================================
-                      00554 ;
-                      00555 ; SIO_PRINT_HEX         Print value in SIO_OUTPUT as 2-digit hex value
-                      00556 ; SIO_PRINT_HEX_W       Convenience function to take value from W (->SIO_OUTPUT)
-                      00557 ;
-000156                00558 SIO_PRINT_HEX_W:
-000156 0103           00559         BANKSEL SIO_DATA_START
-000158 6F00           00560         MOVWF   SIO_OUTPUT, BANKED
-                      00561 
-00015A                00562 SIO_PRINT_HEX:
-00015A 0004           00563         CLRWDT
-00015C 0103           00564         BANKSEL SIO_DATA_START
-00015E C??? F???      00565         MOVFF   SIO_OUTPUT, SIO_X       ; Move value aside (we'll need SIO_OUTPUT)
-000162 3900           00566         SWAPF   SIO_X, W, BANKED        ; Get first nybble
-000164 EC?? F???      00567         CALL    HEXTBL                  ; Convert to ASCII character in W
-000168 EC?? F???      00568         CALL    SIO_PUTCHAR_W           ; and print
-00016C 5100           00569         MOVF    SIO_X, W, BANKED        ; Get last nybble
-00016E EC?? F???      00570         CALL    HEXTBL                  ;
-000172 EC?? F???      00571         CALL    SIO_PUTCHAR_W           ;
-000176 0012           00572         RETURN
-                      00573 
-                      00574 ;
-                      00575 ; 32-bit BCD and ASCII conversion routines
-                      00576 ; derived (and then ported to PIC18 and modified by Steve Willoughby)
-                      00577 ; from Microchip app note AN526 + modifications by Mike Keitz and
-                      00578 ; Ron Kreymborg.  Contributed to the PIC developer community (PICList)
-                      00579 ;
-                      00580 ; B32__BIN2BCD   Convert 32-bit int to 10-digit BCD.
-                      00581 ;       INPUT:  B32__BIN
-                      00582 ;       OUTPUT: B32__BCD_ASC
-                      00583 ;
-000178                00584 B32__BIN2BCD:
-000178 0103           00585         BANKSEL SIO_DATA_START
-00017A 0004           00586         CLRWDT
-00017C 0E20           00587         MOVLW   .32                     ; bits to convert
-00017E 6F00           00588         MOVWF   B32__BIT, BANKED        ; cycle counter
-000180 6A??           00589         CLRF    B32__BCD_ASC
-000182 6A??           00590         CLRF    B32__BCD_ASC+1
-000184 6A??           00591         CLRF    B32__BCD_ASC+2
-000186 6A??           00592         CLRF    B32__BCD_ASC+3
-000188 6A??           00593         CLRF    B32__BCD_ASC+4
-00018A CFEA F???      00594         MOVFF   FSR0H, B32__FSR0H
-00018E CFE9 F???      00595         MOVFF   FSR0L, B32__FSR0L
-                      00596 
-000192                00597 B32__B2BCD_BIT:
-000192 EE?? F0??      00598         LFSR    FSR0, B32__BCD_ASC
-000196 0E05           00599         MOVLW   .5
-000198 6F00           00600         MOVWF   B32__OUTCTR, BANKED
-                      00601         
-00019A                00602 B32__B2BCD_LOOP:
-00019A 0004           00603         CLRWDT
-00019C 0E33           00604         MOVLW   0x33
-00019E 26EF           00605         ADDWF   INDF0, F
-0001A0 B6EF           00606         BTFSC   INDF0, 3                ; low result > 7?
-0001A2 0BF0           00607         ANDLW   0xF0                    ; yes: take 3 out
-0001A4 BEEF           00608         BTFSC   INDF0, 7                ; high result > 7?
-0001A6 0B0F           00609         ANDLW   0x0F                    ; yes
-0001A8 5EEE           00610         SUBWF   POSTINC0, F             ; results <=7, subtract back
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE 12
+00015E                00551 SIO_GETCHAR_W:
+00015E D???           00552         RCALL   SIO_GETCHAR
+000160 0103           00553         BANKSEL SIO_DATA_START
+000162 5100           00554         MOVF    SIO_INPUT, W, BANKED
+000164 0012           00555         RETURN
+                      00556 
+000166                00557 SIO_GETCHAR:
+000166 0103           00558         BANKSEL SIO_DATA_START
+000168 0004           00559 GC_SPIN CLRWDT
+00016A A300           00560         BTFSS   SIO_STATUS, RXDATA_QUEUE, BANKED; wait here until data arrives
+00016C D???           00561         BRA     GC_SPIN
+00016E D???           00562         BRA     SIO_READ
+                      00563 
+                      00564 ;==============================================================================
+                      00565 ; HIGHER LEVEL I/O FUNCIONS
+                      00566 ;==============================================================================
+                      00567 ;
+                      00568 ; SIO_PRINT_HEX         Print value in SIO_OUTPUT as 2-digit hex value
+                      00569 ; SIO_PRINT_HEX_W       Convenience function to take value from W (->SIO_OUTPUT)
+                      00570 ;
+000170                00571 SIO_PRINT_HEX_W:
+000170 0103           00572         BANKSEL SIO_DATA_START
+000172 6F00           00573         MOVWF   SIO_OUTPUT, BANKED
+                      00574 
+000174                00575 SIO_PRINT_HEX:
+000174 0004           00576         CLRWDT
+000176 0103           00577         BANKSEL SIO_DATA_START
+000178 C??? F???      00578         MOVFF   SIO_OUTPUT, SIO_X       ; Move value aside (we'll need SIO_OUTPUT)
+00017C 3900           00579         SWAPF   SIO_X, W, BANKED        ; Get first nybble
+00017E EC?? F???      00580         CALL    HEXTBL                  ; Convert to ASCII character in W
+000182 EC?? F???      00581         CALL    SIO_PUTCHAR_W           ; and print
+000186 0103           00582         BANKSEL SIO_DATA_START
+000188 5100           00583         MOVF    SIO_X, W, BANKED        ; Get last nybble
+00018A EC?? F???      00584         CALL    HEXTBL                  ;
+00018E EC?? F???      00585         CALL    SIO_PUTCHAR_W           ;
+000192 0012           00586         RETURN
+                      00587 
+                      00588 ;
+                      00589 ; 32-bit BCD and ASCII conversion routines
+                      00590 ; derived (and then ported to PIC18 and modified by Steve Willoughby)
+                      00591 ; from Microchip app note AN526 + modifications by Mike Keitz and
+                      00592 ; Ron Kreymborg.  Contributed to the PIC developer community (PICList)
+                      00593 ;
+                      00594 ; B32__BIN2BCD   Convert 32-bit int to 10-digit BCD.
+                      00595 ;       INPUT:  B32__BIN
+                      00596 ;       OUTPUT: B32__BCD_ASC
+                      00597 ;
+000194                00598 B32__BIN2BCD:
+000194 0103           00599         BANKSEL SIO_DATA_START
+000196 0004           00600         CLRWDT
+000198 0E20           00601         MOVLW   .32                     ; bits to convert
+00019A 6F00           00602         MOVWF   B32__BIT, BANKED        ; cycle counter
+00019C 6A??           00603         CLRF    B32__BCD_ASC
+00019E 6A??           00604         CLRF    B32__BCD_ASC+1
+0001A0 6A??           00605         CLRF    B32__BCD_ASC+2
+0001A2 6A??           00606         CLRF    B32__BCD_ASC+3
+0001A4 6A??           00607         CLRF    B32__BCD_ASC+4
+0001A6 CFEA F???      00608         MOVFF   FSR0H, B32__FSR0H
+0001AA CFE9 F???      00609         MOVFF   FSR0L, B32__FSR0L
+                      00610 
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE 12
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-0001AA 2F00           00611         DECFSZ  B32__OUTCTR, F, BANKED  
-0001AC D???           00612         BRA     B32__B2BCD_LOOP
-                      00613         ; 
-                      00614         ; Get another bit by shifting the whole 32-bit value one bit to the left
-                      00615         ; by cascading 8-bit shifts via carry (carry carries the bit across between
-                      00616         ; them).
-                      00617         ;                                   BIN[0]   BIN[1]   BIN[2]   BIN[3]
-                      00618         ;                                  @bcdefgh ijklmnop qrstuvwx yzABCDEF
-0001AE 3700           00619         RLCF    B32__BIN+3, F, BANKED    ; @bcdefgh ijklmnop qrstuvwxyzABCDEF?
-0001B0 3700           00620         RLCF    B32__BIN+2, F, BANKED    ; @bcdefgh ijklmnopqrstuvwxy zABCDEF?
-0001B2 3700           00621         RLCF    B32__BIN+1, F, BANKED    ; @bcdefghijklmnopq rstuvwxy zABCDEF?
-0001B4 3700           00622         RLCF    B32__BIN+0, F, BANKED    ;@bcdefghi jklmnopq rstuvwxy zABCDEF?
-                      00623         ;                                 |____________________________________________
-                      00624         ;                                                                              |
-                      00625         ;                                   BCD[0]   BCD[1]   BCD[2]   BCD[3]   BCD[4] V
-                      00626         ;                                  abcdefgh ijklmnop qrstuvwx yzABCDEF GHIJKLMN@
-0001B6 3700           00627         RLCF    B32__BCD_ASC+4, F, BANKED; abcdefgh ijklmnop qrstuvwx yzABCDEFGHIJKLMN@
-0001B8 3700           00628         RLCF    B32__BCD_ASC+3, F, BANKED; abcdefgh ijklmnop qrstuvwxyzABCDEFG HIJKLMN@
-0001BA 3700           00629         RLCF    B32__BCD_ASC+2, F, BANKED; abcdefgh ijklmnopqrstuvwxy zABCDEFG HIJKLMN@
-0001BC 3700           00630         RLCF    B32__BCD_ASC+1, F, BANKED; abcdefghijklmnopq rstuvwxy zABCDEFG HIJKLMN@
-0001BE 3700           00631         RLCF    B32__BCD_ASC+0, F, BANKED;abcdefghi jklmnopq rstuvwxy zABCDEFG HIJKLMN@
-                      00632         ;                                  bcdefghi jklmnopq rstuvwxy zABCDEFG HIJKLMN@
-0001C0 2F00           00633         DECFSZ  B32__BIT, F, BANKED
-0001C2 D???           00634         BRA     B32__B2BCD_BIT
-0001C4 C??? FFEA      00635         MOVFF   B32__FSR0H, FSR0H
-0001C8 C??? FFE9      00636         MOVFF   B32__FSR0L, FSR0L
-0001CC 0012           00637         RETURN
-                      00638         
-                      00639 ;
-                      00640 ; B32__BCD2ASCII
-                      00641 ;
-                      00642 ; Convert 10-digit BCD (in 5 bytes) to 10-character ASCII
-                      00643 ; string
-                      00644 ;
-                      00645 ; buffer at B32__BCD_ASC:
-                      00646 ;     ______________
-                      00647 ;   0|BCD0      ASC0|  Modified in place
-                      00648 ;   1|BCD1      ASC1|
-                      00649 ;   2|BCD2 ---> ASC2|          /|\
-                      00650 ;   3|BCD3      ASC3|           |
-                      00651 ;   4|BCD4      ASC4| <-- SRC pointer FSR0
-                      00652 ;   5|          ASC5|
-                      00653 ;   6|          ASC6|
-                      00654 ;   7|          ASC7|          /|\
-                      00655 ;   8|          ASC8|           |
-                      00656 ;   9|__________ASC9| <-- DST pointer FSR1
-                      00657 ; 
-                      00658 ;
-0001CE                00659 B32__BCD2ASCII:
-0001CE 0004           00660         CLRWDT
-0001D0 0103           00661         BANKSEL SIO_DATA_START
-0001D2 CFEA F???      00662         MOVFF   FSR0H, B32__FSR0H               ; Save old FSR values
-0001D6 CFE9 F???      00663         MOVFF   FSR0L, B32__FSR0L
-0001DA CFE2 F???      00664         MOVFF   FSR1H, B32__FSR1H
-0001DE CFE1 F???      00665         MOVFF   FSR1L, B32__FSR1L
-0001E2 EE?? F0??      00666         LFSR    FSR0, B32__BCD_ASC+4            ; Set data pointers (src)
-0001E6 EE?? F0??      00667         LFSR    FSR1, B32__BCD_ASC+9            ; (dst)
-                      00668         
-                      00669         
-                      00670         
-0001EA 0E05           00671         MOVLW   .5
-0001EC 6F00           00672         MOVWF   B32__OUTCTR, BANKED
-                      00673 
-0001EE                00674 B32__BCD2A_LOOP:
-0001EE 50EF           00675         MOVF    INDF0, W                        ; least significant digit
-0001F0 0B0F           00676         ANDLW   0x0F
-0001F2 0F30           00677         ADDLW   '0'
-0001F4 6EE5           00678         MOVWF   POSTDEC1
-0001F6 38ED           00679         SWAPF   POSTDEC0, W                     ; most significant digit
-0001F8 0B0F           00680         ANDLW   0x0F
-0001FA 0F30           00681         ADDLW   '0'
-0001FC 6EE5           00682         MOVWF   POSTDEC1
-0001FE 2F00           00683         DECFSZ  B32__OUTCTR, F, BANKED
-000200 D???           00684         BRA     B32__BCD2A_LOOP
-000202 C??? FFEA      00685         MOVFF   B32__FSR0H, FSR0H               ; Restore old FSR values
-000206 C??? FFE9      00686         MOVFF   B32__FSR0L, FSR0L
-00020A C??? FFE2      00687         MOVFF   B32__FSR1H, FSR1H
-00020E C??? FFE1      00688         MOVFF   B32__FSR1L, FSR1L
-000212 0012           00689         RETURN
-                      00690         
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE 13
+0001AE                00611 B32__B2BCD_BIT:
+0001AE EE?? F0??      00612         LFSR    FSR0, B32__BCD_ASC
+0001B2 0E05           00613         MOVLW   .5
+0001B4 0103           00614         BANKSEL SIO_DATA_START
+0001B6 6F00           00615         MOVWF   B32__OUTCTR, BANKED
+                      00616         
+0001B8                00617 B32__B2BCD_LOOP:
+0001B8 0004           00618         CLRWDT
+0001BA 0E33           00619         MOVLW   0x33
+0001BC 26EF           00620         ADDWF   INDF0, F
+0001BE B6EF           00621         BTFSC   INDF0, 3                ; low result > 7?
+0001C0 0BF0           00622         ANDLW   0xF0                    ; yes: take 3 out
+0001C2 BEEF           00623         BTFSC   INDF0, 7                ; high result > 7?
+0001C4 0B0F           00624         ANDLW   0x0F                    ; yes
+0001C6 5EEE           00625         SUBWF   POSTINC0, F             ; results <=7, subtract back
+0001C8 0103           00626         BANKSEL SIO_DATA_START
+0001CA 2F00           00627         DECFSZ  B32__OUTCTR, F, BANKED  
+0001CC D???           00628         BRA     B32__B2BCD_LOOP
+                      00629         ; 
+                      00630         ; Get another bit by shifting the whole 32-bit value one bit to the left
+                      00631         ; by cascading 8-bit shifts via carry (carry carries the bit across between
+                      00632         ; them).
+                      00633         ;                                   BIN[0]   BIN[1]   BIN[2]   BIN[3]
+                      00634         ;                                  @bcdefgh ijklmnop qrstuvwx yzABCDEF
+0001CE 3700           00635         RLCF    B32__BIN+3, F, BANKED    ; @bcdefgh ijklmnop qrstuvwxyzABCDEF?
+0001D0 3700           00636         RLCF    B32__BIN+2, F, BANKED    ; @bcdefgh ijklmnopqrstuvwxy zABCDEF?
+0001D2 3700           00637         RLCF    B32__BIN+1, F, BANKED    ; @bcdefghijklmnopq rstuvwxy zABCDEF?
+0001D4 3700           00638         RLCF    B32__BIN+0, F, BANKED    ;@bcdefghi jklmnopq rstuvwxy zABCDEF?
+                      00639         ;                                 |____________________________________________
+                      00640         ;                                                                              |
+                      00641         ;                                   BCD[0]   BCD[1]   BCD[2]   BCD[3]   BCD[4] V
+                      00642         ;                                  abcdefgh ijklmnop qrstuvwx yzABCDEF GHIJKLMN@
+0001D6 3700           00643         RLCF    B32__BCD_ASC+4, F, BANKED; abcdefgh ijklmnop qrstuvwx yzABCDEFGHIJKLMN@
+0001D8 3700           00644         RLCF    B32__BCD_ASC+3, F, BANKED; abcdefgh ijklmnop qrstuvwxyzABCDEFG HIJKLMN@
+0001DA 3700           00645         RLCF    B32__BCD_ASC+2, F, BANKED; abcdefgh ijklmnopqrstuvwxy zABCDEFG HIJKLMN@
+0001DC 3700           00646         RLCF    B32__BCD_ASC+1, F, BANKED; abcdefghijklmnopq rstuvwxy zABCDEFG HIJKLMN@
+0001DE 3700           00647         RLCF    B32__BCD_ASC+0, F, BANKED;abcdefghi jklmnopq rstuvwxy zABCDEFG HIJKLMN@
+                      00648         ;                                  bcdefghi jklmnopq rstuvwxy zABCDEFG HIJKLMN@
+0001E0 2F00           00649         DECFSZ  B32__BIT, F, BANKED
+0001E2 D???           00650         BRA     B32__B2BCD_BIT
+0001E4 C??? FFEA      00651         MOVFF   B32__FSR0H, FSR0H
+0001E8 C??? FFE9      00652         MOVFF   B32__FSR0L, FSR0L
+0001EC 0012           00653         RETURN
+                      00654         
+                      00655 ;
+                      00656 ; B32__BCD2ASCII
+                      00657 ;
+                      00658 ; Convert 10-digit BCD (in 5 bytes) to 10-character ASCII
+                      00659 ; string
+                      00660 ;
+                      00661 ; buffer at B32__BCD_ASC:
+                      00662 ;     ______________
+                      00663 ;   0|BCD0      ASC0|  Modified in place
+                      00664 ;   1|BCD1      ASC1|
+                      00665 ;   2|BCD2 ---> ASC2|          /|\
+                      00666 ;   3|BCD3      ASC3|           |
+                      00667 ;   4|BCD4      ASC4| <-- SRC pointer FSR0
+                      00668 ;   5|          ASC5|
+                      00669 ;   6|          ASC6|
+                      00670 ;   7|          ASC7|          /|\
+                      00671 ;   8|          ASC8|           |
+                      00672 ;   9|__________ASC9| <-- DST pointer FSR1
+                      00673 ; 
+                      00674 ;
+0001EE                00675 B32__BCD2ASCII:
+0001EE 0004           00676         CLRWDT
+0001F0 0103           00677         BANKSEL SIO_DATA_START
+0001F2 CFEA F???      00678         MOVFF   FSR0H, B32__FSR0H               ; Save old FSR values
+0001F6 CFE9 F???      00679         MOVFF   FSR0L, B32__FSR0L
+0001FA CFE2 F???      00680         MOVFF   FSR1H, B32__FSR1H
+0001FE CFE1 F???      00681         MOVFF   FSR1L, B32__FSR1L
+000202 EE?? F0??      00682         LFSR    FSR0, B32__BCD_ASC+4            ; Set data pointers (src)
+000206 EE?? F0??      00683         LFSR    FSR1, B32__BCD_ASC+9            ; (dst)
+                      00684         
+                      00685         
+                      00686         
+00020A 0E05           00687         MOVLW   .5
+00020C 6F00           00688         MOVWF   B32__OUTCTR, BANKED
+                      00689 
+00020E                00690 B32__BCD2A_LOOP:
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE 13
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-                      00691 
-                      00692 
-                      00693 
-                      00694         
-                      00695 
-                      00696 ;==============================================================================
-                      00697 ; LOW-LEVEL I/O
-                      00698 ;
-                      00699 ; These are generally called from interrupt service routines to handle the
-                      00700 ; passing of data bytes between the buffers and the serial transceiver 
-                      00701 ; hardware.
-                      00702 ;
-                      00703 ; SIO_RECV      Call this when you know there's a byte waiting to be read in
-                      00704 ;               from the USART.
-                      00705 ; SIO_SEND      Call this when you know there's a byte that needs to be sent
-                      00706 ;               to the USART and it's ready to send it.
-                      00707 ;
-                      00708 ;==============================================================================
+00020E 50EF           00691         MOVF    INDF0, W                        ; least significant digit
+000210 0B0F           00692         ANDLW   0x0F
+000212 0F30           00693         ADDLW   '0'
+000214 6EE5           00694         MOVWF   POSTDEC1
+000216 38ED           00695         SWAPF   POSTDEC0, W                     ; most significant digit
+000218 0B0F           00696         ANDLW   0x0F
+00021A 0F30           00697         ADDLW   '0'
+00021C 6EE5           00698         MOVWF   POSTDEC1
+00021E 0103           00699         BANKSEL SIO_DATA_START
+000220 2F00           00700         DECFSZ  B32__OUTCTR, F, BANKED
+000222 D???           00701         BRA     B32__BCD2A_LOOP
+000224 C??? FFEA      00702         MOVFF   B32__FSR0H, FSR0H               ; Restore old FSR values
+000228 C??? FFE9      00703         MOVFF   B32__FSR0L, FSR0L
+00022C C??? FFE2      00704         MOVFF   B32__FSR1H, FSR1H
+000230 C??? FFE1      00705         MOVFF   B32__FSR1L, FSR1L
+000234 0012           00706         RETURN
+                      00707         
+                      00708 
                       00709 
-000214                00710 SIO_SEND:
-000214 0004           00711         CLRWDT
-000216 0103           00712         BANKSEL SIO_DATA_START
-000218 B100           00713         BTFSC   SIO_STATUS, TXDATA_QUEUE, BANKED; Is data waiting to go out?
-00021A D???           00714         BRA     TX_OK                           ; yes, branch down to handle it
-00021C 989D           00715         BCF     PIE1, TXIE, ACCESS              ; no, block TX interrupt until needed again
-00021E 0012           00716         RETURN
-                      00717 
-000220                00718 TX_OK:                                          ; push next byte out of buffer
-000220 CFE2 F???      00719         MOVFF   FSR1H, FSR1H_SAVE               ; save pointer (remember we're an ISR here)
-000224 CFE1 F???      00720         MOVFF   FSR1L, FSR1L_SAVE
-000228 C??? FFE1      00721         MOVFF   TX_BUF_START, FSR1L             ; load buffer pointer
-00022C 0E??           00722         MOVLW   HIGH(TX_BUFFER)
-00022E 6EE2           00723         MOVWF   FSR1H, ACCESS
-000230 CFE7 FFAD      00724         MOVFF   INDF1, TXREG                    ; transmit byte at buffer position
-000234 2B00           00725         INCF    TX_BUF_START, F, BANKED         ; advance pointer (will wrap around)
-000236 5100           00726         MOVF    TX_BUF_START, W, BANKED         ; have we run out of data? (start == end)
-000238 6300           00727         CPFSEQ  TX_BUF_END, BANKED
-00023A D???           00728         BRA     TX_DONE                         ; no, leave everything alone for next time
-00023C 9100           00729         BCF     SIO_STATUS, TXDATA_QUEUE, BANKED; yes, clear the queue bit (buffer empty)
-00023E                00730 TX_DONE:
-00023E C??? FFE2      00731         MOVFF   FSR1H_SAVE, FSR1H               ; restore saved registers
-000242 C??? FFE1      00732         MOVFF   FSR1L_SAVE, FSR1L
-000246 0012           00733         RETURN
+                      00710 
+                      00711         
+                      00712 
+                      00713 ;==============================================================================
+                      00714 ; LOW-LEVEL I/O
+                      00715 ;
+                      00716 ; These are generally called from interrupt service routines to handle the
+                      00717 ; passing of data bytes between the buffers and the serial transceiver 
+                      00718 ; hardware.
+                      00719 ;
+                      00720 ; SIO_RECV      Call this when you know there's a byte waiting to be read in
+                      00721 ;               from the USART.
+                      00722 ; SIO_SEND      Call this when you know there's a byte that needs to be sent
+                      00723 ;               to the USART and it's ready to send it.
+                      00724 ;
+                      00725 ;==============================================================================
+                      00726 
+000236                00727 SIO_SEND:
+000236 0004           00728         CLRWDT
+000238 0103           00729         BANKSEL SIO_DATA_START
+00023A B100           00730         BTFSC   SIO_STATUS, TXDATA_QUEUE, BANKED; Is data waiting to go out?
+00023C D???           00731         BRA     TX_OK                           ; yes, branch down to handle it
+00023E 989D           00732         BCF     PIE1, TXIE, ACCESS              ; no, block TX interrupt until needed again
+000240 0012           00733         RETURN
                       00734 
-000248                00735 SIO_RECV:
-000248 0004           00736         CLRWDT
-00024A 0103           00737         BANKSEL SIO_DATA_START
-00024C B4AB           00738         BTFSC   RCSTA, FERR, ACCESS             ; Framing error?
-00024E D???           00739         RCALL   ERR_FRAMING                     ; yes: go handle it.
-000250 B2AB           00740         BTFSC   RCSTA, OERR, ACCESS             ; Overrun error?
-000252 D???           00741         RCALL   ERR_OVERRUN                     ; yes: go handle that.
-000254 A300           00742         BTFSS   SIO_STATUS, RXDATA_QUEUE, BANKED; Is there data already in the buffer?
-000256 D???           00743         BRA     RX_OK                           ; no: go ahead and write into empty buffer
-000258 5100           00744         MOVF    RX_BUF_START, W, BANKED         ; check for buffer full condition:
-00025A 6300           00745         CPFSEQ  RX_BUF_END, BANKED              ;   buf not empty but start==end
-00025C D???           00746         BRA     RX_OK                           ; not full yet: go ahead and write
-00025E 8700           00747         BSF     SIO_STATUS, RXDATA_FULL, BANKED ; FULL! flag the error and write nothing
-000260 50AE           00748         MOVF    RCREG, W, ACCESS                ; pull byte out of serial port and ignore it.
-000262 0012           00749         RETURN                                  ; (necessary or UART will flag an overrun state)
-                      00750         
-000264                00751 RX_OK:                                          ; OK to write byte into next slot in the buffer
-000264 CFE2 F???      00752         MOVFF   FSR1H, FSR1H_SAVE               ; save pointer (remember we're an ISR here)
-000268 CFE1 F???      00753         MOVFF   FSR1L, FSR1L_SAVE
-00026C C??? FFE1      00754         MOVFF   RX_BUF_END, FSR1L               ; load buffer pointer
-000270 0E??           00755         MOVLW   HIGH(RX_BUFFER)
-000272 6EE2           00756         MOVWF   FSR1H, ACCESS
-000274 CFAE FFE7      00757         MOVFF   RCREG, INDF1                    ; move received byte into buffer
-000278 8300           00758         BSF     SIO_STATUS, RXDATA_QUEUE, BANKED; flag that data are in the buffer now
-00027A 2B00           00759         INCF    RX_BUF_END, F, BANKED           ; increment pointer (will wrap around)
-00027C C??? FFE2      00760         MOVFF   FSR1H_SAVE, FSR1H               ; restore caller's FSR1 pointer
-000280 C??? FFE1      00761         MOVFF   FSR1L_SAVE, FSR1L
-000284 0012           00762         RETURN
-                      00763 
-000286                00764 ERR_FRAMING:
-000286 8B00           00765         BSF     SIO_STATUS, SIO_FERR, BANKED    ; flag framing error for caller to handle
-000288 0012           00766         RETURN                                  ; I believe this clears on next valid Rx byte
-                      00767 
-00028A                00768 ERR_OVERRUN:
-00028A 8900           00769         BSF     SIO_STATUS, SIO_ORUN, BANKED    ; flag overrun error for caller to handle
-00028C 98AB           00770         BCF     RCSTA, CREN, ACCESS             ; reset error by disabling serial receiver
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE 14
+000242                00735 TX_OK:                                          ; push next byte out of buffer
+000242 CFE2 F???      00736         MOVFF   FSR1H, FSR1H_SAVE               ; save pointer (remember we're an ISR here)
+000246 CFE1 F???      00737         MOVFF   FSR1L, FSR1L_SAVE
+00024A C??? FFE1      00738         MOVFF   TX_BUF_START, FSR1L             ; load buffer pointer
+00024E 0E??           00739         MOVLW   HIGH(TX_BUFFER)
+000250 6EE2           00740         MOVWF   FSR1H, ACCESS
+000252 CFE7 FFAD      00741         MOVFF   INDF1, TXREG                    ; transmit byte at buffer position
+000256 0103           00742         BANKSEL SIO_DATA_START
+000258 2B00           00743         INCF    TX_BUF_START, F, BANKED         ; advance pointer (will wrap around)
+00025A 5100           00744         MOVF    TX_BUF_START, W, BANKED         ; have we run out of data? (start == end)
+00025C 6300           00745         CPFSEQ  TX_BUF_END, BANKED
+00025E D???           00746         BRA     TX_DONE                         ; no, leave everything alone for next time
+000260 9100           00747         BCF     SIO_STATUS, TXDATA_QUEUE, BANKED; yes, clear the queue bit (buffer empty)
+000262                00748 TX_DONE:
+000262 C??? FFE2      00749         MOVFF   FSR1H_SAVE, FSR1H               ; restore saved registers
+000266 C??? FFE1      00750         MOVFF   FSR1L_SAVE, FSR1L
+00026A 0012           00751         RETURN
+                      00752 
+00026C                00753 SIO_RECV:
+00026C 0004           00754         CLRWDT
+00026E 0103           00755         BANKSEL SIO_DATA_START
+000270 B4AB           00756         BTFSC   RCSTA, FERR, ACCESS             ; Framing error?
+000272 D???           00757         RCALL   ERR_FRAMING                     ; yes: go handle it.
+000274 B2AB           00758         BTFSC   RCSTA, OERR, ACCESS             ; Overrun error?
+000276 D???           00759         RCALL   ERR_OVERRUN                     ; yes: go handle that.
+000278 A300           00760         BTFSS   SIO_STATUS, RXDATA_QUEUE, BANKED; Is there data already in the buffer?
+00027A D???           00761         BRA     RX_OK                           ; no: go ahead and write into empty buffer
+00027C 5100           00762         MOVF    RX_BUF_START, W, BANKED         ; check for buffer full condition:
+00027E 6300           00763         CPFSEQ  RX_BUF_END, BANKED              ;   buf not empty but start==end
+000280 D???           00764         BRA     RX_OK                           ; not full yet: go ahead and write
+000282 8700           00765         BSF     SIO_STATUS, RXDATA_FULL, BANKED ; FULL! flag the error and write nothing
+000284 50AE           00766         MOVF    RCREG, W, ACCESS                ; pull byte out of serial port and ignore it.
+000286 0012           00767         RETURN                                  ; (necessary or UART will flag an overrun state)
+                      00768         
+000288                00769 RX_OK:                                          ; OK to write byte into next slot in the buffer
+000288 CFE2 F???      00770         MOVFF   FSR1H, FSR1H_SAVE               ; save pointer (remember we're an ISR here)
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE 14
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-00028E 88AB           00771         BSF     RCSTA, CREN, ACCESS             ; and then enabling it again.
-000290 0012           00772         RETURN
-                      00773         
-                      00774 
-                      00775 _SIO_LOOKUP_TABLES CODE SIO_TABLE_START
-                      00776 HEXTBL  ORG     SIO_TABLE_START
-                      00777         
-015000 0B0F           00778         ANDLW   0x0F
-015002 46E8           00779         RLNCF   WREG, F, ACCESS                 ; offset*2
-015004 CFF9 F???      00780         MOVFF   PCL, SIO_TMPPC                  ; latch high bits of PC
-015008 26F9           00781         ADDWF   PCL, F, ACCESS                  ; branch into table
-01500A 0C30 0C31 0C32 00782         DT      "0123456789ABCDEF"
+00028C CFE1 F???      00771         MOVFF   FSR1L, FSR1L_SAVE
+000290 C??? FFE1      00772         MOVFF   RX_BUF_END, FSR1L               ; load buffer pointer
+000294 0E??           00773         MOVLW   HIGH(RX_BUFFER)
+000296 6EE2           00774         MOVWF   FSR1H, ACCESS
+000298 CFAE FFE7      00775         MOVFF   RCREG, INDF1                    ; move received byte into buffer
+00029C 0103           00776         BANKSEL SIO_DATA_START
+00029E 8300           00777         BSF     SIO_STATUS, RXDATA_QUEUE, BANKED; flag that data are in the buffer now
+0002A0 2B00           00778         INCF    RX_BUF_END, F, BANKED           ; increment pointer (will wrap around)
+0002A2 C??? FFE2      00779         MOVFF   FSR1H_SAVE, FSR1H               ; restore caller's FSR1 pointer
+0002A6 C??? FFE1      00780         MOVFF   FSR1L_SAVE, FSR1L
+0002AA 0012           00781         RETURN
+                      00782 
+0002AC                00783 ERR_FRAMING:
+0002AC 0103           00784         BANKSEL SIO_DATA_START
+0002AE 8B00           00785         BSF     SIO_STATUS, SIO_FERR, BANKED    ; flag framing error for caller to handle
+0002B0 0012           00786         RETURN                                  ; I believe this clears on next valid Rx byte
+                      00787 
+0002B2                00788 ERR_OVERRUN:
+0002B2 0103           00789         BANKSEL SIO_DATA_START
+0002B4 8900           00790         BSF     SIO_STATUS, SIO_ORUN, BANKED    ; flag overrun error for caller to handle
+0002B6 98AB           00791         BCF     RCSTA, CREN, ACCESS             ; reset error by disabling serial receiver
+0002B8 88AB           00792         BSF     RCSTA, CREN, ACCESS             ; and then enabling it again.
+0002BA 0012           00793         RETURN
+                      00794         
+                      00795 
+                      00796 _SIO_LOOKUP_TABLES CODE SIO_TABLE_START
+                      00797 HEXTBL  ORG     SIO_TABLE_START
+                      00798         
+015000 0B0F           00799         ANDLW   0x0F
+015002 46E8           00800         RLNCF   WREG, F, ACCESS                 ; offset*2
+015004 CFF9 F???      00801         MOVFF   PCL, SIO_TMPPC                  ; latch high bits of PC
+015008 26F9           00802         ADDWF   PCL, F, ACCESS                  ; branch into table
+01500A 0C30 0C31 0C32 00803         DT      "0123456789ABCDEF"
        0C33 0C34 0C35 
        0C36 0C37 0C38 
        0C39 0C41 0C42 
        0C43 0C44 0C45 
        0C46 
-                      00783 
-                      00784 ;   300 baud 8234  error 0.001%
-                      00785 ;   600 baud 4219        0.004%
-                      00786 ;  1200 baud 208C        0.004%
-                      00787 ;  2400 baud 1045        0.016%
-                      00788 ;  4800 baud 0822        0.016%
-                      00789 ;  9600 baud 0410        0.064%
-                      00790 ; 19200 baud 0207        0.160%
-                      00791 ; 38400 baud 0103        0.160%
-                      00792 ; 57600 baud 00AC        0.353%
-                      00793 ;115200 baud 0055        0.937%
-                      00794 ;250000 baud 0027        0.000%
-                      00795 
-01502A                00796 BAUDTBLH:
-01502A 0B1F           00797         ANDLW   0x1F
-01502C 46E8           00798         RLNCF   WREG, F, ACCESS
-01502E CFF9 F???      00799         MOVFF   PCL, SIO_TMPPC
-015032 26F9           00800         ADDWF   PCL, F, ACCESS
-015034 0C82 0C42 0C20 00801         DT      0x82, 0x42, 0x20, 0x10, 0x08
+                      00804 
+                      00805 ;   300 baud 8234  error 0.001%
+                      00806 ;   600 baud 4219        0.004%
+                      00807 ;  1200 baud 208C        0.004%
+                      00808 ;  2400 baud 1045        0.016%
+                      00809 ;  4800 baud 0822        0.016%
+                      00810 ;  9600 baud 0410        0.064%
+                      00811 ; 19200 baud 0207        0.160%
+                      00812 ; 38400 baud 0103        0.160%
+                      00813 ; 57600 baud 00AC        0.353%
+                      00814 ;115200 baud 0055        0.937%
+                      00815 ;250000 baud 0027        0.000%
+                      00816 
+01502A                00817 BAUDTBLH:
+01502A 0B1F           00818         ANDLW   0x1F
+01502C 46E8           00819         RLNCF   WREG, F, ACCESS
+01502E CFF9 F???      00820         MOVFF   PCL, SIO_TMPPC
+015032 26F9           00821         ADDWF   PCL, F, ACCESS
+015034 0C82 0C42 0C20 00822         DT      0x82, 0x42, 0x20, 0x10, 0x08
        0C10 0C08 
-01503E 0C04 0C02 0C01 00802         DT      0x04, 0x02, 0x01, 0x00, 0x00
+01503E 0C04 0C02 0C01 00823         DT      0x04, 0x02, 0x01, 0x00, 0x00
        0C00 0C00 
-015048 0C00 0C00 0C00 00803         DT      0x00, 0x00, 0x00, 0x00, 0x00
+015048 0C00 0C00 0C00 00824         DT      0x00, 0x00, 0x00, 0x00, 0x00
        0C00 0C00 
-015052 0C00 0C00      00804         DT      0x00, 0x00
-015056 0C02 0C02 0C02 00805         DT      0x02, 0x02, 0x02, 0x02, 0x02    ; fall back to 19200
+015052 0C00 0C00      00825         DT      0x00, 0x00
+015056 0C02 0C02 0C02 00826         DT      0x02, 0x02, 0x02, 0x02, 0x02    ; fall back to 19200
        0C02 0C02 
-015060 0C02 0C02 0C02 00806         DT      0x02, 0x02, 0x02, 0x02, 0x02
+015060 0C02 0C02 0C02 00827         DT      0x02, 0x02, 0x02, 0x02, 0x02
        0C02 0C02 
-01506A 0C02 0C02 0C02 00807         DT      0x02, 0x02, 0x02, 0x02, 0x02
+01506A 0C02 0C02 0C02 00828         DT      0x02, 0x02, 0x02, 0x02, 0x02
        0C02 0C02 
-015074                00808 BAUDTBLL:
-015074 0B1F           00809         ANDLW   0x1F
-015076 46E8           00810         RLNCF   WREG, F, ACCESS
-015078 CFF9 F???      00811         MOVFF   PCL, SIO_TMPPC
-01507C 26F9           00812         ADDWF   PCL, F, ACCESS
-01507E 0C34 0C19 0C8C 00813         DT      0x34, 0x19, 0x8C, 0x45, 0x22
+015074                00829 BAUDTBLL:
+015074 0B1F           00830         ANDLW   0x1F
+015076 46E8           00831         RLNCF   WREG, F, ACCESS
+015078 CFF9 F???      00832         MOVFF   PCL, SIO_TMPPC
+01507C 26F9           00833         ADDWF   PCL, F, ACCESS
+01507E 0C34 0C19 0C8C 00834         DT      0x34, 0x19, 0x8C, 0x45, 0x22
        0C45 0C22 
-015088 0C10 0C07 0C03 00814         DT      0x10, 0x07, 0x03, 0xAC, 0x55
+015088 0C10 0C07 0C03 00835         DT      0x10, 0x07, 0x03, 0xAC, 0x55
        0CAC 0C55 
-015092 0C27 0C13 0C09 00815         DT      0x27, 0x13, 0x09, 0x04, 0x03
+015092 0C27 0C13 0C09 00836         DT      0x27, 0x13, 0x09, 0x04, 0x03
        0C04 0C03 
-01509C 0C01 0C00      00816         DT      0x01, 0x00
-0150A0 0C07 0C07 0C07 00817         DT      0x07, 0x07, 0x07, 0x07, 0x07    ; fall back to 19200
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE 15
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+01509C 0C01 0C00      00837         DT      0x01, 0x00
+0150A0 0C07 0C07 0C07 00838         DT      0x07, 0x07, 0x07, 0x07, 0x07    ; fall back to 19200
        0C07 0C07 
-0150AA 0C07 0C07 0C07 00818         DT      0x07, 0x07, 0x07, 0x07, 0x07
+0150AA 0C07 0C07 0C07 00839         DT      0x07, 0x07, 0x07, 0x07, 0x07
        0C07 0C07 
-0150B4 0C07 0C07 0C07 00819         DT      0x07, 0x07, 0x07, 0x07, 0x07
+0150B4 0C07 0C07 0C07 00840         DT      0x07, 0x07, 0x07, 0x07, 0x07
        0C07 0C07 
-                      00820 
-                      00821         
-                      00822 ;==============================================================================
-                      00823 ;==============================================================================
-                      00824         END
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE 15
+                      00841 
+                      00842         
+                      00843 ;==============================================================================
+                      00844 ;==============================================================================
+                      00845         END
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE 16
 
 
 SYMBOL TABLE
@@ -1279,7 +1306,7 @@ B0D40                             00000000
 B0D41                             00000001
 B0D42                             00000002
 B0D43                             00000003
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE 16
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE 17
 
 
 SYMBOL TABLE
@@ -1365,7 +1392,7 @@ B1D40                             00000000
 B1D41                             00000001
 B1D42                             00000002
 B1D43                             00000003
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE 17
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE 18
 
 
 SYMBOL TABLE
@@ -1451,7 +1478,7 @@ B2D40                             00000000
 B2D41                             00000001
 B2D42                             00000002
 B2D43                             00000003
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE 18
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE 19
 
 
 SYMBOL TABLE
@@ -1495,13 +1522,13 @@ B2IE                              00000004
 B2SIDH                            00000E41
 B2SIDL                            00000E42
 B2TXEN                            00000004
-B32__B2BCD_BIT                    00000192
-B32__B2BCD_LOOP                   0000019A
-B32__BCD2ASCII                    000001CE
-B32__BCD2A_LOOP                   000001EE
+B32__B2BCD_BIT                    000001AE
+B32__B2BCD_LOOP                   000001B8
+B32__BCD2ASCII                    000001EE
+B32__BCD2A_LOOP                   0000020E
 B32__BCD_ASC                      00000312
 B32__BIN                          00000317
-B32__BIN2BCD                      00000178
+B32__BIN2BCD                      00000194
 B32__BIT                          0000030C
 B32__FSR0H                        0000030E
 B32__FSR0L                        0000030F
@@ -1537,7 +1564,7 @@ B3D25                             00000005
 B3D26                             00000006
 B3D27                             00000007
 B3D3                              00000E59
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE 19
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE 20
 
 
 SYMBOL TABLE
@@ -1623,7 +1650,7 @@ B4D24                             00000004
 B4D25                             00000005
 B4D26                             00000006
 B4D27                             00000007
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE 20
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE 21
 
 
 SYMBOL TABLE
@@ -1709,7 +1736,7 @@ B5D22                             00000002
 B5D23                             00000003
 B5D24                             00000004
 B5D25                             00000005
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE 21
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE 22
 
 
 SYMBOL TABLE
@@ -1795,7 +1822,7 @@ BRP5                              00000005
 BSEL0                             00000DF8
 BSR                               00000FE0
 C                                 00000000
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE 22
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE 23
 
 
 SYMBOL TABLE
@@ -1881,7 +1908,7 @@ CVREF_PORTA                       00000000
 CVREN                             00000007
 CVROE                             00000006
 CVRR                              00000005
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE 23
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE 24
 
 
 SYMBOL TABLE
@@ -1930,10 +1957,10 @@ ECCPASE                           00000007
 ECCPR1                            00000FBB
 ECCPR1H                           00000FBC
 ECCPR1L                           00000FBB
-ECHO_7BITS                        000000A4
-ECHO_NOT_DELETE                   000000B2
-ECHO_NOT_ESCAPE                   000000BC
-ECHO_PLAIN                        000000C8
+ECHO_7BITS                        000000A8
+ECHO_NOT_DELETE                   000000BA
+ECHO_NOT_ESCAPE                   000000C6
+ECHO_PLAIN                        000000D6
 EDC1B0                            00000004
 EDC1B1                            00000005
 EEADR                             00000FA9
@@ -1967,7 +1994,7 @@ EID2                              00000002
 EID3                              00000003
 EID4                              00000004
 EID5                              00000005
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE 24
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE 25
 
 
 SYMBOL TABLE
@@ -1983,8 +2010,8 @@ EPWM1M1                           00000007
 ERRIE                             00000005
 ERRIF                             00000005
 ERRIP                             00000005
-ERR_FRAMING                       00000286
-ERR_OVERRUN                       0000028A
+ERR_FRAMING                       000002AC
+ERR_OVERRUN                       000002B2
 EWARN                             00000000
 EWIN0                             00000000
 EWIN1                             00000001
@@ -2053,7 +2080,7 @@ F7BP_2                            00000006
 F7BP_3                            00000007
 F8BP_0                            00000000
 F8BP_1                            00000001
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE 25
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE 26
 
 
 SYMBOL TABLE
@@ -2138,8 +2165,8 @@ FSR2                              00000002
 FSR2H                             00000FDA
 FSR2L                             00000FD9
 GCEN                              00000007
-GC_SPIN                           0000014E
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE 26
+GC_SPIN                           00000168
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE 27
 
 
 SYMBOL TABLE
@@ -2225,7 +2252,7 @@ KBI1                              00000005
 KBI2                              00000006
 KBI3                              00000007
 LATA                              00000F89
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE 27
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE 28
 
 
 SYMBOL TABLE
@@ -2311,7 +2338,7 @@ NOT_BOR                           00000000
 NOT_CS                            00000002
 NOT_DONE                          00000001
 NOT_FIFOEMPTY                     00000007
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE 28
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE 29
 
 
 SYMBOL TABLE
@@ -2397,7 +2424,7 @@ PR2                               00000FCB
 PREINC0                           00000FEC
 PREINC1                           00000FE4
 PREINC2                           00000FDC
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE 29
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE 30
 
 
 SYMBOL TABLE
@@ -2483,7 +2510,7 @@ RCIE                              00000005
 RCIF                              00000005
 RCIP                              00000005
 RCON                              00000FD0
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE 30
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE 31
 
 
 SYMBOL TABLE
@@ -2505,8 +2532,8 @@ RE0                               00000000
 RE1                               00000001
 RE2                               00000002
 RE3                               00000003
-READ_DONE                         00000144
-READ_OK                           0000012E
+READ_DONE                         0000015C
+READ_OK                           00000144
 READ_WRITE                        00000002
 REC0                              00000000
 REC1                              00000001
@@ -2569,7 +2596,7 @@ RXB0D35                           00000005
 RXB0D36                           00000006
 RXB0D37                           00000007
 RXB0D4                            00000F6A
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE 31
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE 32
 
 
 SYMBOL TABLE
@@ -2655,7 +2682,7 @@ RXB1D30                           00000000
 RXB1D31                           00000001
 RXB1D32                           00000002
 RXB1D33                           00000003
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE 32
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE 33
 
 
 SYMBOL TABLE
@@ -2741,7 +2768,7 @@ RXF12SIDH                         00000D80
 RXF12SIDL                         00000D81
 RXF13EIDH                         00000D86
 RXF13EIDL                         00000D87
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE 33
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE 34
 
 
 SYMBOL TABLE
@@ -2827,7 +2854,7 @@ RXM1                              00000006
 RXM1EIDH                          00000F1E
 RXM1EIDL                          00000F1F
 RXM1SIDH                          00000F1C
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE 34
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE 35
 
 
 SYMBOL TABLE
@@ -2851,7 +2878,7 @@ RXWARN                            00000001
 RX_BUFFER                         00000200
 RX_BUF_END                        00000306
 RX_BUF_START                      00000305
-RX_OK                             00000264
+RX_OK                             00000288
 R_NOT_W                           00000002
 R_W                               00000002
 S                                 00000003
@@ -2905,43 +2932,43 @@ SIO_57600                         00000008
 SIO_600                           00000001
 SIO_9600                          00000005
 SIO_DATA_START                    00000300
-SIO_ECHO                          00000092
-SIO_ECHO_W                        0000008E
+SIO_ECHO                          00000094
+SIO_ECHO_W                        00000090
 SIO_FERR                          00000005
 SIO_FLUSH_INPUT                   00000044
 SIO_FLUSH_IN_1                    00000050
 SIO_FLUSH_OUTPUT                  0000005E
 SIO_FLUSH_OUT_1                   0000006A
-SIO_GETCHAR                       0000014C
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE 35
+SIO_GETCHAR                       00000166
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE 36
 
 
 SYMBOL TABLE
   LABEL                             VALUE 
 
-SIO_GETCHAR_W                     00000146
+SIO_GETCHAR_W                     0000015E
 SIO_INIT                          00000000
 SIO_INPUT                         00000301
 SIO_MAX_IDX                       00000010
-SIO_NEWLINE                       00000110
+SIO_NEWLINE                       00000124
 SIO_ORUN                          00000004
 SIO_OUTPUT                        00000302
-SIO_PRINT_HEX                     0000015A
-SIO_PRINT_HEX_W                   00000156
-SIO_PUTCHAR                       000000CE
-SIO_PUTCHAR_W                     000000D2
-SIO_READ                          00000122
-SIO_READ_W                        0000011C
-SIO_RECV                          00000248
+SIO_PRINT_HEX                     00000174
+SIO_PRINT_HEX_W                   00000170
+SIO_PUTCHAR                       000000DE
+SIO_PUTCHAR_W                     000000E2
+SIO_READ                          00000138
+SIO_READ_W                        00000130
+SIO_RECV                          0000026C
 SIO_RX_BUFFER_START               00000200
-SIO_SEND                          00000214
+SIO_SEND                          00000236
 SIO_SET_BAUD_W                    00000078
 SIO_STATUS                        00000300
 SIO_TABLE_START                   00015000
 SIO_TMPPC                         00000309
 SIO_TX_BUFFER_START               00000100
-SIO_WRITE                         000000E4
-SIO_WRITE_W                       000000E8
+SIO_WRITE                         000000F6
+SIO_WRITE_W                       000000FA
 SIO_X                             00000308
 SJW0                              00000006
 SJW1                              00000007
@@ -2954,7 +2981,7 @@ SP4                               00000004
 SPBRG                             00000FAF
 SPBRGH                            00000FB0
 SPEN                              00000007
-SPIN_FOR_BUF_DRAIN                000000D8
+SPIN_FOR_BUF_DRAIN                000000E8
 SREN                              00000005
 SRR                               00000004
 SS                                00000005
@@ -2999,7 +3026,7 @@ T0PS3                             00000003
 T0SE                              00000004
 T13CKI                            00000000
 T1CKPS0                           00000004
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE 36
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE 37
 
 
 SYMBOL TABLE
@@ -3085,7 +3112,7 @@ TRISA6                            00000006
 TRISA7                            00000007
 TRISB                             00000F93
 TRISB0                            00000000
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE 37
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE 38
 
 
 SYMBOL TABLE
@@ -3171,7 +3198,7 @@ TXB0D4                            00000F4A
 TXB0D40                           00000000
 TXB0D41                           00000001
 TXB0D42                           00000002
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE 38
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE 39
 
 
 SYMBOL TABLE
@@ -3257,7 +3284,7 @@ TXB1D37                           00000007
 TXB1D4                            00000F3A
 TXB1D40                           00000000
 TXB1D41                           00000001
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE 39
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE 40
 
 
 SYMBOL TABLE
@@ -3343,7 +3370,7 @@ TXB2D36                           00000006
 TXB2D37                           00000007
 TXB2D4                            00000F2A
 TXB2D40                           00000000
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE 40
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE 41
 
 
 SYMBOL TABLE
@@ -3422,14 +3449,14 @@ TX_BUFFER                         00000100
 TX_BUF_END                        00000304
 TX_BUF_START                      00000303
 TX_CHAR                           00000307
-TX_DONE                           0000023E
-TX_OK                             00000220
+TX_DONE                           00000262
+TX_OK                             00000242
 UA                                00000001
 VCFG0                             00000004
 VCFG1                             00000005
 VDIRMAG                           00000007
 VREFM                             00000002
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE 41
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE 42
 
 
 SYMBOL TABLE
@@ -3454,7 +3481,7 @@ WR                                00000001
 WREG                              00000FE8
 WREN                              00000002
 WRERR                             00000003
-WRITE_OK                          000000FC
+WRITE_OK                          0000010E
 WUE                               00000001
 Z                                 00000002
 _BBSIZ_1024_4L                    000000CF
@@ -3515,7 +3542,7 @@ _EBTRB_OFF_7H                     000000FF
 _EBTRB_ON_7H                      000000BF
 _FCMEN_OFF_1H                     000000BF
 _FCMEN_ON_1H                      000000FF
-MPASM 5.66                  ../SERIAL-IO.ASM   10-13-2016  20:27:27         PAGE 42
+MPASM 5.66                  ../SERIAL-IO.ASM   3-1-2017  12:21:15         PAGE 43
 
 
 SYMBOL TABLE
