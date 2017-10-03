@@ -44,8 +44,9 @@ class VirtualChannel (object):
             if len(channel) != 1:
                 raise ValueError('virtual channel {0} only takes a single hardware channel object'.format(id))
             self.channel = channel[0]
-
-        self.name = name or (channel.name if channel is not None else id)
+            self.name = name or (channel[0].name if len(channel)>0 and channel[0] else id)
+        else:
+            self.name = name or (channel.name if channel is not None else id)
         self.color = '#ffffff' if color is None else color
         self.raw_color = self._to_raw_color(self.color)
         self.id = id
