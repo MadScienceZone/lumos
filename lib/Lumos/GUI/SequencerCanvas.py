@@ -1405,7 +1405,7 @@ class Application (SequencerCanvas):
         ])
 
         create_menu(menu_bar, "View", [
-            ("Zoom in",              (None, "Command-+",),       self.zoom_in),
+            ("Zoom in",              (None, "Command-=",),       self.zoom_in),
             ("Zoom out",             (None, 
                                         ("Command--","Command-minus")),
                                                                  self.zoom_out),
@@ -1417,7 +1417,7 @@ class Application (SequencerCanvas):
                 ("10 seconds",       (),                            lambda *e: self.zoom_to(10)),
                 ("5 seconds",        (),                            lambda *e: self.zoom_to(5)),
                 ("2 seconds",        (),                            lambda *e: self.zoom_to(2)),
-                ("1 second",         (None, "Command-="),           lambda *e: self.zoom_to(1)),
+                ("1 second",         (None, "Command-0"),           lambda *e: self.zoom_to(1)),
                 ("1/2 second",       (),                            lambda *e: self.zoom_to(.5)),
                 ("1/5 second",       (),                            lambda *e: self.zoom_to(.2)),
                 ("1/10 second",      (),                            lambda *e: self.zoom_to(.1)),
