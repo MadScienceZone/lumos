@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS 
 # $Header: /tmp/cvsroot/lumos/Test/PowerSourceTest.py,v 1.3 2008-12-31 00:13:32 steve Exp $
@@ -33,10 +32,10 @@ class PowerSourceTest (unittest.TestCase):
 		p2 = PowerSource('p2', amps=15)
 		p3 = PowerSource('p3', amps=5)
 
-		self.assertEquals(p1.amps, 20)
-		self.assertEquals(p2.amps, 15)
-		self.assertEquals(p3.amps, 5)
-		self.assertEquals(p1.id, 'p1')
+		self.assertEqual(p1.amps, 20)
+		self.assertEqual(p2.amps, 15)
+		self.assertEqual(p3.amps, 5)
+		self.assertEqual(p1.id, 'p1')
 
 # 
 # $Log: not supported by cvs2svn $

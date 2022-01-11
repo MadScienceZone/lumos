@@ -437,7 +437,7 @@ class SpectrumReaderboardUnit (object):
             try:
                 return Template(text).substitute(self.text_attributes)
             except KeyError:
-                raise InvalidTextAttribute, "%s contains unknown attribute keyword sequences.  Use $$ for a literal dollar sign."
+                raise InvalidTextAttribute("%s contains unknown attribute keyword sequences.  Use $$ for a literal dollar sign.")
         return text
 
     def _text(self, text, align='fill', mode='hold', label='A'):
@@ -447,9 +447,9 @@ class SpectrumReaderboardUnit (object):
         attributes, like $red to set red text.
         '''
         if align not in self.text_alignments:
-            raise InvalidTextAlignment, "%s is not a valid text alignment" % align
+            raise InvalidTextAlignment("%s is not a valid text alignment" % align)
         if mode not in self.text_modes:
-            raise InvalidTextMode, "%s is not a valid text mode" % mode
+            raise InvalidTextMode("%s is not a valid text mode" % mode)
 
         return 'A' + label[0] + '\033' + self.text_alignments[align] + self.text_modes[mode] + \
             self._expandSpecials(text)

@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS NETWORK CLASS
 # $Header: /usr/local/cvsroot/lumos/lib/Lumos/Network/Network.py,v 1.3 2008/12/31 00:25:19 steve Exp $
@@ -65,12 +64,12 @@ class Network (object):
 
     def send(self, cmd):
         "Send a command string to the hardware device."
-        raise NotImplementedError, "You MUST redefine this method in each Network class."
+        raise NotImplementedError("You MUST redefine this method in each Network class.")
 
     def close(self):
         """Close the network device; no further operations are
         possible for it."""
-        raise NotImplementedError, "You MUST redefine this method in each Network class."
+        raise NotImplementedError("You MUST redefine this method in each Network class.")
 #
 # $Log: Network.py,v $
 # Revision 1.3  2008/12/31 00:25:19  steve

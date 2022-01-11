@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS NETWORK DRIVER: TEST NETWORK
 # $Header: /tmp/cvsroot/lumos/lib/Lumos/Network/SerialNetwork.py,v 1.5 2008-12-31 00:25:19 steve Exp $
@@ -72,14 +71,17 @@ class TestNetwork (Network):
                 self.open()
 
     def open(self):
-            self.output_file = open(self.output_name, "a")
-            self.input_file = open(self.input_name, "r")
+            self.output_file = open(self.output_name, "ab")
+            self.input_file = open(self.input_name, "rb")
 
             self.output_file.write("\n\n"+(79 * "=")+"\n")
             self.output_file.write("[{0}] Opened TestNetwork port {1}\n".format(time.ctime(), self.description))
             self.output_file.flush()
 
     def hexdump(self, data, addr=0, outdev=None):
+            if isinstance(data, str):
+                data = data.encode()
+
             if outdev:
                 # --------------------------------------------------------------------------------
                 # 9999: 99 99 99 99 99 99 99 99   99 99 99 99 99 99 99 99   |........ ........|
@@ -90,7 +92,7 @@ class TestNetwork (Network):
                     outdev.write('{0:04X}:'.format(addr+idx))
                     for byte in range(16):
                         if idx+byte < len(data):
-                            outdev.write(' {0:02X}'.format(ord(data[idx+byte])))
+                            outdev.write(' {0:02X}'.format(data[idx+byte]))
                         else:
                             outdev.write('   ')
                         if byte == 7:
@@ -98,7 +100,7 @@ class TestNetwork (Network):
                     outdev.write('   |')
                     for byte in range(16):
                         if idx+byte < len(data):
-                            outdev.write(data[idx+byte] if ' ' <= data[idx+byte] <= '~' else '.')
+                            outdev.write(chr(data[idx+byte]) if 32 <= data[idx+byte] <= 126 else '.')
                         else:
                             outdev.write(' ')
 
@@ -107,7 +109,7 @@ class TestNetwork (Network):
                     outdev.write('|\n')
                 self.output_file.flush()
 
-    def send(self, cmd):
+    def send(self, cmd: bytes):
             if self.output_file:
                 self.output_file.write('[{0}] Transmitted data\n'.format(time.ctime()))
                 self.hexdump(cmd, outdev=self.output_file)
@@ -127,30 +129,30 @@ class TestNetwork (Network):
             "Report if input was received and is waiting to be read.  Returns number of bytes waiting."
             return self.input_file.tell() != os.stat(self.input_name).st_size
 
-    def input(self, remaining_f=None, bytes=None, mode_switch=True, timeout=1):
+    def input(self, remaining_f=None, nbytes=None, mode_switch=True, timeout=1):
             if self.input_file is None:
                 raise DeviceNotReadyError("There is no active input file to read from.")
 
-            buffer = ''
+            buffer = b''
 
             if remaining_f:
-                if not bytes:
-                    bytes = remaining_f(None)
-            elif bytes:
-                buffer = self.input_file.read(bytes)
+                if not nbytes:
+                    nbytes = remaining_f(None)
+            elif nbytes:
+                buffer = self.input_file.read(nbytes)
                 if not buffer:
                     raise DeviceTimeoutError(buffer, 'Timeout ({0} sec) waiting for device to respond.'.format(timeout))
-                bytes = 0
+                nbytes = 0
             else:
                 raise APIUsageError("You must specify either bytes or remaining_f (or both) to input()")
 
-            while bytes > 0:
-                r = self.input_file.read(bytes)
+            while nbytes > 0:
+                r = self.input_file.read(nbytes)
                 if not r:
                     raise DeviceTimeoutError(buffer, 'Timeout ({0} sec) waiting for device to respond after receiving only {1} byte{2}.'.format(
                         timeout, len(buffer), '' if len(buffer) == 1 else 's'))
                 buffer += r
-                bytes = remaining_f(buffer)
+                nbytes = remaining_f(buffer)
 
             if self._protocol_debug is not None:
                 self.output_file.write('[{0}] Received data\n'.format(time.ctime()))

@@ -55,12 +55,12 @@ class PowerSource (object):
         try:
             self.amps = float(amps)
         except:
-            raise ValueError, "amps must be a numeric value"
+            raise ValueError("amps must be a numeric value")
 
         try:
             self.volts = float(volts)
         except:
-            raise ValueError, "volts must be a numeric value"
+            raise ValueError("volts must be a numeric value")
 
     def add_subordinate_source(self, child_obj):
         "Add a child PowerSource to this one."

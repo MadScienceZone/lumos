@@ -29,24 +29,31 @@ sequence:
 		(time, controller, channel, value)
 		(ms, controller_obj, method_obj, arglist)
 
-controller:
+controller (ControllerUnit class):
 	sends events to network
 
-	__init__(power, network, [resolution-steps])
-	add_channel(id, [name], [load], [dimmer], [warm], [resolution], ...)
-
-	set_channel(id, level)
+	__init__(id, power_source, network, [resolution=100], ...)
+		FireGodControllerUnit:	+address=1, num_channels=32
+	channel_id_from_string(channel)	# channel name -> id
+		FireGocControllerUnit:	-> int
+	add_channel(id, [name], [load], [dimmer=True], [warm], [resolution], [power_source])
+	set_channel(id, level, [force=False])
 		id can be string or int depending on type of unit
 		level is number (int? float? %? raw?) or None
 			None: turn completely off as opposed to dim down to 0%
-	set_channel_on(id)
-	set_channel_off(id)
-	kill_channel(id)
+	set_channel_on(id, [force=False])
+	set_channel_off(id, [force=False])
+	kill_channel(id, [force=False])
 		kill is like off but ignores warm setting
-	kill_all_channels()
-	all_channels_off()
+	kill_all_channels([force=False])
+	all_channels_off([force=False])
 	initialize_device()
-	flush()
+	flush([force=False])
+	iter_channels()			# iterates over channel IDs
+	_iter_non_null_channel_list()	# only includes implemented channels
+	current_drain()			# -> {chan_id: (amps, PowerSource), ...}
+	current_loads()			# -> {chan_id: (amps, PowerSource), ...}
+	__str__()			# human readable description of controller
 
 channel:
 	__init__(id, [name], [load], [dimmer], [warm], [resolution])

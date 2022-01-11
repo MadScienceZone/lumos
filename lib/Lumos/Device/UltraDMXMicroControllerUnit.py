@@ -66,7 +66,7 @@ class UltraDMXMicroControllerUnit (ControllerUnit):
         self.channels = [None] * (self.num_channels+1)
 
     def iter_channels(self):
-        return range(1, self.num_channels+1)
+        return list(range(1, self.num_channels+1))
 
     def __str__(self):
         return self.type

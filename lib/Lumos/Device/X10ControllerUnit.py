@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS DEVICE DRIVER: X-10 BASE CLASS
 #
@@ -44,7 +43,7 @@ class X10ControllerUnit (ControllerUnit):
             assert('A' <= id[0] <= 'P')
             assert(1 <= int(id[1:]) <= 16)
         except:
-            raise ValueError, "X-10 channels must be 'A1'..'P16'"
+            raise ValueError("X-10 channels must be 'A1'..'P16'")
 
         if resolution is not None:
             resolution = int(resolution)

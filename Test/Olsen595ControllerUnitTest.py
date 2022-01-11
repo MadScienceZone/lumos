@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS 
 # $Header: /tmp/cvsroot/lumos/Test/Olsen595ControllerUnitTest.py,v 1.4 2008-12-31 00:13:32 steve Exp $
@@ -105,7 +104,7 @@ class Olsen595ControllerUnitTest (unittest.TestCase):
     
     # test that it doesn't send redundant changes
     def test_iterator(self):
-        self.assertEquals(sorted(self.ssr.iter_channels()), range(8))
+        self.assertEqual(sorted(self.ssr.iter_channels()), list(range(8)))
 # 
 # $Log: not supported by cvs2svn $
 #

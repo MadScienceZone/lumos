@@ -134,7 +134,7 @@ class Olsen595ControllerUnit (ControllerUnit):
             self.needs_update = False
 
     def iter_channels(self):
-        return range(len(self.channels))
+        return list(range(len(self.channels)))
 
 #
 # $Log: not supported by cvs2svn $

@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS NETWORK DRIVER: SERIAL PORT
 # $Header: /tmp/cvsroot/lumos/lib/Lumos/Network/SerialNetwork.py,v 1.5 2008-12-31 00:25:19 steve Exp $
@@ -184,15 +183,15 @@ else:
             if self.diversion is None:
                 self.diversion = []
 
-        def end_divert_output(self):
+        def end_divert_output(self) -> bytes:
             "End diversion.  Returns the bytes collected as a single string value."
             if self.diversion is not None:
-                data = ''.join(self.diversion)
+                data = b''.join(self.diversion)
                 self.diversion = None
                 return data
 
         def open(self):
-            print `self.port`, `self.baudrate`, `self.bits`, `self._parity`, `self.stop`, `self.xonxoff`, `self.rtscts`
+            print(repr(self.port), repr(self.baudrate), repr(self.bits), repr(self._parity), repr(self.stop), repr(self.xonxoff), repr(self.rtscts))
             self.dev = serial.Serial(
                 port=self.port, 
                 baudrate=self.baudrate, 
@@ -223,6 +222,9 @@ else:
             if outdev is None:
                 outdev = self.verbose
 
+            if isinstance(data, str):
+                data = data.encode()
+
             if outdev:
                 # --------------------------------------------------------------------------------
                 # 9999: 99 99 99 99 99 99 99 99   99 99 99 99 99 99 99 99   |........ ........|
@@ -233,7 +235,7 @@ else:
                     outdev.write('{0:04X}:'.format(addr+idx))
                     for byte in range(16):
                         if idx+byte < len(data):
-                            outdev.write(' {0:02X}'.format(ord(data[idx+byte])))
+                            outdev.write(' {0:02X}'.format(data[idx+byte]))
                         else:
                             outdev.write('   ')
                         if byte == 7:
@@ -241,7 +243,7 @@ else:
                     outdev.write('   |')
                     for byte in range(16):
                         if idx+byte < len(data):
-                            outdev.write(data[idx+byte] if ' ' <= data[idx+byte] <= '~' else '.')
+                            outdev.write(chr(data[idx+byte]) if ' ' <= data[idx+byte] <= '~' else '.')
                         else:
                             outdev.write(' ')
 
@@ -249,7 +251,7 @@ else:
                             outdev.write(' ')
                     outdev.write('|\n')
 
-        def send(self, cmd):
+        def send(self, cmd: bytes):
             if self.dev is None:
                 return None
                 
@@ -295,7 +297,7 @@ else:
                 self.verbose.write(time.ctime()+" {0}: switching to receive mode ({1} byte{2} waiting to drain from output queue)\n".format(
                     self.description, ow, '' if ow==1 else 's'))
 
-            for max_wait in xrange(1000):
+            for max_wait in range(1000):
                 if self.dev.outWaiting() == 0:
                     break
                 time.sleep(0.01)
@@ -348,7 +350,7 @@ else:
 
                 time.sleep(self.txdelay / 1000.0)
 
-        def input(self, remaining_f=None, bytes=None, mode_switch=True, timeout=1):
+        def input(self, remaining_f=None, nbytes=None, mode_switch=True, timeout=1):
             """Input data from the serial interface.
 
             If in half-duplex mode, first switch to receive mode (unless
@@ -356,7 +358,7 @@ else:
             an input packet received from the serial port.  Before returning,
             switch back to transmit mode if we switched out of it.
 
-            If the bytes parameter is specified, read that much data
+            If the nbytes parameter is specified, read that much data
             and stop.
 
             If the remaining_f parameter is given, it should be a function
@@ -392,48 +394,48 @@ else:
                 raise DeviceNotReadyError("There is no active serial device to read from.")
 
             if self.verbose:
-                self.verbose.write(time.ctime()+" {0}: getting input (bytes={1}, mode_switch={2}, timeout={3}):\n".format(self.description, bytes, `mode_switch`, timeout))
+                self.verbose.write(time.ctime()+" {0}: getting input (bytes={1}, mode_switch={2}, timeout={3}):\n".format(self.description, bytes, repr(mode_switch), timeout))
 
             #self.dev.setTimeout(timeout)
             self.dev.timeout=timeout
             if mode_switch and self.txmode == 'half':
                 self.receive_mode()
 
-            buffer = ''
+            buffer = b''
 
             if remaining_f:
-                if not bytes:
-                    bytes = remaining_f(None)
+                if not nbytes:
+                    nbytes = remaining_f(None)
                     if self.verbose:
-                        self.verbose.write(time.ctime()+" Trying initial read of {0} (computed)\n".format(bytes))
-            elif bytes:
+                        self.verbose.write(time.ctime()+" Trying initial read of {0} (computed)\n".format(nbytes))
+            elif nbytes:
                 if self.verbose:
-                    self.verbose.write(time.ctime()+" Trying initial read of {0} (specified)\n".format(bytes))
-                buffer = self.dev.read(bytes)
+                    self.verbose.write(time.ctime()+" Trying initial read of {0} (specified)\n".format(nbytes))
+                buffer = self.dev.read(nbytes)
                 if not buffer:
                     raise DeviceTimeoutError(buffer, 'Timeout ({0} sec) waiting for device to respond.'.format(timeout))
-                bytes = 0
+                nbytes = 0
                 if self.verbose:
                     self.verbose.write(time.ctime()+" Read {0} byte{1}.\n".format(len(buffer), '' if len(buffer)==1 else 's'))
             else:
                 raise APIUsageError("You must specify either bytes or remaining_f (or both) to input()")
 
-            while bytes > 0:
+            while nbytes > 0:
                 if self.verbose:
-                    self.verbose.write(time.ctime()+" Reading {0} byte{1}...\n".format(bytes, '' if bytes == 1 else 's'))
+                    self.verbose.write(time.ctime()+" Reading {0} byte{1}...\n".format(nbytes, '' if nbytes == 1 else 's'))
 
-                r = self.dev.read(bytes)
+                r = self.dev.read(nbytes)
                 if not r:
                     if self.verbose:
-                        self.verbose.write(time.ctime()+" ERROR: short read of {0} (expected {1}):\n".format(len(buffer), bytes))
+                        self.verbose.write(time.ctime()+" ERROR: short read of {0} (expected {1}):\n".format(len(buffer), nbytes))
                         self.hexdump(buffer)
 
                     raise DeviceTimeoutError(buffer, 'Timeout ({0} sec) waiting for device to respond after receiving only {1} byte{2}.'.format(
                         timeout, len(buffer), '' if len(buffer) == 1 else 's'))
                 buffer += r
-                bytes = remaining_f(buffer)
+                nbytes = remaining_f(buffer)
                 if self.verbose:
-                    self.verbose.write(time.ctime()+" Read {0}, looking for {1} more...\n".format(len(buffer), bytes))
+                    self.verbose.write(time.ctime()+" Read {0}, looking for {1} more...\n".format(len(buffer), nbytes))
 
             if self.verbose:
                 self.verbose.write(time.ctime()+" Input data received:\n")

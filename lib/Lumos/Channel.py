@@ -87,11 +87,11 @@ class Channel (object):
             self.warm = self.raw_dimmer_value(warm)
             if not 0 <= self.warm < self.resolution:
                 self.warm = None
-                raise ValueError, "Channel %s warm percentage out of range (%d)" % (id, warm)
+                raise ValueError("Channel %s warm percentage out of range (%d)" % (id, warm))
 
             if not self.dimmer:
                 self.warm = None
-                raise DimmerError, "Channel %s specifies warm value but is not dimmable." % id
+                raise DimmerError("Channel %s specifies warm value but is not dimmable." % id)
         else:
             self.warm = None
 

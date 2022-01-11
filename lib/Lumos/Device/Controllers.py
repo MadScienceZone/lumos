@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS CONTROLLER LIST
 # $Header: /tmp/cvsroot/lumos/lib/Lumos/Device/Controllers.py,v 1.5 2008-12-31 00:25:19 steve Exp $
@@ -61,6 +60,6 @@ def controller_unit_factory(type, **kwargs):
 
     type = type.lower().strip()
     if type not in supported_controller_types:
-        raise ValueError, "Invalid controller unit type '%s'" % type
+        raise ValueError("Invalid controller unit type '%s'" % type)
 
     return supported_controller_types[type](**kwargs)

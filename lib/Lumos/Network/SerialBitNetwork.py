@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS NETWORK DRIVER: BIT-AT-A-TIME OVER SERIAL PORT
 # $Header: /tmp/cvsroot/lumos/lib/Lumos/Network/SerialBitNetwork.py,v 1.3 2008-12-31 00:25:19 steve Exp $

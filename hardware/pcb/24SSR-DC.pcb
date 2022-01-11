@@ -4906,7 +4906,7 @@ Layer(10 "silk")
 	Text[760000 29000 0 200 "THRU" "clearline"]
 	Text[677500 75000 0 535 "Lumos" "clearline"]
 	Text[658500 104000 0 100 "24-CHANNEL DC SSR CONTROLLER   1.0.9" "clearline"]
-	Text[658500 110500 0 130 "www.alchemy.com/lumos" "clearline"]
+	Text[658500 110500 0 130 "www.madscience.zone/lumos" "clearline"]
 	Text[812500 292500 1 100 "0" "clearline"]
 	Text[812500 270000 1 100 "1" "clearline"]
 	Text[812500 252500 1 100 "2" "clearline"]

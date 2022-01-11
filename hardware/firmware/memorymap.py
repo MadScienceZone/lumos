@@ -174,7 +174,7 @@ class MemoryMap (object):
                     self.banks[match.group(4)].add(MemoryBlock(match.group(1), match.group(2), addr, match.group(4), int(match.group(5), 16)))
 
             if state == 6:
-                for bank in self.banks.values():
+                for bank in list(self.banks.values()):
                     bank.clear_checks()
 
             if state == 7:
@@ -260,8 +260,8 @@ class MemoryBank (object):
         self.symbol_table = {}
 
     def clear_checks(self):
-        self.addr_checked = dict([(k,False) for k in self.by_address.keys()])
-        self.name_checked = dict([(k,False) for k in self.symbol_table.keys()])
+        self.addr_checked = dict([(k,False) for k in list(self.by_address.keys())])
+        self.name_checked = dict([(k,False) for k in list(self.symbol_table.keys())])
 
     def check_addr(self, name, addr, storage, filename):
         if name not in self.symbol_table:
@@ -318,7 +318,7 @@ class MemoryBank (object):
         errors = 0
         for name in self.name_checked:
             if not self.name_checked[name]:
-                print '{0} symbol "{1}" not found in cross-reference check'.format(self.name, name)
+                print('{0} symbol "{1}" not found in cross-reference check'.format(self.name, name))
                 errors += 1
         return errors
         
@@ -326,12 +326,12 @@ class MemoryBank (object):
         errors = 0
         for addr in self.addr_checked:
             if not self.addr_checked[addr]:
-                print '{0} block {1:#08x} ({2} @{3:#08x}-{4:#08x}) not found in cross-reference check'.format(
+                print('{0} block {1:#08x} ({2} @{3:#08x}-{4:#08x}) not found in cross-reference check'.format(
                     self.name, addr, self.by_address[addr].name,
                     self.by_address[addr].address,
                     self.by_address[addr].address + 
                         self.by_address[addr].size - 1,
-                )
+                ))
                 errors += 1
         return errors
             

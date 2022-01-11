@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS 
 #
@@ -1507,8 +1506,8 @@ class SqeuenceTest (unittest.TestCase):
                  ValueEvent(self.virtuals['fa3'], 66,  0)
             ],
         }
-        self.assertEquals(len(s.intervals), 2)
-        self.assertEquals([i for i in s.intervals], [1234, 5543])
+        self.assertEqual(len(s.intervals), 2)
+        self.assertEqual([i for i in s.intervals], [1234, 5543])
         for time in s.intervals:
             e_list = s.events_at(time)
             self.assertEqual(e_list, expected_events[time])
@@ -1597,8 +1596,8 @@ class SqeuenceTest (unittest.TestCase):
             ],
         }
         s = self.build_seq()
-        self.assertEquals(len(s.intervals), 10)
-        self.assertEquals([i for i in s.intervals], [0,1000,2000,3000,4000,5000,6000,7000,8000,10000])
+        self.assertEqual(len(s.intervals), 10)
+        self.assertEqual([i for i in s.intervals], [0,1000,2000,3000,4000,5000,6000,7000,8000,10000])
         for time in s.intervals:
             e_list = s.events_at(time)
             self.assertEqual(e_list, expected_events[time], msg="@{0}, got {1}, expected {2}".format(time, e_list, expected_events[time]))
@@ -1618,9 +1617,9 @@ class SqeuenceTest (unittest.TestCase):
                     fname = "self.umap['{0}'].{1}".format(uid, element[1].__name__)
                     break
             else:
-                fname = `element[1]`
+                fname = repr(element[1])
             f.write("({0}, {1}, {2}, {3})\n".format(
-                element[0], fname, `element[2]`, element[3]))
+                element[0], fname, repr(element[2]), element[3]))
 
                     
         
@@ -1654,7 +1653,7 @@ class SqeuenceTest (unittest.TestCase):
         s = Sequence()
         s.load_file('data/test_v3.lseq', self.umap, self.vmap)
         f = open('data/tmp_xv3', 'w')
-        f.write(`s.compile()`)
+        f.write(repr(s.compile()))
         f.close()
 
         self.assertEqual(None, self.compare_timeline_lists(s.compile(), self.TEST_TIMELINE))
@@ -1666,10 +1665,10 @@ class SqeuenceTest (unittest.TestCase):
         vs integer).'''
         s = Sequence()
         s.load_file('data/testchannels.lseq', self.umap, self.vmap)
-        self.assert_(type(s._event_list[0][0].vchannel.channel.id) is str)
-        self.assert_(type(s._event_list[1][0].vchannel.channel.id) is int)
-        self.assert_(type(s._event_list[2][0].vchannel.channel.id) is int)
-        self.assert_(type(s._event_list[3][0].vchannel.channel.id) is int)
+        self.assertTrue(type(s._event_list[0][0].vchannel.channel.id) is str)
+        self.assertTrue(type(s._event_list[1][0].vchannel.channel.id) is int)
+        self.assertTrue(type(s._event_list[2][0].vchannel.channel.id) is int)
+        self.assertTrue(type(s._event_list[3][0].vchannel.channel.id) is int)
 
     def compare_timeline_lists(self, actual, expected):
         '''Given two lists of tuples, where the first element of
@@ -1689,10 +1688,10 @@ class SqeuenceTest (unittest.TestCase):
         e = sorted(expected)
         result = None
         if len(a) != len(e):
-            print "Actual data dumped to data/SequenceData.timeline."
+            print("Actual data dumped to data/SequenceData.timeline.")
             outf = file("data/SequenceData.timeline", "w")
             for ev in a:
-                print >>outf, "%8d %-10s %s\n" % (ev[0], ev[2], ev[1])
+                print("%8d %-10s %s\n" % (ev[0], ev[2], ev[1]), file=outf)
             outf.close()
             return "TIMELINE MISMATCH: actual has %d elements vs. expected %d" % (len(a), len(e))
 

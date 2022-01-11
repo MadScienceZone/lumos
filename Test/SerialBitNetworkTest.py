@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS 
 # $Header: /tmp/cvsroot/lumos/Test/SerialBitNetworkTest.py,v 1.2 2008-12-31 00:13:32 steve Exp $

@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS 
 # $Header: /tmp/cvsroot/lumos/Test/LynX10ControllerUnitTest.py,v 1.4 2008-12-31 00:13:32 steve Exp $
@@ -53,9 +52,9 @@ class LynX10ControllerUnitTest (unittest.TestCase):
         self.assertEqual(self.x10.type, 'LynX-10/TW523 Controller')
         self.assertEqual(str(self.x10), 'LynX-10/TW523 Controller')
         self.assertEqual(self.x10.resolution, 16)
-        self.assert_(isinstance(self.x10, LynX10ControllerUnit))
-        self.assert_(isinstance(self.x10, X10ControllerUnit))
-        self.assert_(isinstance(self.x10, ControllerUnit))
+        self.assertTrue(isinstance(self.x10, LynX10ControllerUnit))
+        self.assertTrue(isinstance(self.x10, X10ControllerUnit))
+        self.assertTrue(isinstance(self.x10, ControllerUnit))
 
     def testFirstInit(self):
         self.x10.initialize_device()
@@ -103,7 +102,7 @@ class LynX10ControllerUnitTest (unittest.TestCase):
                     "set_channel('B7', %d) -> %s, expected ...D%s" % (i,self.n.buffer,j) )
 
     def test_iterator(self):
-        self.assertEquals(sorted(self.x10.iter_channels()), ['A1','A2','B7','M16'])
+        self.assertEqual(sorted(self.x10.iter_channels()), ['A1','A2','B7','M16'])
 # 
 # $Log: not supported by cvs2svn $
 #

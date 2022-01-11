@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS DEVICE DRIVER: X-10 CM17A "FIRECRACKER"
 # ***UNTESTED*** SPECULATIVE CODE.  NOT READY FOR USE!
@@ -109,13 +108,13 @@ bits = {
     'P': 0x3000, '16': 0x0458,
 }
 
-def packet(id, op):
+def packet(id, op) -> bytes:
     if op in ('up','dn'):
         b = bits[id[0]] | bits[op]
     else:
         b = bits[id[0]] | bits[id[1:]] | bits[op]
         
-    return chr(0xd5)+chr(0xaa)+chr((b>>8)&0xff)+chr(b&0xff)+chr(0xad)
+    return bytes([0xd5, 0xaa, (b>>8)&0xff, b&0xff, 0xad])
 
 class FirecrackerX10ControllerUnit (X10ControllerUnit):
     def __init__(self, id, power_source, network, resolution=21):
@@ -130,7 +129,7 @@ class FirecrackerX10ControllerUnit (X10ControllerUnit):
         X10ControllerUnit.__init__(self, id, power_source, network, resolution)
         self.type = 'X-10 CM17a "Firecracker" Controller'
 
-    def _proto_set_channel(self, id, old_level, new_level, force=False):
+    def _proto_set_channel(self, id, old_level, new_level, force=False) -> bytes:
         if new_level == old_level and not force: return ''
         #
         # We only turn fully off when we are told to,

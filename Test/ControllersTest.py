@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS 
 # $Header: /tmp/cvsroot/lumos/Test/ControllersTest.py,v 1.3 2008-12-31 00:13:32 steve Exp $
@@ -41,16 +40,16 @@ class ControllersTest (unittest.TestCase):
         nw = TestNetwork.TestNetwork()
 
         u = controller_unit_factory(type='lynx10', id='lx', power_source=ps, network=nw)
-        self.assert_(isinstance(u, LynX10ControllerUnit))
-        self.assert_(isinstance(u, ControllerUnit))
+        self.assertTrue(isinstance(u, LynX10ControllerUnit))
+        self.assertTrue(isinstance(u, ControllerUnit))
 
         u = controller_unit_factory(type='cm17a', id='cm', power_source=ps, network=nw)
-        self.assert_(isinstance(u, FirecrackerX10ControllerUnit))
-        self.assert_(isinstance(u, ControllerUnit))
+        self.assertTrue(isinstance(u, FirecrackerX10ControllerUnit))
+        self.assertTrue(isinstance(u, ControllerUnit))
 
         u = controller_unit_factory(type='lumos', id='ss', power_source=ps, address=0, network=nw)
-        self.assert_(isinstance(u, LumosControllerUnit))
-        self.assert_(isinstance(u, ControllerUnit))
+        self.assertTrue(isinstance(u, LumosControllerUnit))
+        self.assertTrue(isinstance(u, ControllerUnit))
 
 # 
 # $Log: not supported by cvs2svn $

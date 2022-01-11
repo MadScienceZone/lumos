@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS NETWORK CLASS
 # $Header: /usr/local/cvsroot/lumos/lib/Lumos/Network/Network.py,v 1.3 2008/12/31 00:25:19 steve Exp $
@@ -77,9 +76,9 @@ class Network (object):
 
     def send(self, cmd):
         "Send a command string to the hardware device."
-        raise NotImplementedError, "You MUST redefine this method in each Network class."
+        raise NotImplementedError("You MUST redefine this method in each Network class.")
 
-    def input(self, remaining_f=None, bytes=None, mode_switch=True, timeout=None):
+    def input(self, remaining_f=None, nbytes=None, mode_switch=True, timeout=None):
         "Input data from the network."
         # You MAY redefine this method in each Network class.  You MUST if you want
         # it to perform input operations.
@@ -103,7 +102,7 @@ class Network (object):
     def close(self):
         """Close the network device; no further operations are
         possible for it."""
-        raise NotImplementedError, "You MUST redefine this method in each Network class."
+        raise NotImplementedError("You MUST redefine this method in each Network class.")
 
     def _bool(self, v):
         "Interpret '1', 'yes', 'true', 'on' as True, '0', 'no', 'false', 'off' as False"
@@ -134,7 +133,7 @@ class NullNetwork (Network):
         self.type = nulltype
         self.diversion = None
 
-    def send(self, cmd):
+    def send(self, cmd: bytes):
         if self.diversion is not None:
             self.diversion.append(cmd)
         else:
@@ -149,11 +148,11 @@ class NullNetwork (Network):
         if self.diversion is None:
             self.diversion = []
 
-    def end_divert_output(self):
+    def end_divert_output(self) -> bytes:
         if self.diversion is None:
-            return ''
+            return b''
 
-        output = ''.join(self.diversion)
+        output = b''.join(self.diversion)
         self.diversion = None
         return output
 

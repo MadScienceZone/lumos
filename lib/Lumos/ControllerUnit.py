@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS CONTROLLER UNIT BASE CLASS
 # $Header: /tmp/cvsroot/lumos/lib/Lumos/ControllerUnit.py,v 1.6 2008-12-31 00:25:19 steve Exp $
@@ -115,7 +114,7 @@ class ControllerUnit (object):
 
     def _iter_non_null_channel_list(self):
         '''For units where the channel list is a linear list of objects,
-        this method implements an generator function which will return the
+        this method implements a generator function which will return the
         channel IDs which are actually initialized.  So, for example, if
         a unit had 48 physical channels but only 13 were set up in a show
         profile, only those 13 would be returned.'''

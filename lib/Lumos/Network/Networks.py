@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS NETWORK LIST
 # $Header: /tmp/cvsroot/lumos/lib/Lumos/Network/Networks.py,v 1.4 2008-12-31 00:25:19 steve Exp $
@@ -55,7 +54,7 @@ def network_factory(type, **kwargs):
 
     type = type.lower().strip()
     if type not in supported_network_types:
-        raise ValueError, "Invalid network/protocol type '%s'" % type
+        raise ValueError("Invalid network/protocol type '%s'" % type)
 
     return supported_network_types[type](**kwargs)
 #

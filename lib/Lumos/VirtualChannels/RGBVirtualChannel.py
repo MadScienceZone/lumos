@@ -58,7 +58,7 @@ class RGBVirtualChannel (VirtualChannel):
         
     def denormalize_level_value(self, value):
         return "#{0[0]:02x}{0[1]:02x}{0[2]:02x}".format(
-            map(lambda x: max(min(int((x/100.0)*255),255),0), value))
+            [max(min(int((x/100.0)*255),255),0) for x in value])
 
     def normalize_level_value(self, value, permissive=False):
         """

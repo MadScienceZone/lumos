@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS 
 # $Header: /tmp/cvsroot/lumos/Test/Test.py,v 1.4 2008-12-31 00:13:32 steve Exp $
@@ -36,6 +35,9 @@ class SkipWarning (object):
 
     def incr(self):
         self.count += 1
+
+    def __lt__(self, x):
+        return self.count < x.count
 
 def warn_once(tag, message):
     global TEST_WARNINGS

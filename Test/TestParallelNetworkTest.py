@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS 
 # $Header: /tmp/cvsroot/lumos/Test/TestParallelNetworkTest.py,v 1.2 2008-12-31 00:13:32 steve Exp $
@@ -33,7 +32,7 @@ from Lumos.Network import Network
 class TestParallelNetworkTest (unittest.TestCase):
     def test_cons(self):
         tn = TestParallelNetwork()
-        self.assert_(isinstance(tn, Network))
+        self.assertTrue(isinstance(tn, Network))
         self.assertEqual(tn.buffer, '')
 
     def test_simple_data(self):

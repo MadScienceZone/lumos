@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS 
 # $Header: /tmp/cvsroot/lumos/Test/SpectrumReaderboardUnitTest.py,v 1.3 2008-12-31 00:13:32 steve Exp $
@@ -45,26 +44,26 @@ class SpectrumReaderboardUnitTest (unittest.TestCase):
         self.assertRaises(InvalidTextMode, self.rb._text, 'xxx', mode='fsfdsf')
 
     def testTextStrings(self):
-        self.assertEquals(self.rb._text('hello, world'), 'AA\0330bhello, world')
-        self.assertEquals(self.rb._text('hello', align='middle'), 'AA\033 bhello')
-        self.assertEquals(self.rb._text('hello', align='bottom', mode='roll up'), 'AA\033&ehello')
-        self.assertEquals(self.rb._text('hello', align='top', mode='rotate', label='Q'), 'AQ\033"ahello')
+        self.assertEqual(self.rb._text('hello, world'), 'AA\0330bhello, world')
+        self.assertEqual(self.rb._text('hello', align='middle'), 'AA\033 bhello')
+        self.assertEqual(self.rb._text('hello', align='bottom', mode='roll up'), 'AA\033&ehello')
+        self.assertEqual(self.rb._text('hello', align='top', mode='rotate', label='Q'), 'AQ\033"ahello')
 
     def testTextWithAttributes(self):
-        self.assertEquals(self.rb._text('Hello$red-red-${yellow}yellow$green-green', align='top', mode='hold', label='A'), 'AA\33"bHello\0341-red-\0343yellow\0342-green')
-        self.assertEquals(self.rb._text('Hello$red-red-${yellow}yellow$green-green', align='top', mode='hold', label='A'), 'AA\33"bHello\0341-red-\0343yellow\0342-green')
+        self.assertEqual(self.rb._text('Hello$red-red-${yellow}yellow$green-green', align='top', mode='hold', label='A'), 'AA\33"bHello\0341-red-\0343yellow\0342-green')
+        self.assertEqual(self.rb._text('Hello$red-red-${yellow}yellow$green-green', align='top', mode='hold', label='A'), 'AA\33"bHello\0341-red-\0343yellow\0342-green')
 
     def testTextWithBadAttributes(self):
         self.assertRaises(InvalidTextAttribute, self.rb._text, 'x$foo')
 
     def testStrStrings(self):
-        self.assertEquals(self.rb._str('hello, world'), 'G0hello, world')
-        self.assertEquals(self.rb._str('hello', label='Q'), 'GQhello')
-        self.assertEquals(self.rb._str('xyz', label='2'), 'G2xyz')
+        self.assertEqual(self.rb._str('hello, world'), 'G0hello, world')
+        self.assertEqual(self.rb._str('hello', label='Q'), 'GQhello')
+        self.assertEqual(self.rb._str('xyz', label='2'), 'G2xyz')
 
     def testStrWithAttributes(self):
-        self.assertEquals(self.rb._str('Hello$red-red-${yellow}yellow$green-green', label='A'), 'GAHello\0341-red-\0343yellow\0342-green')
-        self.assertEquals(self.rb._str('Hello$red-red-${yellow}yellow$green-green', label='B'), 'GBHello\0341-red-\0343yellow\0342-green')
+        self.assertEqual(self.rb._str('Hello$red-red-${yellow}yellow$green-green', label='A'), 'GAHello\0341-red-\0343yellow\0342-green')
+        self.assertEqual(self.rb._str('Hello$red-red-${yellow}yellow$green-green', label='B'), 'GBHello\0341-red-\0343yellow\0342-green')
 
     def testStrWithBadAttributes(self):
         self.assertRaises(InvalidTextAttribute, self.rb._str, 'x$foo')

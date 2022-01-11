@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS DEVICE DRIVER: FIREGOD DIY SSR CONTROLLER
 # ***UNTESTED*** SPECULATIVE CODE.  NOT READY FOR USE!
@@ -141,12 +140,12 @@ class FireGodControllerUnit (ControllerUnit):
 
     def flush(self, force=False):
         if self.update_pending or force:
-            self.network.send('U%c' % self.address)
+            self.network.send(bytes([ord('U'), self.address]))
             for channel in self.channels:
                 if channel is None:
-                    self.network.send(chr(0x64))
+                    self.network.send(bytes([0x64]))
                 elif channel.level is None:
-                    self.network.send(chr(0x64))
+                    self.network.send(bytes([0x64]))
                 else:
-                    self.network.send(chr(0x64 + channel.level))
+                    self.network.send(bytes[0x64 + channel.level])
             self.update_pending = False

@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS 
 # $Header: /tmp/cvsroot/lumos/Test/ChannelTest.py,v 1.3 2008-12-31 00:13:32 steve Exp $
@@ -40,25 +39,25 @@ class ChannelTest (unittest.TestCase):
         ch = Channel('id', con, name='ch', load=3, dimmer=True, warm=20, power_source=self.power)
         self.assertEqual(ch.name, 'ch')
         self.assertEqual(ch.load, 3)
-        self.assert_(ch.dimmer)
+        self.assertTrue(ch.dimmer)
         self.assertEqual(ch.warm, 19)
         self.assertEqual(ch.resolution, 100)
         self.assertEqual(ch.level, None)
         self.assertEqual(ch.set_off(), (None, 19))
         self.assertEqual(ch.level, 19)
-        self.assert_(ch.controller is con)
+        self.assertTrue(ch.controller is con)
 
         ch = Channel('id', DummyController(), name='ch', load=3, dimmer=False, power_source=self.power)
         self.assertEqual(ch.name, 'ch')
         self.assertEqual(ch.load, 3)
-        self.assert_(not ch.dimmer)
+        self.assertTrue(not ch.dimmer)
         self.assertEqual(ch.warm, None)
         self.assertEqual(ch.level, None)
 
         ch2 = Channel('id2', DummyController(), load=2.3, power_source=self.power)
         self.assertEqual(ch2.name, 'Channel id2')
         self.assertEqual(ch2.load, 2.3)
-        self.assert_(ch2.dimmer)
+        self.assertTrue(ch2.dimmer)
         self.assertEqual(ch2.warm, None)
         self.assertEqual(ch.level, None)
 

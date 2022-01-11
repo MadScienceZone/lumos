@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS NETWORK DRIVER: PARALLEL PORT
 # $Header: /tmp/cvsroot/lumos/lib/Lumos/Network/ParallelNetwork.py,v 1.3 2008-12-31 00:25:19 steve Exp $
@@ -82,22 +81,22 @@ else:
             if self.diversion is None:
                 self.diversion = []
 
-        def end_divert_output(self):
+        def end_divert_output(self) -> bytes:
             if self.diversion is not None:
-                data = ''.join(self.diversion)
+                data = b''.join(self.diversion)
                 self.diversion = None
                 return data
             else:
-                return ''
+                return b''
 
         def open(self):
             self.dev = parallel.Parallel(port=self.port)
             self.dev.setDataDir(1)
             self.dev.setDataStrobe(0)
 
-        def send(self, cmd):
+        def send(self, cmd: int):
             if self.diversion is not None:
-                self.diversion.append(cmd)
+                self.diversion.append(chr(cmd).encode())
             elif self.dev is not None:
                 self.dev.setData(cmd)
                 self.dev.setDataStrobe(1)

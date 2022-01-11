@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS 
 # $Header: /tmp/cvsroot/lumos/Test/NetworkTest.py,v 1.3 2008-12-31 00:13:32 steve Exp $
@@ -37,8 +36,8 @@ class NetworkTest (unittest.TestCase):
         if isinstance(serial, NullNetwork):
             warn_once('NOSERIAL', 'Not checking serial networks: this system does not support them (install PySerial?)')
         else:
-            self.assert_(isinstance(serial, Network))
-            self.assert_(isinstance(serial, SerialNetwork))
+            self.assertTrue(isinstance(serial, Network))
+            self.assertTrue(isinstance(serial, SerialNetwork))
 
     # XXX add more types here when more exist
 

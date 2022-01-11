@@ -25,8 +25,8 @@
 # USE THIS PRODUCT AT YOUR OWN RISK.
 # 
 import csv
-from Event      import Event
-from ValueEvent import ValueEvent
+from .Event      import Event
+from .ValueEvent import ValueEvent
 
 class InvalidFileFormat (Exception): pass
 class InvalidTimestamp (Exception): pass

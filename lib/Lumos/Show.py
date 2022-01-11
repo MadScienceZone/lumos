@@ -24,7 +24,7 @@
 #
 # USE THIS PRODUCT AT YOUR OWN RISK.
 # 
-import ConfigParser, inspect, sys
+import configparser, inspect, sys
 from Lumos.PowerSource             import PowerSource
 from Lumos.Network.Networks        import network_factory, supported_network_types
 from Lumos.Device.Controllers      import controller_unit_factory, supported_controller_types
@@ -67,7 +67,7 @@ def get_config_dict(conf, section, typemap, objlist=None):
                         raise KeyError('Value "{0}" in [{1}] field {2} not expected or valid'.format(
                             index, section, k))
             else:
-                raise ValueError, "Invalid typemap value for %s" % section
+                raise ValueError("Invalid typemap value for %s" % section)
         else:
             a_dict[k] = conf.get(section, k)
     return a_dict
@@ -126,7 +126,7 @@ class Show (object):
         '''
         self._clear()
 
-        show = ConfigParser.SafeConfigParser()
+        show = configparser.SafeConfigParser()
         if isinstance(file, (list, tuple)):
             for f in file:
                 show.readfp(f)
@@ -315,12 +315,12 @@ class Show (object):
 
     def _dump_ps_tree(self, file, parent):
         if parent.subordinates:
-            print >>file, "; -- subordinate{1} of {0}:".format(parent.id, '' if len(parent.subordinates)==1 else 's')
+            print("; -- subordinate{1} of {0}:".format(parent.id, '' if len(parent.subordinates)==1 else 's'), file=file)
             for order, sub in enumerate(parent.subordinates):
-                print >>file, "[power {0}]".format(sub.id)
-                print >>file, "disp_order={0}".format(order)
-                print >>file, "amps={0:f}".format(sub.amps)
-                print >>file
+                print("[power {0}]".format(sub.id), file=file)
+                print("disp_order={0}".format(order), file=file)
+                print("amps={0:f}".format(sub.amps), file=file)
+                print(file=file)
                 self._dump_ps_tree(file, sub)
 
     def save(self, file):
@@ -332,7 +332,7 @@ class Show (object):
                 return ''
             return '\n\t'.join(str(s).split('\n'))
 
-        print >>file, ''';
+        print(''';
 ; vim:set syntax=cfg:
 ; vi:set ts=4 sw=4 noexpandtab:
 ;
@@ -477,12 +477,12 @@ class Show (object):
 ;   title=...        The name of the show.
 ;   description=...  A longer description of the show.
 ;
-[show]'''
-        print >>file, "title="        + multiline(self.title)
-        print >>file, "description="  + multiline(self.description)
-        print >>file, "powersources=" + ' '.join(self.top_power_sources)
-        print >>file, "networks="     + ' '.join(sorted(self.networks))
-        print >>file, '''
+[show]''', file=file)
+        print("title="        + multiline(self.title), file=file)
+        print("description="  + multiline(self.description), file=file)
+        print("powersources=" + ' '.join(self.top_power_sources), file=file)
+        print("networks="     + ' '.join(sorted(self.networks)), file=file)
+        print('''
 ;___________________________________________________________________________
 ;POWER SOURCES
 ;
@@ -510,19 +510,19 @@ class Show (object):
 ;                    relative display position of this source amongst
 ;                    its siblings.  (optional)
 ;
-;'''
+;''', file=file)
 #        for powerID in sorted(self.all_power_sources):
 #            print >>file, "[power %s]" % powerID
 #            print >>file, "amps=%f"    % self.all_power_sources[powerID].amps
 #            #print >>file, "gfci=%s"    % ('yes' if self.all_power_sources[powerID].gfci else 'no')
 #            print >>file
         for powerID in self.top_power_sources:
-            print >>file, "[power {0}]".format(powerID)
-            print >>file, "amps={0:f}".format(self.all_power_sources[powerID].amps)
-            print >>file
+            print("[power {0}]".format(powerID), file=file)
+            print("amps={0:f}".format(self.all_power_sources[powerID].amps), file=file)
+            print(file=file)
             self._dump_ps_tree(file, self.all_power_sources[powerID])
 
-        print >>file, '''
+        print('''
 ;___________________________________________________________________________
 ;NETWORKS
 ;
@@ -575,7 +575,7 @@ class Show (object):
 ;
 ;   rtscts=yes/no   If yes, use RTS/CTS hardware flow control.  Default off.
 ;                   (serial)
-;'''
+;''', file=file)
         def dump_object_constructor(file, obj, typemap, skip=None, method=None):
             """
             Given a constructable* object, dump out a profile stanza
@@ -608,7 +608,7 @@ class Show (object):
             if typemap is not None:
                 for possible_type in typemap:
                     if type(obj) is typemap[possible_type]:
-                        print >>file, 'type=%s' % possible_type
+                        print('type=%s' % possible_type, file=file)
                         break
                 else:
                     raise ValueError('Cannot determine profile type-name of object "%s"' % o.id)
@@ -625,24 +625,24 @@ class Show (object):
                     continue
                 v = obj.__getattribute__(attribute_name)
                 if type(v) is bool:
-                    print >>file, "%s=%s" % (attribute_name, ('yes' if v else 'no'))
+                    print("%s=%s" % (attribute_name, ('yes' if v else 'no')), file=file)
                 elif v is not None:
-                    print >>file, "%s=%s" % (attribute_name, multiline(v))
+                    print("%s=%s" % (attribute_name, multiline(v)), file=file)
 
         global_controller_list = {}
         unit_network_id = {}
         channel_full_id = {}
-        for netID, o in sorted(self.networks.iteritems()):
-            print >>file, "[net %s]" % netID
+        for netID, o in sorted(self.networks.items()):
+            print("[net %s]" % netID, file=file)
             dump_object_constructor(file, o, supported_network_types, skip=('open_device',))
             
-            print >>file, "units=%s" % ' '.join(sorted(o.units))
-            print >>file
+            print("units=%s" % ' '.join(sorted(o.units)), file=file)
+            print(file=file)
             global_controller_list.update(o.units)
             for u in o.units:
                 unit_network_id[u] = netID
 
-        print >>file, '''
+        print('''
 ;___________________________________________________________________________
 ;CONTROLLER UNITS
 ;
@@ -675,19 +675,19 @@ class Show (object):
 ;   channels=n      For controllers with variable numbers of channels,
 ;                   specify how many are attached to this controller unit.
 ;                   (firegod, olsen595, renard, lumos)
-;'''
+;''', file=file)
         global_channel_list = {}
-        for unitID, o in sorted(global_controller_list.iteritems()):
-            print >>file, "[unit %s]" % unitID
+        for unitID, o in sorted(global_controller_list.items()):
+            print("[unit %s]" % unitID, file=file)
 #           print >>file, 'network=%s' % unit_network_id[unitID]
-            print >>file, 'power_source=%s' % o.power_source.id
+            print('power_source=%s' % o.power_source.id, file=file)
             typemap = {}
             for t in self.controller_typemaps:
                 typemap.update(t)
             dump_object_constructor(file, o, typemap, skip=('power_source', 'network', 'id'))
-            print >>file
+            print(file=file)
             global_channel_list[unitID] = o.channels
-        print >>file, '''
+        print('''
 ;___________________________________________________________________________
 ;CONTROLLER CHANNELS
 ;
@@ -724,19 +724,19 @@ class Show (object):
 ;
 ;   power_source=ID power source ID feeding this channel, if different from the
 ;                   one feeding the controller unit as a whole.
-;'''
-        for unitID, unit_channel_list in sorted(global_channel_list.iteritems()):
+;''', file=file)
+        for unitID, unit_channel_list in sorted(global_channel_list.items()):
             unitObj = global_controller_list[unitID]
-            for channelID, o in sorted(unit_channel_list.iteritems()):
-                print >>file, "[chan %s.%s]" % (unitID, channelID)
+            for channelID, o in sorted(unit_channel_list.items()):
+                print("[chan %s.%s]" % (unitID, channelID), file=file)
                 if o.warm is not None:
-                    print >>file, 'warm=%.2f' % o.pct_dimmer_value(o.warm)
+                    print('warm=%.2f' % o.pct_dimmer_value(o.warm), file=file)
                 if o.power_source is not None and o.power_source is not unitObj.power_source:
-                    print >>file, 'power_source=%s' % o.power_source.id
+                    print('power_source=%s' % o.power_source.id, file=file)
                 dump_object_constructor(file, o, None, skip=('id', 'warm', 'power_source'), method=unitObj.add_channel)
                 channel_full_id[id(o)] = '{0}.{1}'.format(unitID, channelID)
-                print >>file
-        print >>file, ''';
+                print(file=file)
+        print(''';
 ;___________________________________________________________________________
 ;VIRTUAL CHANNELS
 ;
@@ -758,18 +758,18 @@ class Show (object):
 ;                   list of channels.
 ;
 ;   color=#rrggbb   Color to use when representing the channel to the user.
-;'''
-        for v_id, v_obj in sorted(self.virtual_channels.iteritems()):
-            print >>file, "[virtual {0}]".format(v_id)
+;''', file=file)
+        for v_id, v_obj in sorted(self.virtual_channels.items()):
+            print("[virtual {0}]".format(v_id), file=file)
             dump_object_constructor(file, v_obj, supported_virtual_channel_types, skip=('id','channel'))
             if isinstance(v_obj.channel, (list,tuple)):
-                print >>file, "channel={0}".format(' '.join([channel_full_id[id(o)] for o in v_obj.channel]))
+                print("channel={0}".format(' '.join([channel_full_id[id(o)] for o in v_obj.channel])), file=file)
             else:
-                print >>file, "channel={0}".format(channel_full_id[id(v_obj.channel)])
+                print("channel={0}".format(channel_full_id[id(v_obj.channel)]), file=file)
                     
-            print >>file
+            print(file=file)
 
-        print >>file, ''';
+        print(''';
 ;___________________________________________________________________________
 ;GUI CONTROLS
 ;
@@ -781,17 +781,17 @@ class Show (object):
 ;   virtual_channel_display_order:
 ;                   Newline-separated list of virtual channel IDs in the
 ;                   order in which they should appear on-screen.
-;'''
+;''', file=file)
         if self.gui.virtual_channel_display_order:
-            print >>file, "virtual_channel_display_order:"
+            print("virtual_channel_display_order:", file=file)
             for vc_id in self.gui.virtual_channel_display_order:
-                print >>file, "    {0}".format(vc_id)
+                print("    {0}".format(vc_id), file=file)
         
-        print >>file, ''';
+        print(''';
 ;___________________________________________________________________________
 ;
 ; End Configuration Profile.
-;___________________________________________________________________________'''
+;___________________________________________________________________________''', file=file)
 
     def save_file(self, filename):
         output = open(filename, "w")

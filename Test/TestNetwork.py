@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS 
 # $Header: /tmp/cvsroot/lumos/Test/TestNetwork.py,v 1.3 2008-12-31 00:13:32 steve Exp $
@@ -53,14 +52,14 @@ class TestNetwork (Network):
 
     def send(self, cmd):
         "Send a command string to the hardware device."
-        if self.closed: raise ValueError, "Device already closed!"
+        if self.closed: raise ValueError("Device already closed!")
         if cmd:
             self.buffer += encodestring(cmd)
 
     def close(self):
         """Close the network device; no further operations are
         possible for it."""
-        if self.closed: raise ValueError, "Device already closed!"
+        if self.closed: raise ValueError("Device already closed!")
         self.closed = True
 
     def reset(self):

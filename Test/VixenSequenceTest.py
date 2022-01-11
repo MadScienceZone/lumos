@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS 
 # $Header: /tmp/cvsroot/lumos/Test/VixenSequenceTest.py,v 1.2 2008-12-31 00:13:32 steve Exp $
@@ -133,9 +132,9 @@ class VixenSequenceTest(unittest.TestCase):
         self.assertEqual(d.color, (255,255,255))
         self.assertEqual(e.color, (255,0,0))
 
-        self.assert_(c.enabled)
-        self.assert_(d.enabled)
-        self.assert_(not e.enabled)
+        self.assertTrue(c.enabled)
+        self.assertTrue(d.enabled)
+        self.assertTrue(not e.enabled)
 
         self.assertEqual(c.output, '0')
         self.assertEqual(d.output, '2')

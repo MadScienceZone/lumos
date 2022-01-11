@@ -145,6 +145,6 @@ class ValueEvent:
         return "<ValueEvent %s(%s)->%s(%s) (%dmS)>" % (
             '*' if self.vchannel is None else self.vchannel.id,
             '*' if self.vchannel is None else id(self.vchannel),
-            `self.level`, `self.raw_level`,
+            repr(self.level), repr(self.raw_level),
             self.delta
         )

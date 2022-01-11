@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS NETWORK DRIVER: BIT-AT-A-TIME OVER PARALLEL PORT
 # $Header: /tmp/cvsroot/lumos/lib/Lumos/Network/ParallelBitNetwork.py,v 1.3 2008-12-31 00:25:19 steve Exp $
@@ -93,17 +92,17 @@ else:
             if self.diversion is None:
                 self.diversion = []
 
-        def end_divert_output(self):
+        def end_divert_output(self) -> bytes:
             if self.diversion is not None:
-                data = ''.join(self.diversion)
+                data = b''.join(self.diversion)
                 self.diversion = None
                 return data
             else:
                 return ''
 
-        def send(self, bit):
+        def send(self, bit: int):
             if self.diversion is not None:
-                self.diversion.append(chr(bit))
+                self.diversion.append(chr(bit).encode())
             elif self.dev is not None:
                 self.dev.setData(bit)
                 self.dev.setDataStrobe(1)

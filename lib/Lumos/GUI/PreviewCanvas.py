@@ -24,14 +24,14 @@
 # USE THIS PRODUCT AT YOUR OWN RISK.
 # 
 ########################################################################
-import ttk, Tkinter, tkFont
-import tkMessageBox, tkFileDialog
+import tkinter.ttk, tkinter, tkinter.font
+import tkinter.messagebox, tkinter.filedialog
 import os.path, math, sys
 #import Lumos.GUI.Icons as Icons
 import traceback
 TBLIM=5
 
-from Tkconstants              import *
+from tkinter.constants              import *
 from Lumos.VirtualChannel     import VirtualChannel
 #from Lumos.PowerSource        import PowerSource
 #from Lumos.Network.Networks   import network_factory, supported_network_types
@@ -39,13 +39,13 @@ from Lumos.VirtualChannel     import VirtualChannel
 #from Lumos.Network            import NullNetwork
 
 def debug(message):
-    print "DEBUG:", message
+    print("DEBUG:", message)
 
-class PreviewCanvas (ttk.Frame):
+class PreviewCanvas (tkinter.ttk.Frame):
     '''Display a drawing surface to visualize the show light effects.'''
 
     def __init__(self, show, sequence, *args, **kwargs):
-        ttk.Frame.__init__(self, *args, **kwargs)
+        tkinter.ttk.Frame.__init__(self, *args, **kwargs)
         self.show = show
         self.sequence = sequence
         self.file_name = None
@@ -78,26 +78,26 @@ class PreviewCanvas (ttk.Frame):
 # XXX or zoom controls?
 
     def gui_setup(self):
-        self.toolbar_frame = ttk.Frame(self)
+        self.toolbar_frame = tkinter.ttk.Frame(self)
         self.toolbar_frame.pack(side=TOP, fill=X)
-        self.canvas = Tkinter.Canvas(self)
+        self.canvas = tkinter.Canvas(self)
         self.canvas.pack(expand=True, fill=BOTH)
 
 
 
 
-        self.grid_frame = ttk.Frame(self)
+        self.grid_frame = tkinter.ttk.Frame(self)
         self.grid_frame.pack(expand=True, fill=BOTH)
         self.grid_frame.rowconfigure(1, weight=2)
         self.grid_frame.columnconfigure(1, weight=2)
-        self.vc_canvas = Tkinter.Canvas(self.grid_frame)
+        self.vc_canvas = tkinter.Canvas(self.grid_frame)
         self.vc_canvas.grid(column=0, row=1, sticky=N+S+W+E)
-        self.tl_canvas = Tkinter.Canvas(self.grid_frame)
+        self.tl_canvas = tkinter.Canvas(self.grid_frame)
         self.tl_canvas.grid(column=1, row=0, sticky=N+S+W+E)
-        self.ev_canvas = Tkinter.Canvas(self.grid_frame)
+        self.ev_canvas = tkinter.Canvas(self.grid_frame)
         self.ev_canvas.grid(column=1, row=1, sticky=N+S+W+E)
-        self.vsb = ttk.Scrollbar(self.grid_frame, orient=VERTICAL)
-        self.hsb = ttk.Scrollbar(self.grid_frame, orient=HORIZONTAL)
+        self.vsb = tkinter.ttk.Scrollbar(self.grid_frame, orient=VERTICAL)
+        self.hsb = tkinter.ttk.Scrollbar(self.grid_frame, orient=HORIZONTAL)
         self.vsb.grid(column=2, row=1, sticky=N+S)
         self.hsb.grid(column=1, row=2, sticky=E+W)
 
@@ -160,17 +160,17 @@ class PreviewCanvas (ttk.Frame):
                     self.delete_event_object(at_timestamp, to_replace_object)
                     self.sequence.add(at_timestamp, new_copy)
                 except ValueError as e:
-                    tkMessageBox.showerror("Can't Paste (Replace) Event", "Unable to paste that kind of event here: {0}".format(e))
+                    tkinter.messagebox.showerror("Can't Paste (Replace) Event", "Unable to paste that kind of event here: {0}".format(e))
                 finally:
                     self.refresh()
             else:
                 try:
-                    print "changing channel in {0} to {1}".format(new_copy, for_vchannel.id)
+                    print("changing channel in {0} to {1}".format(new_copy, for_vchannel.id))
                     new_copy.change_channel(for_vchannel, permissive=True)
                     self.sequence.add(at_timestamp, new_copy)
                     self.note_changed()
                 except ValueError as e:
-                    tkMessageBox.showerror("Can't Paste Event", "Unable to paste event into that space: {0}".format(e))
+                    tkinter.messagebox.showerror("Can't Paste Event", "Unable to paste event into that space: {0}".format(e))
                 finally:
                     self.refresh()
 
@@ -183,45 +183,45 @@ class PreviewCanvas (ttk.Frame):
         # Is this an area where there's already an event?
         #
         for element_id in self.ev_canvas.find_overlapping(eventx, eventy, eventx, eventy):
-            print "on_grid_menu(): trying {0}".format(element_id)
+            print("on_grid_menu(): trying {0}".format(element_id))
             for tag in self.ev_canvas.gettags(element_id):
-                print "   trying tag {0}".format(tag)
+                print("   trying tag {0}".format(tag))
                 if tag.startswith('EV:'):
                     timestamp, event_obj_id = [int(i) for i in tag.split(':')[1:3]]
-                    print "      Found timestamp={0} ({1}), object={2}".format(
+                    print("      Found timestamp={0} ({1}), object={2}".format(
                         timestamp, self.timestamp_to_text(timestamp), event_obj_id
-                    )
+                    ))
                     try:
                         for event_obj in self.sequence.events_at(timestamp):
-                            print "         Sequence event {0} vs {1}".format(id(event_obj), event_obj_id)
+                            print("         Sequence event {0} vs {1}".format(id(event_obj), event_obj_id))
                             if id(event_obj) == event_obj_id:
-                                print "            Matched! executing on_event_menu({0}, {1}, {2}, {3})".format(
-                                    e, element_id, event_obj, timestamp)
+                                print("            Matched! executing on_event_menu({0}, {1}, {2}, {3})".format(
+                                    e, element_id, event_obj, timestamp))
                                 return self.on_event_menu(e, element_id, event_obj, timestamp)
-                        tkMessageBox.showerror("Error posting context menu",
+                        tkinter.messagebox.showerror("Error posting context menu",
                             "Can't find that event at time {0}".format(self.timestamp_to_text(timestamp)))
                         return
                     except KeyError:
-                        tkMessageBox.showerror("Error posting context menu",
+                        tkinter.messagebox.showerror("Error posting context menu",
                             "Can't find any events for time mark {0}".format(self.timestamp_to_text(timestamp)))
                         return
                     except ValueError as e:
-                        tkMessageBox.showerror("Error processing context menu",
+                        tkinter.messagebox.showerror("Error processing context menu",
                             "Error handling context menu for event: {0}".format(e))
                         return
         #
         # No appropriate tags found
         # so we're clicking on an empty part of the board.
         # 
-        print "Context menu in open space at ({0},{1})".format(eventx, eventy)
-        print "_xcoord_to_time({0}) -> {1}".format(eventx, self._xcoord_to_time(eventx))
-        print "_ycoord_to_vchannel({0}) -> {1}".format(eventy, self._ycoord_to_vchannel(eventy))
+        print("Context menu in open space at ({0},{1})".format(eventx, eventy))
+        print("_xcoord_to_time({0}) -> {1}".format(eventx, self._xcoord_to_time(eventx)))
+        print("_ycoord_to_vchannel({0}) -> {1}".format(eventy, self._ycoord_to_vchannel(eventy)))
 
         timestamp = self._xcoord_to_time(eventx)
         time_string = self.timestamp_to_text(timestamp)
         target_channel = self._ycoord_to_vchannel(eventy)
 
-        cx = Tkinter.Menu(self, tearoff=False)
+        cx = tkinter.Menu(self, tearoff=False)
         time_string = self.timestamp_to_text(timestamp)
         cx.add_command(label="New event @{0}...".format(time_string), command=lambda t=timestamp, c=target_channel: self.add_event(t, c))
         if self.event_clipboard is not None:
@@ -233,7 +233,7 @@ class PreviewCanvas (ttk.Frame):
 
     def on_event_menu(self, e, widget_id, event_obj, event_time):
         # context menu for an event object
-        cx = Tkinter.Menu(self, tearoff=False)
+        cx = tkinter.Menu(self, tearoff=False)
         time_string = self.timestamp_to_text(event_time) #'{0:02d}:{1:06.3f}'.format(int(event_time // 60), event_time % 60)
 
         cx.add_command(label="Change Event {0}@{1}...".format(
@@ -268,23 +268,23 @@ class PreviewCanvas (ttk.Frame):
 
     def add_event(self, target_time, target_vchannel_obj):
         "Prompt the user to add a new event"
-        print "add_event(time={0}, channel={1}".format(target_time, target_vchannel_obj)
+        print("add_event(time={0}, channel={1}".format(target_time, target_vchannel_obj))
         EventEditorDialog(self, self, target_time, vchannel=target_vchannel_obj[1])
 
     def delete_event_object(self, target_time, target_event_obj):
         try:
             self.sequence.delete_event_at(target_time, target_event_obj)
         except KeyError:
-            tkMessageBox.showerror("Can't Delete Event", 
+            tkinter.messagebox.showerror("Can't Delete Event", 
                 "Time {0} was not found in the sequence.".format(self.timestamp_to_text(target_time)))
         except ValueError:
-            tkMessageBox.showerror("Can't Delete Event", "Unable to locate this event in the sequence.")
+            tkinter.messagebox.showerror("Can't Delete Event", "Unable to locate this event in the sequence.")
         else:
             self.note_changed()
             self.refresh()
 
     def edit_event_object(self, target_event_obj):
-        print "Edit {0}".format(target_event_obj)
+        print("Edit {0}".format(target_event_obj))
 
     def draw_event_grid(self):
         self.tl_canvas.delete('time')
@@ -431,7 +431,7 @@ class PreviewCanvas (ttk.Frame):
 
             try:
                 self.ev_canvas.tag_raise('point','cont')
-            except Tkinter.TclError:
+            except tkinter.TclError:
                 pass
 
     def draw_channels(self):
@@ -679,62 +679,62 @@ class PreviewCanvas (ttk.Frame):
 #        
 #
 
-class LumosGenericDialog(ttk.Frame):
+class LumosGenericDialog(tkinter.ttk.Frame):
     def __init__(self, parent, sequencer):
-        dialog = Tkinter.Toplevel()
+        dialog = tkinter.Toplevel()
         dialog.transient(parent)
-        ttk.Frame.__init__(self, dialog)
+        tkinter.ttk.Frame.__init__(self, dialog)
         self.pack(side=TOP, expand=True, fill=BOTH)
         self._L_field_info = {}
 
     def _set_form(self, id, fields):
-        f = ttk.Frame(self)
+        f = tkinter.ttk.Frame(self)
         self._L_field_info[id] = {}
 
         for row, field_spec in enumerate(fields):
             tag, control_type, label = field_spec
 
-            l = ttk.Label(f, text=label)
+            l = tkinter.ttk.Label(f, text=label)
             if control_type == 'toggle':
-                v = Tkinter.IntVar()
-                w = ttk.Frame(f)
+                v = tkinter.IntVar()
+                w = tkinter.ttk.Frame(f)
 
-                ttk.Radiobutton(w, text='Off', value=0, variable=v).pack(side=LEFT)
-                ttk.Radiobutton(w, text='On',  value=1, variable=v).pack(side=LEFT)
+                tkinter.ttk.Radiobutton(w, text='Off', value=0, variable=v).pack(side=LEFT)
+                tkinter.ttk.Radiobutton(w, text='On',  value=1, variable=v).pack(side=LEFT)
             elif control_type == 'dimmer':
-                v = Tkinter.DoubleVar()
-                v2= Tkinter.StringVar()
-                w = ttk.Frame(f)
+                v = tkinter.DoubleVar()
+                v2= tkinter.StringVar()
+                w = tkinter.ttk.Frame(f)
                 
                 v2.set('  0.0%')
-                ttk.Scale(w, from_=0.0, to=100.0, variable=v, 
+                tkinter.ttk.Scale(w, from_=0.0, to=100.0, variable=v, 
                           command=lambda x, v=v, v2=v2: v2.set("{0:5.1f}%".format(v.get()))).pack(side=LEFT)
-                ttk.Label(w, textvariable=v2).pack(side=LEFT)
+                tkinter.ttk.Label(w, textvariable=v2).pack(side=LEFT)
 
             elif control_type == 'time':
-                vm= Tkinter.StringVar()
-                vs= Tkinter.StringVar()
+                vm= tkinter.StringVar()
+                vs= tkinter.StringVar()
                 v = (vm,vs)
 
                 vm.set('0')
                 vs.set('0.000')
 
-                w = ttk.Frame(f)
+                w = tkinter.ttk.Frame(f)
                 v1= self.register(self._validate_time_min)
                 v2= self.register(self._validate_time_sec)
 
-                ttk.Entry(w, width=3, justify=RIGHT, validate='all', validatecommand=(v1, '%V', '%S', '%P'),
+                tkinter.ttk.Entry(w, width=3, justify=RIGHT, validate='all', validatecommand=(v1, '%V', '%S', '%P'),
                         textvariable=vm).pack(side=LEFT)
-                ttk.Label(w, text=':').pack(side=LEFT)
-                ttk.Entry(w, width=7, justify=RIGHT, validate='all', validatecommand=(v2, '%V', '%S', '%P'),
+                tkinter.ttk.Label(w, text=':').pack(side=LEFT)
+                tkinter.ttk.Entry(w, width=7, justify=RIGHT, validate='all', validatecommand=(v2, '%V', '%S', '%P'),
                         textvariable=vs).pack(side=LEFT)
 
             elif control_type == 'channel':
                 v = None
-                w = ttk.Frame(f)
+                w = tkinter.ttk.Frame(f)
             else:
                 v = None
-                w = ttk.Frame(f)
+                w = tkinter.ttk.Frame(f)
                 
             l.grid(row=row, column=0, sticky=W)
             w.grid(row=row, column=1, sticky=W)
@@ -743,13 +743,13 @@ class LumosGenericDialog(ttk.Frame):
         f.pack(side=TOP, expand=True, fill=BOTH)
 
     def _set_cancel_save_buttons(self):
-        buttons = ttk.Frame(self)
+        buttons = tkinter.ttk.Frame(self)
         buttons.pack(side=BOTTOM, anchor=S)
-        ttk.Button(buttons, text="Cancel", command=self.master.destroy).pack(side=LEFT)
-        ttk.Button(buttons, text="Save",   command=self._save).pack(side=RIGHT)
+        tkinter.ttk.Button(buttons, text="Cancel", command=self.master.destroy).pack(side=LEFT)
+        tkinter.ttk.Button(buttons, text="Save",   command=self._save).pack(side=RIGHT)
 
     def _save(self):
-        tkMessageBox.showerror("No Save", "The save operation for this dialog is not implemented.")
+        tkinter.messagebox.showerror("No Save", "The save operation for this dialog is not implemented.")
 
     def _validate_time_min(self, operation, insertvalue, fullvalue):
         if operation=='key' and insertvalue not in '0123456789':
@@ -1241,13 +1241,13 @@ class Application (PreviewCanvas):
         self.view_file_name = None
         self.sequence_file_name = None
 
-        menu_bar = Tkinter.Menu(self)
+        menu_bar = tkinter.Menu(self)
         self.master.config(menu=menu_bar)
         self.master.title("Lumos Sequence Previewer")
         self.menu_objects = {}
 
         def create_menu(parent, title, item_list):
-            self.menu_objects[title] = this_menu = Tkinter.Menu(parent, tearoff=False)
+            self.menu_objects[title] = this_menu = tkinter.Menu(parent, tearoff=False)
             parent.add_cascade(label=title, menu=this_menu)
             accelerator_idx = {
                 'darwin':   1,
@@ -1328,7 +1328,7 @@ class Application (PreviewCanvas):
 
     def load_config(self, *a):
         if not self.show.loaded:
-            file_name = tkFileDialog.askopenfilename(
+            file_name = tkinter.filedialog.askopenfilename(
                 filetypes=(('Lumos Show Configuration File', '.conf'), ('All Files', '*')),
                 defaultextension=".conf",
                 initialdir=os.getcwd(),
@@ -1362,14 +1362,14 @@ class Application (PreviewCanvas):
         self.set_title()
 
     def check_unsaved_first(self):
-        return self.modified_since_saved and not tkMessageBox.askokcancel('Unsaved Changes', '''
+        return self.modified_since_saved and not tkinter.messagebox.askokcancel('Unsaved Changes', '''
 You have made {0} change{1} which {2} been saved.  Are you sure?
 If you continue, you will lose {3} change{1}!'''.format(
     self.modified_since_saved,
     '' if self.modified_since_saved == 1 else 's',
     "hasn't" if self.modified_since_saved == 1 else "haven't",
     'that' if self.modified_since_saved == 1 else 'those',
-), default=tkMessageBox.CANCEL)
+), default=tkinter.messagebox.CANCEL)
         
     def new_file(self):
         if self.check_unsaved_first(): return
@@ -1381,7 +1381,7 @@ If you continue, you will lose {3} change{1}!'''.format(
 
     def open_file(self):
         if self.check_unsaved_first(): return
-        file_name = tkFileDialog.askopenfilename(
+        file_name = tkinter.filedialog.askopenfilename(
             filetypes=(('Lumos Sequence File', '.lseq'), ('All Files', '*')),
             defaultextension=".lseq",
             initialdir=os.getcwd(),
@@ -1393,7 +1393,7 @@ If you continue, you will lose {3} change{1}!'''.format(
                 seq = Sequence()
                 seq.load_file(file_name, self.show.controllers, self.show.virtual_channels)
             except Exception as err:
-                tkMessageBox.showerror("Unable to load file", "Error: {0}".format(traceback.format_exc(TBLIM)))
+                tkinter.messagebox.showerror("Unable to load file", "Error: {0}".format(traceback.format_exc(TBLIM)))
             else:
                 self.clear_changes()
                 self.sequence = seq
@@ -1408,7 +1408,7 @@ If you continue, you will lose {3} change{1}!'''.format(
             try:
                 self.sequence.save_file(self.file_name)
             except Exception as err:
-                tkMessageBox.showerror("Error Saving Sequence", "Error writing {1}: {0}".format(traceback.format_exc(0), self.file_name))
+                tkinter.messagebox.showerror("Error Saving Sequence", "Error writing {1}: {0}".format(traceback.format_exc(0), self.file_name))
             else:
                 self.clear_changes()
 
@@ -1419,7 +1419,7 @@ If you continue, you will lose {3} change{1}!'''.format(
         else:
             f_dir, f_name = os.path.split(self.file_name)
 
-        file_name = tkFileDialog.asksaveasfilename(
+        file_name = tkinter.filedialog.asksaveasfilename(
             defaultextension='.lseq',
             filetypes=(('Lumos Sequence ', '*.lseq'), ('All Files', '*')),
             initialdir=f_dir,
@@ -1443,7 +1443,7 @@ if __name__ == "__main__":
 #        except Exception:
 #            pass
 
-    root = Tkinter.Tk()
+    root = tkinter.Tk()
     show = Show()
     seq = Sequence()
     app = Application(show, seq, master=root)

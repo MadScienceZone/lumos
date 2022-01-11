@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# vi:set ai sm nu ts=4 sw=4 expandtab:
+#!/usr/bin/env python3
 #
 # LUMOS GUI TEST RUNNER
 # $Header: /tmp/cvsroot/lumos/Test/testrunner,v 1.3 2008-12-31 00:13:32 steve Exp $
@@ -30,45 +29,52 @@ import sys, unittestgui
 #sys.path.append('../lib')
 sys.path.insert(0, '../lib')
 import Test
-import Tkinter
+import tkinter
 import traceback
 import string
-tk = Tkinter
+tk = tkinter
 
 class MyGUI (unittestgui.TkTestRunner):
     def __init__(self, *a, **k):
         unittestgui.TkTestRunner.__init__(self, *a, **k)
         self.SKIP_WARNINGS = []
 
-	def notifyTestFailed(self, test, err):
-		self.failCountVar.set(1 + self.failCountVar.get())
-		self.errorListbox.insert(tk.END, "Failure: {0}: {1}".format(test, err[1].message[:100]))
-		self.errorInfo.append((test, err))
+    def notifyTestFailed(self, test, err):
+        self.failCountVar.set(1 + self.failCountVar.get())
+        try:
+            self.errorListbox.insert(tk.END, "Failure: {0}: {1}".format(test, err[1].message[:100]))
+        except:
+            self.errorListbox.insert(tk.END, "Failure: {0}: {1}".format(test, str(err[1])[:100]))
 
-	def notifyTestErrored(self, test, err):
-		self.errorCountVar.set(1 + self.errorCountVar.get())
-		self.errorListbox.insert(tk.END, "Error: {0}: {1}".format(test, err[1].message[:100]))
-		self.errorInfo.append((test, err))
-	
-	def showSelectedError(self):
-		selection = self.errorListbox.curselection()
-		if not selection: return
-		selected = int(selection[0])
-		txt = self.errorListbox.get(selected)
-		window = tk.Toplevel(self.root)
-		window.title(txt)
-		window.protocol('WM_DELETE_WINDOW', window.quit)
-		test, error = self.errorInfo[selected]
-		tk.Label(window, text=str(test),
-			foreground="red", justify=tk.LEFT).pack(anchor=tk.W)
-		tracebackLines = apply(traceback.format_exception, error + (10,))
-		tracebackText = string.join(tracebackLines,'\n')
-		tk.Label(window, text=tracebackText, justify=tk.LEFT).pack()
-		tk.Button(window, text="Close",
-			command=window.quit).pack(side=tk.BOTTOM)
-		window.bind('<Key-Return>', lambda e, w=window: w.quit())
-		window.mainloop()
-		window.destroy()
+        self.errorInfo.append((test, err))
+
+    def notifyTestErrored(self, test, err):
+        self.errorCountVar.set(1 + self.errorCountVar.get())
+        try:
+            self.errorListbox.insert(tk.END, "Error: {0}: {1}".format(test, err[1].message[:100]))
+        except:
+            self.errorListbox.insert(tk.END, "Error: {0}: {1}".format(test, str(err[1])[:100]))
+        self.errorInfo.append((test, err))
+    
+    def showSelectedError(self):
+        selection = self.errorListbox.curselection()
+        if not selection: return
+        selected = int(selection[0])
+        txt = self.errorListbox.get(selected)
+        window = tk.Toplevel(self.root)
+        window.title(txt)
+        window.protocol('WM_DELETE_WINDOW', window.quit)
+        test, error = self.errorInfo[selected]
+        tk.Label(window, text=str(test),
+            foreground="red", justify=tk.LEFT).pack(anchor=tk.W)
+        tracebackLines = traceback.format_exception(*error + (10,))
+        tracebackText = '\n'.join(tracebackLines)
+        tk.Label(window, text=tracebackText, justify=tk.LEFT).pack()
+        tk.Button(window, text="Close",
+            command=window.quit).pack(side=tk.BOTTOM)
+        window.bind('<Key-Return>', lambda e, w=window: w.quit())
+        window.mainloop()
+        window.destroy()
 
     def notifyRunning(self):
         Test.reset_accumulated_warnings()

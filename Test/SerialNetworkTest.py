@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS 
 # $Header: /tmp/cvsroot/lumos/Test/SerialNetworkTest.py,v 1.2 2008-12-31 00:13:32 steve Exp $
@@ -46,8 +45,8 @@ class SerialNetworkTest (unittest.TestCase):
             self.assertEqual(n.bits, 7)
             self.assertEqual(n.parity, 'even')
             self.assertEqual(n.stop, 2)
-            self.assert_(n.xonxoff)
-            self.assert_(n.rtscts)
+            self.assertTrue(n.xonxoff)
+            self.assertTrue(n.rtscts)
 
     def testDefaults(self):
         n = network_factory(type='serial', open_device=False)
@@ -61,8 +60,8 @@ class SerialNetworkTest (unittest.TestCase):
             self.assertEqual(n.bits, 8)
             self.assertEqual(n.parity, 'none')
             self.assertEqual(n.stop, 1)
-            self.assert_(not n.xonxoff)
-            self.assert_(not n.rtscts)
+            self.assertTrue(not n.xonxoff)
+            self.assertTrue(not n.rtscts)
 
     def test_no_open(self):
         n = network_factory(type='serial', open_device=False)

@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS 
 # $Header: /tmp/cvsroot/lumos/Test/FirecrackerX10ControllerUnitTest.py,v 1.5 2008-12-31 00:13:32 steve Exp $
@@ -62,9 +61,9 @@ class FirecrackerX10ControllerUnitTest (unittest.TestCase):
         self.assertEqual(self.fc.type, 'X-10 CM17a "Firecracker" Controller')
         self.assertEqual(str(self.fc), 'X-10 CM17a "Firecracker" Controller')
         self.assertEqual(self.fc.resolution, 21)
-        self.assert_(isinstance(self.fc, FirecrackerX10ControllerUnit))
-        self.assert_(isinstance(self.fc, X10ControllerUnit))
-        self.assert_(isinstance(self.fc, ControllerUnit))
+        self.assertTrue(isinstance(self.fc, FirecrackerX10ControllerUnit))
+        self.assertTrue(isinstance(self.fc, X10ControllerUnit))
+        self.assertTrue(isinstance(self.fc, ControllerUnit))
 
     def test_unit_id(self):
         "In response to a design change (controller units should track their on ID)."
@@ -102,7 +101,7 @@ class FirecrackerX10ControllerUnitTest (unittest.TestCase):
         self.assertEqual(PP(self.n.buffer), P(['`=10','=04X','=04x','`0']))
 
     def test_iterator(self):
-        self.assertEquals(sorted(self.fc.iter_channels()), ['A1','A2','B7','M16'])
+        self.assertEqual(sorted(self.fc.iter_channels()), ['A1','A2','B7','M16'])
 # 
 # $Log: not supported by cvs2svn $
 #

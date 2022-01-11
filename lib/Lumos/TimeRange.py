@@ -40,14 +40,14 @@ class TimeRange (object):
                 if m:
                     skip = 1 if m.group('skip') is None else int(m.group('skip'))
                     if m.group('range') == '*':
-                        self.list.extend(range(first, last+1, skip))
+                        self.list.extend(list(range(first, last+1, skip)))
                     else:
                         start = int(m.group('start'))
                         end = int(m.group('end'))
 
                         if not first <= start <= end <= last or not 0 <= skip <= last:
                             raise InvalidTimeRange("Start time can't be after end time in {0}.".format(v))
-                        self.list.extend(range(start, end+1, skip))
+                        self.list.extend(list(range(start, end+1, skip)))
                 else:
                     if not first <= int(v) <= last:
                         raise InvalidTimeRange("Value {0} out of range {1}-{2}".format(v, first, last))

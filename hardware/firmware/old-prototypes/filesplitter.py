@@ -43,7 +43,7 @@ mainOutput = None
 def token(option, opt_str, value, parser):
 	key = value[0].lower()
 	if key in diversionOutput:
-		raise KeyError, "Diversion target '%s' already defined" % value[0]
+		raise KeyError("Diversion target '%s' already defined" % value[0])
 	diversionOutput[key] = open(value[1], "w")
 
 parser = optparse.OptionParser()
@@ -57,13 +57,13 @@ parser.set_defaults(proc='877')
 
 if options.output is None:
 	if len(diversionOutput) == 0:
-		print >> sys.stderr, "No output stream specified"
+		print("No output stream specified", file=sys.stderr)
 		sys.exit(1)
 else:
 	mainOutput = open(options.output, "w")
 
 if len(files) != 1:
-	print >> sys.stderr, "Exactly one input filename is required."
+	print("Exactly one input filename is required.", file=sys.stderr)
 	sys.exit(1)
 
 mainInput = open(files[0], "r")
@@ -82,10 +82,10 @@ for line in mainInput:
 	if match is not None:
 		if match.group(1).lower() != options.proc.lower(): 
 			if options.verbose:
-				print "Excluded", line
+				print("Excluded", line)
 			continue
 		elif options.verbose:
-			print "Included", line
+			print("Included", line)
 
 	match = tok_re.search(line)
 	if match is not None:
@@ -95,15 +95,15 @@ for line in mainInput:
 		elif dt in diversionOutput:
 			divertTo = diversionOutput[dt]
 		else:
-			print >> sys.stderr, "Warning: File refers to diversion target '%s' which has no output file. (IGNORED)" % dt
+			print("Warning: File refers to diversion target '%s' which has no output file. (IGNORED)" % dt, file=sys.stderr)
 		continue
 
 	if mainOutput is not None:
-		print >> mainOutput, line
+		print(line, file=mainOutput)
 
 	if divertTo is None:
 		# send to all outputs
 		for k in diversionOutput:
-			print >> diversionOutput[k], line
+			print(line, file=diversionOutput[k])
 	else:
-		print >> divertTo, line
+		print(line, file=divertTo)

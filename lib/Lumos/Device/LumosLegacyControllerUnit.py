@@ -52,7 +52,7 @@ class LumosLegacyControllerUnit (ControllerUnit):
         self.num_channels=48
         #self.iter_channels = self._iter_non_null_channel_list
         if not 0 <= self.address <= 15:
-            raise ValueError, "Address %d out of range for Lumos 48-Channel SSR Controller" % self.address
+            raise ValueError("Address %d out of range for Lumos 48-Channel SSR Controller" % self.address)
 
     def __str__(self):
         return "%s, address=%d" % (self.type, self.address)
@@ -68,7 +68,7 @@ class LumosLegacyControllerUnit (ControllerUnit):
             id = int(id)
             assert 0 <= id <= 47
         except:
-            raise ValueError, "Lumos 48SSR channel IDs must be integers from 0-47"
+            raise ValueError("Lumos 48SSR channel IDs must be integers from 0-47")
 
         if resolution is not None:
             resolution = int(resolution)

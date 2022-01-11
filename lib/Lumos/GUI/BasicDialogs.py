@@ -182,7 +182,7 @@ class UniqueNodeValidator (DataTransferValidator):
             # data fields should fit the desired data types
             try:
                 self.classType(v)
-            except Exception, e:
+            except Exception as e:
                 return self._tagFieldInvalid('Invalid value entered (%s)' % e)
                 
         return self._tagFieldValid()

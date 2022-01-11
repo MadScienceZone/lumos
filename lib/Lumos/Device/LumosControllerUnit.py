@@ -28,6 +28,7 @@
 # 
 from Lumos.ControllerUnit import ControllerUnit
 import time
+from functools import reduce
 
 class DeviceProtocolError (Exception): pass
 class InternalDeviceError (Exception): pass
@@ -178,7 +179,7 @@ class LumosControllerUnit (ControllerUnit):
             # a one-byte "all channels off" command.
             #
             byte_count=0
-            if sum([i.level or 0 for i in self.channels.values()]) == 0:
+            if sum([i.level or 0 for i in list(self.channels.values())]) == 0:
                 self.network.send(chr(0x80 | self.address))
                 byte_count += 1
             else:

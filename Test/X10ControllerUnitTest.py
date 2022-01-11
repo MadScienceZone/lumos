@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS 
 # $Header: /tmp/cvsroot/lumos/Test/X10ControllerUnitTest.py,v 1.4 2008-12-31 00:13:32 steve Exp $
@@ -44,14 +43,14 @@ class X10ControllerUnitTest (unittest.TestCase):
         self.n = None
 
     def test_unit_id(self):
-        self.assertEquals(self.x10.id, 'myx10')
+        self.assertEqual(self.x10.id, 'myx10')
 
     def testCons(self):
         self.assertEqual(self.x10.type, 'X-10 Controller')
         self.assertEqual(str(self.x10), 'X-10 Controller')
         self.assertEqual(self.x10.resolution, 16)
-        self.assert_(isinstance(self.x10, X10ControllerUnit))
-        self.assert_(isinstance(self.x10, ControllerUnit))
+        self.assertTrue(isinstance(self.x10, X10ControllerUnit))
+        self.assertTrue(isinstance(self.x10, ControllerUnit))
 
     def test_add_channel_noload(self):
         self.assertRaises(ValueError, self.x10.add_channel, ('a1',))
@@ -75,7 +74,7 @@ class X10ControllerUnitTest (unittest.TestCase):
         self.x10.add_channel('c8', load=1)
         self.x10.add_channel('f7', load=1)
         self.x10.add_channel('m10', load=1)
-        self.assertEquals(sorted(self.x10.iter_channels()), ['B7','C8','F7','M10'])
+        self.assertEqual(sorted(self.x10.iter_channels()), ['B7','C8','F7','M10'])
 # 
 # $Log: not supported by cvs2svn $
 #

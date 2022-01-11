@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS 
 # $Header: /tmp/cvsroot/lumos/Test/ControllerUnitTest.py,v 1.5 2008-12-31 00:13:32 steve Exp $
@@ -40,14 +39,14 @@ class ControllerUnitTest (unittest.TestCase):
     def test_subclass_cons(self):
         p = PowerSource('testpower', amps=1)
         lynx = controller_unit_factory(type='lynx10', id='lx10', power_source=p, network=None)
-        self.assert_(isinstance(lynx, ControllerUnit))
-        self.assert_(isinstance(lynx, X10ControllerUnit))
-        self.assert_(isinstance(lynx, LynX10ControllerUnit))
+        self.assertTrue(isinstance(lynx, ControllerUnit))
+        self.assertTrue(isinstance(lynx, X10ControllerUnit))
+        self.assertTrue(isinstance(lynx, LynX10ControllerUnit))
         self.assertEqual(lynx.resolution, 16)
 
         ssr = controller_unit_factory(type='lumos', id='48', power_source=p, network=None, address=12, resolution=256)
-        self.assert_(isinstance(ssr, ControllerUnit))
-        self.assert_(isinstance(ssr, LumosControllerUnit))
+        self.assertTrue(isinstance(ssr, ControllerUnit))
+        self.assertTrue(isinstance(ssr, LumosControllerUnit))
         self.assertEqual(ssr.resolution, 256)
         self.assertEqual(ssr.id, '48')
 
@@ -56,23 +55,23 @@ class ControllerUnitTest (unittest.TestCase):
         ssr = controller_unit_factory(type='lumos', id='48', power_source=p, network=None, address=12, resolution=128)
         ssr.add_channel(3,load=1)
         ssr.add_channel(14,load=1)
-        self.assert_(isinstance(ssr.channels,dict))
-        self.assert_(3 in ssr.channels)
-        self.assert_(14 in ssr.channels)
-        self.assert_(5 not in ssr.channels)
+        self.assertTrue(isinstance(ssr.channels,dict))
+        self.assertTrue(3 in ssr.channels)
+        self.assertTrue(14 in ssr.channels)
+        self.assertTrue(5 not in ssr.channels)
 
     def test_add_channel_list(self):
         p = PowerSource('testpower', amps=1)
         ssr = controller_unit_factory(type='renard', id='u', power_source=p, network=None, address=2, resolution=32, num_channels=12)
-        self.assert_(isinstance(ssr.channels, list))
+        self.assertTrue(isinstance(ssr.channels, list))
         self.assertEqual(len(ssr.channels), 12)
-        self.assert_(ssr.channels[4] is None)
+        self.assertTrue(ssr.channels[4] is None)
         ssr.add_channel(3,load=1)
         ssr.add_channel(11,load=1)
-        self.assert_(ssr.channels[3] is not None)
-        self.assert_(ssr.channels[11] is not None)
-        self.assert_(ssr.channels[5] is None)
-        self.assert_(isinstance(ssr.channels[3], Channel))
+        self.assertTrue(ssr.channels[3] is not None)
+        self.assertTrue(ssr.channels[11] is not None)
+        self.assertTrue(ssr.channels[5] is None)
+        self.assertTrue(isinstance(ssr.channels[3], Channel))
 # 
 # $Log: not supported by cvs2svn $
 #
