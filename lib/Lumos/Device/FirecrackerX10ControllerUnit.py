@@ -114,6 +114,7 @@ def packet(id, op) -> bytes:
     else:
         b = bits[id[0]] | bits[id[1:]] | bits[op]
         
+    print(f"packet(id={id}, op={op}) -> b={b} (D5 AA {(b>>8)&0xff} {b&0xff} AD)")
     return bytes([0xd5, 0xaa, (b>>8)&0xff, b&0xff, 0xad])
 
 class FirecrackerX10ControllerUnit (X10ControllerUnit):

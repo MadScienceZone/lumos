@@ -80,6 +80,8 @@ class FirecrackerX10ControllerUnitTest (unittest.TestCase):
         # a1   a2   b7   m16 off, b7 on, b7->10%
         # 6020 6030 7068 0478     7048 (18x) 7098
         #  `sp  ` 0  p h    x      p H (18x)  p 
+        print(f"buf={self.n.buffer}")
+
         self.assertEqual(PP(self.n.buffer), 
            P([b'` ',b'=04x',b'`0',b'ph',b'pH'] + (18 * [b'p=98'])))
 
