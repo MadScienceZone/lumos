@@ -103,220 +103,220 @@ class Sequence (object):
                             be defined in this map to be legal.
         """
 
-        csvfile = file(filename, 'rb')
-        csvreader = csv.reader(csvfile)
+        with open(filename, 'r') as csvfile:
+            csvreader = csv.reader(csvfile)
 
-        version = None
-        timestamp = None
+            version = None
+            timestamp = None
 
-        for record in csvreader:
-            #
-            # Vn[,...]
-            #    first record contains Vn (version #n of the file format)
-            #    all other fields ignored, can be used for comments
-            #
-            if record[0][0] == 'V':
-                try:
-                    version = int(record[0][1:])
-                except ValueError:
-                    raise InvalidFileFormat('Cannot understand Vn record at all')
+            for record in csvreader:
+                #
+                # Vn[,...]
+                #    first record contains Vn (version #n of the file format)
+                #    all other fields ignored, can be used for comments
+                #
+                if record[0][0] == 'V':
+                    try:
+                        version = int(record[0][1:])
+                    except ValueError:
+                        raise InvalidFileFormat('Cannot understand Vn record at all')
 
-                if version == 1:
-                    raise InvalidFileFormat('Lumos sequence file format version 1 is deprecated and no longer supported.')
+                    if version == 1:
+                        raise InvalidFileFormat('Lumos sequence file format version 1 is deprecated and no longer supported.')
 
-                if not 2 <= version <= 4:
-                    raise InvalidFileFormat('This version of Lumos only supports sequence file formats V2, V3, and V4.')
-            #
-            # ----- below this point, you need to have seen the Vn record -----
-            #
-            elif version is None:
-                raise InvalidFileFormat('No Vn record found before real data!')
-            #
-            # A,filename,volume,channels,freq,bits,bufsize
-            #    audio playback properties (if any)
-            #
-            # [V2 V3 V4]
-            #
-            elif record[0] == 'A':
-                def int_or_else(v, default):
-                    if v is None or v.strip() == '':
-                        return default
-                    return int(v)
+                    if not 2 <= version <= 4:
+                        raise InvalidFileFormat('This version of Lumos only supports sequence file formats V2, V3, and V4.')
+                #
+                # ----- below this point, you need to have seen the Vn record -----
+                #
+                elif version is None:
+                    raise InvalidFileFormat('No Vn record found before real data!')
+                #
+                # A,filename,volume,channels,freq,bits,bufsize
+                #    audio playback properties (if any)
+                #
+                # [V2 V3 V4]
+                #
+                elif record[0] == 'A':
+                    def int_or_else(v, default):
+                        if v is None or v.strip() == '':
+                            return default
+                        return int(v)
 
-                if version < 3:
-                    raise InvalidFileFormat('The A record does not exist in file formats < V3')
+                    if version < 3:
+                        raise InvalidFileFormat('The A record does not exist in file formats < V3')
 
-                if not 2 <= len(record) <= 7:
-                    raise InvalidAudioDefinition('Badly formed A record "%s"' % record)
-                record += [None] * 5    # fill in defaults
-                self.audio = AudioTrack(
-                        filename = record[1],
-                        volume=   int_or_else(record[2],   100),
-                        channels= int_or_else(record[3],     2),
-                        frequency=int_or_else(record[4], 44100),
-                        bits=     int_or_else(record[5],   -16),
-                        bufsize=  int_or_else(record[6],  4096)
-                )
-            #
-            # C,type,channelname[,...]
-            #    declare one or more virtual channels
-            #
-            # [V4]
-            #
-            elif record[0] == 'C':
-                if version < 4:
-                    raise InvalidFileFormat('C records are not legal before sequence file format V4.')
-                if len(record) < 3:
-                    raise InvalidUnitDefinition('Badly formed C record "%s"' % record)
-                for vchannel_id in record[2:]:
-                    if vchannel_id not in virtual_channel_map:
-                        raise InvalidUnitDefinition('Unknown channel name "{0}" used in sequence'.format(vchannel_id))
-
-                    if virtual_channel_map[vchannel_id].type != record[1]:
-                        raise InvalidUnitDefinition('Sequence file wants channel "{0}" to be type "{1}", but the show defines it to be type "{2}"'.format(
-                            vchannel_id, record[1], virtual_channel_map[vchannel_id].type))
-                
-                    self._vchannels.append(virtual_channel_map[vchannel_id])
-            #
-            # OBSOLETE - DEPRECATED
-            # U,unitname,channelname[,...]
-            #    declare a controller unit and its channels
-            #
-            # [V2 V3]
-            #
-            elif record[0] == 'U':
-                if version > 3:
-                    raise InvalidFileFormat('U records are not legal after sequence file format V3.')
-                if len(record) < 3:
-                    raise InvalidUnitDefinition('Badly formed U record "%s"' % record)
-                if record[1] not in controller_map:
-                    raise InvalidUnitDefinition('Unknown controller unit "%s" used in sequence' % record[1])
-
-                target_controller = controller_map[record[1]]
-                self._controllers.append({
-                    'obj': target_controller,
-                    'fld': [],
-                    'vob': []
-                })
-                # adjust channel names to be of appropriate type for controller
-                for channel_id in record[2:]:
-                    # find the virtual channel for this
-                    c_id = target_controller.channel_id_from_string(channel_id)
-                    c_obj = target_controller.channels[c_id]
-                    for v_id in virtual_channel_map:
-                        vc = virtual_channel_map[v_id].channel
-                        if isinstance(vc, (list,tuple)):
-                            if c_obj in vc:
-                                raise NotImplementedError("This version of Lumos doesn't support adapting old sequence files to complex virtual channel types; can't handle {0}->{1}.".format(
-                                    c_id, v_id))
-                        elif c_obj is vc:
-                            v_obj = virtual_channel_map[v_id]
-                            break
-                    else:
-                        raise InvalidSequence("Sequence channel #{0} (hardware {1}.{2}) doesn't seem to have a virtual channel!".format(
-                            len(self._vchannels), record[1], channel_id))
-                            
-                    # v_obj is now the virtual channel object for this
-                    self._controllers[-1]['fld'].append(target_controller.channel_id_from_string(channel_id))
-                    self._controllers[-1]['vob'].append(v_obj)
-                    self._vchannels.append(v_obj)
-            #
-            # T,timestamp
-            #    mark time (milliseconds from start of sequence)
-            #
-            elif record[0] == 'T':
-                try:
-                    timestamp = int(record[1])
-                except:
-                    raise InvalidTimestamp('Cannot understand timestamp record "%s"' % record)
-            #
-            # ----- below this point, you need to have a timestamp in effect -----
-            #
-            elif timestamp is None:
-                raise InvalidTimestamp('No timestamp given for events in file at "%s"' % record)
-            #
-            # EV,vch,v,dT
-            #    value event: change value of virtual channel vch to v over dT milliseconds
-            #    v is whatever is appropriate for the channel type
-            #
-            elif record[0] == 'EV':
-                if version < 4:
-                    raise InvalidFileFormat('EV records are only available in sequence file format version 4 and above.')
-
-                try:
-                    delta = int(record[3])
-
-                    extent = timestamp + delta
-                    if extent > self.total_time:
-                        self.total_time = extent
-
-                    if timestamp not in self._event_list:
-                        self._event_list[timestamp] = []
-
-                    self._event_list[timestamp].append(
-                        ValueEvent(None if record[1] == '*' else self._vchannels[int(record[1])], 
-                            record[2], int(record[3])
-                        )
+                    if not 2 <= len(record) <= 7:
+                        raise InvalidAudioDefinition('Badly formed A record "%s"' % record)
+                    record += [None] * 5    # fill in defaults
+                    self.audio = AudioTrack(
+                            filename = record[1],
+                            volume=   int_or_else(record[2],   100),
+                            channels= int_or_else(record[3],     2),
+                            frequency=int_or_else(record[4], 44100),
+                            bits=     int_or_else(record[5],   -16),
+                            bufsize=  int_or_else(record[6],  4096)
                     )
+                #
+                # C,type,channelname[,...]
+                #    declare one or more virtual channels
+                #
+                # [V4]
+                #
+                elif record[0] == 'C':
+                    if version < 4:
+                        raise InvalidFileFormat('C records are not legal before sequence file format V4.')
+                    if len(record) < 3:
+                        raise InvalidUnitDefinition('Badly formed C record "%s"' % record)
+                    for vchannel_id in record[2:]:
+                        if vchannel_id not in virtual_channel_map:
+                            raise InvalidUnitDefinition('Unknown channel name "{0}" used in sequence'.format(vchannel_id))
 
-                except InvalidEvent:
-                    raise
-                except Exception as e:
-                    raise InvalidEvent('Cannot understand event description "%s" (%s)' % (','.join(record), e))
+                        if virtual_channel_map[vchannel_id].type != record[1]:
+                            raise InvalidUnitDefinition('Sequence file wants channel "{0}" to be type "{1}", but the show defines it to be type "{2}"'.format(
+                                vchannel_id, record[1], virtual_channel_map[vchannel_id].type))
+                    
+                        self._vchannels.append(virtual_channel_map[vchannel_id])
+                #
+                # OBSOLETE - DEPRECATED
+                # U,unitname,channelname[,...]
+                #    declare a controller unit and its channels
+                #
+                # [V2 V3]
+                #
+                elif record[0] == 'U':
+                    if version > 3:
+                        raise InvalidFileFormat('U records are not legal after sequence file format V3.')
+                    if len(record) < 3:
+                        raise InvalidUnitDefinition('Badly formed U record "%s"' % record)
+                    if record[1] not in controller_map:
+                        raise InvalidUnitDefinition('Unknown controller unit "%s" used in sequence' % record[1])
 
-            #
-            # OBSOLETE - DEPRECATED
-            # E,u,ch,v,dT
-            #    event: change value of unit u's channel ch to v% over dT milliseconds
-            #
-            elif record[0] == 'E':
-                if version > 3:
-                    raise InvalidFileFormat('E records are depreceated; not available in file formats after V3.')
+                    target_controller = controller_map[record[1]]
+                    self._controllers.append({
+                        'obj': target_controller,
+                        'fld': [],
+                        'vob': []
+                    })
+                    # adjust channel names to be of appropriate type for controller
+                    for channel_id in record[2:]:
+                        # find the virtual channel for this
+                        c_id = target_controller.channel_id_from_string(channel_id)
+                        c_obj = target_controller.channels[c_id]
+                        for v_id in virtual_channel_map:
+                            vc = virtual_channel_map[v_id].channel
+                            if isinstance(vc, (list,tuple)):
+                                if c_obj in vc:
+                                    raise NotImplementedError("This version of Lumos doesn't support adapting old sequence files to complex virtual channel types; can't handle {0}->{1}.".format(
+                                        c_id, v_id))
+                            elif c_obj is vc:
+                                v_obj = virtual_channel_map[v_id]
+                                break
+                        else:
+                            raise InvalidSequence("Sequence channel #{0} (hardware {1}.{2}) doesn't seem to have a virtual channel!".format(
+                                len(self._vchannels), record[1], channel_id))
+                                
+                        # v_obj is now the virtual channel object for this
+                        self._controllers[-1]['fld'].append(target_controller.channel_id_from_string(channel_id))
+                        self._controllers[-1]['vob'].append(v_obj)
+                        self._vchannels.append(v_obj)
+                #
+                # T,timestamp
+                #    mark time (milliseconds from start of sequence)
+                #
+                elif record[0] == 'T':
+                    try:
+                        timestamp = int(record[1])
+                    except:
+                        raise InvalidTimestamp('Cannot understand timestamp record "%s"' % record)
+                #
+                # ----- below this point, you need to have a timestamp in effect -----
+                #
+                elif timestamp is None:
+                    raise InvalidTimestamp('No timestamp given for events in file at "%s"' % record)
+                #
+                # EV,vch,v,dT
+                #    value event: change value of virtual channel vch to v over dT milliseconds
+                #    v is whatever is appropriate for the channel type
+                #
+                elif record[0] == 'EV':
+                    if version < 4:
+                        raise InvalidFileFormat('EV records are only available in sequence file format version 4 and above.')
 
-                try:
-                    delta = int(record[4])
+                    try:
+                        delta = int(record[3])
 
-                    extent = timestamp + delta
-                    if extent > self.total_time:
-                        self.total_time = extent
+                        extent = timestamp + delta
+                        if extent > self.total_time:
+                            self.total_time = extent
 
-                    if timestamp not in self._event_list:
-                        self._event_list[timestamp] = []
+                        if timestamp not in self._event_list:
+                            self._event_list[timestamp] = []
 
-                    if record[1] == '*' and record[2] != '*':
-                        raise InvalidEvent('Channel must be "*" if controller ID is "*" in "%s"' % record)
-
-                    if record[2] == '*' and record[1] != '*':
-                        raise InvalidEvent('Wildcard channel changes (except system-global) no longer supported (Must be "*,*" or specific channel).')
-
-                    self._event_list[timestamp].append(
-                        ValueEvent(
-                            (None if record[1] == '*' 
-                                else self._controllers[int(record[1])]['vob'][int(record[2])]), 
-                            float(record[3]), 
-                            int(record[4])
+                        self._event_list[timestamp].append(
+                            ValueEvent(None if record[1] == '*' else self._vchannels[int(record[1])], 
+                                record[2], int(record[3])
+                            )
                         )
-                    )
 
-# ValueEvent(virtualchannelobj, newlevel, interval)
+                    except InvalidEvent:
+                        raise
+                    except Exception as e:
+                        raise InvalidEvent('Cannot understand event description "%s" (%s)' % (','.join(record), e))
 
-#                       Event(None if record[1] == '*' else self._controllers[int(record[1])]['obj'],
-#                             None if record[2] == '*' else self._controllers[int(record[1])]['fld'][int(record[2])],
-#                             float(record[3]), int(record[4])))
-                
-                except InvalidEvent:
-                    raise
-                except Exception as e:
-                    raise InvalidEvent('Cannot understand event description "%s" (%s)' % (','.join(record), e))
+                #
+                # OBSOLETE - DEPRECATED
+                # E,u,ch,v,dT
+                #    event: change value of unit u's channel ch to v% over dT milliseconds
+                #
+                elif record[0] == 'E':
+                    if version > 3:
+                        raise InvalidFileFormat('E records are depreceated; not available in file formats after V3.')
 
-            #
-            # #... comments
-            #
-            elif record[0].startswith('#'):
-                pass
-            else:
-                raise InvalidFileFormat('Unrecognized sequence record "{0}"'.format(
-                    ','.join(record)))
+                    try:
+                        delta = int(record[4])
+
+                        extent = timestamp + delta
+                        if extent > self.total_time:
+                            self.total_time = extent
+
+                        if timestamp not in self._event_list:
+                            self._event_list[timestamp] = []
+
+                        if record[1] == '*' and record[2] != '*':
+                            raise InvalidEvent('Channel must be "*" if controller ID is "*" in "%s"' % record)
+
+                        if record[2] == '*' and record[1] != '*':
+                            raise InvalidEvent('Wildcard channel changes (except system-global) no longer supported (Must be "*,*" or specific channel).')
+
+                        self._event_list[timestamp].append(
+                            ValueEvent(
+                                (None if record[1] == '*' 
+                                    else self._controllers[int(record[1])]['vob'][int(record[2])]), 
+                                float(record[3]), 
+                                int(record[4])
+                            )
+                        )
+
+    # ValueEvent(virtualchannelobj, newlevel, interval)
+
+    #                       Event(None if record[1] == '*' else self._controllers[int(record[1])]['obj'],
+    #                             None if record[2] == '*' else self._controllers[int(record[1])]['fld'][int(record[2])],
+    #                             float(record[3]), int(record[4])))
+                    
+                    except InvalidEvent:
+                        raise
+                    except Exception as e:
+                        raise InvalidEvent('Cannot understand event description "%s" (%s)' % (','.join(record), e))
+
+                #
+                # #... comments
+                #
+                elif record[0].startswith('#'):
+                    pass
+                else:
+                    raise InvalidFileFormat('Unrecognized sequence record "{0}"'.format(
+                        ','.join(record)))
 
     def _build_vchannel_list(self):
         self._vchannel_index = {}
@@ -359,7 +359,8 @@ class Sequence (object):
 
     def save_file(self, filename):
         "Save sequence data to the named file."
-        self.save(file(filename, 'wb'))
+        with open(filename, 'w') as f:
+            self.save(f)
 
     def save(self, outputfile):
 #        self._build_controller_list()
@@ -587,7 +588,7 @@ class Sequence (object):
         final_ev_list = []
         last_time_seen = None
         flush_seen_for = set()
-        for event in sorted(ev_list):
+        for event in sorted(ev_list, key=lambda a: a[0]):
             if last_time_seen is None or last_time_seen != event[0]:
                 flush_seen_for = set()
                 last_time_seen = event[0]

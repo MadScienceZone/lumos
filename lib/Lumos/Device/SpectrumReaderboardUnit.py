@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS DEVICE DRIVER: SPECTRUM READERBOARD
 # ***UNTESTED*** SPECULATIVE CODE.  NOT READY FOR USE!
@@ -261,7 +260,7 @@ class SpectrumReaderboardUnit (object):
         '''
         self.address = address
 
-    def _packet(self, *cmdlist):
+    def _packet(self, *cmdlist) -> bytes:
         '''Send a command packet to the readerboard.  These look like this:
             \1\1\1\1\1\1 <type> <address> [, <address> ...] 
             \2 <command> [\3 [<checksum>] [ \2 <command> ...]] \4
@@ -429,8 +428,8 @@ class SpectrumReaderboardUnit (object):
                 \03550 fancy characters off
                 \03551 fancy characters on
         '''
-        return ('\1\1\1\1\1\1Z%02X' % self.address) +\
-            '\3'.join(['\2' + x for x in cmdlist]) + '\4'
+        return (('\1\1\1\1\1\1Z%02X' % self.address) +\
+            '\3'.join(['\2' + x for x in cmdlist]) + '\4').encode()
 
     def _expandSpecials(self, text):
         if '$' in text:

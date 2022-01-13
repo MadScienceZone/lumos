@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS POWER METER
@@ -61,10 +61,10 @@ show.load_file(options.config.split(','), open_device=False)
 total_W_mS = 0  # watt-milliseconds
 
 if options.verbose:
-    print "Lumos Power Meter, version", parser.version
-    print "Show:", show.title
-    print "     ", show.description
-    print
+    print("Lumos Power Meter, version", parser.version)
+    print("Show:", show.title)
+    print("     ", show.description)
+    print()
 
 def trace_time_stamp(msec):
     "format and return milliseconds as h:m:s.ms"
@@ -100,17 +100,17 @@ if options.graph_data:
 def D(format, *args):
     global options
     if options.verbose > 2:
-        print "DEBUG: "+format.format(*args)
+        print("DEBUG: "+format.format(*args))
 
 offset=0
 for file in files:
     sequence.load_file(file, show.controllers)
 
     if options.verbose:
-        print 'Sequence "%s": duration %s; %d intervals' % (
+        print('Sequence "%s": duration %s; %d intervals' % (
             file, trace_time_stamp(sequence.total_time),
             len(sequence.intervals)
-        )
+        ))
 
     previous_time=0
     #
@@ -129,7 +129,7 @@ for file in files:
         # execute whatever happens now
         #
         if options.throughput:
-            for net_id, network in show.networks.items():
+            for net_id, network in list(show.networks.items()):
                 D('Starting data collection for {0} ({1})', net_id, network.description)
                 network.divert_output()
 
@@ -164,7 +164,7 @@ for file in files:
             # 
             D('Calculating peak and running averages by power source:')
             next = samples + elapsed_mS
-            for ps in show.all_power_sources.values():
+            for ps in list(show.all_power_sources.values()):
                 D('...power source {0}: load {1} watts, {2} amps at {3} volts',
                     ps.id, load_W.get(ps.id, '--no--'), load_A.get(ps.id, '--no--'), ps.volts)
 
@@ -200,7 +200,7 @@ for file in files:
                 # calculate peak and running averages for each network's throughput
                 # 
                 D('Calculating peak and running average throughput by network:')
-                for net_id, network in show.networks.items():
+                for net_id, network in list(show.networks.items()):
                     bits_sent = sample_data_size.get(net_id, 0) * (8 + 1 + network.stop)
                     bits_available = network.baudrate * (elapsed_mS / 1000.0)
 
@@ -235,9 +235,9 @@ for file in files:
         #
         load_A = {}
         load_W = {}
-        for controller in show.controllers.values():
+        for controller in list(show.controllers.values()):
             D("gathering next round of data from {0}", controller.id)
-            for amps, source in controller.current_drain().values():
+            for amps, source in list(controller.current_drain().values()):
                 watts = float(amps) * source.volts
                 D("... {0} A from {1}; at {2} V = {3} W", amps, source.id, source.volts, watts)
 
@@ -254,7 +254,7 @@ for file in files:
         if options.throughput:
             sample_data_size = {}
             D("Calculating throughput for this event")
-            for net_id, network in show.networks.items():
+            for net_id, network in list(show.networks.items()):
                 D("gathering next round of data from {0}", net_id)
                 data_sent = network.end_divert_output()
                 if options.verbose > 3:
@@ -280,50 +280,50 @@ if load_A:
         value = load_A[source_id]
         if value:
             if not warned:
-                print
-                print "** NOTE **"
-                print "The following circuit(s) had power draining at the end of the show."
-                print "If they remain on after the show, they will consume additional"
-                print "power beyond what this report is showing."
-                print "This final power level was the end-state at the last instant of the"
-                print "sequence, so is not figured into the calculations reported."
-                print
+                print()
+                print("** NOTE **")
+                print("The following circuit(s) had power draining at the end of the show.")
+                print("If they remain on after the show, they will consume additional")
+                print("power beyond what this report is showing.")
+                print("This final power level was the end-state at the last instant of the")
+                print("sequence, so is not figured into the calculations reported.")
+                print()
                 warned = True
-            print "{0:6.2f} amps on {1}".format(value, source_id)
+            print("{0:6.2f} amps on {1}".format(value, source_id))
 
 #
 # Report out
 # 
 total_kW_h = total_W_mS / 3600000000.0
-print "Total Runtime:      {0} ({1:,d} mS)".format(trace_time_stamp(samples), samples)
-print "Total Power Used:   {0:.6f} kWh".format(total_kW_h)
+print("Total Runtime:      {0} ({1:,d} mS)".format(trace_time_stamp(samples), samples))
+print("Total Power Used:   {0:.6f} kWh".format(total_kW_h))
 
 if options.price:
-    print "Total Energy Cost: ${0:.4f} (~${0:.2f}) @ ${1:.4f}/kWh".format(total_kW_h * options.price, options.price)
+    print("Total Energy Cost: ${0:.4f} (~${0:.2f}) @ ${1:.4f}/kWh".format(total_kW_h * options.price, options.price))
 
 max_ps_id = max([12]+[len(ps_id) for ps_id in peak_A])
-print ("{0:<"+str(max_ps_id)+"} PEAK (A)   AVERAGE (A)  PEAK (W)  AVERAGE (W)").format('POWER SOURCE')
+print(("{0:<"+str(max_ps_id)+"} PEAK (A)   AVERAGE (A)  PEAK (W)  AVERAGE (W)").format('POWER SOURCE'))
 #      xxxxxx[15]xxxxx 99999.99   99999.99999  99999.99  99999.99999
 for ps_id in sorted(peak_A):
-    print ("{0:<"+str(max_ps_id)+"} {1:8.2f}   {2:11.5f}  {3:8.2f}  {4:11.5f}").format(
+    print(("{0:<"+str(max_ps_id)+"} {1:8.2f}   {2:11.5f}  {3:8.2f}  {4:11.5f}").format(
             ps_id, peak_A[ps_id], average_A[ps_id],
             peak_W[ps_id], average_W[ps_id]
-    )
+    ))
 
 for ps_id in sorted(over80):
-    print "*** WARNING *** {0} OVER 80% LOAD FOR TOTAL OF {1}".format(ps_id, trace_time_stamp(over80[ps_id]))
+    print("*** WARNING *** {0} OVER 80% LOAD FOR TOTAL OF {1}".format(ps_id, trace_time_stamp(over80[ps_id])))
 for ps_id in sorted(exceeds):
-    print "*** WARNING *** {0} AT OR OVER 100% LOAD FOR TOTAL OF {1}".format(ps_id, trace_time_stamp(exceeds[ps_id]))
+    print("*** WARNING *** {0} AT OR OVER 100% LOAD FOR TOTAL OF {1}".format(ps_id, trace_time_stamp(exceeds[ps_id])))
 
 if options.throughput:
     max_net_id = max([7]+[len(net_id) for net_id in peak_tp])
-    print " "*max_net_id + " THROUGHPUT (BPS SENT VS. BPS AVAILABLE PER EVENT)"
-    print ("{0:<"+str(max_net_id)+"} PEAK    AVERAGE").format('NETWORK')
+    print(" "*max_net_id + " THROUGHPUT (BPS SENT VS. BPS AVAILABLE PER EVENT)")
+    print(("{0:<"+str(max_net_id)+"} PEAK    AVERAGE").format('NETWORK'))
     #      xxxxxx[15]xxxxx 999.99% 999.99%
     for net_id in sorted(peak_tp):
-        print ("{0:<"+str(max_net_id)+"} {1:7.2%} {2:7.2%}").format(
+        print(("{0:<"+str(max_net_id)+"} {1:7.2%} {2:7.2%}").format(
             net_id, peak_tp[net_id], average_tp[net_id]
-        )
+        ))
     for net_id in sorted(exceeds_tp):
-        print "*** WARNING *** {0} DID NOT HAVE TIME FOR {1} BIT{2} AT CONFIGURED BAUD RATE!".format(
-            net_id, exceeds_tp[net_id], '' if exceeds_tp[net_id]==1 else 'S')
+        print("*** WARNING *** {0} DID NOT HAVE TIME FOR {1} BIT{2} AT CONFIGURED BAUD RATE!".format(
+            net_id, exceeds_tp[net_id], '' if exceeds_tp[net_id]==1 else 'S'))

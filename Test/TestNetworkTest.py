@@ -33,18 +33,18 @@ class TestNetworkTest (unittest.TestCase):
     def test_cons(self):
         tn = TestNetwork()
         self.assertTrue(isinstance(tn, Network))
-        self.assertEqual(tn.buffer, '')
+        self.assertEqual(tn.buffer, b'')
 
     def test_simple_data(self):
         tn = TestNetwork()
-        tn.send('ABCD')
-        tn.send('EEEF')
-        self.assertEqual(tn.buffer, 'ABCDEEEF')
+        tn.send(b'ABCD')
+        tn.send(b'EEEF')
+        self.assertEqual(tn.buffer, b'ABCDEEEF')
 
     def test_binary_data(self):
         tn = TestNetwork()
-        tn.send('\33[Hello\5\5\0')
-        self.assertEqual(tn.buffer, '=1B[Hello=05=05=00')
+        tn.send(b'\33[Hello\5\5\0')
+        self.assertEqual(tn.buffer, b'=1B[Hello=05=05=00')
 
 
     # removed with the flush() functionality

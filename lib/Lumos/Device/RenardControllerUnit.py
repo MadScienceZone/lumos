@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS DEVICE DRIVER: RENARD DIY SSR CONTROLLER
 # ***UNTESTED*** SPECULATIVE CODE.  NOT READY FOR USE!
@@ -146,10 +145,10 @@ class RenardControllerUnit (ControllerUnit):
 
     def flush(self, force=False):
         if self.update_pending or force:
-            self.network.send('~%c' % (0x80 | self.address))
+            self.network.send(bytes([126, (0x80 | self.address)]))
             for channel in self.channels:
                 if channel is None:
-                    self.network.send(chr(0))
+                    self.network.send(bytes([0]))
                 else:
                     self.send_escaped_int(channel.level)
             self.update_pending = False
@@ -159,10 +158,10 @@ class RenardControllerUnit (ControllerUnit):
 
     def send_escaped_int(self, i):
         if i is None: i = 0
-        if   i == 0x7d: self.network.send('\x7f/')
-        elif i == 0x7e: self.network.send('\x7f0')
-        elif i == 0x7f: self.network.send('\x7f1')
-        else:           self.network.send(chr(i))
+        if   i == 0x7d: self.network.send(b'\x7f/')
+        elif i == 0x7e: self.network.send(b'\x7f0')
+        elif i == 0x7f: self.network.send(b'\x7f1')
+        else:           self.network.send(bytes([i]))
 #
 # $Log: not supported by cvs2svn $
 # Revision 1.4  2008/12/30 22:58:02  steve

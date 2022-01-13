@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # VIXEN SEQUENCE TO LUMOS SEQUENCE IMPORT UTILITY
@@ -94,7 +94,7 @@ else:
 
 
 if options.verbose:
-    print "Loading Vixen sequence from", vixen_sequence_file.name
+    print("Loading Vixen sequence from", vixen_sequence_file.name)
 
 vixen_data = VixenSequence()
 vixen_data.load(vixen_sequence_file)
@@ -106,23 +106,23 @@ vixen_data.load(vixen_sequence_file)
 #                                                                       #
 #########################################################################
 if options.info:
-    print "Loaded sequence data from Vixen:"
-    print "  Duration:    %02d:%02d.%03d" % (
+    print("Loaded sequence data from Vixen:")
+    print("  Duration:    %02d:%02d.%03d" % (
         vixen_data.total_time/60000, 
         (vixen_data.total_time/1000) % 60, 
         vixen_data.total_time%1000
-    )
-    print "  Value Range: %d - %d" % (vixen_data.min_val, vixen_data.max_val)
-    print "  Channels:    %d" % len(vixen_data.channels)
+    ))
+    print("  Value Range: %d - %d" % (vixen_data.min_val, vixen_data.max_val))
+    print("  Channels:    %d" % len(vixen_data.channels))
     for i, channel in enumerate(vixen_data.channels):
-        print '  %3d = %-20s RGB=%02X%02X%02X out=%s' % (
+        print('  %3d = %-20s RGB=%02X%02X%02X out=%s' % (
             i, '"'+channel.name+'"', 
             channel.color[0],
             channel.color[1],
             channel.color[2],
-            channel.output)
+            channel.output))
     if vixen_data.audio_filename is not None:
-        print '  Audio:   "%s"' % vixen_data.audio_filename
+        print('  Audio:   "%s"' % vixen_data.audio_filename)
 
     sys.exit(0)
 
@@ -134,7 +134,7 @@ if options.info:
 #########################################################################
 if options.genmap:
     if options.verbose:
-        print "Writing stub channel mapping to", options.genmap
+        print("Writing stub channel mapping to", options.genmap)
 
     map_writer = csv.writer(file(options.genmap, 'w'))
     map_writer.writerows((
@@ -237,7 +237,7 @@ show.load_file(options.conf.split(','), open_device=False)
 #                                                                       #
 #########################################################################
 if options.verbose:
-    print "Loading channel map from", options.map
+    print("Loading channel map from", options.map)
 
 # channel_map references a (device,channel) tuple by Vixen index
 # or None if not mapped.
@@ -324,7 +324,7 @@ try:
             if hw_to_virtual_map is None:
                 # build a map of "id(controller_object).channel_ID" -> (virtual_obj_id,sub#)
                 hw_to_virtual_map = {}
-                for vchannel_ID, vchannel_obj in show.virtual_channels.items():
+                for vchannel_ID, vchannel_obj in list(show.virtual_channels.items()):
                     clist = vchannel_obj.channel
                     if not isinstance(clist, (list, tuple)):
                         clist = [clist]
@@ -343,14 +343,14 @@ try:
                 raise ValueError('Vixen channel #%d ("%s") maps to Lumos channel %s.%s, but that channel is not configured in the show configuration!' % (idx, vixen_data.channels[idx].name, mapping[2], target_channel))
 
             if target_channel in mapped_channels.setdefault(target_controller.id, []):
-                print >> sys.stderr, """
+                print("""
 WARNING: ******************************************************************
 WARNING: * MULTIPLE VIXEN CHANNELS MAP TO HARDWARE CHANNEL %s.%s!
 WARNING: * (This is allowed, and will be permitted here, but it is likely
 WARNING: * not what was intended.  You are advised to double-check your
 WARNING: * channel map file before using this imported sequence!)
 WARNING: ******************************************************************
-""" % (target_controller.id, target_channel)
+""" % (target_controller.id, target_channel), file=sys.stderr)
             else:
                 mapped_channels[target_controller.id].append(target_channel)
 
@@ -376,14 +376,14 @@ WARNING: ******************************************************************
             #
             key = "{0}#{1}".format(mapping[2], subidx)
             if key in mapped_virtual_channels:
-                print >> sys.stderr, """
+                print("""
 WARNING: ******************************************************************
 WARNING: * MULTIPLE VIXEN CHANNELS MAP TO VIRTUAL CHANNEL {0}!
 WARNING: * (This is allowed, and will be permitted here, but it is likely
 WARNING: * not what was intended.  You are advised to double-check your
 WARNING: * channel map file before using this imported sequence!)
 WARNING: ******************************************************************
-""".format(mapping[2])
+""".format(mapping[2]), file=sys.stderr)
             else:
                 mapped_virtual_channels.add(key)
         else:
@@ -398,24 +398,24 @@ WARNING: ******************************************************************
         # Everything checks out, make it so...
         #
         channel_map[idx] = target_vchannel
-except Exception, e:
-    print >>sys.stderr, "Unable to read mapping file: %s" % e
+except Exception as e:
+    print("Unable to read mapping file: %s" % e, file=sys.stderr)
     sys.exit(1)
 
 if options.verbose:
 # VIXEN CHANNEL ID/NAME     -> LUMOS VIRTUAL CHANNEL -> LUMOS HARDWARE CHANNEL
 # <3> <-----------24---------> <---------22--------->   <----------21-------> <3>
 # 999 ZZZZZZZZZZZZZZZZZZZZZZZZ ZZZZZZZZZZZZZZZZZZZZZZ 9 ZZZZZZZZZZZZZZZZZZZZZ 999
-    print "Channel mapping:"
-    print "VIXEN CHANNEL ID/NAME     -> LUMOS VIRTUAL CHANNEL -> LUMOS HARDWARE CHANNEL"
+    print("Channel mapping:")
+    print("VIXEN CHANNEL ID/NAME     -> LUMOS VIRTUAL CHANNEL -> LUMOS HARDWARE CHANNEL")
     for i, mapping in enumerate(channel_map):
         if mapping is None:
-            print "{0:3d} {1:24.24s} <Not Mapped>".format(i, vixen_data.channels[i].name)
+            print("{0:3d} {1:24.24s} <Not Mapped>".format(i, vixen_data.channels[i].name))
         else:
             hw = show.virtual_channels[mapping[0]].all_hardware_channels()[mapping[1]]
-            print "{0:3d} {1:24.24s} {2:22.22s} {3} {4:21.21s} {5:>3s}".format(
+            print("{0:3d} {1:24.24s} {2:22.22s} {3} {4:21.21s} {5:>3s}".format(
                 i, vixen_data.channels[i].name, mapping[0], mapping[1],
-                hw.controller.id, hw.id)
+                hw.controller.id, hw.id))
 
 #
 # Having done that, verify that we mapped everything.
@@ -425,20 +425,20 @@ if options.verbose:
 #
 for i, channel in enumerate(vixen_data.channels):
     if channel_map[i] is None:
-        print >> sys.stderr, 'WARNING: Vixen channel #%d ("%s") NOT MAPPED TO ANY Lumos controller!' % (
-            i, vixen_data.channels[i].name)
+        print('WARNING: Vixen channel #%d ("%s") NOT MAPPED TO ANY Lumos controller!' % (
+            i, vixen_data.channels[i].name), file=sys.stderr)
 
 #
 # Build a Lumos sequence from the data we just imported.
 #
 if options.verbose:
-    print "Generating Lumos sequence data"
+    print("Generating Lumos sequence data")
 
 lumos_data = Sequence()
 
 if vixen_data.audio_filename is not None:
     if options.verbose:
-        print 'Adding audio track information ("%s")' % vixen_data.audio_filename
+        print('Adding audio track information ("%s")' % vixen_data.audio_filename)
 
     lumos_data.audio = AudioTrack(vixen_data.audio_filename)
 
@@ -459,9 +459,9 @@ for vixen_event in vixen_data.events:
 # ...and write it out...
 #
 if options.verbose:
-    print "Writing Lumos sequence to", lumos_sequence_file.name
+    print("Writing Lumos sequence to", lumos_sequence_file.name)
 lumos_data.save(lumos_sequence_file)
 
 if dropped_events:
-    print >>sys.stderr, "WARNING: Dropped %d event%s due to unmapped source channels!" % (
-        dropped_events, "s" if dropped_events != 1 else "")
+    print("WARNING: Dropped %d event%s due to unmapped source channels!" % (
+        dropped_events, "s" if dropped_events != 1 else ""), file=sys.stderr)

@@ -118,7 +118,8 @@ class VixenSequence (object):
 
     def load_file(self, filename):
         "Load a Vixen sequence file into this object."
-        self.load(file(filename, 'r'))
+        with open(filename, "r") as f:
+            self.load(f)
 
     def load(self, fileobj):
         "Load a Vixen sequence from a file object."
@@ -131,7 +132,7 @@ class VixenSequence (object):
             self.min_val    = int(file_data.find('MinimumLevel').text)
             self.max_val    = int(file_data.find('MaximumLevel').text)
 
-            for channel in file_data.find('Channels').getiterator('Channel'):
+            for channel in file_data.find('Channels').iter('Channel'):
                 self.channels.append(VixenChannel(channel.text, channel.get('color'), channel.get('enabled'), channel.get('output')))
 
             audio_node = file_data.find('Audio')
@@ -149,8 +150,7 @@ class VixenSequence (object):
             current_time = 0
             current_channel = 0
             current_value = None
-            for v in event_raw_data:
-                value = ord(v)
+            for value in event_raw_data:
                 if value != current_value:
                     current_value = value
                     self.events.append((current_time, current_channel, value))

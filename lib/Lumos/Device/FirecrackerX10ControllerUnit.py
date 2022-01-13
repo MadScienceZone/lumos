@@ -130,7 +130,7 @@ class FirecrackerX10ControllerUnit (X10ControllerUnit):
         self.type = 'X-10 CM17a "Firecracker" Controller'
 
     def _proto_set_channel(self, id, old_level, new_level, force=False) -> bytes:
-        if new_level == old_level and not force: return ''
+        if new_level == old_level and not force: return b''
         #
         # We only turn fully off when we are told to,
         # since if we dim to zero we keep the ability to

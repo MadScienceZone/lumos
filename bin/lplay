@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS SEQUENCE PLAYER
@@ -102,15 +102,15 @@ ACTUAL------ SCHEDULED--- CONTROLLER----- ACTION------------------------
              This function returns this portion of the output
     '''
     try:
-        obj_name = func.im_self.id
+        obj_name = func.__self__.id
     except:
         try:
-            obj_name = 'unknown ' + `func`
+            obj_name = 'unknown ' + repr(func)
         except:
             obj_name = 'unknown'
 
     return "%s %15s %s%s" % (
-        trace_time_stamp(expected_time), obj_name, func.__name__, `arglist`)
+        trace_time_stamp(expected_time), obj_name, func.__name__, repr(arglist))
     
 
 def trace_event_header():
@@ -128,16 +128,16 @@ def trace_time_stamp(msec):
 def trace_event(str):
     "Describe what the event would do if it were really called."
 
-    print trace_time_stamp((time.time() - start_point) * 1000), str
+    print(trace_time_stamp((time.time() - start_point) * 1000), str)
 
 #========================================================================
 # Play each sequence
 #========================================================================
 
 if options.verbose:
-    print "Lumos Sequence Player, version", parser.version
-    print "Show:", show.title
-    print "     ", show.description
+    print("Lumos Sequence Player, version", parser.version)
+    print("Show:", show.title)
+    print("     ", show.description)
 
 debug_file = None
 if options.debug:
@@ -156,7 +156,7 @@ if not options.no_audio:
 
 if not options.test:
     for unit_ID in show.controllers:
-        if options.verbose: print 'Initializing device "' + unit_ID + '"'
+        if options.verbose: print('Initializing device "' + unit_ID + '"')
         show.controllers[unit_ID].initialize_device()
 
 file_next = 0
@@ -178,26 +178,26 @@ def wait_for(minutes, query=False):
 
     while compare_point.tm_min not in mm:
         if options.verbose:
-            print "{0}: Waiting for {4}, current time is {1:02d}:{2:02d}:{3:02d}...".format(
+            print("{0}: Waiting for {4}, current time is {1:02d}:{2:02d}:{3:02d}...".format(
                     minutes, 
                     compare_point.tm_hour, compare_point.tm_min, 
-                    compare_point.tm_sec, mm)
+                    compare_point.tm_sec, mm))
         time.sleep(60 - compare_point.tm_sec)
         compare_point = time.localtime()
     else:
         if options.verbose:
-            print "{0}: Current time {1:02d}:{2:02d}:{3:02d} in allowed list {4}. Proceeding...".format(
+            print("{0}: Current time {1:02d}:{2:02d}:{3:02d} in allowed list {4}. Proceeding...".format(
                     minutes, 
                     compare_point.tm_hour, compare_point.tm_min, 
-                    compare_point.tm_sec, mm)
+                    compare_point.tm_sec, mm))
 
 for c in show.controllers:
-    print "{}".format(c)
+    print("{}".format(c))
 sys.exit(0)
 while file_next < len(files):
     file = files[file_next]
     if options.verbose > 1:
-        print "At #{0}: {1}".format(file_next, file)
+        print("At #{0}: {1}".format(file_next, file))
     file_next += 1
 
     #
@@ -217,7 +217,7 @@ while file_next < len(files):
     if file.startswith('[@'):
         if wait_for(file[2:], query=True):
             if options.verbose:
-                print "{0}: Skipping repeat because the exit time is already here ({1}).".format(file, time.asctime())
+                print("{0}: Skipping repeat because the exit time is already here ({1}).".format(file, time.asctime()))
             level = 1
             file_next += 1
             while file_next < len(files):
@@ -233,35 +233,35 @@ while file_next < len(files):
         else:
             repeat_stack.append(RepeatMarker(file_next, until=file[2:]))
             if options.verbose:
-                print "{0}: Starting repeat, target={1}...".format(file, TimeRange(file[2:]).list)
+                print("{0}: Starting repeat, target={1}...".format(file, TimeRange(file[2:]).list))
 
     elif file.startswith('['):
         try:
             repeat_stack.append(RepeatMarker(file_next, count=int(file[1:])))
             if options.verbose:
-                print "{0}: Starting repeat ({1}, level {2})".format(
+                print("{0}: Starting repeat ({1}, level {2})".format(
                         file, repeat_stack[-1], len(repeat_stack)
-                )
+                ))
         except:
-            print "{0}: Can't understand repeat expression (ignored)".format(file)
+            print("{0}: Can't understand repeat expression (ignored)".format(file))
 
         continue
 
     elif file == ']':
         if not repeat_stack:
-            print "{0}: End-of-repeat marker encountered outside a repeat (ignored)".format(file)
+            print("{0}: End-of-repeat marker encountered outside a repeat (ignored)".format(file))
             continue
 
         if repeat_stack[-1].until:
             if wait_for(repeat_stack[-1].until, query=True):
                 if options.verbose:
-                    print "End of repeat, target time {0} is here ({1}), continuing...".format(
-                            repeat_stack[-1].until, time.asctime())
+                    print("End of repeat, target time {0} is here ({1}), continuing...".format(
+                            repeat_stack[-1].until, time.asctime()))
                 repeat_stack.pop()
                 continue
             if options.verbose:
-                print "End of repeat, looping back until {0} (now {1})".format(
-                        repeat_stack[-1].until, time.asctime())
+                print("End of repeat, looping back until {0} (now {1})".format(
+                        repeat_stack[-1].until, time.asctime()))
                 file_next = repeat_stack[-1].return_idx
                 continue
                
@@ -269,8 +269,8 @@ while file_next < len(files):
             repeat_stack[-1].count -= 1
             file_next = repeat_stack[-1].return_idx
             if options.verbose:
-                print "End of repeat, looping back {0} more time{1}".format(
-                        repeat_stack[-1].count, '' if repeat_stack[-1].count==1 else 's')
+                print("End of repeat, looping back {0} more time{1}".format(
+                        repeat_stack[-1].count, '' if repeat_stack[-1].count==1 else 's'))
 
         else:
             repeat_stack.pop()
@@ -280,35 +280,35 @@ while file_next < len(files):
         continue
 
     elif file == '+r':
-        for controller in show.controllers.values():
+        for controller in list(show.controllers.values()):
             try:
 		if controller.type.startswith("Lumos"):
-                    if options.verbose: print "Sleeping {0}".format(controller)
+                    if options.verbose: print("Sleeping {0}".format(controller))
                     controller.flush()
 		    controller.kill_all_channels()
                     controller.raw_control('sleep')
                     controller.flush()
             except Exception as e:
-                print "Could not reset controller {0} ({1})".format(controller, e)
+                print("Could not reset controller {0} ({1})".format(controller, e))
         time.sleep(1)
-        for controller in show.controllers.values():
+        for controller in list(show.controllers.values()):
             try:
                 if controller.type.startswith("Lumos"):
-                    if options.verbose: print "Waking   {0}".format(controller)
+                    if options.verbose: print("Waking   {0}".format(controller))
                     controller.raw_control('wake')
                     controller.flush()
             except Exception as e:
-                print "Could not reset controller {0} ({1})".format(controller, e)
+                print("Could not reset controller {0} ({1})".format(controller, e))
 
     elif file.startswith('+'):
         try:
             delay = float(file[1:])
         except:
-            print "{0}: Can't understand delay count; ignoring this delay.".format(file)
+            print("{0}: Can't understand delay count; ignoring this delay.".format(file))
             continue
 
         if options.verbose:
-            print "{0}: Delaying {1} seconds...".format(file, delay)
+            print("{0}: Delaying {1} seconds...".format(file, delay))
 
         time.sleep(delay)
         continue
@@ -327,23 +327,23 @@ while file_next < len(files):
             pygame.mixer.music.set_volume(sequence.audio.volume / 100.0)
 
         if options.verbose:
-            print 'Sequence "%s": duration %s; %d intervals' % (
+            print('Sequence "%s": duration %s; %d intervals' % (
                 file, trace_time_stamp(sequence.total_time),
                 len(sequence.intervals)
-            )
+            ))
             if sequence.audio is not None:
-                print 'Audio track "%s" (%d Hz, %d bits, %d chan, %d buffer)' % (
+                print('Audio track "%s" (%d Hz, %d bits, %d chan, %d buffer)' % (
                         sequence.audio.filename,
                         sequence.audio.frequency,
                         sequence.audio.bits,
                         sequence.audio.channels,
-                        sequence.audio.bufsize)
+                        sequence.audio.bufsize))
 
         schedule = sched.scheduler(time.time, time.sleep)
         if options.test:
             # queue up event trace calls, paying as much runtime penalty
             # as possible NOW instead of during playback
-            print trace_event_header()
+            print(trace_event_header())
             for time_stamp, method, arglist, priority in sequence.compile(keep_state=True, skew=options.skew):
                 schedule.enter(time_stamp / 1000.0, priority, trace_event, 
                     (trace_event_format(time_stamp, method, arglist),))
@@ -373,7 +373,7 @@ while file_next < len(files):
 #                print "Can't dump stats for {} ({})".format(cid, e)
 #
 if options.verbose:
-    print "Scene complete."
+    print("Scene complete.")
 
 if debug_file:
     debug_file.write("----------[End Debugging Output: {0}]----------\n".format(time.ctime()))

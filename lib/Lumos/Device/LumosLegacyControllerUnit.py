@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS DEVICE DRIVER: LUMOS DIY SSR CONTROLLER (Obsolete Version for the
 # 2.x firmware revision)
@@ -85,14 +84,14 @@ class LumosLegacyControllerUnit (ControllerUnit):
     #  Chan c to level v  1010aaaa 00cccccc 000vvvvv
     #  Disable admin cmds 1111aaaa 01100001
 
-    def _proto_set_channel(self, id, old_level, new_level, force=False):
-        if old_level == new_level and not force: return ''
+    def _proto_set_channel(self, id, old_level, new_level, force=False) -> bytes:
+        if old_level == new_level and not force: return b''
         if new_level is None or new_level <= 0:
-            return chr(0x90 | self.address) + chr(id & 0x3f)
+            return bytes([0x90 | self.address, id & 0x3f])
         elif new_level >= self.resolution-1: 
-            return chr(0x90 | self.address) + chr(0x40 | (id & 0x3f))
+            return bytes([0x90 | self.address, 0x40 | (id & 0x3f)])
         else:                               
-            return chr(0xa0 | self.address) + chr(id & 0x3f) + chr(new_level & 0x1f)
+            return bytes([0xa0 | self.address, (id & 0x3f), (new_level & 0x1f)])
 
     def set_channel(self, id, level, force=False):
         self.network.send(self._proto_set_channel(id, *self.channels[id].set_level(level), force=force))
@@ -109,14 +108,14 @@ class LumosLegacyControllerUnit (ControllerUnit):
     def kill_all_channels(self, force=False):
         for ch in self.channels:
             self.channels[ch].kill()
-        self.network.send(chr(0x80 | self.address))
+        self.network.send(bytes([0x80 | self.address]))
 
     def all_channels_off(self, force=False):
         for ch in self.channels:
             self.set_channel_off(ch, force)
 
     def initialize_device(self):
-        self.network.send(chr(0xf0 | self.address) + chr(0x61))   # go to normal run mode
+        self.network.send(bytes([(0xf0 | self.address), 0x61]))   # go to normal run mode
         self.kill_all_channels(True)
         self.all_channels_off(True)
 #

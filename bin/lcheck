@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS CONFIGURATION CHECK UTILITY
@@ -41,83 +41,83 @@ parser.add_option('-v', '--verbose', action='count', help='Enable more descripti
 
 def trace(level, msg):
     global options
-    if level <= options.verbose:
-        print msg
+    if options.verbose is not None and level <= options.verbose:
+        print(msg)
 
 for file in files:
-    if options.verbose: print "Checking", file
+    if options.verbose: print("Checking", file)
     s = Show()
     s.load_file(file.split(','), open_device=False)
     if options.verbose:
-        print "SHOW DESCRIBED BY FILE(S) '%s':" % file
-        print " Title:", s.title
-        print " Description:", s.description
-        print "-" * 78
-        print " POWER SOURCES:"
+        print("SHOW DESCRIBED BY FILE(S) '%s':" % file)
+        print(" Title:", s.title)
+        print(" Description:", s.description)
+        print("-" * 78)
+        print(" POWER SOURCES:")
     maxload_W = {}
     unitnames = {}
     maxwidth = max([len(w) for w in s.all_power_sources])
     for sourceID in sorted(s.all_power_sources):
         source = s.all_power_sources[sourceID]
         maxload_W[sourceID] = 0
-        if options.verbose: print ("  {0:<"+str(maxwidth)+"} {1:5.1f}A {2:5g}V {3:6d}W").format(
+        if options.verbose: print(("  {0:<"+str(maxwidth)+"} {1:5.1f}A {2:5g}V {3:6d}W").format(
             source.id, source.amps, source.volts, int(source.amps*source.volts)
-        )
+        ))
 
     if options.verbose:
         maxwidth_net = maxwidth_spd = maxwidth_port = 0
-        for i, net in s.networks.items():
+        for i, net in list(s.networks.items()):
             maxwidth_net = max(maxwidth_net, len(i), 7)
             maxwidth_spd = max(maxwidth_spd, 
                 (len("{0:,}".format(net.baudrate)) if hasattr(net, 'baudrate') else 3), 5)
             maxwidth_port = max(maxwidth_port, len(str(net.port)), 4)
            
-        print "-" * 78
-        print " COMMUNICATIONS PARAMETERS"
-        print ("  {0:<"+str(maxwidth_net)+"} {1:>"+str(maxwidth_spd)+"} BPSXR {2:<"+str(maxwidth_port)+"} DESCRIPTION").format('NETWORK', 'SPEED', 'PORT')
+        print("-" * 78)
+        print(" COMMUNICATIONS PARAMETERS")
+        print(("  {0:<"+str(maxwidth_net)+"} {1:>"+str(maxwidth_spd)+"} BPSXR {2:<"+str(maxwidth_port)+"} DESCRIPTION").format('NETWORK', 'SPEED', 'PORT'))
         for netID in sorted(s.networks):
             net = s.networks[netID]
             X=R='-'
             if hasattr(net, 'xonxoff') and net.xonxoff: X='X'
             if hasattr(net, 'rtscts')  and net.rtscts:  R='R'
             
-            print ("  {0:<"+str(maxwidth_net)+"s} {1:>"+str(maxwidth_spd)+",} {2}{3}{4}{5}{6} {7:<"+str(maxwidth_port)+"s} {8}").format(
+            print(("  {0:<"+str(maxwidth_net)+"s} {1:>"+str(maxwidth_spd)+",} {2}{3}{4}{5}{6} {7:<"+str(maxwidth_port)+"s} {8}").format(
                 netID, net.baudrate if hasattr(net, 'baudrate') else 0,
                 net.bits if hasattr(net, 'bits') else '-', 
                 net.parity[0] if hasattr(net, 'parity') else '-',
                 net.stop if hasattr(net, 'stop') else '-',
-                X, R, str(net.port), net.description)
+                X, R, str(net.port), net.description))
 
-    maxwidth_pi = max(max([len(w.power_source.full_id()) for n in s.networks.values() for w in n.units.values()]), 5)
+    maxwidth_pi = max(max([len(w.power_source.full_id()) for n in list(s.networks.values()) for w in list(n.units.values())]), 5)
     if options.verbose:
         maxwidth_id = max(max([len(w) for w in s.networks]), 7)
-        maxwidth_ui = max(max([len(w) for n in s.networks.values() for w in n.units]), 4)
-        print "-" * 78
-        print " DEVICE CONTROLLERS:"
-        print ("  {0:<"+str(maxwidth_id)+"} {1:<"+str(maxwidth_ui)+"} {2:<"+str(maxwidth_pi)+"} DESCRIPTION").format(
-            'NETWORK', 'UNIT', 'POWER')
+        maxwidth_ui = max(max([len(w) for n in list(s.networks.values()) for w in n.units]), 4)
+        print("-" * 78)
+        print(" DEVICE CONTROLLERS:")
+        print(("  {0:<"+str(maxwidth_id)+"} {1:<"+str(maxwidth_ui)+"} {2:<"+str(maxwidth_pi)+"} DESCRIPTION").format(
+            'NETWORK', 'UNIT', 'POWER'))
 
         for netID in sorted(s.networks):
             net = s.networks[netID]
             for unitID in sorted(net.units):
                 unit = net.units[unitID]
-                print ("  {0:<"+str(maxwidth_id)+"} {1:<"+str(maxwidth_ui)+"} {2:<"+str(maxwidth_pi)+"} {3}").format(
-                    netID, unitID, unit.power_source.id, unit)
+                print(("  {0:<"+str(maxwidth_id)+"} {1:<"+str(maxwidth_ui)+"} {2:<"+str(maxwidth_pi)+"} {3}").format(
+                    netID, unitID, unit.power_source.id, unit))
             
         maxwidth_ch = max([4]+[len(str(c)) 
-                for n in s.networks.values() 
-                    for u in n.units.values() 
+                for n in list(s.networks.values()) 
+                    for u in list(n.units.values()) 
                         for c in u.iter_channels()])
         maxwidth_lo = max(
             [4]+[len("{0:.2g}".format(u.channels[c].current_load()[0]))
-                for n in s.networks.values() 
-                    for u in n.units.values() 
+                for n in list(s.networks.values()) 
+                    for u in list(n.units.values()) 
                         for c in u.iter_channels()])
         
-        print "-" * 78
-        print " DEVICE CHANNELS:"
-        print ("  {0:<"+str(maxwidth_ui)+"} {1:>"+str(maxwidth_ch)+"} {2:<"+str(maxwidth_pi)+"} {3:>"+str(maxwidth_lo+1)+"} D WARM DESCRIPTION").format(
-            'UNIT', 'CHAN', 'POWER', 'LOAD')
+        print("-" * 78)
+        print(" DEVICE CHANNELS:")
+        print(("  {0:<"+str(maxwidth_ui)+"} {1:>"+str(maxwidth_ch)+"} {2:<"+str(maxwidth_pi)+"} {3:>"+str(maxwidth_lo+1)+"} D WARM DESCRIPTION").format(
+            'UNIT', 'CHAN', 'POWER', 'LOAD'))
 
     for netID in sorted(s.networks):
         trace(2, "net="+netID)
@@ -126,7 +126,7 @@ for file in files:
             trace(2, "--unit="+unitID)
             unit = net.units[unitID]
             if unitID in unitnames:
-                raise ValueError, "Unit '%s' is not unique!" % unitID
+                raise ValueError("Unit '%s' is not unique!" % unitID)
             unitnames[unitID] = 1
             #trace(3, "channel list is {0}".format(`unit.channels`))
             #trace(3, "sorted iter is {0}".format(sorted(unit.iter_channels())))
@@ -137,9 +137,9 @@ for file in files:
                 if options.verbose:
                     D = '-'
                     if channel.dimmer: D = 'D'
-                    print ("  {0:<"+str(maxwidth_ui)+"} {1:>"+str(maxwidth_ch)+"} {2:<"+str(maxwidth_pi)+"} {3:>"+str(maxwidth_lo)+".2g}A {4} {5:3d}% {6}").format(
+                    print(("  {0:<"+str(maxwidth_ui)+"} {1:>"+str(maxwidth_ch)+"} {2:<"+str(maxwidth_pi)+"} {3:>"+str(maxwidth_lo)+".2g}A {4} {5:3d}% {6}").format(
                         unitID, chanID, channel_source.id, channel_power, D,
-                        channel.pct_dimmer_value(channel.warm), channel.name)
+                        channel.pct_dimmer_value(channel.warm), channel.name))
 
 
                     #print "  %-8s %4s %-6s %4.2gA %s %3d%% %s" %(
@@ -148,31 +148,31 @@ for file in files:
                 maxload_W[channel_source.id] += channel_power * channel_source.volts
     
     if options.verbose:
-        print "-" * 78
-        print " POWER LOAD SUMMARY:"
+        print("-" * 78)
+        print(" POWER LOAD SUMMARY:")
 
 
     def trace_load_of(pso, maxload_W):
         global maxwidth_pi
-        trace(2, "trace_load_of(pso={}, maxload_W={}) ENTER".format(`pso`, maxload_W))
+        trace(2, "trace_load_of(pso={}, maxload_W={}) ENTER".format(repr(pso), maxload_W))
         ps = pso.id
         pso_watts = pso.amps * pso.volts
         psmax_W = maxload_W[ps]
         total_W = psmax_W + sum([trace_load_of(ss, maxload_W) for ss in pso.subordinates])
         
         if options.verbose:
-            print ("  {0:<"+str(maxwidth_pi)+"} Loaded to {1:3d}%").format(ps, int(total_W*100 // pso_watts))
+            print(("  {0:<"+str(maxwidth_pi)+"} Loaded to {1:3d}%").format(ps, int(total_W*100 // pso_watts)))
 
         if total_W > pso_watts:
             over = -(pso_watts - total_W)
-            print "*** WARNING *** {0} OVERLOADED BY {1} AMP{2} ({3} WATT{4}) IF ALL CHANNELS ON!".format(
+            print("*** WARNING *** {0} OVERLOADED BY {1} AMP{2} ({3} WATT{4}) IF ALL CHANNELS ON!".format(
                 ps, over/pso.volts, "S" if (over/pso.volts) != 1 else "",
-                over, "S" if over != 1 else "")
+                over, "S" if over != 1 else ""))
         elif total_W == pso_watts:
-            print "*** WARNING *** {0} AT 100% LOAD CAPACITY IF ALL CHANNELS ON!".format(ps)
+            print("*** WARNING *** {0} AT 100% LOAD CAPACITY IF ALL CHANNELS ON!".format(ps))
         elif total_W/float(pso_watts) > 0.80:
-            print "*** WARNING *** {0} NEAR CAPACITY ({1:d}%)".format(
-                    ps, int(total_W*100 // pso_watts))
+            print("*** WARNING *** {0} NEAR CAPACITY ({1:d}%)".format(
+                    ps, int(total_W*100 // pso_watts)))
 
         return total_W
 
@@ -183,7 +183,7 @@ for file in files:
         total_W += trace_load_of(s.all_power_sources[ps], maxload_W)
 
     if options.verbose:
-        print "Total allocated load: {0} Watts".format(total_W)
+        print("Total allocated load: {0} Watts".format(total_W))
 
 
 #    for ps in sorted(s.all_power_sources):

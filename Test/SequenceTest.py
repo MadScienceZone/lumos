@@ -1518,8 +1518,8 @@ class SqeuenceTest (unittest.TestCase):
 
     def test_save(self):
         self.build_seq().save_file('data/test-out.lseq')
-        orig = file('data/test-cmp.lseq', 'rb').read()
-        newf = file('data/test-out.lseq', 'rb').read()
+        orig = open('data/test-cmp.lseq', 'rb').read()
+        newf = open('data/test-out.lseq', 'rb').read()
         self.assertEqual(orig, newf, msg="data/test-cmp.lseq vs. data/test-out.lseq mismatch")
 
     def test_version(self):
@@ -1629,7 +1629,7 @@ class SqeuenceTest (unittest.TestCase):
         f = open('data/tmp_x', 'w')
         #f.write(`s.compile()`)
         self.describe_events(s, f)
-        self.describe_sequence(sorted(s.compile()), f)
+        self.describe_sequence(sorted(s.compile(), key=lambda a: a[0]), f)
         f.close()
 
         self.assertEqual(None, self.compare_timeline_lists(s.compile(), self.TEST_TIMELINE))
@@ -1640,7 +1640,7 @@ class SqeuenceTest (unittest.TestCase):
         c = s.compile()
         flush_seen = set()
         last_time = None
-        for e in sorted(c):
+        for e in sorted(c, key=lambda a: a[0]):
             if last_time is None or last_time != e[0]:
                 flush_seen = set()
                 last_time = e[0]
@@ -1684,15 +1684,14 @@ class SqeuenceTest (unittest.TestCase):
         if there was no mismatch.'''
 
         # first, put them in order
-        a = sorted(actual)
-        e = sorted(expected)
+        a = sorted(actual, key=lambda a: a[0])
+        e = sorted(expected, key=lambda a: a[0])
         result = None
         if len(a) != len(e):
             print("Actual data dumped to data/SequenceData.timeline.")
-            outf = file("data/SequenceData.timeline", "w")
-            for ev in a:
-                print("%8d %-10s %s\n" % (ev[0], ev[2], ev[1]), file=outf)
-            outf.close()
+            with open("data/SequenceData.timeline", "w") as outf:
+                for ev in a:
+                    print("%8d %-10s %s\n" % (ev[0], ev[2], ev[1]), file=outf)
             return "TIMELINE MISMATCH: actual has %d elements vs. expected %d" % (len(a), len(e))
 
         for i in range(len(a)):

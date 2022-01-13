@@ -32,10 +32,49 @@ sequence:
 controller (ControllerUnit class):
 	sends events to network
 
+	default
+		ids are strings (index into channels dict)
+
+	FireGodControllerUnit
+		ids are integer indexes into channels list
+	X10ControllerUnit
+		ids are in form "A1".."P16"
+	   FirecrackerX10ControllerUnit
+	 	packet(id, op) -> bytes to send to device
+	   LynX10ControllerUnit
+	LumosControllerUnit
+		throws {DeviceProtocol,InternalDevice,Internal}Error
+		ids are integer indexes into channels list
+		.dumpstats(filename)
+		.raw_ramp_up(ch, steps, delay, cycle=False)
+		.raw_ramp_down(ch, steps, delay, cycle=False)
+		.raw_control(cmd_name, ...)
+		.raw_begin_rom_download(...)
+		.raw_set_phase(v)
+		.raw_set_address(a)
+		.raw_download_sequence(id, bits)
+		.raw_sensor_trigger(sensor, pre, seq, post, inverse=False, execf=False)
+		.raw_configure_device(conf_obj)
+		.raw_query_device_status(timeout=0) -> LumosControllerStatus
+	LumosLegacyControllerUnit
+		(for units with 2.x ROMs)
+	Olsen595ControllerUnit
+	RenardControllerUnit
+	SpectrumReaderboardUnit
+		throws InvalidTextAlignment, InvalidTextMode, InvalidTextAttribute
+	UltraDMXMicroControllerUnit
+		throws DeviceProtocolError
+	 	
+
 	__init__(id, power_source, network, [resolution=100], ...)
 		FireGodControllerUnit:	+address=1, num_channels=32
+		LumosControllerUnit:	+address=0, num_channels=48
+		LumosLegacyControllerUnit: +address
+		Olsen595ControllerUnit:	+num_channels=64
+		RenardControllerUnit:	+address=0, num_channels=64
+		UltraDMXMicroControllerUnit: +num_channels=512
 	channel_id_from_string(channel)	# channel name -> id
-		FireGocControllerUnit:	-> int
+		FireGodControllerUnit:	-> int
 	add_channel(id, [name], [load], [dimmer=True], [warm], [resolution], [power_source])
 	set_channel(id, level, [force=False])
 		id can be string or int depending on type of unit
@@ -49,6 +88,7 @@ controller (ControllerUnit class):
 	all_channels_off([force=False])
 	initialize_device()
 	flush([force=False])
+		calls network.send with the binary data
 	iter_channels()			# iterates over channel IDs
 	_iter_non_null_channel_list()	# only includes implemented channels
 	current_drain()			# -> {chan_id: (amps, PowerSource), ...}

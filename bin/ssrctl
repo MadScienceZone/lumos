@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # vi:set ai sm nu ts=4 sw=4 expandtab:
 #_______________________________________________________________________ 
 #                                                                 Lumos #
@@ -47,7 +47,7 @@ seq = Sequence()
 #========================================================================
 
 def trace_event(str):
-    print '::TEST::', str
+    print('::TEST::', str)
 
 def trace_event_format(func, arglist):
     '''
@@ -55,14 +55,14 @@ Output format for traced events via --test option:
 ::TEST:: <controller>: <action>
     '''
     try:
-        obj_name = func.im_self.id
+        obj_name = func.__self__.id
     except:
         try:
-            obj_name = 'unknown ' + `func`
+            obj_name = 'unknown ' + repr(func)
         except:
             obj_name = 'unknown'
 
-    return obj_name + ': ' + func.__name__ + `arglist`
+    return obj_name + ': ' + func.__name__ + repr(arglist)
     
 
 #========================================================================
@@ -70,9 +70,9 @@ Output format for traced events via --test option:
 #========================================================================
 
 if options.verbose:
-    print "Lumos SSR Control Utility, version", parser.version
-    print "Show:", show.title
-    print "     ", show.description
+    print("Lumos SSR Control Utility, version", parser.version)
+    print("Show:", show.title)
+    print("     ", show.description)
 
 interactive_mode = False
 if len(command_list) == 0:
@@ -82,9 +82,9 @@ def fail(message):
     global interactive_mode
 
     if interactive_mode:
-        print message
+        print(message)
     else:
-        print >>sys.stderr, "Fatal error:", message
+        print("Fatal error:", message, file=sys.stderr)
         sys.exit(1)
 
 current_controller = None
@@ -187,7 +187,7 @@ def do_command(command):
     else:
         # perform a command on each controller and channel specified.
         if controller_obj is None:
-            controllers = show.controllers.values()
+            controllers = list(show.controllers.values())
         else:
             controllers = [controller_obj]
 
@@ -202,10 +202,10 @@ def do_command(command):
                     c_obj.kill_channel(chan)
                 elif m.group('cmd') == 'p':
                     if c_obj.channels[chan].level is None:
-                        print "%s.%s = OFF" % (c_obj.id, chan)
+                        print("%s.%s = OFF" % (c_obj.id, chan))
                     else:
-                        print "%s.%s = %d (%.1f%%)" % (c_obj.id, chan, c_obj.channels[chan].level, 
-                            c_obj.channels[chan].pct_dimmer_value(c_obj.channels[chan].level))
+                        print("%s.%s = %d (%.1f%%)" % (c_obj.id, chan, c_obj.channels[chan].level, 
+                            c_obj.channels[chan].pct_dimmer_value(c_obj.channels[chan].level)))
                 elif m.group('cmd') == 'x':
                     c_obj.set_channel_off(chan)
                 else:
@@ -213,7 +213,7 @@ def do_command(command):
                     return
 
 if interactive_mode:
-    print '''Lumos SSR Control Utility
+    print('''Lumos SSR Control Utility
 To set a channel's level:
    > [[controller.]channel]=percentage[/time]
    If time given, make change over that many milliseconds
@@ -229,14 +229,14 @@ Either controller or channel may be "*", which means "all".  So, turning
 all outputs on all controllers fully off is "*.*:k".
 
 Type EOF (^D on Unix; ^Z on Windows/DOS) to quit.
-'''
+''')
 
 
     while True:
         try:
-            do_command(raw_input("> "))
+            do_command(input("> "))
         except EOFError:
-            print
+            print()
             sys.exit(0)
 else:
     for command in command_list:

@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS DEVICE DRIVER: X-10 TW523 + LynX10
 # ***UNTESTED*** SPECULATIVE CODE.  NOT READY FOR USE!
@@ -223,7 +222,7 @@ class LynX10ControllerUnit (X10ControllerUnit):
     def _x10_unitcode_to_lynx(self, x10_id):
         return '%X' % (int(x10_id)-1)
 
-    def _proto_set_channel(self, id, old_level, new_level, force=False):
+    def _proto_set_channel(self, id, old_level, new_level, force=False) -> bytes:
         #
         # Implement logic for what commands we output to move
         # channels from one dimmer level to another.  These are
@@ -234,12 +233,12 @@ class LynX10ControllerUnit (X10ControllerUnit):
         if new_level == old_level and not force:
             # The level didn't end up changing on the actual
             # device, so don't send anything.
-            return ''
+            return b''
 
         if new_level is None:
             # We're going to a fully off state, so just turn off
             # the device and be done with it.
-            return 'F0' + self._x10_to_lynx_id(id) + '\r'
+            return ('F0' + self._x10_to_lynx_id(id) + '\r').encode()
 
         # ...so we're changing to an ON state.  We know then 
         # no matter what we'll start off with an ON code.
@@ -270,7 +269,7 @@ class LynX10ControllerUnit (X10ControllerUnit):
                 old_level - new_level
             )
 
-        return command
+        return command.encode()
 
 
     def set_channel(self, id, level, force=False):
@@ -286,7 +285,7 @@ class LynX10ControllerUnit (X10ControllerUnit):
         self.network.send(self._proto_set_channel(id, *self.channels[id].kill(), force=force))
 
     def kill_all_channels(self, force=False):
-        self.network.send("F4\r")
+        self.network.send(b"F4\r")
         for ch in sorted(self.channels):
             self.kill_channel(ch, force)
 
@@ -296,8 +295,8 @@ class LynX10ControllerUnit (X10ControllerUnit):
 
     def initialize_device(self):
         "Reset device state to reasonable default settings."
-        self.network.send("R\r")
-        self.network.send("M00=02\r")
+        self.network.send(b"R\r")
+        self.network.send(b"M00=02\r")
         self.kill_all_channels(True)
         self.all_channels_off(False)
 #

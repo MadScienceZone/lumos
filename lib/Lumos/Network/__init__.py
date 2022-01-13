@@ -74,11 +74,11 @@ class Network (object):
         "Remove a controller"
         del self.units[id]
 
-    def send(self, cmd):
+    def send(self, cmd: bytes):
         "Send a command string to the hardware device."
         raise NotImplementedError("You MUST redefine this method in each Network class.")
 
-    def input(self, remaining_f=None, nbytes=None, mode_switch=True, timeout=None):
+    def input(self, remaining_f=None, nbytes=None, mode_switch=True, timeout=None) -> bytes:
         "Input data from the network."
         # You MAY redefine this method in each Network class.  You MUST if you want
         # it to perform input operations.

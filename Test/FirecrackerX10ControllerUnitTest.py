@@ -35,13 +35,18 @@ from Lumos.PowerSource              import PowerSource
 from TestNetwork                    import TestNetwork
 
 def P(data):
-    stream = ''
+    stream = b''
+#    print(f"P({data})")
     for i in data:
-        stream += "=D5=AA" + i + "=AD"
+#        print(f" i={i}")
+        stream += b"=D5=AA" + i + b"=AD"
+#    print(f"->{stream}")
     return stream
 
 def PP(data):
-    return data.replace('=\n', '')
+#    print(f"PP({data})")
+#    print("->", data.replace(b'=\n', b''))
+    return data.replace(b'=\n', b'')
 
 class FirecrackerX10ControllerUnitTest (unittest.TestCase):
     def setUp(self):
@@ -76,19 +81,19 @@ class FirecrackerX10ControllerUnitTest (unittest.TestCase):
         # 6020 6030 7068 0478     7048 (18x) 7098
         #  `sp  ` 0  p h    x      p H (18x)  p 
         self.assertEqual(PP(self.n.buffer), 
-           P(['` ','=04x','`0','ph','pH'] + (18 * ['p=98'])))
+           P([b'` ',b'=04x',b'`0',b'ph',b'pH'] + (18 * [b'p=98'])))
 
     def testInit(self):
         self.fc.kill_all_channels()
-        self.assertEqual(PP(self.n.buffer), '')
+        self.assertEqual(PP(self.n.buffer), b'')
         self.fc.set_channel_on('A1')
         self.fc.set_channel_on('B7')
         # 6000 7048
         #  `    p H
-        self.assertEqual(PP(self.n.buffer), P(('`=00','pH')))
+        self.assertEqual(PP(self.n.buffer), P((b'`=00',b'pH')))
         self.n.reset()
         self.fc.kill_all_channels()
-        self.assertEqual(PP(self.n.buffer), P(['` ','ph']))
+        self.assertEqual(PP(self.n.buffer), P([b'` ',b'ph']))
 
     def testOnOff(self):
         self.fc.set_channel_on('A2')
@@ -98,7 +103,7 @@ class FirecrackerX10ControllerUnitTest (unittest.TestCase):
         # on a2 m16     off m16 a2
         # 6010 0458        0478 6030
         #  `      X           x  ` 0
-        self.assertEqual(PP(self.n.buffer), P(['`=10','=04X','=04x','`0']))
+        self.assertEqual(PP(self.n.buffer), P([b'`=10',b'=04X',b'=04x',b'`0']))
 
     def test_iterator(self):
         self.assertEqual(sorted(self.fc.iter_channels()), ['A1','A2','B7','M16'])

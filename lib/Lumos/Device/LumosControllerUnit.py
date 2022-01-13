@@ -116,44 +116,79 @@ class LumosControllerUnit (ControllerUnit):
             self._min_change, self._max_change = min(self._min_change, id), max(self._max_change, id)
             self._changed_channels.add(id)
 
-    def _8_bit_decode_string(self, byte_string):
-        return self._8_bit_decode_packet([ord(i) for i in byte_string])
-    
-    def _8_bit_decode_packet(self, byte_list):
+    def _8_bit_encode(self, byte_list: bytes) -> bytes:
+        "Encode raw binary sequence into 7-bit-clean version for sending in a Lumos command stream."
+        result = []
+        for b in byte_list:
+            if b > 0x7f:
+                result.extend([0x7e, (b & 0x7f)])
+            elif b == 0x7e:
+                result.extend([0x7f, 0x7e])
+            elif b == 0x7f:
+                result.extend([0x7f, 0x7f])
+            else:
+                result.append(b)
+        return bytes(result)
+
+    def _8_bit_decode(self, byte_list: bytes) -> bytes:
+        "Decode 7-bit-clean data stream to raw binary."
         result = []
         next_MSB = False
         next_literal = False
-        for byte in byte_list:
+
+        for b in byte_list:
             if next_MSB:
                 next_MSB = False
-                result.append(byte | 0x80)
+                result.append(b | 0x80)
             elif next_literal:
                 next_literal = False
-                result.append(byte)
-            elif byte == 0x7e:
+                result.append(b)
+            elif b == 0x7e:
                 next_MSB = True
-            elif byte == 0x7f:
+            elif b == 0x7f:
                 next_literal = True
             else:
-                result.append(byte)
-        return result
-                
-    def _8_bit_string(self, byte_list):
-        return ''.join([chr(x) for x in self._8_bit_packet(byte_list)])
+                result.append(b)
+        return bytes(result)
 
-    def _8_bit_packet(self, byte_list):
-        "Convert a list of bytes to a list of 8-bit-escaped bytes (may be longer)"
-        result = []
-        for byte in byte_list:
-            if byte > 0x7f:
-                result.extend([0x7e, (byte & 0x7f)])
-            elif byte == 0x7e:
-                result.extend([0x7f, 0x7e])
-            elif byte == 0x7f:
-                result.extend([0x7f, 0x7f])
-            else:
-                result.append(byte)
-        return result
+#    def _8_bit_decode_string(self, byte_string: str) -> bytes:
+#        return self._8_bit_decode_packet([ord(i) for i in byte_string])
+#    
+#    def _8_bit_decode_packet(self, byte_list: bytes) -> bytes:
+#        result = []
+#        next_MSB = False
+#        next_literal = False
+#        for byte in byte_list:
+#            if next_MSB:
+#                next_MSB = False
+#                result.append(byte | 0x80)
+#            elif next_literal:
+#                next_literal = False
+#                result.append(byte)
+#            elif byte == 0x7e:
+#                next_MSB = True
+#            elif byte == 0x7f:
+#                next_literal = True
+#            else:
+#                result.append(byte)
+#        return result
+#                
+#    def _8_bit_string(self, byte_list):
+#        return ''.join([chr(x) for x in self._8_bit_packet(byte_list)])
+#
+#    def _8_bit_packet(self, byte_list):
+#        "Convert a list of bytes to a list of 8-bit-escaped bytes (may be longer)"
+#        result = []
+#        for byte in byte_list:
+#            if byte > 0x7f:
+#                result.extend([0x7e, (byte & 0x7f)])
+#            elif byte == 0x7e:
+#                result.extend([0x7f, 0x7e])
+#            elif byte == 0x7f:
+#                result.extend([0x7f, 0x7f])
+#            else:
+#                result.append(byte)
+#        return result
 
     def flush(self, force=False):
         #
@@ -180,7 +215,7 @@ class LumosControllerUnit (ControllerUnit):
             #
             byte_count=0
             if sum([i.level or 0 for i in list(self.channels.values())]) == 0:
-                self.network.send(chr(0x80 | self.address))
+                self.network.send(bytes([0x80 | self.address]))
                 byte_count += 1
             else:
                 if force:
@@ -192,66 +227,48 @@ class LumosControllerUnit (ControllerUnit):
 
                 if n >= (10 if self.num_channels <= 24 else 18):
                     # bulk transfer B0|a ch n-1 v*n 55
+                    # 1011aaaa
+                    # 00<chan>
+                    # < n-1  >
+                    # < level>
+                    #    :
+                    # < level>
+                    # 01010101
                     n_1 = self._max_change - self._min_change
-                    packet = ''.join([
-                        chr(0xb0 | self.address),
-                        chr(self._min_change & 0x3f),
-                        chr(n_1 & 0x3f)
-                    ]) + self._8_bit_string([
-                        ((self.channels[vi].level or 0) if vi in self.channels else 0)
-                            for vi in range(self._min_change, self._max_change + 1)
-                    ]) + "\x55"
+                    packet = bytes([0xb0 | self.address, self._min_change & 0x3f]) + self._8_bit_encode(
+                            bytes([n_1 & 0xff] + [
+                                ((self.channels[vi].level or 0) if vi in self.channels else 0)
+                                for vi in range(self._min_change, self._max_change+1)])) + b'\x55'
                     self.network.send(packet)
                     byte_count += len(packet)
                 else:
                     # individual channel updates A0|a ch v
                     for i in self._changed_channels:
                         if not self.channels[i].level:  # covers None and 0
-                            self.network.send(chr(0x90 | self.address) + chr(i & 0x3f))
+                            # off:
+                            # 1001aaaa
+                            # 00<chan>
+                            self.network.send(bytes([0x90 | self.address, i & 0x3f]))
                             byte_count += 2
                         elif self.channels[i].level >= self.resolution-1:
-                            self.network.send(chr(0x90 | self.address) + self._8_bit_string([0x40 | (i & 0x3f)]))
+                            # on:
+                            # 1001aaaa
+                            # 01<chan>
+                            self.network.send(bytes([0x90 | self.address, 0x40 | (i & 0x3f)]))
                             byte_count += 2
                         else:
-                            self.network.send(
-                                chr(0xa0 | self.address) + self._8_bit_string([
-                                    (i & 0x3f) | ((self.channels[i].level << 6) & 0x40),
-                                    (self.channels[i].level >> 1) & 0x7f
-                                ])
-                            )
-#<<<<<<< .mine
-#                            byte_count += 3
-#                #else:
-#                #    if n >= (10 if self.num_channels <= 24 else 18):
-#                        # low-res bulk transfer B0|a ch n v*n 55
-#                #        n_1 = self._max_change - self._min_change
-#                #        self.network.send(''.join([
-#                #            chr(0xb0 | self.address),
-#                #            chr(self._min_change & 0x3f),
-#                #            chr((n_1) & 0x3f)
-#                #        ] + [
-#                #            chr((((self.channels[vi].level or 0)) & 0x7f) if vi in self.channels else 0) for vi in range(self._min_change, self._max_change + 1)
-#                #        ] + [
-#                #            chr(0x55)
-#                #        ]))
-#                #    else:
-#                #        # low-res individual channel updates A0|a ch v
-#                #        for i in self._changed_channels:
-#                #            if not self.channels[i].level:
-#                #                self.network.send(chr(0x90 | self.address) + chr(i & 0x3f))
-#                #            elif self.channels[i].level >= self.resolution-1:
-#                #                self.network.send(chr(0x90 | self.address) + chr(0x40 | (i & 0x3f)))
-#                #            else:
-#                #                self.network.send(
-#                #                    chr(0xa0 | self.address) + 
-#                #                    chr(i & 0x3f) +
-#                #                    chr(self.channels[i].level & 0x7f)
-#                #                )
-#=======
-#>>>>>>> .r91
+                            # set:
+                            # 1010aaaa
+                            # 0l<chan>     dimmer value = hhhhhhhl  
+                            # 0hhhhhhh
+                            self.network.send(bytes([
+                                0xa0 | self.address, 
+                                (i & 0x3f) | ((self.channels[i].level << 6) & 0x40),
+                                (self.channels[i].level >> 1) & 0x7f,
+                            ]))
+                            byte_count += 3
             self._reset_queue()
             self.stats.append((time.time(), byte_count))
-            
 
     def set_channel(self, id, level, force=False):
         self._queue_set_channel(id, *self.channels[id].set_level(level), force=force)
@@ -268,7 +285,7 @@ class LumosControllerUnit (ControllerUnit):
     def kill_all_channels(self, force=False):
         for ch in self.channels:
             self.channels[ch].kill()
-        self.network.send(chr(0x80 | self.address))
+        self.network.send(bytes([0x80 | self.address]))
 
     def all_channels_off(self, force=False):
         for ch in self.channels:
@@ -276,41 +293,44 @@ class LumosControllerUnit (ControllerUnit):
         self.flush(force)
 
     def initialize_device(self):
-        self.network.send(chr(0xf0 | self.address) + chr(0x09))     # turn off config mode
+        self.network.send(bytes([0xf0 | self.address, 0x09]))     # turn off config mode
         self.kill_all_channels(False)
         self.all_channels_off(False)
 
     def raw_ramp_up(self, channel, steps, delay, cycle=False):
+        # 1100aaaa
+        # CDcccccc  C=cycle, D=dir, c=chan
+        # (steps-1)
+        # (time-1)
         self.flush()
         self.channels[channel].set_level(self.resolution - 1)
-        self.network.send(chr(0xC0 | self.address) + self._8_bit_string([
+        self.network.send(bytes([0xC0 | self.address]) + self._8_bit_encode(bytes([
             (0x80 if cycle else 0x00) | 0x40 | (channel & 0x3f),
             steps - 1,
-            delay - 1
-        ]))
+            delay - 1,
+        ])))
 
     def raw_ramp_down(self, channel, steps, delay, cycle=False):
         self.flush()
         self.channels[channel].set_level(0)
-        self.network.send(chr(0xC0 | self.address) + self._8_bit_string([
+        self.network.send(bytes([0xC0 | self.address]) + self._8_bit_encode(bytes([
             (0x80 if cycle else 0x00) | (channel & 0x3f),
             steps - 1,
-            delay - 1
-        ]))
-
+            delay - 1,
+        ])))
 
     _device_commands = {
-        'sleep':    '\x00ZZ',
-        'wake':     '\x01ZZ',
-        'shutdown': '\x02XY',
-        'execute':  '\x05{0}',
-        'masksens': '\x07{1}',
-        'clearmem': '\x08CA',
-        'noconfig': '\x70',
-        'xconfig':  '\x74',
-        'forbid':   '\x09',
-        '__reset__':'\x71$r',
-        '__baud__': '\x72{0}&',
+        'sleep':    b'\x00ZZ',  # 1111aaaa 00000000 01011010 01011010
+        'wake':     b'\x01ZZ',  # 1111aaaa 00000001 01011010 01011010
+        'shutdown': b'\x02XY',  # 1111aaaa 00000010 01011000 01011001
+        'execute':  (lambda a: bytes([0x05, a[0]&0x7f])), # 1111aaaa 00000101 0xxxxxxx
+        'masksens': (lambda a: bytes([0x07, 0x7f & reduce((lambda x,y: x|y), [self._dev_bitmasks.get(k, 0) for k in a])])), # 1111aaaa 00000111 0000ABCD
+        'clearmem': b'\x08CA',  # 1111aaaa 00001000 01000011 01000001
+        'noconfig': b'\x70',    # 1111aaaa 01110000 DEPRECATED
+        'xconfig':  b'\x74',    # 1111aaaa 01111001 DEPRECATED
+        'forbid':   b'\x09',    # 1111aaaa 00001001
+        '__reset__':b'\x73$r',  # 1111aaaa 01110011 00100100 01110010
+        '__baud__': (lambda a: bytes([0x72, a[0]&0x7f, 0x26])), # 1111aaaa 01110010 0xxxxxxx 00100110
     }
     _dev_bitmasks = {
         'A':        0x08,
@@ -321,11 +341,12 @@ class LumosControllerUnit (ControllerUnit):
     def raw_control(self, command, *args):
         # A collection of device-level operations which Lumos ordinarily doesn't use
         if command in self._device_commands:
-            self.network.send(chr(0xF0 | self.address) + self._8_bit_string(
-                [ord(i) for i in self._device_commands[command].format(
-                ''.join([chr(i & 0x7f) for i in args if isinstance(i, int)]),
-                chr(0x7f & reduce((lambda x,y: x|y), [self._dev_bitmasks.get(k, 0) for k in args], 0)),
-            )]))
+            f = self._device_commands[command]
+            if callable(f):
+                pkt = f(args)
+            else:
+                pkt = f
+            self.network.send(bytes([0xf0 | self.address]) + self._8_bit_encode(pkt))
         else:
             raise ValueError("Unknown raw control command \"{0}\" for Lumos board {1}".format(command, self.address))
 
@@ -333,54 +354,61 @@ class LumosControllerUnit (ControllerUnit):
         if args != ('CONFIRM','ROM','DOWNLOAD','YES','REALLY','I','MEAN','IT'):
             raise ValueError("Invalid arguments to raw_begin_rom_download() method: {0}".format(args))
 
-        self.network.send(chr(0xF0 | self.address) + self._8_bit_string([
-            0x75, 0x33, 0x4C, 0x1C
-        ]))
+        self.network.send(bytes([0xF0 | self.address, 0x75, 0x33, 0x4C, 0x1C]))
 
     def raw_set_phase(self, value):
-        self.network.send(chr(0xF0 | self.address) + self._8_bit_string([
+        # 1111aaaa 010000PP 0ppppppp 01010000 01001111  (phase is PPppppppp)
+        self.network.send(bytes([0xF0 | self.address, 
             0x40 | ((value >> 7) & 0x03),
-            value & 0x7f
-            ]) + "PO")
+            value & 0x7f,
+            0x50, 0x4f]))
 
     def raw_set_address(self, value):
+        # 1111aaaa 0110AAAA 01001001 01000001 01000100  (address a -> A)
         if 0 <= value <= 15:
-            self.network.send(chr(0xF0 | self.address) + self._8_bit_string([
+            self.network.send(bytes([0xF0 | self.address,
                 0x60 | (value & 0x0f),
-            ]) + 'IAD')
+                0x49,
+                0x41,
+                0x44,
+            ]))
             self.address = value
         else:
             raise ValueError('New device address {0} out of range [0,15]'.format(value))
 
-    def raw_download_sequence(self, id, bits):
-        "Download a compiled sequence <id> consisting of <bits> (a sequence of integers)"
+    def raw_download_sequence(self, id, bits: bytes):
+        "Download a compiled sequence <id> consisting of <bits> (a bytearray)"
+        # 1111aaaa 00000100 0iiiiiii (N-1) (data....)*N 01000100 01110011
 
         if bits:
-            self.network.send(chr(0xF0 | self.address) + self._8_bit_string([0x04, id, len(bits)-1] 
-                + bits) + 'Ds')
+            self.network.send(bytes([0xf0 | self.address, 0x04, id&0x7f]) +
+                self._8_bit_encode(bytes([len(bits)-1]) + bits) +
+                bytes([0x44, 0x73]))
 
-    def raw_sensor_trigger(self, sens_id, seq_id, inverse=False, execf=False):
+    def raw_sensor_trigger(self, sens_id, pre_seq_id, seq_id, post_seq_id, inverse=False, execf=False):
         # inverse is "active high"
-        self.network.send(chr(0xF0 | self.address) + self._8_bit_string([
-            0x06, 
-            (0x00 if inverse else 0x10) | (0x20 if execf else 0x00) | 
-                {'A':0, 'B':1, 'C':2, 'D':3}[sens_id],
-            seq_id
-        ]) + '<')
+        # 1111aaaa 00000110 0owe00ii 0(pre) 0(exec) 0(post) 00111100
+        self.network.send(bytes([0xf0 | self.address, 0x06, 
+            (0x00 if inverse else 0x10) |
+            (0x20 if execf   else 0x00) |
+            {'A':0, 'B':1, 'C':2, 'D':3}[sens_id.upper()],
+            pre_seq_id & 0x7f,
+            seq_id & 0x7f,
+            post_seq_id & 0x7f,
+            0x3c]))
 
     def raw_configure_device(self, conf_obj):
-        self.network.send(chr(0xF0 | self.address) + self._8_bit_string([
+        # 1111aaaa 01110001 0ABCDdcc 0CCCCCCC 00111010 00111101
+        self.network.send(bytes([0xf0 | self.address,
             0x71,
             reduce((lambda x,y: x|y), 
-                [{'A': 0x40, 'B': 0x20, 'C': 0x10, 'D': 0x08}[s] 
+                [{'A': 0x40, 'B': 0x20, 'C': 0x10, 'D': 0x08}[s.upper()] 
                     for s in conf_obj.configured_sensors], 0)
             | (0x04 if conf_obj.dmx_start else 0x00)
             | (0 if not conf_obj.dmx_start else ((conf_obj.dmx_start - 1) >> 7) & 0x03),
             (0 if not conf_obj.dmx_start else ((conf_obj.dmx_start - 1) & 0x7f)),
             0x3A,
-            0x3D
-        ]))
-            
+            0x3D]))
 
 # Response packet from QUERY command (37 bytes):
 # note the ROM version byte also serves to indicate the format of the response
@@ -416,31 +444,33 @@ class LumosControllerUnit (ControllerUnit):
 #
 # Note that the number of bytes actually received may be greater due to the
 # encoding used to guard 8-bit values.
-
-    def _find_command_byte(self, d, start=0):
+# XXX here XXX
+    def _find_command_byte(self, d: bytes, start=0):
         if d is None:
             return -1
 
         for i in range(start, len(d)):
-            if ord(d[i]) & 0x80:
+            if d[i] & 0x80:
                 return i
         return -1
 
     def raw_query_device_status(self, timeout=0):
-        self.network.send(chr(0xf0 | self.address) + "\3$T")
+        # 1111aaaa 00000011 00100100 01010100
+        # response: 1111aaaa 00011111 ...
+        self.network.send(bytes([0xf0 | self.address, 0x03, 0x24, 0x54]))
 
-        def packet_scanner(d):
+        def packet_scanner(d: bytes):
             start=0
             while True:
                 cb = self._find_command_byte(d, start)
                 start = cb+1
                 if cb < 0:
                     return 37
-                if ord(d[cb]) == (0xf0 | self.address):
+                if d[cb] == 0xf0 | self.address:
                     # len(d) - cb  == number of bytes in our packet so far
                     if len(d) - cb <= 1:
                         return 36
-                    if ord(d[cb+1]) == 0x1f:
+                    if d[cb+1] == 0x1f:
                         # reply to this unit's query command
                         # watch for 0x7e, 0x7f
                         extra_bytes = 0
@@ -449,7 +479,7 @@ class LumosControllerUnit (ControllerUnit):
                             if pos >= 35+extra_bytes: break
                             if skip_next:
                                 skip_next = False
-                            elif 0x7e <= ord(ch) <= 0x7f:
+                            elif 0x7e <= ch <= 0x7f:
                                 extra_bytes += 1
                                 skip_next = True
 
@@ -459,53 +489,49 @@ class LumosControllerUnit (ControllerUnit):
         reply = []
         set_msb = False
         literal_next = False
-        #first_byte = True
         #
         # skip over possible junk ahead of our reply packet
         #
         skipped_data = []
         state=0
         for i in reply_buf:
-            #print "state {0}, i {1:02X}".format(state, ord(i))
             if state == 0:      # wait for command byte addressed to us
-                if ord(i) == (0xf0 | self.address):
+                if i == (0xf0 | self.address):
                     state=1
                 else:
                     skipped_data.append(i)
 
             elif state == 1:    # this byte must be 0x1f
-                if ord(i) == 0x1f:
+                if i == 0x1f:
                     state=2
-                    reply=[0xf0|self.address, 0x1f]         # XXX was 0x31?
+                    reply=[0xf0|self.address, 0x1f]
                     if skipped_data:
                         self.network.diagnostic_output('LumosControllerUnit.raw_query_device_status: Skipped over {0} superfluous byte{1} before finding reply packet: {2}'.format(
                             len(skipped_data),
                             's' if len(skipped_data)==1 else '',
-                            ' '.join(['{0:02X}'.format(ord(c)) for c in skipped_data])
+                            ' '.join(['{0:02X}'.format(c) for c in skipped_data])
                         ))
                 else:
-                    skipped_data.append(chr(0xf0 | self.address))
-                    skipped_data.append(i)
+                    skipped_data.extend([0xf0 | self.address, i])
                     state=0
 
             elif state == 2:    # we're in the response packet, interpret it!
-                if ord(i) > 0x7f: #and not first_byte:
+                if i > 0x7f: 
                     raise DeviceProtocolError("Query packet response malformed (high bit in data area: {0})".format(
                         ' '.join(['{0:02X}'.format(x) for x in reply])))
-                #first_byte = False
 
                 if set_msb:
                     set_msb = False
-                    reply.append(ord(i) | 0x80)
+                    reply.append(i | 0x80)
                 elif literal_next:
                     literal_next = False
-                    reply.append(ord(i))
-                elif i == '\x7e':
+                    reply.append(i)
+                elif i == 0x7e:
                     set_msb = True
-                elif i == '\x7f':
+                elif i == 0x7f:
                     literal_next = True
                 else:
-                    reply.append(ord(i))
+                    reply.append(i)
             else:
                 raise InternalError('Undefined state {0} in packet scanner'.format(state))
 
@@ -514,9 +540,8 @@ class LumosControllerUnit (ControllerUnit):
         if reply[36] != 0x33:
             raise DeviceProtocolError("Query packet response malformed (end={0:02X})".format(reply[34]))
         if reply[2] != 0x30 and reply[2] != 0x31:
+            # We support ROM version 3.0 and 3.1
             raise DeviceProtocolError("Query packet version unsupported ({0}.{1})".format((reply[2] >> 4) & 0x07, (reply[2] & 0x0f)))
-
-
 
         status = LumosControllerStatus()
         for sensor_id, bitmask in ('A', 0x40), ('B', 0x20), ('C', 0x10), ('D', 0x08):

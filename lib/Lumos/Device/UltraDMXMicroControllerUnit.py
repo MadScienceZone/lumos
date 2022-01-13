@@ -139,13 +139,13 @@ class UltraDMXMicroControllerUnit (ControllerUnit):
         ) + 5 - len(buf))
 
     def _send_packet(self, label, byte_list):
-        self.network.send(''.join([chr(i) for i in [
+        self.network.send(bytes([
             0x7e,
             label,
             (len(byte_list)     ) & 0xff,
             (len(byte_list) >> 8) & 0xff] + byte_list + 
             [0xe7]
-        ]))
+        ))
 
     def update_status(self, timeout=10):
         self.status = self.raw_query_device_status(timeout=timeout)
@@ -168,14 +168,14 @@ class UltraDMXMicroControllerUnit (ControllerUnit):
     def raw_get_parameters(self, user_size=0, timeout=10):
         self._send_packet(3, [user_size & 0xff, (user_size >> 8) & 0xff])
         reply = self.network.input(self._packetlen, timeout=timeout)
-        if reply[0:2] != '\x7e\x03' or reply[-1] != '\xe7' or len(reply) < 10:
+        if reply[0:2] != b'\x7e\x03' or reply[-1] != 0xe7 or len(reply) < 10:
             raise DeviceProtocolError("Get param packet response malformed.")
 
         return [
-            ((ord(reply[5]) >> 8) & 0xff) | (ord(reply[4]) & 0xff), # firmware rev
-            ord(reply[6]) * 10.6,   # break time (uS)
-            ord(reply[7]) * 10.6,   # MAB time (uS)
-            ord(reply[8]),          # DMX packets/sec
+            ((reply[5] >> 8) & 0xff) | (reply[4] & 0xff), # firmware rev
+            (reply[6]) * 10.6,   # break time (uS)
+            (reply[7]) * 10.6,   # MAB time (uS)
+            (reply[8]),          # DMX packets/sec
             reply[9:-1],            # user data
         ]
 
@@ -191,15 +191,15 @@ class UltraDMXMicroControllerUnit (ControllerUnit):
     def raw_get_serial_number(self, timeout=10):
         self._send_packet(10,[])
         reply = self.network.input(self._packetlen, timeout=timeout)
-        if len(reply) != 9 or reply[0:4] != '\x7e\x0a\x04\x00' or reply[8] != '\xe7':
+        if len(reply) != 9 or reply[0:4] != b'\x7e\x0a\x04\x00' or reply[8] != 0xe7:
             raise DeviceProtocolError("Get S/N packet response malformed.")
         return (
-            (ord(reply[4])      & 0x0f)            +
-            (ord(reply[4]) >> 4 & 0x0f) * 10       +
-            (ord(reply[5])      & 0x0f) * 100      +
-            (ord(reply[5]) >> 4 & 0x0f) * 1000     +
-            (ord(reply[6])      & 0x0f) * 10000    +
-            (ord(reply[6]) >> 4 & 0x0f) * 100000   +
-            (ord(reply[7])      & 0x0f) * 1000000  +
-            (ord(reply[7]) >> 4 & 0x0f) * 10000000
+            ((reply[4])      & 0x0f)            +
+            ((reply[4]) >> 4 & 0x0f) * 10       +
+            ((reply[5])      & 0x0f) * 100      +
+            ((reply[5]) >> 4 & 0x0f) * 1000     +
+            ((reply[6])      & 0x0f) * 10000    +
+            ((reply[6]) >> 4 & 0x0f) * 100000   +
+            ((reply[7])      & 0x0f) * 1000000  +
+            ((reply[7]) >> 4 & 0x0f) * 10000000
         )

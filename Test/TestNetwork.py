@@ -23,7 +23,6 @@
 #
 # USE THIS PRODUCT AT YOUR OWN RISK.
 # 
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 from Lumos.Network import Network
 from quopri        import encodestring
 import sys
@@ -38,8 +37,8 @@ class TestNetwork (Network):
     def __init__(self, description='test network', **kwargs):
         self.units = {}
         self.description = description
-        self.buffer = ''
-        self.ibuffer = ''
+        self.buffer = b''
+        self.ibuffer = b''
         self.mode = 'tx'
         self.closed = False
         self.args = kwargs
@@ -64,7 +63,7 @@ class TestNetwork (Network):
 
     def reset(self):
         "Reset buffers for easier testing (of isolated events)"
-        self.buffer = self.ibuffer = ''
+        self.buffer = self.ibuffer = b''
 
     def input_waiting(self):
         return len(self.ibuffer)
@@ -75,7 +74,7 @@ class TestNetwork (Network):
     def transmit_mode(self):
         self.mode = 'tx'
 
-    def input_data(self, data):
+    def input_data(self, data: bytes):
         "Set up test data to 'read' from 'input' device, wink wink nudge nudge"
         self.ibuffer += data
 
@@ -85,7 +84,7 @@ class TestNetwork (Network):
         if not self.input_waiting():
             raise APIUsageError('Test logic error--input() call has no simulated input, will block forever.')
 
-        output = ''
+        output = b''
 
         if remaining_f:
             if not bytes:
@@ -116,13 +115,13 @@ class TestNetwork (Network):
 
 class TestParallelNetwork (TestNetwork):
     def send(self, bit):
-        if   bit == 0: self.buffer += '0'
-        elif bit == 1: self.buffer += '1'
+        if   bit == 0: self.buffer += bytes([0x00])
+        elif bit == 1: self.buffer += bytes([0x01])
         else:
             raise ValueError('Parallel Network given bogus value %s' % bit)
 
     def latch(self):
-        self.buffer += 'X'
+        self.buffer += bytes([ord('X')])
 # 
 # $Log: not supported by cvs2svn $
 #

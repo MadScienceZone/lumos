@@ -148,7 +148,7 @@ class Channel (object):
         # less than 50% "off" and anything greater "on".
         #
         if not self.dimmer:
-            self.level = None if level < self.resolution / 2.0 else self.resolution-1
+            self.level = None if (level is None or level < self.resolution / 2.0) else self.resolution-1
             return (previous, self.level)
         #
         # otherwise, figure out proper dimmer handling.

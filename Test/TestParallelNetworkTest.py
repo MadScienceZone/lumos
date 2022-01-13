@@ -33,7 +33,7 @@ class TestParallelNetworkTest (unittest.TestCase):
     def test_cons(self):
         tn = TestParallelNetwork()
         self.assertTrue(isinstance(tn, Network))
-        self.assertEqual(tn.buffer, '')
+        self.assertEqual(tn.buffer, b'')
 
     def test_simple_data(self):
         tn = TestParallelNetwork()
@@ -41,7 +41,7 @@ class TestParallelNetworkTest (unittest.TestCase):
         tn.send(1)
         tn.send(1)
         tn.send(0)
-        self.assertEqual(tn.buffer, '0110')
+        self.assertEqual(tn.buffer, bytes([0,1,1,0]))
 
     def test_latch(self):
         tn = TestParallelNetwork()
@@ -50,7 +50,7 @@ class TestParallelNetworkTest (unittest.TestCase):
         tn.send(0)
         tn.send(1)
         tn.latch()
-        self.assertEqual(tn.buffer, '0101X')
+        self.assertEqual(tn.buffer, bytes([0,1,0,1,ord('X')]))
 # 
 # $Log: not supported by cvs2svn $
 #

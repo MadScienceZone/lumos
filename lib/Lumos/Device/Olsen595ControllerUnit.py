@@ -1,4 +1,3 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS DEVICE DRIVER: OLSEN 595 DIY SSR CONTROLLER
 # ***UNTESTED*** SPECULATIVE CODE.  NOT READY FOR USE!

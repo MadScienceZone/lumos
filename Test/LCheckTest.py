@@ -43,7 +43,7 @@ def runAfcheck(arglist, srcfile, compfile, difffile):
     output = proc.communicate()[0]
     cmpout = open(compfile).read()
     if output != cmpout:
-        with open(difffile, 'w') as d:
+        with open(difffile, 'wb') as d:
             d.write(output)
 
     return (proc.returncode, output, cmpout)
@@ -63,4 +63,4 @@ class AfcheckTest (unittest.TestCase):
         (c, a, b) = runAfcheck((), 'duptest.conf', 'lcheck.dup.out', 'lcheck.dup.actual')
         self.assertEqual(c, 1)
         #self.assertEqual(a, b)
-        self.assertTrue("ValueError: Unit 'a' is not unique!" in a)
+        self.assertTrue(b"ValueError: Unit 'a' is not unique!" in a)

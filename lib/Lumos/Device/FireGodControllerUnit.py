@@ -147,5 +147,5 @@ class FireGodControllerUnit (ControllerUnit):
                 elif channel.level is None:
                     self.network.send(bytes([0x64]))
                 else:
-                    self.network.send(bytes[0x64 + channel.level])
+                    self.network.send(bytes([0x64 + channel.level]))
             self.update_pending = False

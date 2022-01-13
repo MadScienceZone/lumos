@@ -350,7 +350,7 @@ else:
 
                 time.sleep(self.txdelay / 1000.0)
 
-        def input(self, remaining_f=None, nbytes=None, mode_switch=True, timeout=1):
+        def input(self, remaining_f=None, nbytes=None, mode_switch=True, timeout=1) -> bytes:
             """Input data from the serial interface.
 
             If in half-duplex mode, first switch to receive mode (unless
