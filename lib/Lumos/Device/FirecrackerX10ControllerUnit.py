@@ -200,11 +200,11 @@ class FirecrackerX10ControllerUnit (X10ControllerUnit):
         self.network.send(self._proto_set_channel(id, *self.channels[id].kill(), force=force))
 
     def kill_all_channels(self, force=False):
-        for ch in self.channels:
+        for ch in sorted(self.channels):
             self.kill_channel(ch, force)
 
     def all_channels_off(self, force=False):
-        for ch in self.channels:
+        for ch in sorted(self.channels):
             self.set_channel_off(ch, force)
 
     def initialize_device(self):

@@ -45,7 +45,7 @@ class Olsen595ControllerUnitTest (unittest.TestCase):
 
     def testFirstInit(self):
         self.ssr.initialize_device()
-        self.assertEqual(self.n.buffer, "00000000X")
+        self.assertEqual(self.n.buffer, b"\0\0\0\0\0\0\0\0X")
 
     def test_unit_id(self):
         self.assertEqual(self.ssr.id, 'o595')
@@ -54,36 +54,36 @@ class Olsen595ControllerUnitTest (unittest.TestCase):
         self.ssr.kill_all_channels()
         self.ssr.all_channels_off()
         self.ssr.flush()
-        self.assertEqual(self.n.buffer, '00000000X')
+        self.assertEqual(self.n.buffer, b'\0\0\0\0\0\0\0\0X')
 
     def testBufferedIO(self):
-        self.assertEqual(self.n.buffer, '')
+        self.assertEqual(self.n.buffer, b'')
         self.ssr.initialize_device()
-        self.assertEqual(self.n.buffer, '00000000X')
+        self.assertEqual(self.n.buffer, b'\0\0\0\0\0\0\0\0X')
         self.n.reset()
         self.ssr.add_channel(4, load=1)
         self.ssr.add_channel(5, load=1)
         self.ssr.add_channel(7, load=1)
         self.ssr.set_channel_on(7)
         self.ssr.set_channel_on(4)
-        self.assertEqual(self.n.buffer, '')
+        self.assertEqual(self.n.buffer, b'')
         self.ssr.flush()
-        self.assertEqual(self.n.buffer, '00001001X')
+        self.assertEqual(self.n.buffer, b'\0\0\0\0\1\0\0\1X')
         self.ssr.set_channel_off(7)
         self.ssr.set_channel_on(0)
-        self.assertEqual(self.n.buffer, '00001001X')
+        self.assertEqual(self.n.buffer, b'\0\0\0\0\1\0\0\1X')
         self.ssr.flush()
-        self.assertEqual(self.n.buffer, '00001001X10001000X')
+        self.assertEqual(self.n.buffer, b'\0\0\0\0\1\0\0\1X\1\0\0\0\1\0\0\0X')
         self.ssr.set_channel(5, 0x66)
-        self.assertEqual(self.n.buffer, '00001001X10001000X')
+        self.assertEqual(self.n.buffer, b'\0\0\0\0\1\0\0\1X\1\0\0\0\1\0\0\0X')
         self.ssr.flush()
-        self.assertEqual(self.n.buffer, '00001001X10001000X10001100X')
+        self.assertEqual(self.n.buffer, b'\0\0\0\0\1\0\0\1X\1\0\0\0\1\0\0\0X\1\0\0\0\1\1\0\0X')
         self.ssr.flush()
-        self.assertEqual(self.n.buffer, '00001001X10001000X10001100X')
+        self.assertEqual(self.n.buffer, b'\0\0\0\0\1\0\0\1X\1\0\0\0\1\0\0\0X\1\0\0\0\1\1\0\0X')
         self.n.reset()
-        self.assertEqual(self.n.buffer, '')
+        self.assertEqual(self.n.buffer, b'')
         self.ssr.flush()
-        self.assertEqual(self.n.buffer, '')
+        self.assertEqual(self.n.buffer, b'')
 
     def testOnOff(self):
         self.ssr.set_channel_on(2)
@@ -91,7 +91,7 @@ class Olsen595ControllerUnitTest (unittest.TestCase):
         self.ssr.set_channel_off(0)
         self.ssr.set_channel_off(2)
         self.ssr.flush()
-        self.assertEqual(self.n.buffer, '00010000X')
+        self.assertEqual(self.n.buffer, b'\0\0\0\1\0\0\0\0X')
 
     def testDimmer(self):
         self.ssr.set_channel(0, None)
@@ -100,7 +100,7 @@ class Olsen595ControllerUnitTest (unittest.TestCase):
         self.ssr.set_channel(2, 0x31)
         self.ssr.set_channel(2, 0x30)
         self.ssr.flush()
-        self.assertEqual(self.n.buffer, '10100000X')
+        self.assertEqual(self.n.buffer, b'\1\0\1\0\0\0\0\0X')
     
     # test that it doesn't send redundant changes
     def test_iterator(self):

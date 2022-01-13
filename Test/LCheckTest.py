@@ -41,7 +41,7 @@ def runAfcheck(arglist, srcfile, compfile, difffile):
         proc = subprocess.Popen(('../dist_bin/lcheck', srcfile) + arglist, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=runenv)
         
     output = proc.communicate()[0]
-    cmpout = open(compfile).read()
+    cmpout = open(compfile, 'rb').read()
     if output != cmpout:
         with open(difffile, 'wb') as d:
             d.write(output)

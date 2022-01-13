@@ -53,7 +53,7 @@ class DummyVirtualChannel (object):
     def normalize_level_value(self, v, permissive=False):
         return v
 
-class SqeuenceTest (unittest.TestCase):
+class SequenceTest (unittest.TestCase):
     def setUp(self):
         #
         # Gathering these into setUp to consolidate what
@@ -1695,7 +1695,9 @@ class SqeuenceTest (unittest.TestCase):
             return "TIMELINE MISMATCH: actual has %d elements vs. expected %d" % (len(a), len(e))
 
         for i in range(len(a)):
-            if a[i] != e[i]:
+            if float(a[i][0]) != float(a[i][0]) or a[i][1] != e[i][1] or a[i][2] != e[i][2]:
+            #if a[i] != e[i]:
+                print(f"{i}: {a[i]} // {e[i]}")
                 if result is None:
                     result = "TIMELINE MISMATCH: @%d: actual=%s, expected=%s" % (i, a[i], e[i])
                 else:

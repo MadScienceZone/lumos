@@ -1,5 +1,5 @@
 Checking lcheck.conf
-SHOW DESCRIBED BY FILE 'lcheck.conf':
+SHOW DESCRIBED BY FILE(S) 'lcheck.conf':
  Title: Example Show
  Description: This is an example of how to set up a Lumos show.conf file.
 You should take this file and edit it to reflect

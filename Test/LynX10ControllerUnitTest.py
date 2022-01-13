@@ -59,7 +59,7 @@ class LynX10ControllerUnitTest (unittest.TestCase):
     def testFirstInit(self):
         self.x10.initialize_device()
         # reset + all off + level-set dimmers
-        self.assertEqual(self.n.buffer, "R\rM00=3D02\rF4\rF000\rF001\rF016\rF0CF\rN016\rD01C\r")
+        self.assertEqual(self.n.buffer, b"R\rM00=3D02\rF4\rF000\rF001\rF016\rF0CF\rN016\rD01C\r")
 
     def textIdTranslation(self):
         self.assertEqual(self.x10._x10_to_lynx_id('A1'), '00')
@@ -70,14 +70,14 @@ class LynX10ControllerUnitTest (unittest.TestCase):
     def testInit(self):
         self.x10.kill_all_channels()
         self.x10.all_channels_off()
-        self.assertEqual(self.n.buffer, 'F4\rN016\rD01C\r')
+        self.assertEqual(self.n.buffer, b'F4\rN016\rD01C\r')
 
     def testOnOff(self):
         self.x10.set_channel_on('A1')
         self.x10.set_channel_on('A2')
         self.x10.set_channel_off('A2')
         self.x10.set_channel_off('B7')
-        self.assertEqual(self.n.buffer, 'N000\rN001\rF001\rN016\rD01C\r')
+        self.assertEqual(self.n.buffer, b'N000\rN001\rF001\rN016\rD01C\r')
  
     def testDimmer(self):
         self.x10.set_channel('A1', None)
@@ -85,20 +85,20 @@ class LynX10ControllerUnitTest (unittest.TestCase):
         self.x10.set_channel('A2', 8)
         self.x10.set_channel('A2', 15)
         self.x10.set_channel('A2', 14)
-        self.assertEqual(self.n.buffer, 'N000\rD007\rN001\rD007\rN001\rD107\rN001\rD001\r')
+        self.assertEqual(self.n.buffer, b'N000\rD007\rN001\rD007\rN001\rD107\rN001\rD001\r')
    
     def testWarm(self):
         self.x10.all_channels_off()
-        self.assertEqual(self.n.buffer, 'N016\rD01C\r')
+        self.assertEqual(self.n.buffer, b'N016\rD01C\r')
  
         for i,j in ((1,''), (0,''), (2,''), (3,''), (4,'111'), (0,'011'), (5,'112'),(2,'012'),
             (6,'113'),(7,'111'),(3,'014'),(8,'115'),(10,'112'),(14,'114'),(15,'111')):
             self.n.reset()
             self.x10.set_channel('B7', i)
             if j == '':
-                self.assertEqual(self.n.buffer, "", "set_channel('B7', %d) -> %s, expected nothing" % (i,self.n.buffer) )
+                self.assertEqual(self.n.buffer, b"", "set_channel('B7', %d) -> %s, expected nothing" % (i,self.n.buffer) )
             else:
-                self.assertEqual(self.n.buffer, "N016\rD%s\r" % j, 
+                self.assertEqual(self.n.buffer, ("N016\rD%s\r" % j).encode(), 
                     "set_channel('B7', %d) -> %s, expected ...D%s" % (i,self.n.buffer,j) )
 
     def test_iterator(self):

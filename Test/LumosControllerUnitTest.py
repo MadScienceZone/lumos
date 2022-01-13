@@ -53,7 +53,7 @@ class LumosControllerUnitTest (unittest.TestCase):
         self.ssr.all_channels_off()
         self.ssr.flush()
         #self.assertEqual(self.n.buffer, '=8C=AC=02=03')
-        self.assertEqual(self.n.buffer, '=8C=ACB=0C')
+        self.assertEqual(self.n.buffer, b'=8C=ACB=0C')
 
     def testOnOff(self):
         self.ssr.set_channel_on(2)
@@ -64,7 +64,7 @@ class LumosControllerUnitTest (unittest.TestCase):
         self.ssr.flush()
         self.ssr.set_channel_off(2)
         self.ssr.flush()
-        self.assertEqual(self.n.buffer, '''=9CB=9CC=ACB=0C''')
+        self.assertEqual(self.n.buffer, b'''=9CB=9CC=ACB=0C''')
 
     def testDimmer(self):
         self.ssr.set_channel(0, None)
@@ -74,12 +74,12 @@ class LumosControllerUnitTest (unittest.TestCase):
         self.ssr.set_channel(2, 30)
         self.ssr.flush()
         #self.assertEqual(self.n.buffer, '=AC=00=0F=AC=02=0F=9CB=AC=02=1E')
-        self.assertEqual(self.n.buffer, '=AC@=07=AC=02=0F')
+        self.assertEqual(self.n.buffer, b'=AC@=07=AC=02=0F')
     
     def testWarm(self):
         self.ssr.all_channels_off()
         self.ssr.flush()
-        self.assertEqual(self.n.buffer, '=ACB=0C')
+        self.assertEqual(self.n.buffer, b'=ACB=0C')
 
         for i,j in (
             (1,None), (0,None), (2,None), (3,None), (4,None), (5,None), 
@@ -91,11 +91,11 @@ class LumosControllerUnitTest (unittest.TestCase):
             self.ssr.set_channel(2, i)
             self.ssr.flush()
             if j is None:
-                self.assertEqual(self.n.buffer, "", "set_channel(2, %d) -> %s, expected nothing" % (i,self.n.buffer) )
+                self.assertEqual(self.n.buffer, b"", "set_channel(2, %d) -> %s, expected nothing" % (i,self.n.buffer) )
             else:
-                self.assertEqual(self.n.buffer, "=AC{0}{1}".format(
-                    quopri.encodestring(chr(0x02 | ((j<<6) & 0x40))),
-                    '=7F=7F' if j==254 else quopri.encodestring(chr((j >> 1) & 0x7f))),
+                self.assertEqual(self.n.buffer, b"=AC" + 
+                    quopri.encodestring(bytes([0x02 | ((j<<6) & 0x40)]))+
+                    (b'=7F=7F' if j==254 else quopri.encodestring(bytes([((j >> 1) & 0x7f)]))),
                     "set_channel(2, %d) -> %s, expected %x" % (i,self.n.buffer,j))
 
     def testBulkUpdate(self):
@@ -104,11 +104,11 @@ class LumosControllerUnitTest (unittest.TestCase):
         self.n.reset()
 
         self.ssr.flush()
-        self.assertEqual(self.n.buffer, '')
+        self.assertEqual(self.n.buffer, b'')
         self.n.reset()
 
         self.ssr.flush(force=True)
-        self.assertEqual(self.n.buffer.replace('=\n',''), '=BC=00/=00=00=19'+'=00'*45+'U')
+        self.assertEqual(self.n.buffer.replace(b'=\n',b''), b'=BC=00/=00=00=19'+b'=00'*45+b'U')
         # b? 00cccccc (n-1) <v>*<n> 55
         # 0, 1, 2 (warm 10) 3!dim
 
@@ -133,33 +133,33 @@ class LumosControllerUnitTest (unittest.TestCase):
 
     def testRampUp(self):
         self.ssr.raw_ramp_up(2, 4, 13)      # 4 steps, 13 between
-        self.assertEqual(self.n.buffer, "=CCB=03=0C")
+        self.assertEqual(self.n.buffer, b"=CCB=03=0C")
         self.n.reset()
 
         self.ssr.raw_ramp_down(2, 5, 10)   # 5 steps, 10 between
-        self.assertEqual(self.n.buffer, "=CC=02=04=09")
+        self.assertEqual(self.n.buffer, b"=CC=02=04=09")
 
     def testSpecials(self):
         for cmd, args, result in (
-            ('sleep',    [],    '=FC=00ZZ'),
-            ('wake',     [],    '=FC=01ZZ'),
-            ('shutdown', [],    '=FC=02XY'),
-            ('execute',  [123], '=FC=05{'),
-            ('execute',  [0],   '=FC=05=00'),
-            ('clearmem', [],    '=FC=08CA'),
-            ('masksens', ['A'], '=FC=07=08'),
-            ('masksens', ['B'], '=FC=07=04'),
-            ('masksens', ['C'], '=FC=07=02'),
-            ('masksens', ['D'], '=FC=07=01'),
-            ('masksens', ['B','D'], '=FC=07=05'),
-            ('masksens', [],    '=FC=07=00'),
-            ('__reset__', [],   '=FCq$r'),
-            ('__baud__', [4],   '=FCr=04&'),
-            ('__baud__', [0],   '=FCr=00&'),
-            ('__baud__', [7],   '=FCr=07&'),
-            ('noconfig', [],    '=FCp'),
-            ('xconfig',  [],    '=FCt'),
-            ('forbid',   [],    '=FC=09'),
+            ('sleep',    [],    b'=FC=00ZZ'),
+            ('wake',     [],    b'=FC=01ZZ'),
+            ('shutdown', [],    b'=FC=02XY'),
+            ('execute',  [123], b'=FC=05{'),
+            ('execute',  [0],   b'=FC=05=00'),
+            ('clearmem', [],    b'=FC=08CA'),
+            ('masksens', ['A'], b'=FC=07=08'),
+            ('masksens', ['B'], b'=FC=07=04'),
+            ('masksens', ['C'], b'=FC=07=02'),
+            ('masksens', ['D'], b'=FC=07=01'),
+            ('masksens', ['B','D'], b'=FC=07=05'),
+            ('masksens', [],    b'=FC=07=00'),
+            ('__reset__', [],   b'=FCs$r'),
+            ('__baud__', [4],   b'=FCr=04&'),
+            ('__baud__', [0],   b'=FCr=00&'),
+            ('__baud__', [7],   b'=FCr=07&'),
+            ('noconfig', [],    b'=FCp'),
+            ('xconfig',  [],    b'=FCt'),
+            ('forbid',   [],    b'=FC=09'),
         ):
             self.ssr.raw_control(cmd, *args)
             self.assertEqual(self.n.buffer, result)
@@ -169,11 +169,11 @@ class LumosControllerUnitTest (unittest.TestCase):
 
     def testPhase(self):
         for value, result in (      # Fx 010000pp 0ppppppp 50 4F
-            ( 37, '=FC@%PO'),       #       37=00  0100101=4025=@%
-            (500, '=FCCtPO'),       #      500=11  1110100=4374=Ct
-            (511, '=FCC=7F=7FPO'),     #      511=11  1111111=437F=C<7F>
-            (  0, '=FC@=00PO'),     #        0=00  0000000=4000=@<00>
-            (256, '=FCB=00PO'),     #      256=10  0000000=4200=B<00>
+            ( 37, b'=FC@%PO'),       #       37=00  0100101=4025=@%
+            (500, b'=FCCtPO'),       #      500=11  1110100=4374=Ct
+            (511, b'=FCC=7F=7FPO'),     #      511=11  1111111=437F=C<7F>
+            (  0, b'=FC@=00PO'),     #        0=00  0000000=4000=@<00>
+            (256, b'=FCB=00PO'),     #      256=10  0000000=4200=B<00>
         ):
             self.ssr.raw_set_phase(value)
             self.assertEqual(self.n.buffer, result)
@@ -181,22 +181,22 @@ class LumosControllerUnitTest (unittest.TestCase):
         
     def testNewAddress(self):
         for value, result in (
-            ( 0, '=FC`IAD'),
-            ( 1, '=F0aIAD'),
-            ( 2, '=F1bIAD'),
-            ( 3, '=F2cIAD'),
-            ( 4, '=F3dIAD'),
-            ( 5, '=F4eIAD'),
-            (15, '=F5oIAD'),
-            (14, '=FFnIAD'),
-            (13, '=FEmIAD'),
-            (12, '=FDlIAD'),
-            (11, '=FCkIAD'),
-            (10, '=FBjIAD'),
-            ( 6, '=FAfIAD'),
-            ( 9, '=F6iIAD'),
-            ( 8, '=F9hIAD'),
-            ( 7, '=F8gIAD'),
+            ( 0, b'=FC`IAD'),
+            ( 1, b'=F0aIAD'),
+            ( 2, b'=F1bIAD'),
+            ( 3, b'=F2cIAD'),
+            ( 4, b'=F3dIAD'),
+            ( 5, b'=F4eIAD'),
+            (15, b'=F5oIAD'),
+            (14, b'=FFnIAD'),
+            (13, b'=FEmIAD'),
+            (12, b'=FDlIAD'),
+            (11, b'=FCkIAD'),
+            (10, b'=FBjIAD'),
+            ( 6, b'=FAfIAD'),
+            ( 9, b'=F6iIAD'),
+            ( 8, b'=F9hIAD'),
+            ( 7, b'=F8gIAD'),
         ):
             self.ssr.raw_set_address(value)
             self.assertEqual(self.n.buffer, result)
@@ -209,10 +209,10 @@ class LumosControllerUnitTest (unittest.TestCase):
 
     def testDownloadSequence(self):
         for id, bits, result in (
-            (  0, [],        ''),
-            ( 13, [1,2,3],   '=FC=04\r=02=01=02=03Ds'),
-            (127, [200,57,92,19,0,0,0,12],   
-                             '=FC=04=7F=7F=07~H9\\=13=00=00=00=0CDs'),
+            (  0, bytes([]),        b''),
+            ( 13, bytes([1,2,3]),   b'=FC=04\r=02=01=02=03Ds'),
+            (127, bytes([200,57,92,19,0,0,0,12]),   
+                             b'=FC=04=7F=7F=07~H9\\=13=00=00=00=0CDs'),
         ):
             self.ssr.raw_download_sequence(id, bits)
             self.assertEqual(self.n.buffer, result)
@@ -222,10 +222,10 @@ class LumosControllerUnitTest (unittest.TestCase):
         # this is speculative at the moment since it's not implemented.
         # so the test is removed for now.
         for sens, a, b, c, i, m, res in (
-               ('A', 1, 2, 3, True, 'once',  '=FC=06@=01=02=03<'),
-               ('B', 55,0, 0, True, 'follow','=FC=06!7=00=00<'),
-               ('C', 127,3,19,False,'const', '=FC=06=12=7F=03=13<'),
-               ('D', 4, 9,99, False,'follow','=FC=063=04\tc<'),
+               ('A', 1, 2, 3, True, 'once',  b'=FC=06@=01=02=03<'),
+               ('B', 55,0, 0, True, 'follow',b'=FC=06!7=00=00<'),
+               ('C', 127,3,19,False,'const', b'=FC=06=12=7F=03=13<'),
+               ('D', 4, 9,99, False,'follow',b'=FC=063=04\tc<'),
         ):
             self.ssr.raw_sensor_trigger(sens, a, b, c, inverse=i, mode=m)
             self.assertEqual(self.n.buffer, res)
@@ -240,7 +240,7 @@ class LumosControllerUnitTest (unittest.TestCase):
         #self.assertEqual(self.n.buffer, "=FCa=8C=AC=02=03")      !cfg kill 2=00011001
         #self.assertEqual(self.n.buffer, "=FCp=8C=ACB=0C")      # FC 70 8C AC 42 02 03
         #self.assertEqual(self.n.buffer, "=FCt=8C=ACB=0C")      # FC 74 8C AC 42 02 03
-        self.assertEqual(self.n.buffer, "=FC=09=8C=ACB=0C")     # FC 09 8C AC 42 02 03
+        self.assertEqual(self.n.buffer, b"=FC=09=8C=ACB=0C")     # FC 09 8C AC 42 02 03
 
 
     def test_iterator(self):
@@ -252,16 +252,16 @@ class LumosControllerUnitTest (unittest.TestCase):
         self.n.reset()
 
         self.ssr.flush(force=True)
-        self.assertEqual(self.n.buffer, '=8C')
+        self.assertEqual(self.n.buffer, b'=8C')
 
     def test_config(self):
         con = LumosControllerConfiguration()
         for sens, D, R, res in (
-            (['A','B','C','D'], None, 256, '=FCqx=00:=3D'),
-            ([               ],    0, 256, '=FCq=00=00:=3D'),
-            ([    'B','C',   ],  500, 128, '=FCq7s:=3D'),   
-            (['A',           ],  157, 256, '=FCqE=1C:=3D'),  
-            (['A',        'D'], None, 128, '=FCqH=00:=3D'),
+            (['A','B','C','D'], None, 256, b'=FCqx=00:=3D'),
+            ([               ],    0, 256, b'=FCq=00=00:=3D'),
+            ([    'B','C',   ],  500, 128, b'=FCq7s:=3D'),   
+            (['A',           ],  157, 256, b'=FCqE=1C:=3D'),  
+            (['A',        'D'], None, 128, b'=FCqH=00:=3D'),
         ):
             con.configured_sensors = sens
             con.dmx_start          = D
@@ -292,7 +292,7 @@ class LumosControllerUnitTest (unittest.TestCase):
         self.n.input_data(b'\xFC\x1F\x30\x50\x00\x00\x40\x02\x00\x4f\x01\x27\x00\x00'
             + b'\x00\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x12\x34\x00\x02\x12\x34\x33')
         reply = self.ssr.raw_query_device_status()
-        self.assertEqual(self.n.buffer, "=FC=03$T")
+        self.assertEqual(self.n.buffer, b"=FC=03$T")
         self.assertEqual(reply.config.configured_sensors, ['A','C'])
         self.assertEqual(reply.config.dmx_start, None)
         #self.assertEqual(reply.config.resolution, 256)

@@ -71,7 +71,7 @@ class FirecrackerX10ControllerUnitTest (unittest.TestCase):
         self.assertTrue(isinstance(self.fc, ControllerUnit))
 
     def test_unit_id(self):
-        "In response to a design change (controller units should track their on ID)."
+        "In response to a design change (controller units should track their own ID)."
         self.assertEqual(self.fc.id, 'testFC')
 
     def testFirstInit(self):
@@ -83,7 +83,13 @@ class FirecrackerX10ControllerUnitTest (unittest.TestCase):
         print(f"buf={self.n.buffer}")
 
         self.assertEqual(PP(self.n.buffer), 
-           P([b'` ',b'=04x',b'`0',b'ph',b'pH'] + (18 * [b'p=98'])))
+           P([
+               b'` ',
+               b'`0',
+               b'ph',
+               b'=04x',
+               b'pH'
+           ] + (18 * [b'p=98'])))
 
     def testInit(self):
         self.fc.kill_all_channels()

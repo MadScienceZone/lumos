@@ -261,11 +261,10 @@ class LumosControllerUnit (ControllerUnit):
                             # 1010aaaa
                             # 0l<chan>     dimmer value = hhhhhhhl  
                             # 0hhhhhhh
-                            self.network.send(bytes([
-                                0xa0 | self.address, 
+                            self.network.send(bytes([0xa0 | self.address]) + self._8_bit_encode(bytes([
                                 (i & 0x3f) | ((self.channels[i].level << 6) & 0x40),
                                 (self.channels[i].level >> 1) & 0x7f,
-                            ]))
+                            ])))
                             byte_count += 3
             self._reset_queue()
             self.stats.append((time.time(), byte_count))
@@ -324,7 +323,7 @@ class LumosControllerUnit (ControllerUnit):
         'wake':     b'\x01ZZ',  # 1111aaaa 00000001 01011010 01011010
         'shutdown': b'\x02XY',  # 1111aaaa 00000010 01011000 01011001
         'execute':  (lambda a: bytes([0x05, a[0]&0x7f])), # 1111aaaa 00000101 0xxxxxxx
-        'masksens': (lambda a: bytes([0x07, 0x7f & reduce((lambda x,y: x|y), [self._dev_bitmasks.get(k, 0) for k in a])])), # 1111aaaa 00000111 0000ABCD
+        'masksens': (lambda a: bytes([0x07, 0x7f & reduce((lambda x,y: x|y), [LumosControllerUnit._dev_bitmasks.get(k, 0) for k in a], 0)])), # 1111aaaa 00000111 0000ABCD
         'clearmem': b'\x08CA',  # 1111aaaa 00001000 01000011 01000001
         'noconfig': b'\x70',    # 1111aaaa 01110000 DEPRECATED
         'xconfig':  b'\x74',    # 1111aaaa 01111001 DEPRECATED
@@ -358,10 +357,10 @@ class LumosControllerUnit (ControllerUnit):
 
     def raw_set_phase(self, value):
         # 1111aaaa 010000PP 0ppppppp 01010000 01001111  (phase is PPppppppp)
-        self.network.send(bytes([0xF0 | self.address, 
+        self.network.send(bytes([0xF0 | self.address]) + self._8_bit_encode(bytes([ 
             0x40 | ((value >> 7) & 0x03),
             value & 0x7f,
-            0x50, 0x4f]))
+            0x50, 0x4f])))
 
     def raw_set_address(self, value):
         # 1111aaaa 0110AAAA 01001001 01000001 01000100  (address a -> A)
@@ -381,25 +380,25 @@ class LumosControllerUnit (ControllerUnit):
         # 1111aaaa 00000100 0iiiiiii (N-1) (data....)*N 01000100 01110011
 
         if bits:
-            self.network.send(bytes([0xf0 | self.address, 0x04, id&0x7f]) +
-                self._8_bit_encode(bytes([len(bits)-1]) + bits) +
+            self.network.send(bytes([0xf0 | self.address, 0x04]) + self._8_bit_encode(bytes([id&0x7f,
+                len(bits)-1]) + bits) +
                 bytes([0x44, 0x73]))
 
     def raw_sensor_trigger(self, sens_id, pre_seq_id, seq_id, post_seq_id, inverse=False, execf=False):
         # inverse is "active high"
         # 1111aaaa 00000110 0owe00ii 0(pre) 0(exec) 0(post) 00111100
-        self.network.send(bytes([0xf0 | self.address, 0x06, 
+        self.network.send(bytes([0xf0 | self.address]) + self._8_bit_encode(bytes([0x06, 
             (0x00 if inverse else 0x10) |
             (0x20 if execf   else 0x00) |
             {'A':0, 'B':1, 'C':2, 'D':3}[sens_id.upper()],
             pre_seq_id & 0x7f,
             seq_id & 0x7f,
             post_seq_id & 0x7f,
-            0x3c]))
+            0x3c])))
 
     def raw_configure_device(self, conf_obj):
         # 1111aaaa 01110001 0ABCDdcc 0CCCCCCC 00111010 00111101
-        self.network.send(bytes([0xf0 | self.address,
+        self.network.send(bytes([0xf0 | self.address]) + self._8_bit_encode(bytes([
             0x71,
             reduce((lambda x,y: x|y), 
                 [{'A': 0x40, 'B': 0x20, 'C': 0x10, 'D': 0x08}[s.upper()] 
@@ -408,7 +407,7 @@ class LumosControllerUnit (ControllerUnit):
             | (0 if not conf_obj.dmx_start else ((conf_obj.dmx_start - 1) >> 7) & 0x03),
             (0 if not conf_obj.dmx_start else ((conf_obj.dmx_start - 1) & 0x7f)),
             0x3A,
-            0x3D]))
+            0x3D])))
 
 # Response packet from QUERY command (37 bytes):
 # note the ROM version byte also serves to indicate the format of the response
