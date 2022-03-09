@@ -1,10 +1,9 @@
-#!/usr/bin/env python
-# vi:set ai sm nu ts=4 sw=4 expandtab:
+#!/usr/bin/env python3
 #
 # LUMOS Device Control Script
 # For Lumos Hardware Project revision @@RELEASE@@
 #
-# Copyright (c) 2010, 2011, 2012, 2013 by Steven L. Willoughby, Aloha,
+# Copyright (c) 2010, 2011, 2012, 2013, 2022 by Steven L. Willoughby, Aloha,
 # Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
 # License version 3.0.
 #
@@ -29,11 +28,11 @@
 # unit.  For running an actual show, use an application such as Lumos
 # (see http://lumos.sourceforge.net).
 #
-# Requires: Python 2.6 or later
+# Requires: Python 3
 #           Lumos
 #
 import optparse, time, sys, re
-import ConfigParser
+import configparser
 import Lumos
 from   Lumos.Network.SerialNetwork      import SerialNetwork, DeviceTimeoutError
 from   Lumos.Device.LumosControllerUnit import LumosControllerUnit, LumosControllerStatus
@@ -227,33 +226,33 @@ def trace(level, msg, stream=sys.stderr, eol=True):
 
 def report_on(device):
     if not device:
-        print "No device information to report."
+        print("No device information to report.")
         return
 
-    print "Device Type:              {0} ({1} channels)".format(device.hardware_type, device.channels)
-    print "Serial Number:            {0}".format(device.serial_number or 'N/A')
-    print "ROM Revision:             {0[0]}.{0[1]}".format(device.rom_version)
-    print "Configuration mode:       {0}".format('ON' if device.in_config_mode else 'OFF')
-    print "Sleep mode:               {0}".format('ON' if device.in_sleep_mode else 'OFF')
-    print "Currently Executing:      {0}".format(device.current_sequence or 'Nothing')
+    print("Device Type:              {0} ({1} channels)".format(device.hardware_type, device.channels))
+    print("Serial Number:            {0}".format(device.serial_number or 'N/A'))
+    print("ROM Revision:             {0[0]}.{0[1]}".format(device.rom_version))
+    print("Configuration mode:       {0}".format('ON' if device.in_config_mode else 'OFF'))
+    print("Sleep mode:               {0}".format('ON' if device.in_sleep_mode else 'OFF'))
+    print("Currently Executing:      {0}".format(device.current_sequence or 'Nothing'))
     #print "Dimmer Resolution:        {0:4d} steps".format(device.config.resolution)
-    print "EEPROM memory free:       {0:04d} bytes".format(device.eeprom_memory_free)
-    print "RAM memory free:          {0:04d} bytes".format(device.ram_memory_free)
-    print "Last memory write:        {0}".format('*ERROR* MEMORY FULL' if device.err_memory_full else 'Successful')
-    print "Phase offset:             {0:04d}".format(device.phase_offset)
-    print "Last fault condition:     0x{0:02X}".format(device.last_error)
+    print("EEPROM memory free:       {0:04d} bytes".format(device.eeprom_memory_free))
+    print("RAM memory free:          {0:04d} bytes".format(device.ram_memory_free))
+    print("Last memory write:        {0}".format('*ERROR* MEMORY FULL' if device.err_memory_full else 'Successful'))
+    print("Phase offset:             {0:04d}".format(device.phase_offset))
+    print("Last fault condition:     0x{0:02X}".format(device.last_error))
     if device.last_error2 is not None:
-        print "Last fault (2nd CPU):     0x{0:02X}".format(device.last_error2)
+        print("Last fault (2nd CPU):     0x{0:02X}".format(device.last_error2))
 
     if device.config.dmx_start is None:
-        print "DMX Mode:                 OFF"
+        print("DMX Mode:                 OFF")
     else:
-        print "DMX Mode:                 Channel #0-{0} is DMX #{1}-{2}".format(
+        print("DMX Mode:                 Channel #0-{0} is DMX #{1}-{2}".format(
                 device.channels - 1,
                 device.config.dmx_start,
                 device.config.dmx_start + device.channels - 1,
                 device.config.dmx_start + device.channels
-        )
+        ))
         #      --------------------------------------------------------------------------------
 
     # SENSORS  ENABLED LOGIC ACTIVE MODE   PRE TRG PST
@@ -261,11 +260,11 @@ def report_on(device):
     #    B     No      Low   No     repeat
 
     if not device.config.configured_sensors:
-        print "No configured sensors."
+        print("No configured sensors.")
     else:
-        print "SENSORS  ENABLED LOGIC ACTIVE MODE   PRE TRG PST"
+        print("SENSORS  ENABLED LOGIC ACTIVE MODE   PRE TRG PST")
         for sensor in device.config.configured_sensors:
-            print "   {0}     {1:3s}     {2:4s}  {3:3s}    {4:6s} {5:3d} {6:3d} {7:3d}".format(
+            print("   {0}     {1:3s}     {2:4s}  {3:3s}    {4:6s} {5:3d} {6:3d} {7:3d}".format(
                 sensor,
                 'Yes' if device.sensors[sensor].enabled else 'No',
                 '----',
@@ -276,7 +275,7 @@ def report_on(device):
                 device.sensors[sensor].pre_trigger,
                 device.sensors[sensor].trigger,
                 device.sensors[sensor].post_trigger,
-            )
+            ))
         
 def probe(target):
     global options
@@ -297,9 +296,9 @@ def probe(target):
 
     target.address = old_address
 
-    print "Probe discovered {0} device{1}".format(len(devices), 
+    print("Probe discovered {0} device{1}".format(len(devices), 
             's.' if len(devices) == 0 else 
-                (':' if len(devices) == 1 else 's:'))
+                (':' if len(devices) == 1 else 's:')))
 
     return devices
 
@@ -332,11 +331,11 @@ def assert_priv(operation):
     global options
 
     if options.read_only:
-        print "**WARNING: In Read-only mode, can't verify board is in configuration mode."
+        print("**WARNING: In Read-only mode, can't verify board is in configuration mode.")
         return
 
     if not status_cache.in_config_mode:
-        print "**WARNING: The Lumos board is not in the configuration mode required by {0}.".format(operation)
+        print("**WARNING: The Lumos board is not in the configuration mode required by {0}.".format(operation))
 
 def change_speed(target, io, new_speed):
     global options
@@ -362,7 +361,7 @@ def change_speed(target, io, new_speed):
       10000000: 16,
     }
     if new_speed not in supported_speeds:
-        raise ValueError("New baud rate must be one of {0}".format(', '.join(map(str, supported_speeds.keys()))))
+        raise ValueError("New baud rate must be one of {0}".format(', '.join(map(str, list(supported_speeds.keys())))))
     target.raw_control('__baud__', supported_speeds[new_speed])
     time.sleep(1)
     io.set_baud_rate(new_speed)
@@ -375,7 +374,7 @@ def dump_configuration(target, filename, stat):
     global options
 
     trace(1, "Writing configuration to {0}".format(filename))
-    writer = ConfigParser.SafeConfigParser()
+    writer = configparser.SafeConfigParser()
     config = getstatus(target)
     writer.add_section('lumos_device_settings')
     for field, opt in (
@@ -417,7 +416,7 @@ def load_configuration(target, filename):
 
     trace(1, "Reading configuration file from {0}".format(filename))
     config = LumosControllerStatus()
-    parser = ConfigParser.SafeConfigParser()
+    parser = configparser.SafeConfigParser()
     parser.read(filename)
 
     if parser.has_option('lumos_device_settings', 'dmxchannel'):
@@ -491,11 +490,11 @@ def main():
         devices = [(options.address, getstatus(target))]
 
     if not devices:
-        print "No target device found."
+        print("No target device found.")
         sys.exit(1)
 
     for address, devstat in devices:
-        print "Address {0:02d}: {1}".format(address, devstat.hardware_type if devstat else 'N/A')
+        print("Address {0:02d}: {1}".format(address, devstat.hardware_type if devstat else 'N/A'))
         if options.report:
             report_on(devstat)
     #
@@ -561,7 +560,7 @@ def main():
     def smask(target, opt, delete=False):
         global status_cache, parser
 
-        s = set([i.id for i in status_cache.sensors.values() if i.enabled])
+        s = set([i.id for i in list(status_cache.sensors.values()) if i.enabled])
         expected = dict([(id, status_cache.sensors[id].copy()) for id in 'ABCD'])
 
         if '*' in opt:
@@ -607,7 +606,7 @@ def main():
     #
     if options.clear_sequences:
         target.raw_control('clearmem')
-        print "Sequences cleared.  Available memory now: EEPROM={0.eeprom.memory.free}, RAM={0.ram_memory_free}".format(getstatus(target))
+        print("Sequences cleared.  Available memory now: EEPROM={0.eeprom.memory.free}, RAM={0.ram_memory_free}".format(getstatus(target)))
 
     if options.load_sequence:
         raise NotImplementedError('the --load-sequence option is not yet implemented.  Use --load-compiled-sequence instead.')
@@ -675,7 +674,7 @@ def main():
         # not be private to us.
         #send_buffer = target._8_bit_string([int(i, 16) for i in options.send.split()])
         send_buffer = ''.join([chr(int(i, 16)) for i in options.send.split()])
-        print "Sending {0} byte{1} to device:".format(len(send_buffer), '' if len(send_buffer)==1 else 's')
+        print("Sending {0} byte{1} to device:".format(len(send_buffer), '' if len(send_buffer)==1 else 's'))
         hexdump(send_buffer)
         target.flush()
         target.network.send(send_buffer)
@@ -685,13 +684,13 @@ def main():
     # (we will interpret the 7/8-bit protocol automatically)
     #
     if options.receive:
-        print "Receiving {0} byte{1} from device...".format(options.receive,
-            '' if options.receive == 1 else 's')
+        print("Receiving {0} byte{1} from device...".format(options.receive,
+            '' if options.receive == 1 else 's'))
         rec_buffer = ''
         try:
             rec_buffer = target.network.input(bytes=options.receive, timeout=options.timeout)
         except DeviceTimeoutError:
-            print "(read timed out)"
+            print("(read timed out)")
         #hexdump(target._8_bit_decode_string([ord(i) for i in rec_buffer]))
         hexdump(rec_buffer)
     #

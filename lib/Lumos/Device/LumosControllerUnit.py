@@ -474,15 +474,42 @@ class LumosControllerUnit (ControllerUnit):
                         # watch for 0x7e, 0x7f
                         extra_bytes = 0
                         skip_next = False
+                        msb_next = False
+                        target_length = 35
+                        model_specific_length = 0
+                        protocol = 0
                         for pos, ch in enumerate(d[cb+2:]):
-                            if pos >= 35+extra_bytes: break
-                            if skip_next:
+                            # pos is our position AFTER the leading two bytes (so just in the payload itself)
+                            # this needs to be exactly 35 bytes (37 total) for protocol 0, or 42+d[cb+40] for protocol 1+
+                            # ... plus extra_bytes in either case (to account for escapes)
+                            if msb_next:
+                                ch |= 0x80
+                                msb_next = False
+                            if not skip_next:
+                                if ch == 0x7e:
+                                    extra_bytes += 1
+                                    msb_next = True
+                                    continue
+                                if ch == 0x7f:
+                                    extra_bytes += 1
+                                    skip_next = True
+                                    continue
+                            else:
                                 skip_next = False
-                            elif 0x7e <= ch <= 0x7f:
-                                extra_bytes += 1
-                                skip_next = True
 
-                        return max(0, 37 - (len(d) - cb) + extra_bytes)
+                            if pos == 10+extra_bytes:
+                                # we're at [cb+12]; determine our protocol number
+                                if ch & 0x20:
+                                    # protocol 1+
+                                    target_length = 40
+                                    protocol = 1
+                            elif protocol > 0 and pos == 38+extra_bytes:
+                                # we're at [cb+40], where our data length is found
+                                model_specific_length = ch
+                            
+                            if pos >= target_length+extra_bytes+model_specific_length: break
+
+                        return max(0, (target_length + 2) - (len(d) - cb) + extra_bytes + model_specific_length)
             
         reply_buf = self.network.input(packet_scanner, timeout=timeout)
         reply = []
@@ -534,15 +561,35 @@ class LumosControllerUnit (ControllerUnit):
             else:
                 raise InternalError('Undefined state {0} in packet scanner'.format(state))
 
-        if len(reply) != 37:
+        if len(reply) < 37:
             raise DeviceProtocolError("Query packet response malformed (len={0})".format(len(reply)))
-        if reply[36] != 0x33:
-            raise DeviceProtocolError("Query packet response malformed (end={0:02X})".format(reply[34]))
-        if reply[2] != 0x30 and reply[2] != 0x31:
-            # We support ROM version 3.0 and 3.1
-            raise DeviceProtocolError("Query packet version unsupported ({0}.{1})".format((reply[2] >> 4) & 0x07, (reply[2] & 0x0f)))
 
         status = LumosControllerStatus()
+        if reply[12] & 0x20:
+            # protocol > 0
+            if len(reply) < 42:
+                raise DeviceProtocolError("Query packet response malformed (len={0}), protocol>0".format(len(reply)))
+            status.protocol = reply[36]
+            status.revision = reply[37:40]
+            msd_length = reply[40]
+            if len(reply) < 42+msd_length:
+                raise DeviceProtocolError("Query packet response malformed (len={0}), protocol>0".format(len(reply)))
+            if msd_length > 0:
+                status.model_specific_data = reply[41:41+msd_length]
+            if reply[41+msd_length] != 0x33:
+                raise DeviceProtocolError("Query packet response malformed (end@{1}={0:02X})".format(reply[41+msg_length], 41+msg_length))
+        else:
+            # protocol 0
+            if reply[36] != 0x33:
+                raise DeviceProtocolError("Query packet response malformed (end={0:02X})".format(reply[34]))
+            status.protocol = 0
+            status.revision = [(reply[2] >> 4) & 0x07, (reply[2] & 0x0f), 0]
+            status.model_specific_data = None
+
+#        if reply[2] != 0x30 and reply[2] != 0x31:
+#            # We support ROM version 3.0 and 3.1
+#            raise DeviceProtocolError("Query packet version unsupported ({0}.{1})".format((reply[2] >> 4) & 0x07, (reply[2] & 0x0f)))
+
         for sensor_id, bitmask in ('A', 0x40), ('B', 0x20), ('C', 0x10), ('D', 0x08):
             if reply[3] & bitmask:
                 status.config.configured_sensors.append(sensor_id)
@@ -586,8 +633,10 @@ class LumosControllerUnit (ControllerUnit):
             status.hardware_type = 'qscc'
             status.channels = 14
         elif reply[12] & 0x1F == 4:
-            status.hardware_type = 'qsrc'
-            status.channels = 20
+            status.hardware_type = 'qsmc'
+            status.channels = 35
+            # future: 5 = QSRB
+            # future: 6 = QSXT
         else:
             status.hardware_type, status.channels = self._unknown_device_type(reply[12] & 0x1F);
 
@@ -611,15 +660,15 @@ class LumosControllerUnit (ControllerUnit):
         if status.serial_number == 0 or status.serial_number == 0xffff:
             status.serial_number = None
 
-        if status.channels <= 24:
-            if status.last_error2 != 0 or status.phase_offset2 != 0:
-                raise InternalDeviceError('Query reply packet incorrect for device of this type (LE2=0x{0:02X}, PO2={1})'.format(
-                    status.last_error2, status.phase_offset2))
-            status.last_error2 = None       # no status at all since the corresponding hardware doesn't exist
-            status.phase_offset2 = None
-        elif status.phase_offset != status.phase_offset2:
-            raise InternalDeviceError('Inconsistent phase offset between CPUs (#0={0}, #1={1})'.format(status.phase_offset, status.phase_offset2))
-
+#        if status.channels <= 24:
+#            if status.last_error2 != 0 or status.phase_offset2 != 0:
+#                raise InternalDeviceError('Query reply packet incorrect for device of this type (LE2=0x{0:02X}, PO2={1})'.format(
+#                    status.last_error2, status.phase_offset2))
+#            status.last_error2 = None       # no status at all since the corresponding hardware doesn't exist
+#            status.phase_offset2 = None
+#        elif status.phase_offset != status.phase_offset2:
+#            raise InternalDeviceError('Inconsistent phase offset between CPUs (#0={0}, #1={1})'.format(status.phase_offset, status.phase_offset2))
+#
         return status
 
     def _unknown_device_type(self, code):
@@ -683,3 +732,6 @@ class LumosControllerStatus (object):
             'C': LumosControllerSensor('C'),
             'D': LumosControllerSensor('D'),
         }
+        self.model_specific_data = None
+        self.protocol = 0
+        self.revision = [0,0,0]

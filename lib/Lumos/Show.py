@@ -126,12 +126,14 @@ class Show (object):
         '''
         self._clear()
 
-        show = configparser.SafeConfigParser()
+        show = configparser.ConfigParser()
         if isinstance(file, (list, tuple)):
             for f in file:
-                show.readfp(f)
+                print(f"opening {f}")
+                show.read_file(f)
         else:
-            show.readfp(file)
+            print(f"opening {file}")
+            show.read_file(file)
         self._load_from_config(show, open_device, virtual_only)
 
     def _search_for_sub_sources(self, show, parent_ID, parent_obj):
@@ -158,8 +160,10 @@ class Show (object):
 
 
     def _load_from_config(self, show, open_device, virtual_only):
-        self.title = show.get('show', 'title')
-        self.description = show.get('show', 'description')
+        for s in show:
+            print(f"has section {s}")
+        self.title = show['show']['title']
+        self.description = show['show']['description']
         self.gui.load(show)
         unvirtualized_channels = {}
         #

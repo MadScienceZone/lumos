@@ -62,4 +62,9 @@ def controller_unit_factory(type, **kwargs):
     if type not in supported_controller_types:
         raise ValueError("Invalid controller unit type '%s'" % type)
 
-    return supported_controller_types[type](**kwargs)
+    try:
+        o = supported_controller_types[type](**kwargs)
+    except Exception as e:
+        raise ValueError(f"new {type} controller: {e}")
+
+    return o
