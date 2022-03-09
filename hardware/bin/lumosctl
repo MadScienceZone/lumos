@@ -138,19 +138,19 @@ def parse_arguments():
         sensor_triggers.append((m.group(1), m.group(2), fields[1], fields[2], fields[3]))
     return options, operations, sensor_triggers, parser
 
-def hexdump(data):
+def hexdump(data: bytes):
     for i in range(0, len(data), 16):
         sys.stdout.write("{0:04X}  ".format(i))
         for j in range(0, 16):
-            sys.stdout.write("{0:02X} ".format(ord(data[i+j])) if i+j < len(data) else "   ")
+            sys.stdout.write("{0:02X} ".format(data[i+j]) if i+j < len(data) else "   ")
             if j == 7:
                 sys.stdout.write("  ")
         sys.stdout.write("  |")
         for j in range(0, 16):
             if i+j < len(data):
                 c = data[i+j]
-                if 20 <= ord(c) <= 127:
-                    sys.stdout.write(c)
+                if 20 <= c <= 127:
+                    sys.stdout.write(chr(c))
                 else:
                     sys.stdout.write(".")
             else:
@@ -231,18 +231,21 @@ def report_on(device):
 
     print("Device Type:              {0} ({1} channels)".format(device.hardware_type, device.channels))
     print("Serial Number:            {0}".format(device.serial_number or 'N/A'))
-    print("ROM Revision:             {0[0]}.{0[1]}".format(device.rom_version))
+    print("ROM Revision:             {0[0]}.{0[1]}.{0[2]}  (deprecated field {1[0]}.{1[1]})".format(device.revision, device.rom_version))
+    print("Lumos Protocol:           {0}".format(device.protocol))
     print("Configuration mode:       {0}".format('ON' if device.in_config_mode else 'OFF'))
+    print("Resume configuration:     {0}".format('FORBIDDEN' if device.config_mode_locked else 'Allowed'))
     print("Sleep mode:               {0}".format('ON' if device.in_sleep_mode else 'OFF'))
     print("Currently Executing:      {0}".format(device.current_sequence or 'Nothing'))
     #print "Dimmer Resolution:        {0:4d} steps".format(device.config.resolution)
     print("EEPROM memory free:       {0:04d} bytes".format(device.eeprom_memory_free))
     print("RAM memory free:          {0:04d} bytes".format(device.ram_memory_free))
     print("Last memory write:        {0}".format('*ERROR* MEMORY FULL' if device.err_memory_full else 'Successful'))
-    print("Phase offset:             {0:04d}".format(device.phase_offset))
-    print("Last fault condition:     0x{0:02X}".format(device.last_error))
-    if device.last_error2 is not None:
-        print("Last fault (2nd CPU):     0x{0:02X}".format(device.last_error2))
+    print("Phase offset:             CPU0 {0:04d}; CPU1 {1:04d}".format(device.phase_offset, device.phase_offset2))
+    if device.hardware_type == 'lumos48ctl':
+        print("Last fault condition:     CPU0 0x{0:02X}; CPU1 0x{1:02X}".format(device.last_error, device.last_error2))
+    else:
+        print("Last fault condition:     0x{0:04X}".format(device.last_error << 16 | device.last_error2))
 
     if device.config.dmx_start is None:
         print("DMX Mode:                 OFF")
@@ -276,6 +279,8 @@ def report_on(device):
                 device.sensors[sensor].trigger,
                 device.sensors[sensor].post_trigger,
             ))
+    print("Model-Specific Data:      {0} bytes".format(len(device.model_specific_data)))
+    hexdump(device.model_specific_data)
         
 def probe(target):
     global options
@@ -478,6 +483,9 @@ def main():
     global status_cache, FACTORY_SETTINGS
     options, operations, sensor_triggers, parser = parse_arguments()
     target, io = setup_lumos(options)
+
+    if options.verbose is None:
+        options.verbose = 0
 
     if options.verbose > 2:
         io.set_verbose(sys.stderr)

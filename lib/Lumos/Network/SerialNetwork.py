@@ -199,7 +199,8 @@ else:
                 parity=self._parity, 
                 stopbits=self.stop, 
                 xonxoff=self.xonxoff, 
-                rtscts=self.rtscts)
+                rtscts=self.rtscts,
+                dsrdtr=False)
 
             if self.verbose:
                 self.verbose.write(time.ctime()+" Opened serial port {0} for {8} ({1} baud, {2} bits, {3}, {4} stop, xonxoff {5}, rtscts {6}) -> {7}\n".format(
@@ -218,7 +219,7 @@ else:
                 self.dev.flushOutput()
                 self.dev.flushInput()
 
-        def hexdump(self, data, addr=0, outdev=None):
+        def hexdump(self, data: bytes, addr=0, outdev=None):
             if outdev is None:
                 outdev = self.verbose
 
@@ -243,7 +244,7 @@ else:
                     outdev.write('   |')
                     for byte in range(16):
                         if idx+byte < len(data):
-                            outdev.write(chr(data[idx+byte]) if ' ' <= data[idx+byte] <= '~' else '.')
+                            outdev.write(chr(data[idx+byte]) if ord(' ') <= data[idx+byte] <= ord('~') else '.')
                         else:
                             outdev.write(' ')
 

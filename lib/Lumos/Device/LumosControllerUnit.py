@@ -725,6 +725,7 @@ class LumosControllerStatus (object):
         self.ram_memory_free = 0
         self.current_sequence = None
         self.hardware_type = None
+        self.channels = 0
         self.serial_number = None
         self.sensors = {
             'A': LumosControllerSensor('A'),
