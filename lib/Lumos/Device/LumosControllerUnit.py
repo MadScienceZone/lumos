@@ -1,5 +1,4 @@
 # XXX What is "force" for in the flush() method?
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS DEVICE DRIVER: LUMOS DIY SSR CONTROLLER
 #
@@ -409,10 +408,20 @@ class LumosControllerUnit (ControllerUnit):
             0x3A,
             0x3D])))
 
-# Response packet from QUERY command (37 bytes):
-# note the ROM version byte also serves to indicate the format of the response
-# bytes which follow.  If the query packet format changes, the ROM version byte
-# MUST also change.
+# Response packet from QUERY command (37 or 42+ bytes):
+# DEPRECATED:
+#   note the ROM version byte also serves to indicate the format of the response
+#   bytes which follow.  If the query packet format changes, the ROM version byte
+#   MUST also change.
+# NOW:
+#   The ROM version byte is obsolete. Legacy boards are now called "protocol 0"
+#   and send a 37-byte response, where the old ROM version byte is still valid.
+#   Current firmware insteads sets bit $20 in byte #12 (specified as 0 in the 
+#   original protocol). With this bet set to 1, additional bytes are added to
+#   the end which give the full revision number protocol number (which determines
+#   the format of the response packet), and device model-specific configuration
+#   information for specific fields not standard across all Lumos-compatible
+#   devices.
 #
 #    1111aaaa 00011111 00110000 0ABCDdcc 0ccccccc 0ABCDqsf 0ABCDXpp 0ppppppp 
 #        \__/           \_/\__/  \__/|\_________/  \__/|||  \__/|\_________/  
@@ -420,14 +429,15 @@ class LumosControllerUnit (ControllerUnit):
 #          `--reporting    minor   | |   `--DMX      | |||   |  `--config locked?
 #              unit addr  rom      | |      channel  | |||   `--active
 #                         vers.    | |               | ||`--mem full?
-#                                  | `--DMX mode?    | |`--sleeping?
+#                       DEPRECATED | `--DMX mode?    | |`--sleeping?
 #                                  `--configured     | `--config mode?
 #                                                    `--masks
 #
-#    0eeeeeee 0eeeeeee 0MMMMMMM 0MMMMMMM 0X0iiiii 0xxxxxxx 
-#     \______________/  \______________/  | \___/  \_____/
-#        `--EEPROM free    `--RAM free    |   |       `--executing seq.
-#                                         |   `--device model
+#    0eeeeeee 0eeeeeee 0MMMMMMM 0MMMMMMM 0QPiiiii 0xxxxxxx 
+#     \______________/  \______________/  ||\___/  \_____/
+#        `--EEPROM free    `--RAM free    ||  |       `--executing seq.
+#                                         ||  `--device model
+#                                         |`--0=legacy protocol 0; 1=protocol 1+
 #                                         `--seq running?
 #
 #    0owE0000 0IIIIIII 0iiiiiii 0PPPPPPP	Sensor trigger info for A
@@ -435,15 +445,23 @@ class LumosControllerUnit (ControllerUnit):
 #    0owE0010 0IIIIIII 0iiiiiii 0PPPPPPP	Sensor trigger info for C
 #    0owE0011 0IIIIIII 0iiiiiii 0PPPPPPP	Sensor trigger info for D
 #
-#    0fffffff 0fffffff 000000pp 0ppppppp 0sssssss 0sssssss 00110011
+#    0fffffff 0fffffff 000000pp 0ppppppp ssssssss ssssssss 
 #    \______/ \______/       \_________/ \______S/N______/
 #        |        |               `--phase (channels 24-47)
 #        |        `--fault code (channels 24-47)
 #        `--fault code (channels 0-23)
 #
+#  IF protocol > 0:
+#    pppppppp RRRRRRRR rrrrrrrr PPPPPPPP nnnnnnnn |<------n bytes------->|
+#    \______/ \______/ \______/ \______/          \______________________/
+#        |        |        |        |                        |
+#        protocol major    minor    patch                    model-specific data
+#
+#
+#    00110011
+#
 # Note that the number of bytes actually received may be greater due to the
 # encoding used to guard 8-bit values.
-# XXX here XXX
     def _find_command_byte(self, d: bytes, start=0):
         if d is None:
             return -1
@@ -629,12 +647,12 @@ class LumosControllerUnit (ControllerUnit):
         elif reply[12] & 0x1F == 2:
             status.hardware_type = 'lumos4dc'
             status.channels = 4
-        elif reply[12] & 0x1F == 3:
-            status.hardware_type = 'qscc'
-            status.channels = 14
-        elif reply[12] & 0x1F == 4:
-            status.hardware_type = 'qsmc'
-            status.channels = 35
+#        elif reply[12] & 0x1F == 3:
+#            status.hardware_type = 'qscc'
+#            status.channels = 14
+#        elif reply[12] & 0x1F == 4:
+#            status.hardware_type = 'qsmc'
+#            status.channels = 35
             # future: 5 = QSRB
             # future: 6 = QSXT
         else:

@@ -42,13 +42,24 @@ controller (ControllerUnit class):
 	   FirecrackerX10ControllerUnit
 	 	packet(id, op) -> bytes to send to device
 	   LynX10ControllerUnit
-	LumosControllerUnit
+	LumosControllerUnit(id, power_source, network, address=0, resolution=256, num_channels=48)
 		throws {DeviceProtocol,InternalDevice,Internal}Error
 		ids are integer indexes into channels list
 		.dumpstats(filename)
 		.raw_ramp_up(ch, steps, delay, cycle=False)
 		.raw_ramp_down(ch, steps, delay, cycle=False)
 		.raw_control(cmd_name, ...)
+			'sleep'
+			'wake'
+			'shutdown'
+			'execute', a[]
+			'masksens', a[]
+			'clearmem'
+			'noconfig'
+			'xconfig'
+			'forbid'
+			'__reset__'
+			'__baud__', speedcode[]
 		.raw_begin_rom_download(...)
 		.raw_set_phase(v)
 		.raw_set_address(a)
@@ -56,6 +67,52 @@ controller (ControllerUnit class):
 		.raw_sensor_trigger(sensor, pre, seq, post, inverse=False, execf=False)
 		.raw_configure_device(conf_obj)
 		.raw_query_device_status(timeout=0) -> LumosControllerStatus
+		.__str__() -> string representation 
+		.channel_id_from_string(channel) -> int channel
+		.add_channel(id, name=None, load=None, dimmer=True, warm=None, resolution=None, power_source=None)
+		.flush(force=False)	send pending channel level setting commands optimally
+		.set_channel(id, level, force=False)
+		.set_channel_on(id, force=False)
+		.set_channel_off(id, force=False)
+		.kill_channel(id, force=False)
+		.kill_all_channels(force=False)
+		.initialize_device()
+	  QuizShowConsole(same parameters as LumosControllerUnit)
+?	   	.raw_start_scanning()
+?		.raw_set_button_masks()
+?		.raw_display_text(message)
+?		.raw_display_bitmap(image)
+?		.raw_set_qs_parameters(lockout_cycles=0)
+?		.raw_qs_query(level=FULL_QUERY, stop_scanning=False, timeout=0)
+		protocol_debugger(data, fileobj)
+	    QuizShowMainController
+	      QuizShowStatus
+	        QuizShowMainControllerStatus
+			.buttons{x8, l8, x9, l9, ... l15: QuizShowButtonStatus obj}
+	      	
+
+ 	    QSProtocol* classes are used to describe (to a text file) what a command stream means
+	    QSProtocol(data: bytes, fileobj)
+	    	.require(bytes_needed: int)	make sure we have that many bytes (resolves escapes)
+		.interpret()			interprets collected command if we have a complete one by creating a QSProtocol* and calling interpret()
+		.next()				move on to next command
+	    QuizShowButtonStatus
+	    	.masked:   bool
+		.pressed:  bool
+		.time:     µS
+		.name:     str
+		.is_locked_out()-> bool  (unimplemented)
+		.is_pressed()->    bool  (!masked pressed)
+		.is_masked()->     bool  (masked)
+		.is_unanswered()-> bool  (!masked !pressed)
+	    QuizShowStatus(ping_time=0)
+	    	.last_contact:     time
+		.scanner_running:  bool
+		.buttons:          dict{button_name: QuizShowButtonStatus_obj}
+		.any_buttons_pressed() -> bool
+
+
+	    
 	LumosLegacyControllerUnit
 		(for units with 2.x ROMs)
 	Olsen595ControllerUnit

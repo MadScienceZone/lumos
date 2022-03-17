@@ -3260,6 +3260,7 @@ This command updates the quiz show unit's scoreboard display according to the
 	\end{QS*}
 \end{table}
 
+\newpage
 \begin{description}
 	\item[op=0: Clear] Clear the entire screen. 
 \begin{BF}
@@ -3293,6 +3294,7 @@ This command updates the quiz show unit's scoreboard display according to the
 \end{BF}
 		Otherwise \Var*{data} contains a single
 		color value for the screen to be painted with.
+	\newpage
 	\item[op=1: Bitmap] % x y w h color data	(no color means monochrome)
 			    % m=1x full color 01 bgcolor 00 mono
 		Draws a bitmapped image on the display. In all modes, the first
@@ -3321,6 +3323,7 @@ This command updates the quiz show unit's scoreboard display according to the
 		\bitbox[b]{1}{\z1} &
 		\bitbox[br]{1}{\z0} \\
 \end{BF}
+\newpage
 		If \Var*{m}=0, the next data byte specifies a color with which to
 		draw the entire monochrome bitmap whose bits are given in the rest
 		of the \Var*{data} block.
@@ -3349,6 +3352,7 @@ This command updates the quiz show unit's scoreboard display according to the
 		\bitbox[b]{1}{\z1} &
 		\bitbox[br]{1}{\z0} \\
 \end{BF}
+\newpage
 		If \Var*{m}=1, two color values are given followed by a monochrome
 		bitmap. The first color is used to draw the bitmap, while the second
 		is the background color to be used.
@@ -3494,6 +3498,7 @@ This command updates the quiz show unit's scoreboard display according to the
 		In this variant, \Var*{data} includes a \Var{radius} byte followed
 		by a \Var{color} code. A rectangle will be drawn with rounded
 		corners, outlined or filled in the color.
+		\newpage
 	\item[op=4: Circle]	% x y r color
 				% m=x1 filled
 		Draws a circle on the matrix display.
@@ -3547,6 +3552,7 @@ This command updates the quiz show unit's scoreboard display according to the
 		\Var*{x$_2$}, \Var*{y$_2$},
 		follwed by a \Var*{color} code. A triangle is drawn between these
 		three points, filled in if \Var*{f}=1.
+		\newpage
 	\item[op=6: Inhibit/Enable Updates]
 		Controls whether drawing commands immediately change the matrix
 		display.
@@ -3575,7 +3581,8 @@ This command updates the quiz show unit's scoreboard display according to the
 \begin{BF}
 	\bitbox{1}{\z1} & \bitbox{3}{5} & \bitbox{4}{\Var*{addr}}\\
 	\bitbox{1}{\z0} & \bitbox{3}{7} & 
-		\bitbox{3}{\color{lightgray}\rule{\width}{\height}} &
+		\bitbox{2}{\Var*{c}} &
+		\bitbox{1}{\color{lightgray}\rule{\width}{\height}} &
 		\bitbox{1}{\z{0}}\\
 	\wordbox{1}{\Var*{x}}\\
 	\wordbox{1}{\Var*{y}}\\
@@ -3604,10 +3611,11 @@ This command updates the quiz show unit's scoreboard display according to the
 \begin{BF}
 	\bitbox{1}{\z1} & \bitbox{3}{5} & \bitbox{4}{\Var*{addr}}\\
 	\bitbox{1}{\z0} & \bitbox{3}{7} & 
-		\bitbox{1}{\color{lightgray}\rule{\width}{\height}} &
+%		\bitbox{1}{\color{lightgray}\rule{\width}{\height}} &
+		\bitbox{1}{\Var{s}} &
 		\bitbox{2}{0} &
 		\bitbox{1}{\z{1}}\\
-	\wordbox{1}{\Var*{n}}\\
+	\bitbox{1}{\strut\Var{p}} & \bitbox{7}{\Var*{n}}\\
 	\begin{rightwordgroup}{\Var*{n} bytes}
 	\wordbox[ltr]{1}{\Var*{text}}\\
 	\skippedwords\\
@@ -3629,6 +3637,13 @@ This command updates the quiz show unit's scoreboard display according to the
 		by \Var{n} bytes of character data. These are displayed as \acronym{ASCII}
 		bytes on the alphanumeric digits. The entire display is overwritten
 		with the specified \Var*{text}.
+
+		If \Var{s}=1, the text will appear on the display and then scroll to the left,
+		allowing for messages which are longer than the number of physical characters
+		on the display to be shown.  You may want to prepend spaces to the string
+		to initially blank the display and scroll the entire message on from the right, or
+		set \Var{p}=1, which will automatically pad the message with enough blanks to ensure
+		the message starts off-display before scrolling across.
 \begin{BF}
 	\bitbox{1}{\z1} & \bitbox{3}{5} & \bitbox{4}{\Var*{addr}}\\
 	\bitbox{1}{\z0} & \bitbox{3}{7} & 
@@ -3652,10 +3667,11 @@ This command updates the quiz show unit's scoreboard display according to the
 \begin{BF}
 	\bitbox{1}{\z1} & \bitbox{3}{5} & \bitbox{4}{\Var*{addr}}\\
 	\bitbox{1}{\z0} & \bitbox{3}{7} & 
-		\bitbox{1}{\color{lightgray}\rule{\width}{\height}} &
+%		\bitbox{1}{\color{lightgray}\rule{\width}{\height}} &
+		\bitbox{1}{\Var{s}} &
 		\bitbox{2}{2} &
 		\bitbox{1}{\z{1}}\\
-	\wordbox{1}{\Var*{n}}\\
+	\bitbox{1}{\strut\Var{p}} & \bitbox{7}{\strut\Var*{n}}\\
 	\begin{rightwordgroup}{2$\times$\Var*{n} bytes}
 	\wordbox[ltr]{1}{\Var*{bitmaps}}\\
 	\skippedwords\\
@@ -3675,6 +3691,12 @@ This command updates the quiz show unit's scoreboard display according to the
 		are bitmapped to the \acronym{LED} digit segments, allowing completely 
 		arbitrary symbols on the displays. The entire display is overwritten
 		by the given \Var*{text}.
+
+		If \Var{s}=1, the text will appear on the display and then scroll to the left,
+		allowing for messages which are longer than the number of physical characters
+		on the display to be shown.  You may want to prepend spaces to the string
+		to initially blank the display and scroll the entire message on from the right.
+		Setting \Var{p}=1 arranges sufficient padding to do this for you automatically.
 \begin{BF}
 	\bitbox{1}{\z1} & \bitbox{3}{5} & \bitbox{4}{\Var*{addr}}\\
 	\bitbox{1}{\z0} & \bitbox{3}{7} & 
@@ -3825,7 +3847,8 @@ With \Var*{e}=1, the button scanner's state is queried, and optionally stopped.
 The state reply will either be a simple ``ping'' response if \Var*{p}=1, otherwise
 a full status will be sent.
 
-If \Var*{s}=1, the scanner is stopped. Otherwise it will continue running after
+If \Var*{s}=1, the scanner is stopped. Otherwise it will continue running (if it was
+running at the time) after
 this status query is sent. If \Var*{s}=1 and \Var*{d}=1, the scanner is entirely
 disabled. No button scans will be done, and no signals will be sent to poll the button
 hardware. Otherwise, if \Var*{s}=1 and \Var*{d}=0, the button scanning function will
@@ -4027,8 +4050,8 @@ device type to define.
    \bitbox{8}{\textit{reserved}}\\
   \wordbox[]{1}{$\vdots$ \\[1ex]} 
   \end{rightwordgroup}\\
-	\wordbox{1}{\Var*{fault$_1$}}\\
-	\wordbox{1}{\Var*{fault$_0$}}\\
+	\wordbox{1}{\Var*{fault0}}\\
+	\wordbox{1}{\Var*{fault1}}\\
 %  \bitbox{1}{\z0} 
 %	& \bitbox{7}{\Var*{fault$_1$}}\\
 %  \bitbox{1}{\z0} 
@@ -4079,6 +4102,7 @@ The information contained in this packet describes several facts about the Lumos
 		for the firmware with each component having a range of 0--255; and \Var*{mslen}
 		gives the length in bytes of any additional model-specific data which immediately
 		follows the \Var*{mslen} field.
+		Descriptions of the currently-defined model-specific data appear below.
 	\item[Device identity:]
 		\Var*{addr} holds the reporting device's current address on the network.
 		%the \acronym{ROM} version (major revision \Var*{R$_1$}, minor \Var*{R$_0$});
@@ -4118,21 +4142,24 @@ The information contained in this packet describes several facts about the Lumos
 		mode (\Var{s}=1); The \Var{X} flag is true (\Var{X}=1) if configuration mode is
 		locked out.  If a sequence is currently running, the \Var{Q} flag will be set and the
 		sequence number is in field \Var*{exec}.  The fault code from the last failed command
-		is contained in fields \Var*{fault$_1$} and \Var*{fault$_0$}. {\color{red}In Protocol~0,
-		this was a 14-bit value in the range 0--16,383:
-		\begin{center}\begin{bytefield}{14}
-			\bitheader{0,6,7,13}\\
-			\bitbox{7}{\Var*{fault$_1$}} & \bitbox{7}{\Var*{fault$_0$}}\\
-		\end{bytefield}\end{center}
-		}
-		However, starting with Protocol~1, this is a full 16-bit value:
-		\begin{center}\begin{bytefield}{16}
-			\bitheader{0,7,8,15}\\
-			\bitbox{8}{\Var*{fault$_1$}} & \bitbox{8}{\Var*{fault$_0$}}\\
-		\end{bytefield}\end{center}
+		is contained in fields \Var*{fault0} for \acronym{CPU0} and \Var*{fault1} for \acronym{CPU1} (on
+		multi-\acronym{CPU} devices). %{\color{red}In Protocol~0,
+%		this was a 14-bit value in the range 0--16,383:
+%		\begin{center}\begin{bytefield}{14}
+%			\bitheader{0,6,7,13}\\
+%			\bitbox{7}{\Var*{fault$_1$}} & \bitbox{7}{\Var*{fault$_0$}}\\
+%		\end{bytefield}\end{center}
+%		}
+%		However, starting with Protocol~1, this is a full 16-bit value:
+%		\begin{center}\begin{bytefield}{16}
+%			\bitheader{0,7,8,15}\\
+%			\bitbox{8}{\Var*{fault$_1$}} & \bitbox{8}{\Var*{fault$_0$}}\\
+%		\end{bytefield}\end{center}
 
 		A value of 0 means there was no fault detected since the last query command (i.e.,
-		the fault condition is cleared by the query command).
+		the fault condition is cleared by the query command). Starting with Protocol~1,
+		single-\acronym{CPU} systems place a 16-bit fault code here, with \Var*{fault0}
+		as the \acronym{MSB} and \Var*{fault1} as the \acronym{LSB}.
 	\item[Sensor information:]
 		Three values describe the sensor configuration and state: \Var*{S$_c$} indicates 
 		the sensor lines configured as inputs (1) or as \acronym{LED} outputs (0);
@@ -4193,6 +4220,79 @@ The information contained in this packet describes several facts about the Lumos
 			\bitbox{2}{\Var*{P$'_1$}} & \bitbox{7}{\Var*{P$'_0$}}
 		\end{bytefield}\end{center}
 \end{description}
+\begin{QS*}
+	\subsubsection{\acronym{QSMC} Model-Specific Data}
+	\begin{BF}
+		\wordbox{1}{\Var*{digits}} \\
+		\wordbox{1}{\Var*{scrollsz}} \\
+		\wordbox{1}{\Var*{scrollfree}} \\
+		\bitbox{1}{$\gamma$} &
+		\bitbox{1}{\strut\Var{g}} &
+		\bitbox{1}{\strut\Var{f}} &
+		\bitbox{1}{\strut\Var{e}} &
+		\bitbox{1}{\strut\Var{d}} &
+		\bitbox{1}{\strut\Var{c}} &
+		\bitbox{1}{\strut\Var{b}} &
+		\bitbox{1}{\strut\Var{a}} \\
+		\bitbox{1}{$\delta$} &
+		\bitbox{1}{\strut\Var{n}} &
+		\bitbox{1}{\strut\Var{m}} &
+		\bitbox{1}{\strut\Var{l}} &
+		\bitbox{1}{\strut\Var{k}} &
+		\bitbox{1}{\strut\Var{j}} &
+		\bitbox{1}{\strut\Var{i}} &
+		\bitbox{1}{\strut\Var{h}} \\
+		\bitbox{1}{$\epsilon$} &
+		\bitbox{1}{\strut\Var{u}} &
+		\bitbox{1}{\strut\Var{t}} &
+		\bitbox{1}{\strut\Var{s}} &
+		\bitbox{1}{\strut\Var{r}} &
+		\bitbox{1}{\strut\Var{q}} &
+		\bitbox{1}{\strut\Var{p}} &
+		\bitbox{1}{\strut\Var{o}} \\
+		\bitbox{1}{$\zeta$} &
+		\bitbox{1}{$\beta$} &
+		\bitbox{1}{$\alpha$} &
+		\bitbox{1}{\strut\Var{z}} &
+		\bitbox{1}{\strut\Var{y}} &
+		\bitbox{1}{\strut\Var{x}} &
+		\bitbox{1}{\strut\Var{w}} &
+		\bitbox{1}{\strut\Var{v}} \\
+		\wordbox[lrt]{1}{Lockout} \\
+		\wordbox[lr]{1}{time (\SI{}{\micro\second})} \\
+		\wordbox[lr]{1}{MSB first} \\
+		\wordbox[lrb]{1}{(4 bytes)} \\
+		\wordbox{1}{\Var*{nplayers}} \\
+		\begin{rightwordgroup}{For each player}
+		\bitbox{1}{\z0} &
+		\bitbox{1}{\z0} &
+		\bitbox{1}{\strut\Var{d}} &
+		\bitbox{1}{\strut\Var{c}} &
+		\bitbox{1}{\strut\Var{b}} &
+		\bitbox{1}{\strut\Var{a}} &
+		\bitbox{1}{\strut\Var{l}} &
+		\bitbox{1}{\strut\Var{x}} \\
+		\bitbox{1}{\z0} &
+		\bitbox{3}{\color{lightgray}\rule{\width}{\height}}&
+			\bitbox{4}{\Var*{paddr}} \\
+		\bitbox{1}{\z0} &
+		\bitbox{7}{\Var*{pchannel}} \\
+			\wordbox[]{1}{$\vdots$}
+		\end{rightwordgroup}\\
+	\end{BF}
+	The \Var*{digits} field specifies the number of alphanumeric \acronym{LED} characters physically
+	present in this device. Which ones are currently reserved for host use are indicated in the 
+	following bytes, where \Var{a}--\Var{z} and $\alpha$--$\zeta$ represent the individual digit
+	positions. The number of characters which may be buffered at once for scrolling across the
+	display is given by \Var*{scrollsz}, with the number of empty positions still available
+	in that buffer in \Var*{scrollfree}.
+	
+	The configured lockout time is given (0 if disabled), followed by \Var*{nplayers} which is the number
+	of player positions supported by the hardware. Then there are \Var*{nplayers} sets of three bytes
+	giving, respectively, the current button masks for that player, \Var*{paddr} (the Lumos device address
+	for that player, and \Var*{pchannel} (the Lumos channel number of the \acronym{LED} to flash if that player gets
+	locked out).
+\end{QS*}
 
 \begin{NotImplemented}
 \subsection{\z{0x704}: Define Sequence}
@@ -4713,7 +4813,7 @@ in the future.
 %			\bitbox[b]{1}{\z0} &
 %			\bitbox[br]{1}{\z0} \\
 		\wordbox[ltr]{1}{Lockout}\\
-		\wordbox[lr]{1}{time ($\mu$S)}\\
+		\wordbox[lr]{1}{time (\SI{}{\micro\second})}\\
 		\wordbox[lr]{1}{MSB first}\\
 		\wordbox[lbr]{1}{(4 bytes)}\\
 		\bitbox{1}{\z0} & 
@@ -4747,13 +4847,13 @@ in the future.
 			\bitbox[b]{1}{\z1} &
 			\bitbox[b]{1}{\z0} &
 			\bitbox[br]{1}{\z0} &
-			\bitbox{4}{\Var*{unit}}\\
+			\bitbox{4}{\Var*{player}}\\
 		\bitbox{1}{\z0} &
 			\bitbox{1}{\z0} &
-			\bitbox{1}{\Var{\strut a}} &
-			\bitbox{1}{\Var{\strut b}} &
-			\bitbox{1}{\Var{\strut c}} &
 			\bitbox{1}{\Var{\strut d}} &
+			\bitbox{1}{\Var{\strut c}} &
+			\bitbox{1}{\Var{\strut b}} &
+			\bitbox{1}{\Var{\strut a}} &
 			\bitbox{1}{\Var{\strut l}} &
 			\bitbox{1}{\Var{\strut x}} \\
 		\bitbox{1}{\z0} &
@@ -4765,9 +4865,10 @@ in the future.
 			\bitbox[b]{1}{\z1} &
 			\bitbox[br]{1}{\z0} \\
 	\end{BF}
-	Sets the button masks for player \Var*{unit}. For each button
+	Sets the button masks for player \Var*{player}. For each button
 	\Var*{a}, \Var*{b}, etc., a 1 means to mask out the button so it
 	is ignored, while a 0 returns the button to normal operation.
+	\newpage
 
 	\subsection{\z{0x70c} Player Setup}
 	\begin{BF}
@@ -4800,7 +4901,10 @@ in the future.
 	be channel \Var*{pchannel} on device address \Var*{paddr}. 
 	If \Var*{pchannel} is specified as 127 (\z{01111111}), then it is assumed
 	that the normal default light channel will be used, as summarized in
-	Table~\ref{tbl:defledchan}.
+	Table~\ref{tbl:defledchan}. For players directly managed by the \acronym{QSMC},
+	the Lumos device defaults to the \acronym{QSMC}'s device (i.e., if \Var*{pchannel}=127,
+	this is the default for \Var*{paddr}). Otherwise, an explicit \Var*{paddr} is
+	required.
 \begin{table}
 	\begin{QS*}
 	\begin{center}
@@ -4892,38 +4996,38 @@ in the future.
 \begin{BF}
 	\bitbox{1}{\z1} & \bitbox{3}{7} & \bitbox{4}{\Var*{addr}} \\
 	\bitbox{1}{\z0} & \bitbox{7}{13} \\
-	\bitbox{1}{\z0} &
-	\bitbox{1}{\z0} &
-	\bitbox{1}{\strut\Var{a}} &
-	\bitbox{1}{\strut\Var{b}} &
-	\bitbox{1}{\strut\Var{c}} &
-	\bitbox{1}{\strut\Var{d}} &
-	\bitbox{1}{\strut\Var{e}} &
-	\bitbox{1}{\strut\Var{f}} \\
-	\bitbox{1}{\z0} &
-	\bitbox{1}{\z0} &
+	\bitbox{1}{$\gamma$} &
 	\bitbox{1}{\strut\Var{g}} &
-	\bitbox{1}{\strut\Var{h}} &
-	\bitbox{1}{\strut\Var{i}} &
-	\bitbox{1}{\strut\Var{j}} &
-	\bitbox{1}{\strut\Var{k}} &
-	\bitbox{1}{\strut\Var{l}} \\
-	\bitbox{1}{\z0} &
-	\bitbox{1}{\z0} &
-	\bitbox{1}{\strut\Var{m}} &
+	\bitbox{1}{\strut\Var{f}} &
+	\bitbox{1}{\strut\Var{e}} &
+	\bitbox{1}{\strut\Var{d}} &
+	\bitbox{1}{\strut\Var{c}} &
+	\bitbox{1}{\strut\Var{b}} &
+	\bitbox{1}{\strut\Var{a}} \\
+	\bitbox{1}{$\delta$} &
 	\bitbox{1}{\strut\Var{n}} &
-	\bitbox{1}{\strut\Var{o}} &
-	\bitbox{1}{\strut\Var{p}} &
-	\bitbox{1}{\strut\Var{q}} &
-	\bitbox{1}{\strut\Var{r}} \\
-	\bitbox{1}{\z0} &
-	\bitbox{1}{\z0} &
-	\bitbox{1}{\strut\Var{s}} &
-	\bitbox{1}{\strut\Var{t}} &
+	\bitbox{1}{\strut\Var{m}} &
+	\bitbox{1}{\strut\Var{l}} &
+	\bitbox{1}{\strut\Var{k}} &
+	\bitbox{1}{\strut\Var{j}} &
+	\bitbox{1}{\strut\Var{i}} &
+	\bitbox{1}{\strut\Var{h}} \\
+	\bitbox{1}{$\epsilon$} &
 	\bitbox{1}{\strut\Var{u}} &
-	\bitbox{1}{\strut\Var{v}} &
+	\bitbox{1}{\strut\Var{t}} &
+	\bitbox{1}{\strut\Var{s}} &
+	\bitbox{1}{\strut\Var{r}} &
+	\bitbox{1}{\strut\Var{q}} &
+	\bitbox{1}{\strut\Var{p}} &
+	\bitbox{1}{\strut\Var{o}} \\
+	\bitbox{1}{$\zeta$} &
+	\bitbox{1}{$\beta$} &
+	\bitbox{1}{$\alpha$} &
+	\bitbox{1}{\strut\Var{z}} &
+	\bitbox{1}{\strut\Var{y}} &
+	\bitbox{1}{\strut\Var{x}} &
 	\bitbox{1}{\strut\Var{w}} &
-	\bitbox{1}{\strut\Var{x}} \\
+	\bitbox{1}{\strut\Var{v}} \\
 	\bitbox{1}{\z0} &
 		\bitbox[tb]{1}{\z1} &
 		\bitbox[tb]{1}{\z1} &
@@ -4939,7 +5043,7 @@ those character positions as it normally would, so the host computer may
 write into them using the Lumos commands documented in this section.
 
 Each character is represented here with a single bit, with the leftmost character
-shown as \Var{a} and so on to \Var{x} as the rightmost character. If the corresponding
+shown as \Var{a} and so on to $\zeta$ as the rightmost character. If the corresponding
 bit is \z1, that character is reserved for host computer use; if \z0, then the \acronym{QSMC}
 may use it to indicate its own operational status.
 
@@ -4979,7 +5083,7 @@ be overwritten to show error status.
 Enables configuration mode, unless a previous command forbade the unit
 from doing this. 
 
-{\bfseries This command appeared staring with Protocol 1.}
+{\bfseries This command appeared starting with Protocol 1.}
 
 \subsection{Reserved Command Codes}
 Codes \z{0x70a}--\z{0x70d} and \z{0x70f}--\z{0x71d} are reserved for future commands.  \z{0x71e}--\z{0x71f} are currently used
@@ -4992,13 +5096,13 @@ for response packets from the Lumos controller.
 Lumos 48-channel power controllers reserve codes \z{0x720}--\z{0x73F} for internal use.
 
 Codes \z{0x740}--\z{0x77F} are for configuration-mode commands.
-
+\newpage
 \begin{QS}
 \subsection{\z{0x71b} [reply] Button Query Full Status Response}
 	\begin{BF}
 		\bitbox{1}{\z1} & \bitbox{3}{7} & \bitbox{4}{\Var*{addr}}\\
 		\bitbox{1}{\z0} & \bitbox{7}{27}\\
-		\bitbox{1}{\z0} & \bitbox{1}{\Var{s}} & \bitbox{1}{\z1}
+		\bitbox{1}{\z0} & \bitbox{1}{\strut\Var{s}} & \bitbox{1}{\strut\Var{D}}
 			& \bitbox{5}{\Var*{n}} \\
 		\begin{rightwordgroup}{Repeat \Var*{n} times}
 			\wordbox[ltr]{1}{X button}\\
@@ -5037,33 +5141,56 @@ Codes \z{0x740}--\z{0x77F} are for configuration-mode commands.
 	This packet is sent upon request to indicate the full current
 	status of all buttons in play.  For each button, a 32-bit big-endian
 	value is sent, giving the time in microseconds from the start of the
-	button scan to the time the button was pressed. If all bits of a timestamp
-	are zero, the button has not yet been pressed. If all bits are ones, the
-	button is masked out.
+	button scan to the time the button was pressed. 
 
-	(If a button was somehow miraculously pressed in less than a microsecond,
-	it will be reported as 1 to distinguish it from an unpressed button; any
+	There are a few special values for the timestamp value as listed
+	in Table~\ref{tbl:buttontimestamps}.
+	\begin{table}
+		\begin{center}
+			\begin{QS*}
+			\begin{tabular}{rl}\toprule
+				\bfseries Timestamp & \bfseries Meaning \\\midrule
+				\z{0x00000000} & button not pressed \\
+				\z{0x00000001} & button masked out \\
+				\z{0x00000002} & button was locked out at time of scan \\
+				\z{0x00000003} & reserved \\
+				\z{0x00000004} & reserved \\
+				\z{0x00000005} & reserved \\
+				\z{0x00000006} & reserved \\
+				\z{0x00000007} & reserved \\
+				$>$\z{0x00000007}& button press time in \SI{}{\micro\second} \\\bottomrule
+			\end{tabular}
+			\caption{Special Timestamp Values\label{tbl:buttontimestamps}}
+			\end{QS*}
+		\end{center}
+	\end{table}
+
+	(If a button was somehow miraculously pressed in less than \SI{8}{\micro\second},
+	it will be reported as 8 to distinguish it from the special cases; a
 	button pressed after the maximum time possible to represent in 32 bits---just
 	over 71.5 minutes---it will be given a maximum time value of
-	\z{0xFFFE} to distinguish it from a masked-out button.)
+	\z{0xFFFFFFFF}.)
 
 	If \Var*{s}=1, the button scanner is still running; otherwise it has
 	stopped and these results represent the final state of the buttons.
 	(The results won't be cleared until the next scan is started, so another
 	query may still be made to get the results again, until that happens.)
 
+	If \Var*{D}=1, the button scanner is entirely disabled (so it cannot scan
+	for illegal button presses to enforce the lockout time).
+
 \subsection{\z{0x71c} [reply] Button Query ``Ping'' Response}
 	\begin{BF}
 		\bitbox{1}{\z1} & \bitbox{3}{7} & \bitbox{4}{\Var*{addr}}\\
 		\bitbox{1}{\z0} & \bitbox{7}{28}\\
-		\bitbox{1}{\z0} & \bitbox{1}{\Var{s}} & \bitbox{1}{\z0}
+		\bitbox{1}{\z0} & \bitbox{1}{\strut\Var{s}} & \bitbox{1}{\strut\Var{D}}
 			& \bitbox{5}{\Var*{n}} \\
 		\begin{rightwordgroup}{Repeat \Var*{n} times}
 		\bitbox{1}{\z0} & \bitbox{1}{\z0}
-			& \bitbox{1}{\Var{\strut a}}
-			& \bitbox{1}{\Var{\strut b}}
-			& \bitbox{1}{\Var{\strut c}}
 			& \bitbox{1}{\Var{\strut d}}
+			& \bitbox{1}{\Var{\strut c}}
+			& \bitbox{1}{\Var{\strut b}}
+			& \bitbox{1}{\Var{\strut a}}
 			& \bitbox{1}{\Var{\strut l}}
 			& \bitbox{1}{\Var{\strut x}}\\
 		\wordbox[]{1}{$\vdots$ \\[1ex]}
@@ -5084,6 +5211,9 @@ Codes \z{0x740}--\z{0x77F} are for configuration-mode commands.
 	If \Var*{s}=1, the button scanner is still running. The button
 	values \Var*{a}, \Var*{b}, etc., are 1 if the button was pressed
 	or 0 if it was not.
+
+	If \Var*{D}=1, the button scanner is entirely disabled (so it cannot scan
+	for illegal button presses to enforce the lockout time).
 
 \subsection{\z{0x71d} [reply] Button Status \acronym{NAK}}
 \begin{BF}
@@ -5620,8 +5750,8 @@ channel numbers start with 1.
 %  \skippedwords\\
 %  \wordbox[lrb]{1}{($\ge$12\,$\mu$S)}\\
   \begin{rightwordgroup}{Start signal}
-  \wordbox{1}{Break ($\ge$92\,$\mu$S)}\\
-  \wordbox{1}{Mark ($\ge$12\,$\mu$S)}
+	  \wordbox{1}{Break ($\ge$\SI{92}{\micro\second})}\\
+	  \wordbox{1}{Mark ($\ge$\SI{12}{\micro\second})}\\
   \end{rightwordgroup}\\
   \begin{rightwordgroup}{Data packet}
   \wordbox{1}{0}\\
