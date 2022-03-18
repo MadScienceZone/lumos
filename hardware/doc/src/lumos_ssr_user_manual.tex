@@ -4273,10 +4273,10 @@ The information contained in this packet describes several facts about the Lumos
 		\bitbox{1}{\strut\Var{l}} &
 		\bitbox{1}{\strut\Var{x}} \\
 		\bitbox{1}{\z0} &
-		\bitbox{3}{\color{lightgray}\rule{\width}{\height}}&
+		\bitbox{1}{\color{lightgray}\rule{\width}{\height}}&
+			\bitbox{1}{\strut\Var{m}} &
+			\bitbox{1}{\strut\Var{e}} &
 			\bitbox{4}{\Var*{paddr}} \\
-		\bitbox{1}{\z0} &
-		\bitbox{7}{\Var*{pchannel}} \\
 			\wordbox[]{1}{$\vdots$}
 		\end{rightwordgroup}\\
 	\end{BF}
@@ -4288,10 +4288,10 @@ The information contained in this packet describes several facts about the Lumos
 	in that buffer in \Var*{scrollfree}.
 	
 	The configured lockout time is given (0 if disabled), followed by \Var*{nplayers} which is the number
-	of player positions supported by the hardware. Then there are \Var*{nplayers} sets of three bytes
-	giving, respectively, the current button masks for that player, \Var*{paddr} (the Lumos device address
-	for that player, and \Var*{pchannel} (the Lumos channel number of the \acronym{LED} to flash if that player gets
-	locked out).
+	of player positions supported by the hardware. Then there are \Var*{nplayers} sets of two bytes
+	giving, the current button masks for that player, \Var*{paddr} (the Lumos device address
+	for that player), and the \Var{m} and \Var{e} flags configured for that player from the most recent
+	Player Setup command.
 \end{QS*}
 
 \begin{NotImplemented}
