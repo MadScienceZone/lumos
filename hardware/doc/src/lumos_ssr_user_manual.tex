@@ -4876,9 +4876,10 @@ in the future.
 		\bitbox{1}{\z0} & \bitbox{7}{12} \\
 		\bitbox{1}{\z0} & \bitbox{7}{\Var*{n}}\\
 		\begin{rightwordgroup}{Repeat \Var*{n} times}
-		\bitbox{1}{\z0} & \bitbox{3}{\color{lightgray}\rule{\width}{\height}} 
+		\bitbox{1}{\z0} & \bitbox{1}{\color{lightgray}\rule{\width}{\height}}
+			& \bitbox{1}{\Var{m}}
+			& \bitbox{1}{\Var{e}}
 			& \bitbox{4}{\Var*{paddr}}\\
-		\bitbox{1}{\z0} & \bitbox{7}{\Var*{pchannel}}\\
 		\wordbox[]{1}{$\vdots$ \\[1ex]}
 		\end{rightwordgroup}\\
 		\bitbox{1}{\z0} &
@@ -4891,107 +4892,84 @@ in the future.
 			\bitbox[tbr]{1}{\z0} \\
 	\end{BF}
 	Assigns Lumos device addresses for the first \Var*{n} player positions.
-	All other players will be assumed to have no corresponding Lumos device
-	for their lights (possibly because they are directly controlled by the
-	\acronym{QSMC} itself). Any player positions which are in the first
-	\Var*{n} but which do belong to the controller should be assigned the
-	controller's address.
+	You may, but are not required to, include the player positions directly
+	controlled by the \acronym{QSMC} unit unless you wish to disable their
+	lockout signalling.
 
-	The player's light which will be used to indicate lock-out condition will
-	be channel \Var*{pchannel} on device address \Var*{paddr}. 
-	If \Var*{pchannel} is specified as 127 (\z{01111111}), then it is assumed
-	that the normal default light channel will be used, as summarized in
-	Table~\ref{tbl:defledchan}. For players directly managed by the \acronym{QSMC},
-	the Lumos device defaults to the \acronym{QSMC}'s device (i.e., if \Var*{pchannel}=127,
-	this is the default for \Var*{paddr}). Otherwise, an explicit \Var*{paddr} is
-	required.
-\begin{table}
-	\begin{QS*}
-	\begin{center}
-		\begin{tabular}{rrl}\toprule
-			\bfseries Player & \bfseries Default Channel \\\midrule
-			 0 & 0 & (\acronym{QSCC} units)\\
-			 1 & 0\\
-			 2 & 0\\
-			 3 & 0\\
-			 4 & 0\\
-			 5 & 0\\
-			 6 & 0\\
-			 7 & 0\\\midrule
-			 8 & 0& (\acronym{QSMC} unit)\\
-			 9 & 4\\
-			10 & 8\\
-			11 & 12\\
-			12 & 16\\
-			13 & 20\\
-			14 & 24\\
-			15 & 28\\
-			\bottomrule
-		\end{tabular}
-		\caption{Default Player Lock-Out Channels\label{tbl:defledchan}}
-	\end{center}
-	\end{QS*}
-\end{table}
+	Players starting at \Var*{n}+1 will be given a default behavior of 
+	direct signalling for players controlled by the \acronym{QSMC} and no
+	signalling for the others.
+
+	If the flag \Var{m}=\z1, this player is controlled by a
+	\acronym{QSXT} unit plugged into the external bus of the \acronym{QSMC}.
+	As such, this and all following players up to, but not including, player \#8
+	are mapped to player \#0--\#7 of the \acronym{QSXT} unit.
+
+	If your system consists of 16 players using simple button devices, you
+	would plug a \acronym{QSXT} unit as the only player device on the external bus.
+	This means players \#0--\#7 are controlled by the \acronym{QSXT} and \#8--\#15
+	are controlled by the \acronym{QSMC}.
+
+	If you have, say, three \acronym{QSCC} units followed by a \acronym{QSXT} on the 
+	external bus, then players \#0--\#2 are controlled by the three \acronym{QSCC} units,
+	players \#3--\#7 are controlled by the \acronym{QSXT} (which it will locally consider
+	to be its player \#0--\#4), and as always the last 8 players will be controlled
+	by the \acronym{QSMC}.
+
+	If flag \Var{e}=\z1, lockout signalling is enabled for this player. The Lumos device
+	with address \Var*{paddr} will be notified to carry out the signal in case a button
+	for that player is locked out. If \Var{e}=\z0, no lockout signalling will be sent
+	for that player.
+
 \begin{table}
 	\begin{QS*}
 		\begin{center}
-			\begin{tabular}{rll}\\\toprule
+			\begin{tabular}{rlll}\\\toprule
 				\bfseries Channel &
 				\bfseries \acronym{QSMC} &
+				\bfseries \acronym{QSXT} &
 				\bfseries \acronym{QSCC} \\\midrule
-				0 & player 8 X red & X red \\
-				1 & player 8 X green & X green \\
-				2 & player 8 X blue & X blue \\
-				3 & player 8 L light & L red \\
-				4 & player 9 X red & L green \\
-				5 & player 9 X green & L yellow \\
-				6 & player 9 X blue & nameplate red \\
-				7 & player 9 L light & nameplate green \\
-				8 & player 10 X red & nameplate blue \\
-				9 & player 10 X green & A light \\
-				10& player 10 X blue & B light \\
-				11& player 10 L light & C light \\
-				12& player 11 X red & D light \\
-				13& player 11 X green & spare output \\
-				14& player 11 X blue \\
-				15& player 11 L light \\
-				16& player 12 X red \\
-				17& player 12 X green \\
-				18& player 12 X blue \\
-				19& player 12 L light \\
-				20& player 13 X red \\
-				21& player 13 X green \\
-				22& player 13 X blue \\
-				23& player 13 L light \\
-				24& player 14 X red \\
-				25& player 14 X green \\
-				26& player 14 X blue \\
-				27& player 14 L light \\
-				28& player 15 X red \\
-				29& player 15 X green \\
-				30& player 15 X blue \\
-				31& player 15 L light \\
-				32& spare output 38 \\
-				33& spare output 39 \\
-				34& spare output 40 \\\bottomrule
+				0 & player 8 X red  & player 0 X red & X red \\
+				1 & player 8 X green  & player 0 X green & X green \\
+				2 & player 8 X blue  & player 0 X blue & X blue \\
+				3 & player 8 L light  & player 0 L light & L red \\
+				4 & player 9 X red  & player 1 X red & L green \\
+				5 & player 9 X green  & player 1 X green & L yellow \\
+				6 & player 9 X blue  & player 1 X blue & nameplate red \\
+				7 & player 9 L light  & player 1 L light & nameplate green \\
+				8 & player 10 X red  & player 2 X red & nameplate blue \\
+				9 & player 10 X green  & player 2 X green & A light \\
+				10& player 10 X blue  & player 2 X blue & B light \\
+				11& player 10 L light  & player 2 L light & C light \\
+				12& player 11 X red  & player 3 X red & D light \\
+				13& player 11 X green  & player 3 X green & spare output \\
+				14& player 11 X blue  & player 3 X blue \\
+				15& player 11 L light  & player 3 L light \\
+				16& player 12 X red  & player 4 X red \\
+				17& player 12 X green  & player 4 X green \\
+				18& player 12 X blue  & player 4 X blue \\
+				19& player 12 L light  & player 4 L light \\
+				20& player 13 X red  & player 5 X red \\
+				21& player 13 X green  & player 5 X green \\
+				22& player 13 X blue  & player 5 X blue \\
+				23& player 13 L light  & player 5 L light \\
+				24& player 14 X red  & player 6 X red \\
+				25& player 14 X green  & player 6 X green \\
+				26& player 14 X blue  & player 6 X blue \\
+				27& player 14 L light  & player 6 L light \\
+				28& player 15 X red  & player 7 X red \\
+				29& player 15 X green  & player 7 X green \\
+				30& player 15 X blue  & player 7 X blue \\
+				31& player 15 L light  & player 7 L light \\
+				32& spare output 38 & spare output 38 \\
+				33& spare output 39 & spare output 39 \\
+				34& spare output 40 & spare output 40 \\\bottomrule
 			\end{tabular}
 			\caption{QS* Device Lumos Channel Assignments\label{tbl:qslumoschannels}}
 		\end{center}
 	\end{QS*}
 \end{table}
 				
-
-	For example, for a 16-player \acronym{QSMC} where the first 8 positions
-	are on external Lumos-compatible stations and the last 8 are directly 
-	controlled, setting \Var*{n}=0 means you will only be using the direct
-	player positions (\#8--\#15), or that you don't want any Lumos light
-	feedback to the players during scans.
-
-	If you use three players with remote stations, you would set \Var*{n}=3 and
-	give the Lumos addresses and channel numbers for players \#0--\#2.  Then no 
-	lighting feedback will be given for players \#3--\#7, but the directly 
-	controlled players \#8--\#15 will get normal direct feedback.
-
 \subsection{\z{0x70d} Reserve Display Space}
 \begin{BF}
 	\bitbox{1}{\z1} & \bitbox{3}{7} & \bitbox{4}{\Var*{addr}} \\
@@ -5085,11 +5063,45 @@ from doing this.
 
 {\bfseries This command appeared starting with Protocol 1.}
 
+\begin{QS*}
+\subsection{\z{0x70f} Signal Button Lockout}
+\begin{BF}
+	\bitbox{1}{\z1} &
+	\bitbox{3}{7} &
+	\bitbox{4}{\Var*{addr}} \\
+	\bitbox{1}{\z0} &
+	\bitbox{7}{15} \\
+	\bitbox{1}{\z0} & \bitbox{3}{\color{lightgray}\rule{\width}{\height}}&
+	\bitbox{4}{\Var*{player}} \\
+	\bitbox{1}{\z0} &
+	\bitbox{1}{\z0} &
+	\bitbox{1}{\Var{\strut\Var{d}}} &
+	\bitbox{1}{\Var{\strut\Var{c}}} &
+	\bitbox{1}{\Var{\strut\Var{b}}} &
+	\bitbox{1}{\Var{\strut\Var{a}}} &
+	\bitbox{1}{\Var{\strut\Var{l}}} &
+	\bitbox{1}{\Var{\strut\Var{x}}} &
+\end{BF}
+
+This command instructs the unit to signal to the player that one or more
+of their buttons have been locked out due to pressing or holding them
+before buttons are legally in play. 
+
+The \Var*{player} will be \z0 for single-player devices, or the local
+player number for multi-player devices. The bits \Var{a}--\Var{d},
+\Var{l}, and \Var{x} are \z1 if that button is locked out or \z0 if
+it is not.
+
+The expected behavior is for one or more of these commands to be received
+when the lockout status is detected, and eventually another which clears
+the status when the lockout period has expired.
+\end{QS*}
+
 \subsection{Reserved Command Codes}
 Codes \z{0x70a}--\z{0x70d} and \z{0x70f}--\z{0x71d} are reserved for future commands.  \z{0x71e}--\z{0x71f} are currently used
 for response packets from the Lumos controller.
 \begin{QS*}
-	\z{0x70a}--\z{0x70d} are used for QS-specific commands.
+	\z{0x70a}--\z{0x70d} and \z{0x70f} are used for QS-specific commands.
 	\z{0x71b}--\z{0x71d} are used for the response packet for QS query commands.
 \end{QS*}
 
