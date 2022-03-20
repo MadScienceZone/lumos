@@ -46,26 +46,28 @@ class NotImplemenetedError (Exception): pass
 # -H --load-hex-sequence
 def parse_arguments():
     global options
-    parser = optparse.OptionParser(usage='%prog [-dFhkPRrSvXz] [-A ADDR] [-a ADDR] [-B SPD] [-b SPD] [-C FILE] [-c FILE] [-D LIST] [-E LIST] [-K HEX] [-L LVL] [-m mS] [-P PH] [-p PORT] [-q BYTES] [-s FILE] [-T MODE] [-t ...] [-x DPX] [-Z SEC] [channel-levels...]', version='%prog, version 1.0')
+    parser = optparse.OptionParser(usage='%prog [-dFhikPRrvXz] [-A ADDR] [-a ADDR] [-B SPD] [-b SPD] [-C FILE] [-c FILE] [-D LIST] [-E LIST] [-K HEX] [-L LVL] [-m mS] [-P PH] [-p PORT] [-q BYTES] [-s FILE] [-T MODE] [-x DPX] [-Z SEC] [channel-levels...]', version='%prog, version 1.0')
     parser.add_option('-a', '--address',        metavar='ADDR', type='int', help='Unit address (0-15) [%default]')
-    parser.add_option('-S', '--clear-sequences', action='store_true', help='Delete all stored sequences from the device.')
+#    parser.add_option('-S', '--clear-sequences', action='store_true', help='Delete all stored sequences from the device.')
     parser.add_option('-D', '--disable-sensor',  metavar='LIST', help='Disable sensor(s) ABCD in LIST')
     parser.add_option('-d', '--drop-configuration-mode', action='store_true', help='Run in normal mode')
     parser.add_option('-C', '--dump-configuration-file', metavar='FILE', help='Get and save device configuration')
     parser.add_option('-x', '--duplex', metavar='DPX', action='store', choices=['full', 'half'], help='Serial duplex mode [%default]')
     parser.add_option('-E', '--enable-sensor', metavar='LIST', help='Enable sensor(s) ABCD in LIST')
     parser.add_option('-F', '--factory-reset', action='store_true', help='Reset to factory default settings')
+    parser.add_option('-i', '--interactive', action='store_true', help='Interactively prompt for operations')
     parser.add_option('-k', '--kill-all', action='store_true', help='Turn off all channel outputs')
-    parser.add_option('--load-compiled-sequence', action='append', metavar='FILE', help='Download compiled sequence into device')
+#    parser.add_option('--load-compiled-sequence', action='append', metavar='FILE', help='Download compiled sequence into device')
     parser.add_option('-c', '--load-configuration-file', metavar='FILE', help='Configure device based on FILE')
-    parser.add_option('-s', '--load-sequence', metavar='FILE', action='append', help='Compile sequence(s) in FILE and download into device')
+#    parser.add_option('-s', '--load-sequence', metavar='FILE', action='append', help='Compile sequence(s) in FILE and download into device')
     parser.add_option('-p', '--port', metavar='PORT', help='Serial I/O port to use [%default]')
     parser.add_option('-P', '--probe', action='store_true', help='Discover Lumos devices on network')
     parser.add_option('-R', '--report', action='store_true', help='Report device status to standard output.')
     parser.add_option('-r', '--read-only', action='store_true', help="Don't read device status")
     parser.add_option('-q', '--receive', metavar='BYTES', action='store', type='int', help='read a number of bytes from device')
+    parser.add_option('-s', '--script', metavar='FILE', action='store', type='str', help='Play commands from script file')
     parser.add_option('-K', '--send', metavar='HEX', action='store', help='send raw hex data to device')
-    parser.add_option('-t', '--sensor', metavar='TRIG', action='append', help='Set trigger event for sensor.')
+#    parser.add_option('-t', '--sensor', metavar='TRIG', action='append', help='Set trigger event for sensor.')
     parser.add_option('-A', '--set-address', metavar='ADDR', type='int', help='Change unit address (0-15)')
     parser.add_option('-B', '--set-baud-rate', metavar='SPD', type='int', help='Change unit baud rate.')
     parser.add_option('-Q', '--set-phase', metavar='P', type='int', help='Change unit phase offset to P (0-511)')
@@ -113,29 +115,29 @@ def parse_arguments():
                 parser.error('Sensor names are A, B, C, or D; or * for "all sensors".')
 
     sensor_triggers = []
-    if options.sensor is not None:
-      for trigger in options.sensor:
-        fields = trigger.upper().split(':')
-        if len(fields) != 4 or not 1 <= len(fields[0]) <= 2:
-            parser.error('-t/--sensor arg: Usage: {A|B|C|D}[o|r|w][+]:<pre>:<trigger>:<post>')
-        fields[0] = fields[0].upper()
-        m = re.match(r'^([ABCD])([ORW+-]*)$', fields[0])
-        if not m:
-            parser.error('-t/--sensor arg: Usage: {A|B|C|D}[o|r|w][+]:<pre>:<trigger>:<post>')
-
-        if '-' in m.group(2) and '+' in m.group(2):
-            parser.error('-t/--sensor arg: Sensor cannot be active high and active low at the same time!')
-
-        for f in range(1, 4):
-            try: 
-                fields[f] = int(fields[f])
-            except ValueError:
-                parser.error('-t/--sensor arg: <pre>, <trigger>, and <post> must be integers')
-
-            if not 0 <= fields[f] <= 128:
-                parser.error('-t/--sensor arg: <pre>, <trigger>, and <post> must be 0-127')
-
-        sensor_triggers.append((m.group(1), m.group(2), fields[1], fields[2], fields[3]))
+#    if options.sensor is not None:
+#      for trigger in options.sensor:
+#        fields = trigger.upper().split(':')
+#        if len(fields) != 4 or not 1 <= len(fields[0]) <= 2:
+#            parser.error('-t/--sensor arg: Usage: {A|B|C|D}[o|r|w][+]:<pre>:<trigger>:<post>')
+#        fields[0] = fields[0].upper()
+#        m = re.match(r'^([ABCD])([ORW+-]*)$', fields[0])
+#        if not m:
+#            parser.error('-t/--sensor arg: Usage: {A|B|C|D}[o|r|w][+]:<pre>:<trigger>:<post>')
+#
+#        if '-' in m.group(2) and '+' in m.group(2):
+#            parser.error('-t/--sensor arg: Sensor cannot be active high and active low at the same time!')
+#
+#        for f in range(1, 4):
+#            try: 
+#                fields[f] = int(fields[f])
+#            except ValueError:
+#                parser.error('-t/--sensor arg: <pre>, <trigger>, and <post> must be integers')
+#
+#            if not 0 <= fields[f] <= 128:
+#                parser.error('-t/--sensor arg: <pre>, <trigger>, and <post> must be 0-127')
+#
+#        sensor_triggers.append((m.group(1), m.group(2), fields[1], fields[2], fields[3]))
     return options, operations, sensor_triggers, parser
 
 def hexdump(data: bytes):

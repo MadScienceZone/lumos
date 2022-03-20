@@ -4893,8 +4893,8 @@ in the future.
 	\end{BF}
 	Assigns Lumos device addresses for the first \Var*{n} player positions.
 	You may, but are not required to, include the player positions directly
-	controlled by the \acronym{QSMC} unit unless you wish to disable their
-	lockout signalling.
+	controlled by the \acronym{QSMC} unit. (You need to include them,
+	however, if you wish to disable their lockout signalling.)
 
 	Players starting at \Var*{n}+1 will be given a default behavior of 
 	direct signalling for players controlled by the \acronym{QSMC} and no
@@ -4903,14 +4903,16 @@ in the future.
 	If the flag \Var{m}=\z1, this player is controlled by a
 	\acronym{QSXT} unit plugged into the external bus of the \acronym{QSMC}.
 	As such, this and all following players up to, but not including, player \#8
+	(all of which must also have the \Var{m} bit set)
 	are mapped to player \#0--\#7 of the \acronym{QSXT} unit.
 
-	If your system consists of 16 players using simple button devices, you
+	For example,
+	if your system consists of 16 players using simple button devices, you
 	would plug a \acronym{QSXT} unit as the only player device on the external bus.
 	This means players \#0--\#7 are controlled by the \acronym{QSXT} and \#8--\#15
 	are controlled by the \acronym{QSMC}.
 
-	If you have, say, three \acronym{QSCC} units followed by a \acronym{QSXT} on the 
+	For another example, if you have, say, three \acronym{QSCC} units followed by a \acronym{QSXT} on the 
 	external bus, then players \#0--\#2 are controlled by the three \acronym{QSCC} units,
 	players \#3--\#7 are controlled by the \acronym{QSXT} (which it will locally consider
 	to be its player \#0--\#4), and as always the last 8 players will be controlled
@@ -4920,6 +4922,9 @@ in the future.
 	with address \Var*{paddr} will be notified to carry out the signal in case a button
 	for that player is locked out. If \Var{e}=\z0, no lockout signalling will be sent
 	for that player.
+
+	N.B.: This does not control whether button lockouts are enforced. It only affects
+	whether the player stations are informed of those events.
 
 \begin{table}
 	\begin{QS*}
@@ -5416,6 +5421,12 @@ table:
 		8 & 57,600\\\hline
 		9 & 115,200\\\hline
 		10& 250,000\\\hline
+		11& 500,000\\\hline
+		12&1,000,000\\\hline
+		13&2,000,000\\\hline
+		14&2,500,000\\\hline
+		15&5,000,000\\\hline
+		16&10,000,000\\\hline
 	\end{tabular}
 \end{center}
 This setting does not affect \acronym{DMX512} mode, which always uses a fixed speed of
