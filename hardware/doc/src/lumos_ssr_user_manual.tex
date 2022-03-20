@@ -4033,7 +4033,9 @@ device type to define.
 %  \bitbox{1}{\z0} & \bitbox{7}{\Var*{exec}} \\
   \bitbox{8}{\textit{reserved}}\\
 	\begin{rightwordgroup}{$\times4$ (for sensors A--D)}
-%  \bitbox{1}{\z0} 
+  \bitbox{1}{\z0} 
+		& \bitbox{5}{\textit{reserved}}
+	& \bitbox{2}{\Var*{$S_n$}} \\
 %	& \bitbox{1}{\Var{o}} 
 %	& \bitbox{1}{\Var{w}} 
 %	& \bitbox{1}{\Var{e}} 
@@ -4044,7 +4046,7 @@ device type to define.
 %	& \bitbox{7}{\Var*{run}}\\
 %  \bitbox{1}{\z0} 
 %	& \bitbox{7}{\Var*{post}}\\
-   \bitbox{8}{\textit{reserved}}\\
+%   \bitbox{8}{\textit{reserved}}\\
    \bitbox{8}{\textit{reserved}}\\
    \bitbox{8}{\textit{reserved}}\\
    \bitbox{8}{\textit{reserved}}\\
@@ -4187,6 +4189,9 @@ The information contained in this packet describes several facts about the Lumos
 %		respectively.
 		At this time, the only sensor information available is \Var*{S$_c$} and \Var*{S$_a$}.
 		The others are anticipated for a future release of the \acronym{ROM}.
+		In the 16-byte block reserved for sensor trigger information, the field \Var*{$S_n$} is
+		still expected to hold the sensor number, which is \z0 for the first sensor (A),
+		\z1 for sensor B, and so on.
 	\item[\acronym{DMX512} configuration:]
 		The bit \Var{d} indicates that the board is in normal Lumos mode (\Var{d}=0) or
 		\acronym{DMX512} mode (\Var{d}=1).  If in \acronym{DMX512} mode, its starting
