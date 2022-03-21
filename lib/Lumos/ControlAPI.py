@@ -427,6 +427,7 @@ Phase Offset:           CPU0 {device.phase_offset:04d}; CPU1 {device.phase_offse
         "Prompt the user to enter commands interactively"
         print('Type "help" for a list of commands.')
         print('End with EOF or "quit".')
+        command_list = self.get_command_list()
         while True:
             try:
                 cmd = input('> ')
@@ -437,24 +438,6 @@ Phase Offset:           CPU0 {device.phase_offset:04d}; CPU1 {device.phase_offse
             if args[0] == 'quit':
                 return
 
-            command_list = {
-                'help':           (0, self.help, 'help', False),
-                'query':          (0, self.query, 'query', False),
-                '/set-address':   (1, self.target.raw_set_address, '/set-address <addr>', True),
-                '/set-baud-rate': (1, self.change_speed, '/set-baud-rate <speed>', True),
-                '/factory-reset': (0, self.factory_reset, '/factory-reset', False),
-                '/set-phase':     (1, self.set_phase, '/set-phase <offset>', True),
-                '/load-configuration': (1, self.load_configuration, '/load-configuration <file>', False),
-                '/dump-configuration': (1, self.dump_configuration, '/dump-configuration <file>', False),
-                '/drop-config-mode': (0, self.drop_config_mode, '/drop-config-mode', False),
-                'forbid-config-mode': (0, lambda: self.target.raw_control('forbid'), 'forbit-config-mode', False),
-                'config-mode': (0, lambda: self.target.raw_control('config'), 'config-mode', False),
-                'kill-all': (0, lambda: self.target.kill_all_channels(force=True), 'kill-all', False),
-                'sleep': (0, self.sleep, 'sleep', False),
-                'wake': (0, self.wake, 'wake', False),
-                'shutdown': (0, lambda: self.target.raw_control('shutdown'), 'shutdown', False),
-                'do': (None, self.perform_operations, 'do <op> <op>...', False),
-            }
 
             try:
                 if args[0].startswith('/'):
@@ -476,6 +459,26 @@ Phase Offset:           CPU0 {device.phase_offset:04d}; CPU1 {device.phase_offse
                     print('Unrecognized command. Type "help" for a list of commands.')
             except Exception as e:
                 print(f'*Error: {e}')
+
+    def get_command_list(self):
+        return {
+                'help':           (0, self.help, 'help', False),
+                'query':          (0, self.query, 'query', False),
+                '/set-address':   (1, self.target.raw_set_address, '/set-address <addr>', True),
+                '/set-baud-rate': (1, self.change_speed, '/set-baud-rate <speed>', True),
+                '/factory-reset': (0, self.factory_reset, '/factory-reset', False),
+                '/set-phase':     (1, self.set_phase, '/set-phase <offset>', True),
+                '/load-configuration': (1, self.load_configuration, '/load-configuration <file>', False),
+                '/dump-configuration': (1, self.dump_configuration, '/dump-configuration <file>', False),
+                '/drop-config-mode': (0, self.drop_config_mode, '/drop-config-mode', False),
+                'forbid-config-mode': (0, lambda: self.target.raw_control('forbid'), 'forbit-config-mode', False),
+                'config-mode': (0, lambda: self.target.raw_control('config'), 'config-mode', False),
+                'kill-all': (0, lambda: self.target.kill_all_channels(force=True), 'kill-all', False),
+                'sleep': (0, self.sleep, 'sleep', False),
+                'wake': (0, self.wake, 'wake', False),
+                'shutdown': (0, lambda: self.target.raw_control('shutdown'), 'shutdown', False),
+                'do': (None, self.perform_operations, 'do <op> <op>...', False),
+            }
 
     def query(self):
         self.report_on(self.getstatus())
