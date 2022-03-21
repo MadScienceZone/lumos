@@ -648,14 +648,6 @@ class LumosControllerUnit (ControllerUnit):
         elif reply[12] & 0x1F == 2:
             status.hardware_type = 'lumos4dc'
             status.channels = 4
-#        elif reply[12] & 0x1F == 3:
-#            status.hardware_type = 'qscc'
-#            status.channels = 14
-#        elif reply[12] & 0x1F == 4:
-#            status.hardware_type = 'qsmc'
-#            status.channels = 35
-            # future: 5 = QSRB
-            # future: 6 = QSXT
         else:
             status.hardware_type, status.channels = self._unknown_device_type(reply[12] & 0x1F);
 
@@ -680,6 +672,7 @@ class LumosControllerUnit (ControllerUnit):
         if status.serial_number == 0 or status.serial_number == 0xffff:
             status.serial_number = None
 
+        self._receive_model_specific_data(status, reply)
 #        if status.channels <= 24:
 #            if status.last_error2 != 0 or status.phase_offset2 != 0:
 #                raise InternalDeviceError('Query reply packet incorrect for device of this type (LE2=0x{0:02X}, PO2={1})'.format(
@@ -690,6 +683,9 @@ class LumosControllerUnit (ControllerUnit):
 #            raise InternalDeviceError('Inconsistent phase offset between CPUs (#0={0}, #1={1})'.format(status.phase_offset, status.phase_offset2))
 #
         return status
+
+    def _receive_model_specific_data(self, status, reply):
+        pass
 
     def _unknown_device_type(self, code):
         return 'unknown', 0

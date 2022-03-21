@@ -438,7 +438,6 @@ Phase Offset:           CPU0 {device.phase_offset:04d}; CPU1 {device.phase_offse
             if args[0] == 'quit':
                 return
 
-
             try:
                 if args[0].startswith('/'):
                     self.assert_priv(args[0])
