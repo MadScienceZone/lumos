@@ -35,6 +35,9 @@
 #
 import configparser
 import Lumos
+import sys
+import re
+import time
 from   Lumos.Network.SerialNetwork      import SerialNetwork, DeviceTimeoutError
 from   Lumos.Device.LumosControllerUnit import LumosControllerUnit, LumosControllerStatus
 from   Lumos.Show                       import Show
@@ -60,7 +63,7 @@ class ControlAPI:
         if not self.read_only:
             self.verifystatus({})
 
-    def __init__(self, address=0, duplex='full', port=0, speed=19200, txmode='dtr', timeout=1, txlevel=1, txdelay=2, main_output=sys.stdout, trace_file=sys.stderr, from_cli=None):
+    def __init__(self, address=0, duplex='full', port=0, speed=19200, txmode='dtr', timeout=1, txlevel=1, txdelay=2, main_output=sys.stdout, trace_file=sys.stderr, probe=False, read_only=False, verbose=0, from_cli=None):
         """Set up the API to talk to a device.
         
         main_output=sys.stdout  send informative output here (unless None)
@@ -80,6 +83,8 @@ class ControlAPI:
         self.txlevel = txlevel
         self.txmode = txmode
         self.verbose = verbose
+        self.trace_file = trace_file
+        self.main_output = main_output
 
         if from_cli:
             if from_cli.address   is not None: self.address = from_cli.address
@@ -188,7 +193,7 @@ Phase Offset:           CPU0 {device.phase_offset:04d}; CPU1 {device.phase_offse
                 ))
         
         self.main_output.write(f'Model-Specific Data:    {len(device.model_specific_data)} bytes\n')
-        hexdump(device.model_specific_data, output=main_output)
+        hexdump(device.model_specific_data, output=self.main_output)
 
 
     def probe(self):
@@ -274,92 +279,92 @@ Phase Offset:           CPU0 {device.phase_offset:04d}; CPU1 {device.phase_offse
         if options.drop_configuration_mode:
             self.drop_config_mode()
 
-        def smask(opt, delete=False):
-            s = set([i.id for i in list(self.status_cache.sensors.values()) if i.enabled])
-            expected = dict([(id, self.status_cache.sensors[id].copy()) for id in 'ABCD'])
-
-            if '*' in opt:
-                opt = 'ABCD'
-
-            for o in opt.upper():
-                if o in 'ABCD':
-                    if delete:
-                        s.discard(o)
-                    else:
-                        s.add(o)
-                    expected[o].enabled = not delete
-                else:
-                    raise ValueError("sensors are A, B, C, and D")
-
-            self.target.raw_control('masksens', s)
-            if not self.read_only: self.verifystatus({'sensors': expected})
-
-        for sens_id, sens_opt, sens_pre, sens_trig, sens_post in sensor_triggers:
-            old = self.status_cache.sensors
-            new = dict([(id, self.status_cache.sensors[id].copy()) for id in self.status_cache.sensors])
-
-            new[sens_id].active_low = ('+' not in sens_opt)
-            new[sens_id].pre_trigger = sens_pre
-            new[sens_id].trigger = sens_trig
-            new[sens_id].post_trigger = sens_post
-            new[sens_id].trigger_mode = (
-                'while'  if 'W' in sens_opt else
-                'repeat' if 'R' in sens_opt else
-                'once'
-            )
-            self.target.raw_sensor_trigger(sens_id, sens_pre, sens_trig, sens_post, 
-                inverse = not new[sens_id].active_low,
-                mode = new[sens_id].trigger_mode
-            )
-            if not self.read_only: self.verifystatus({'sensors': new})
-
-        if options.disable_sensor: smask(self.target, options.disable_sensor, delete=True)
-        if options.enable_sensor:  smask(self.target, options.enable_sensor)
+#        def smask(opt, delete=False):
+#            s = set([i.id for i in list(self.status_cache.sensors.values()) if i.enabled])
+#            expected = dict([(id, self.status_cache.sensors[id].copy()) for id in 'ABCD'])
+#
+#            if '*' in opt:
+#                opt = 'ABCD'
+#
+#            for o in opt.upper():
+#                if o in 'ABCD':
+#                    if delete:
+#                        s.discard(o)
+#                    else:
+#                        s.add(o)
+#                    expected[o].enabled = not delete
+#                else:
+#                    raise ValueError("sensors are A, B, C, and D")
+#
+#            self.target.raw_control('masksens', s)
+#            if not self.read_only: self.verifystatus({'sensors': expected})
+#
+#        for sens_id, sens_opt, sens_pre, sens_trig, sens_post in sensor_triggers:
+#            old = self.status_cache.sensors
+#            new = dict([(id, self.status_cache.sensors[id].copy()) for id in self.status_cache.sensors])
+#
+#            new[sens_id].active_low = ('+' not in sens_opt)
+#            new[sens_id].pre_trigger = sens_pre
+#            new[sens_id].trigger = sens_trig
+#            new[sens_id].post_trigger = sens_post
+#            new[sens_id].trigger_mode = (
+#                'while'  if 'W' in sens_opt else
+#                'repeat' if 'R' in sens_opt else
+#                'once'
+#            )
+#            self.target.raw_sensor_trigger(sens_id, sens_pre, sens_trig, sens_post, 
+#                inverse = not new[sens_id].active_low,
+#                mode = new[sens_id].trigger_mode
+#            )
+#            if not self.read_only: self.verifystatus({'sensors': new})
+#
+#        if options.disable_sensor: smask(self.target, options.disable_sensor, delete=True)
+#        if options.enable_sensor:  smask(self.target, options.enable_sensor)
 
         #
         # Sequence Management
         #
-        if options.clear_sequences:
-            self.target.raw_control('clearmem')
-            if self.main_output is not None:
-                self.main_output.write("Sequences cleared.  Available memory now: EEPROM={0.eeprom.memory.free}, RAM={0.ram_memory_free}\n".format(self.getstatus()))
-
-        if options.load_sequence:
-            raise NotImplementedError('the load-sequence option is not yet implemented; use load-compiled-sequence instead')
-
-        if options.load_compiled_sequence is not None:
-          for filename in options.load_compiled_sequence:
-            #
-            # file:
-            # #{$<hexid>|<decid>}
-            # $<hex byte> <space> <hex byte> ...
-            # ...
-            # @<dec_#_bytes>
-            #
-            sequence_bits = []
-            length = None
-            with open(filename, 'r') as infile:
-                for line in infile:
-                    if line[0] == '#':
-                        if line[1] == '$':
-                            id = int(line[2:], 16)
-                        else:
-                            id = int(line[1:])
-                    elif line[0] == '$':
-                        for byte in line[1:].split():
-                            sequence_bits.append(ord(int(byte, 16)))
-                    elif line[0] == '@':
-                        length = int(line[1:])
-                        break
-                    else:
-                        raise ValueError('invalid line in compiled sequence file {0}: {1}'.format(filename, line))
-
-            if length is None:
-                raise ValueError('missing @ record from compiled sequence file {0}'.format(filename))
-
-            if length != len(sequence_bits):
-                raise ValueError('compiled sequence file {0} claims {1} byte{2} but actually read {3}'.format(
-                    filename, length, '' if length==1 else 's', len(sequence_bits)))
+#        if options.clear_sequences:
+#            self.target.raw_control('clearmem')
+#            if self.main_output is not None:
+#                self.main_output.write("Sequences cleared.  Available memory now: EEPROM={0.eeprom.memory.free}, RAM={0.ram_memory_free}\n".format(self.getstatus()))
+#
+#        if options.load_sequence:
+#            raise NotImplementedError('the load-sequence option is not yet implemented; use load-compiled-sequence instead')
+#
+#        if options.load_compiled_sequence is not None:
+#          for filename in options.load_compiled_sequence:
+#            #
+#            # file:
+#            # #{$<hexid>|<decid>}
+#            # $<hex byte> <space> <hex byte> ...
+#            # ...
+#            # @<dec_#_bytes>
+#            #
+#            sequence_bits = []
+#            length = None
+#            with open(filename, 'r') as infile:
+#                for line in infile:
+#                    if line[0] == '#':
+#                        if line[1] == '$':
+#                            id = int(line[2:], 16)
+#                        else:
+#                            id = int(line[1:])
+#                    elif line[0] == '$':
+#                        for byte in line[1:].split():
+#                            sequence_bits.append(ord(int(byte, 16)))
+#                    elif line[0] == '@':
+#                        length = int(line[1:])
+#                        break
+#                    else:
+#                        raise ValueError('invalid line in compiled sequence file {0}: {1}'.format(filename, line))
+#
+#            if length is None:
+#                raise ValueError('missing @ record from compiled sequence file {0}'.format(filename))
+#
+#            if length != len(sequence_bits):
+#                raise ValueError('compiled sequence file {0} claims {1} byte{2} but actually read {3}'.format(
+#                    filename, length, '' if length==1 else 's', len(sequence_bits)))
         #
         # Misc
         #
@@ -442,6 +447,8 @@ Phase Offset:           CPU0 {device.phase_offset:04d}; CPU1 {device.phase_offse
                 '/load-configuration': (1, self.load_configuration, '/load-configuration <file>', False),
                 '/dump-configuration': (1, self.dump_configuration, '/dump-configuration <file>', False),
                 '/drop-config-mode': (0, self.drop_config_mode, '/drop-config-mode', False),
+                'forbid-config-mode': (0, lambda: self.target.raw_control('forbid'), 'forbit-config-mode', False),
+                'config-mode': (0, lambda: self.target.raw_control('config'), 'config-mode', False),
                 'kill-all': (0, lambda: self.target.kill_all_channels(force=True), 'kill-all', False),
                 'sleep': (0, self.sleep, 'sleep', False),
                 'wake': (0, self.wake, 'wake', False),
@@ -475,12 +482,14 @@ Phase Offset:           CPU0 {device.phase_offset:04d}; CPU1 {device.phase_offse
 
     def help(self):
         print('''Interactive commands:
+config-mode                enter config mode
 do <operation> [...]       perform channel operation(s)
     <channel>@<level>[,<level>...]
     <channel>              (fully on)
-    <channel>u[:<steps>[:<delay>]]
-    <channel>d[:<steps>[:<delay>]]
+    <channel>[c]u[:<steps>[:<delay>]]
+    <channel>[c]d[:<steps>[:<delay>]]
     x<sequence>
+forbid-config-mode         prevent config mode
 help                       print this text
 kill-all                   kill all outputs
 query                      report on device status
@@ -706,7 +715,7 @@ Config Mode Commands
                 if report:
                     self.report_on(devstat)
 
-    def perfrom_operations(self, operations):
+    def perform_operations(self, operations):
         for action in operations:
             m = re.match(r'^(\d+)@(\d+(,\d+)*)$', action)
             if m:
@@ -732,8 +741,8 @@ Config Mode Commands
                     self.target.set_channel(channel, 255)
                     self.target.flush()
                 else:
-                    m = re.match(r'^(\d+)([ud])(:(\d+)(:(\d*\.\d+|\d+\.?)(s(ec(onds?)?)?)?)?)?$', action)
-                    # <channel>u[:<steps>[:<delay>]]
+                    m = re.match(r'^(\d+)(c?[ud])(:(\d+)(:(\d*\.\d+|\d+\.?)(s(ec(onds?)?)?)?)?)?(c?)$', action)
+                    # <channel>[c]u[:<steps>[:<delay>]]
                     if m:
                         channel = int(m.group(1))
                         steps = int(m.group(4) or 1)
@@ -753,10 +762,10 @@ Config Mode Commands
                             raise ValueError("{0}: channel number {1} does not exist for this controller model (valid range is [0,{2}])".format(
                                 action, channel, status_cache.channels - 1))
 
-                        if m.group(2) == 'u':
-                            self.target.raw_ramp_up(channel, steps, delay)
+                        if 'u' in m.group(2):
+                            self.target.raw_ramp_up(channel, steps, delay, cycle=('c' in m.group(2)))
                         else:
-                            self.target.raw_ramp_down(channel, steps, delay)
+                            self.target.raw_ramp_down(channel, steps, delay, cycle=('c' in m.group(2)))
                     else:
                         m = re.match(r'^x(\d+)$', action)
                         if m:

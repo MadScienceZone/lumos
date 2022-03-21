@@ -33,6 +33,7 @@
 #
 import optparse
 import sys
+from   Lumos.ControlAPI import ControlAPI
 
 def parse_arguments():
     parser = optparse.OptionParser(usage='%prog [-dFhikPRrvXz] [-A ADDR] [-a ADDR] [-B SPD] [-b SPD] [-C FILE] [-c FILE] [-D LIST] [-E LIST] [-K HEX] [-L LVL] [-m mS] [-P PH] [-p PORT] [-q BYTES] [-s FILE] [-T MODE] [-x DPX] [-Z SEC] [channel-levels...]', version='%prog, version 1.0')
@@ -109,7 +110,7 @@ options, operations, _, parser = parse_arguments()
 
 api = ControlAPI(from_cli=options)
 if options.probe:
-    api.probe()
+    api.report_on_all_devices(options.report)
     sys.exit(0)
 
 api.begin()
