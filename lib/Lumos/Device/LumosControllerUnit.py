@@ -583,6 +583,10 @@ class LumosControllerUnit (ControllerUnit):
             raise DeviceProtocolError("Query packet response malformed (len={0})".format(len(reply)))
 
         status = LumosControllerStatus()
+        self.update_status_from_packet(status, reply)
+        return status
+
+    def update_status_from_packet(status: LumosControllerStatus, reply: bytes):
         if reply[12] & 0x20:
             # protocol > 0
             if len(reply) < 42:
@@ -687,7 +691,6 @@ class LumosControllerUnit (ControllerUnit):
 #        elif status.phase_offset != status.phase_offset2:
 #            raise InternalDeviceError('Inconsistent phase offset between CPUs (#0={0}, #1={1})'.format(status.phase_offset, status.phase_offset2))
 #
-        return status
 
     def _unknown_device_type(self, code):
         return 'unknown', 0
