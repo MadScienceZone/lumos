@@ -22,7 +22,7 @@ def _bin_hexdump(data: bytes, addr=0, output=sys.stdout):
 
             if byte == 7:
                 output.write(' ')
-                output.write('|\n')
+        output.write('|\n')
 
 def hexdump(data, addr=0, output=sys.stdout):
     # --------------------------------------------------------------------------------
@@ -30,8 +30,9 @@ def hexdump(data, addr=0, output=sys.stdout):
     # 9999: 99 99 99 99 99 99 99 99   99 99 99 99 99 99 99 99   |........ ........|
     # 9999: 99 99 99 99 99 99 99 99   99 99 99 99 99 99 99 99   |........ ........|
 
-    if isinstance(data, bytes):
+    if isinstance(data, (bytes, list)):
         _bin_hexdump(data, addr, output)
+        return
 
     for idx in range(0, len(data), 16):
         output.write('{0:04X}:'.format(addr+idx))

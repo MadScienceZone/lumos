@@ -324,8 +324,9 @@ class LumosControllerUnit (ControllerUnit):
         'execute':  (lambda a: bytes([0x05, a[0]&0x7f])), # 1111aaaa 00000101 0xxxxxxx
         'masksens': (lambda a: bytes([0x07, 0x7f & reduce((lambda x,y: x|y), [LumosControllerUnit._dev_bitmasks.get(k, 0) for k in a], 0)])), # 1111aaaa 00000111 0000ABCD
         'clearmem': b'\x08CA',  # 1111aaaa 00001000 01000011 01000001
-        'noconfig': b'\x70',    # 1111aaaa 01110000 DEPRECATED
+        'noconfig': b'\x70',    # 1111aaaa 01110000 
         'xconfig':  b'\x74',    # 1111aaaa 01111001 DEPRECATED
+        'config':   b'\x0eY&\\',# 1111aaaa 00001110 01011001 00100110 01011100
         'forbid':   b'\x09',    # 1111aaaa 00001001
         '__reset__':b'\x73$r',  # 1111aaaa 01110011 00100100 01110010
         '__baud__': (lambda a: bytes([0x72, a[0]&0x7f, 0x26])), # 1111aaaa 01110010 0xxxxxxx 00100110
@@ -416,7 +417,7 @@ class LumosControllerUnit (ControllerUnit):
 # NOW:
 #   The ROM version byte is obsolete. Legacy boards are now called "protocol 0"
 #   and send a 37-byte response, where the old ROM version byte is still valid.
-#   Current firmware insteads sets bit $20 in byte #12 (specified as 0 in the 
+#   Current firmware instead sets bit $20 in byte #12 (specified as 0 in the 
 #   original protocol). With this bet set to 1, additional bytes are added to
 #   the end which give the full revision number protocol number (which determines
 #   the format of the response packet), and device model-specific configuration
@@ -651,22 +652,15 @@ class LumosControllerUnit (ControllerUnit):
         elif reply[12] & 0x1F == 2:
             status.hardware_type = 'lumos4dc'
             status.channels = 4
-#        elif reply[12] & 0x1F == 3:
-#            status.hardware_type = 'qscc'
-#            status.channels = 14
-#        elif reply[12] & 0x1F == 4:
-#            status.hardware_type = 'qsmc'
-#            status.channels = 35
-            # future: 5 = QSRB
-            # future: 6 = QSXT
         else:
             status.hardware_type, status.channels = self._unknown_device_type(reply[12] & 0x1F);
 
         for group, sensor_id in enumerate(['A', 'B', 'C', 'D']):
             flags = reply[group * 4 + 14]
             if flags & 0x03 != group:
-                raise DeviceProtocolError("Query packet response malformed (sensor group {0} ID as {1} ({2:02X}))".format(
-                    group, flags & 0x03, flags))
+                #raise DeviceProtocolError("Query packet response malformed (sensor group {0} ID as {1} ({2:02X}))".format(
+                #    group, flags & 0x03, flags))
+                pass
             status.sensors[sensor_id].trigger_mode = ('once' if flags & 0x40 else 
                                                         ('while' if flags & 0x20 else 'repeat'))
             status.sensors[sensor_id].active_low = bool(flags & 0x01)
@@ -682,6 +676,7 @@ class LumosControllerUnit (ControllerUnit):
         if status.serial_number == 0 or status.serial_number == 0xffff:
             status.serial_number = None
 
+        self._receive_model_specific_data(status, reply)
 #        if status.channels <= 24:
 #            if status.last_error2 != 0 or status.phase_offset2 != 0:
 #                raise InternalDeviceError('Query reply packet incorrect for device of this type (LE2=0x{0:02X}, PO2={1})'.format(
@@ -691,6 +686,9 @@ class LumosControllerUnit (ControllerUnit):
 #        elif status.phase_offset != status.phase_offset2:
 #            raise InternalDeviceError('Inconsistent phase offset between CPUs (#0={0}, #1={1})'.format(status.phase_offset, status.phase_offset2))
 #
+
+    def _receive_model_specific_data(self, status, reply):
+        pass
 
     def _unknown_device_type(self, code):
         return 'unknown', 0
