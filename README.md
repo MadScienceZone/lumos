@@ -16,7 +16,8 @@ don't expect a solid, finished product yet.
 # Domain Name
 This project was originally created when our domain name was `alchemy.com`. We have
 now moved to `madscience.zone`. Any lingering references in documentation, source code,
-PCB images, etc., which reference `alchemy.com` should instead now refer to `madscience.zone`.
+PCB images, etc., which reference `alchemy.com` are now outdated and should instead 
+be considered to refer to `madscience.zone`.
 
 # See Also
 More information about the project may be found at [www.madscience.zone/lumos](https://www.madscience.zone/lumos).
