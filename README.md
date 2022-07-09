@@ -13,5 +13,10 @@ you would like to get an early preview of the software and/or assist with
 testing and providing feedback to the developer, feel free to do so, but
 don't expect a solid, finished product yet.  
 
+# Domain Name
+This project was originally created when our domain name was `alchemy.com`. We have
+now moved to `madscience.zone`. Any lingering references in documentation, source code,
+PCB images, etc., which reference `alchemy.com` should instead now refer to `madscience.zone`.
+
 # See Also
 More information about the project may be found at [www.madscience.zone/lumos](https://www.madscience.zone/lumos).

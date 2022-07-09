@@ -1,4 +1,4 @@
-.TH LPLAY 1 "Lumos" "Software Alchemy" "User Commands"
+.TH LPLAY 1 "Lumos" "Mad Science Zone" "User Commands"
 '\"
 '\" LUMOS DOCUMENTATION: LPLAY
 '\"
@@ -281,7 +281,7 @@ Lumos Light Orchestration System,
 ..@@COPYRIGHT@@
 .SH AUTHOR
 .LP
-Steve Willoughby, support@alchemy.com
+Steve Willoughby, support@madscience.zone
 .SH BUGS
 .LP
 .\" Needs a way to specify repeats, loops, and similar effects.  
