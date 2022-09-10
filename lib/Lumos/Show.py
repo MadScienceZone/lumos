@@ -1,12 +1,11 @@
-# vi:set ai sm nu ts=4 sw=4 expandtab:
 #
 # LUMOS SHOW CONFIGURATION HANDLER CLASS
 # $Header: /tmp/cvsroot/lumos/lib/Lumos/Show.py,v 1.7 2009-01-23 16:33:29 steve Exp $
 #
 # Lumos Light Orchestration System
 # Copyright (c) 2005, 2006, 2007, 2008, 2014 by Steven L. Willoughby, Aloha,
-# Oregon, USA.  All Rights Reserved.  Licensed under the Open Software
-# License version 3.0.
+# Oregon, USA.  All Rights Reserved.  Licensed under the 3-Clause BSD 
+# License.
 #
 # This product is provided for educational, experimental or personal
 # interest use, in accordance with the terms and conditions of the
