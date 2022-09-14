@@ -1,4 +1,4 @@
-.TH VIXEN2LUMOS 1 "Lumos" "Software Alchemy" "User Commands"
+.TH VIXEN2LUMOS 1 "Lumos" "Mad Science Zone" "User Commands"
 '\"
 '\" LUMOS DOCUMENTATION: VIXEN2LUMOS
 '\" $Header: /tmp/cvsroot/lumos/man/man1/vixen2lumos.1,v 1.2 2008-12-30 22:58:02 steve Exp $
@@ -261,7 +261,7 @@ Lumos Light Orchestration System,
 ..@@COPYRIGHT@@
 .SH AUTHOR
 .LP
-Steve Willoughby, support@alchemy.com
+Steve Willoughby, support@madscience.zone
 .SH NOTES
 .LP
 This is an \*(lqextra\*(rq add-on utility which is not part of the core

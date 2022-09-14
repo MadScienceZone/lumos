@@ -21,8 +21,8 @@ setup(
         for "Orchestration System".
     ''',
     author = 'Steve Willoughby',
-    author_email = 'support@alchemy.com',
-    url = 'http://lumos.sourceforge.net',
+    author_email = 'support@madscience.zone',
+    url = 'https://www.madscience.zone/lumos',
     packages = [
         'Lumos', 
         'Lumos.Device', 

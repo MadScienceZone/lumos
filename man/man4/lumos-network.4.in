@@ -1,4 +1,4 @@
-.TH LUMOS-NETWORK 4 "Lumos" "Software Alchemy" "Device Drivers"
+.TH LUMOS-NETWORK 4 "Lumos" "Mad Science Zone" "Device Drivers"
 '\"
 '\" LUMOS DOCUMENTATION:
 '\" $Header: /tmp/cvsroot/lumos/man/man4/lumos-network.4,v 1.2 2008-12-30 22:58:02 steve Exp $
@@ -174,7 +174,7 @@ Lumos Light Orchestration System,
 ..@@COPYRIGHT@@
 .SH AUTHOR
 .LP
-Steve Willoughby, support@alchemy.com
+Steve Willoughby, support@madscience.zone
 .SH "SEE ALSO"
 .BR lcheck (1),
 .BR lumos (1),

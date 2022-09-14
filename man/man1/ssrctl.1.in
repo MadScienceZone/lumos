@@ -1,4 +1,4 @@
-.TH SSRCTL 1 "Lumos" "Software Alchemy" "User Commands"
+.TH SSRCTL 1 "Lumos" "Mad Science Zone" "User Commands"
 '\"
 '\" LUMOS DOCUMENTATION: SSRCTL(1)
 '\"
@@ -234,4 +234,4 @@ Lumos Light Orchestration System,
 ..@@COPYRIGHT@@
 .SH AUTHOR
 .LP
-Steve Willoughby, support@alchemy.com
+Steve Willoughby, support@madscience.zone
