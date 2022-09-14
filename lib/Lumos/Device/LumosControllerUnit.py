@@ -33,6 +33,36 @@ class DeviceProtocolError (Exception): pass
 class InternalDeviceError (Exception): pass
 class InternalError (Exception): pass
 
+class LumosControllerStatus (object):
+    def __init__(self):
+        self.config = LumosControllerConfiguration()
+        self.in_config_mode = False
+        self.config_mode_locked = False
+        self.in_sleep_mode = False
+        self.err_memory_full = False
+        self.phase_offset = 2
+        self.phase_offset2 = 2
+        self.last_error = 0
+        self.last_error2 = 0
+        self.eeprom_memory_free = 0
+        self.ram_memory_free = 0
+        self.current_sequence = None
+        self.hardware_type = None
+        self.channels = 0
+        self.serial_number = None
+        self.sensors = {
+            'A': LumosControllerSensor('A'),
+            'B': LumosControllerSensor('B'),
+            'C': LumosControllerSensor('C'),
+            'D': LumosControllerSensor('D'),
+        }
+        self.model_specific_data = None
+        self.protocol = 0
+        self.revision = [0,0,0]
+
+    def describe_model_specific_data(self):
+        return ''
+
 class LumosControllerUnit (ControllerUnit):
     """
     ControllerUnit subclass for my custom 48-channel SSR boards.
@@ -587,7 +617,8 @@ class LumosControllerUnit (ControllerUnit):
         self.update_status_from_packet(status, reply)
         return status
 
-    def update_status_from_packet(status: LumosControllerStatus, reply: bytes):
+
+    def update_status_from_packet(self, status: LumosControllerStatus, reply: bytes):
         if reply[12] & 0x20:
             # protocol > 0
             if len(reply) < 42:
@@ -729,29 +760,3 @@ class LumosControllerSensor (object):
         return new
 
 
-class LumosControllerStatus (object):
-    def __init__(self):
-        self.config = LumosControllerConfiguration()
-        self.in_config_mode = False
-        self.config_mode_locked = False
-        self.in_sleep_mode = False
-        self.err_memory_full = False
-        self.phase_offset = 2
-        self.phase_offset2 = 2
-        self.last_error = 0
-        self.last_error2 = 0
-        self.eeprom_memory_free = 0
-        self.ram_memory_free = 0
-        self.current_sequence = None
-        self.hardware_type = None
-        self.channels = 0
-        self.serial_number = None
-        self.sensors = {
-            'A': LumosControllerSensor('A'),
-            'B': LumosControllerSensor('B'),
-            'C': LumosControllerSensor('C'),
-            'D': LumosControllerSensor('D'),
-        }
-        self.model_specific_data = None
-        self.protocol = 0
-        self.revision = [0,0,0]

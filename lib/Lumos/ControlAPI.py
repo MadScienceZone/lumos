@@ -33,6 +33,57 @@
 # provide a more general approach that can be extended by other 
 # Lumos-compatible devices.
 #
+# ControlAPI class (encapsulates a high-level connection to the device)
+#   a = ControlAPI(address=0, duplex='full', port=0, speed=19200, txmode='dtr', timeout=1, txlevel=1, txdelay=2, main_output=sys.stdout, trace_file=sys.stderr, probe=False, read_only=False, verbose=0, from_cli=None)
+#       constructs an API object, populating address, duplex, port, probe, read_only, speed, timeout, txdelay, txlevel, txmode, verbose from <from_cli>
+#       a._setup_lumos()
+#       a.devices = a.probe()    if probe==True
+#       or        = [(a.address, None)] if read_only
+#       or        = [(a.address, a.getstatus()]
+#   a.assert_priv(op)
+#       just warns if the cached status doesn't show config mode
+#   a.begin()               prime status cache before doing things
+#       a.verifystatus({})
+#   a.change_speed(newspd)  changes device baud rate
+#   a.drop_config_mode()
+#   a.dump_configuration(filename) writes ini file
+#   a.factory_reset()       resets target to factory settings
+#   a.factory_settings()    -> a default LumosControllerStatus
+#   a.getstatus() -> a.target.raw_query_device_status()
+#   a.get_command_list() -> {cmd: (#args|None==unlimited, method, name, int-first-arg?)}
+#   a.help()        print interactive commands to user
+#   a.interactive()
+#       prompt user for commands, dispatch to our methods
+#       commands starting with a '/' assert config mode first.
+#   a.load_configuration(filename)
+#   a.perform_actions_from_cli(options)
+#       based on options, sets address, baudrate of device,
+#       factory reset, phase, load config file, dump config file,
+#       drop config mode, kill_all, sleep, wake, shutdown,
+#       send, receive
+#   a.perform_operations(ops)
+#       carry out list of operations
+#   a.probe()   -> [(addr, status), ...]
+#       via a.target.raw_query_device_status()
+#   a.query()   -> a.report_on(a.getstatus())
+#   a.report_on(device: LumosControllerStatus)     print device
+#   a.report_on_all_devices(report=True)
+#       summarize a.devices as [(addr,status),...]
+#       call a.report_on(d) for each if report == True
+#   a.run_script(filename)      NOT IMPLEMENTED
+#   a.set_phase(offset)
+#   a.sleep()
+#   a.trace(level, msg, stream=None, eol=True)
+#   a.verifystatus(fields=None, baseline=None)
+#       call a.getstatus() then ensure that all fields
+#       in <fields> match the corresponding ones in <baseline>.
+#       if <fields> is None, <baseline> must not be.
+#       raises error if any of <fields> doesn't match.
+#   a.wake()
+#   a._setup_lumos()        set up mock lumos environment
+#                           then a._setup_unit()
+#   a._setup_unit()         a.target <- LumosControllerUnit(...)
+#
 import configparser
 import Lumos
 import sys
@@ -56,7 +107,7 @@ class ControlAPI:
     along with support for interactive and scripted use."""
 
     def factory_settings(self):
-        return LumosControllerStatus()
+        return self.target.factory_settings()
 
     def begin(self):
         "Begin sequence of operations by priming our status cache, etc."
