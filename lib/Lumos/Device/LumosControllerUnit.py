@@ -67,6 +67,9 @@ class LumosControllerUnit (ControllerUnit):
     """
     ControllerUnit subclass for my custom 48-channel SSR boards.
     """
+    def factory_settings(self):
+        return LumosControllerStatus()
+
     def dumpstats(self, filename):
         f = open(filename, 'w')
         f.write('{0} flush calls():\n'.format(len(self.stats)))
