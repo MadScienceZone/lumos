@@ -118,7 +118,7 @@ def packet(id, op) -> bytes:
     return bytes([0xd5, 0xaa, (b>>8)&0xff, b&0xff, 0xad])
 
 class FirecrackerX10ControllerUnit (X10ControllerUnit):
-    def __init__(self, id, power_source, network, resolution=21):
+    def __init__(self, id, power_source, network, resolution=21, num_channels=None):
         '''
         Constructor for a CM17a X10 object:
             FirecrackerX10ControllerUnit(power_source, [resolution])

@@ -152,6 +152,7 @@ class Show (object):
                                 'amps':       'float',
                                 'disp_order': 'ignore',
                                 'gfci':       'ignore',   # no longer used
+                                'volts':      'float',
                             }))
                     parent_obj.add_subordinate_source(source_obj)
                     self.add_power_source(source_obj)
@@ -174,6 +175,7 @@ class Show (object):
                     **get_config_dict(show, 'power '+source_ID, {
                         'amps': 'float',
                         'gfci': 'ignore',   # no longer used
+                        'volts': 'float',
                     }))
                 self.add_power_source(source_obj)
                 self._search_for_sub_sources(show, source_ID, source_obj)
@@ -202,7 +204,7 @@ class Show (object):
                         'power_source': 'objlist',
                         'type':  'ignore',
                         'resolution': 'int',
-                        'channels': 'int',
+                        'num_channels': 'int',
                     }, self.all_power_sources)
                     unit_args['id'] = unit_ID
                     error = unit_obj = None

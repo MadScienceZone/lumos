@@ -70,7 +70,6 @@ class FireGodControllerUnit (ControllerUnit):
         The resolution probably won't ever need to be changed.  The FireGod units
         use 101 dimmer levels (0%-100%), so that's the default for that parameter.
         """
-
         ControllerUnit.__init__(self, id, power_source, network, resolution)
         self.address = int(address)
         self.num_channels = int(num_channels)

@@ -174,6 +174,10 @@ else:
             if open_device:
                 self.open()
 
+        def raw_read(self, nbytes):
+            if self.dev is not None:
+                return self.dev.read(nbytes)
+
         def set_verbose(self, device):
             self.verbose = device
 
@@ -428,11 +432,14 @@ else:
                 r = self.dev.read(nbytes)
                 if not r:
                     if self.verbose:
-                        self.verbose.write(time.ctime()+" ERROR: short read of {0} (expected {1}):\n".format(len(buffer), nbytes))
-                        self.hexdump(buffer)
+                        self.verbose.write(time.ctime()+" Timeout waiting to read {0} byte{1}.".format(nbytes, '' if nbytes==1 else 's'))
 
                     raise DeviceTimeoutError(buffer, 'Timeout ({0} sec) waiting for device to respond after receiving only {1} byte{2}.'.format(
                         timeout, len(buffer), '' if len(buffer) == 1 else 's'))
+                elif len(r) < nbytes and self.verbose:
+                    self.verbose.write(time.ctime()+" WARNING: short read of {0} (expected {1}):\n".format(len(r), nbytes))
+                    self.hexdump(r)
+
                 buffer += r
                 nbytes = remaining_f(buffer)
                 if self.verbose:

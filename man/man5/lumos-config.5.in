@@ -467,6 +467,13 @@ the following values:
 .BI description= text
 A short description of what the network is for.
 .TP
+.BI open_device= bool
+If true, the network device will be opened when the program initializes,
+which is the default unless Lumos has been globally instructed not to do so
+(in which case the value of this configuration field is ignored and assumed
+to be false).
+(Optional field; defaults to true.)
+.TP
 .BI units= list
 A space-separated list of controller units attached to this network.
 These names are arbitrary but we recommend they be kept to reasonably short,
@@ -487,16 +494,23 @@ used by serial networks include:
 .RS
 .TP
 .BI port= int\fR|\fPname
-The serial port to use for communications with this network.  Typically
-this is a simple integer.  Port 0 (zero, the default) is the system's 
-\*(lqfirst\*(rq
-serial port (however that device is named by the operating system), port 1 
-is the next one, and so forth.  Alternatively, you can specify a device
+The serial port to use for communications with this network. 
+'\" Typically
+'\" this is a simple integer.  Port 0 (zero, the default) is the system's 
+'\" \*(lqfirst\*(rq
+'\" serial port (however that device is named by the operating system), port 1 
+'\" is the next one, and so forth.  Alternatively, you can specify a device
+Typically this is a
 string such as 
 .RB \*(lq COM1: \*(rq
 or
-.RB \*(lq /dev/ttyS1 \*(rq,
-but this is discouraged unless absolutely necessary.
+.RB \*(lq /dev/ttyS1 \*(rq.
+The underlying serial port access library may allow an integer value
+such as
+.B 0
+to indicate the first serial port,
+.B 1
+for the second, etc., but this is not guaranteed.
 .TP
 .BI baudrate= int
 The bits-per-second speed of the port.  If this value is not present,
@@ -565,7 +579,7 @@ For half-duplex networks, the transmitter control on the DTR or RTS line
 is set so that the transmitter is active with the line is asserted (if
 .BR txlevel = 1 )
 or deasserted (if
-.BR txleve = 0 ).
+.BR txlevel = 0 ).
 The default is 
 .B 1
 if this field is not specified.
@@ -722,7 +736,12 @@ section).  Each of those controller units are described in its own
 section named
 .RB \*(lq [unit
 .IB tag ]\fR\*(rq\fP,
-which contains the following paramters:
+which contains the following parameters:
+.TP
+.BI num_channels= int
+Specifies the number of output channels provided by this device. 
+If not present, it defaults to the typical number of channels for a 
+device of its type.
 .TP
 .BI power_source= tag
 The 
@@ -734,6 +753,20 @@ If this controller is plugged into a subordinate power source,
 source name should be specified here, 
 .I not
 one of the upstream circuits it plugs into.
+.TP
+.BI resolution= int
+Any controller capable of dimming may specify this value.  This is the
+number of discrete steps the dimmer can be set to between fully off and
+fully on (inclusive).  For example,
+.RB \*(lq resolution=32 \*(rq
+means that the dimmer can be fully off, fully on, and 30 levels of varying
+brightness inbetween.  If this value is not specified, it will default to
+a typical resolution value for that type of controller.
+Normally, you should
+.I not
+need to supply this value; let the controller driver's built-in defaults
+handle the typical case and only supply this if you have an unusual
+device with a nonstandard resolution.
 .TP
 .BI type= name
 The type of controller unit being described.  The type must be one of
@@ -749,7 +782,7 @@ The X-10 CM17A serial interface (popularly known as the
 arranged into 16 \*(lqhouse codes\*(rq of 16 \*(lqunit
 codes\*(rq.  These are controlled via RF (radio) signals
 sent from the firecracker unit to X-10 RF receiver modules.
-One of the ideosyncracies of the CM17A is that it does
+One of the idiosyncrasies of the CM17A is that it does
 .I not
 actually receive commands on the serial data port; instead,
 it communicates using signal pulses on the serial port's DTR
@@ -801,7 +834,21 @@ controller on its network (since the controller device is not
 individually addressable).
 .TP
 .B lumos
-This is the Lumos 48-channel SSR controller circuit that I designed for my
+This is a general interface for any Lumos-compatible controller device
+which supports protocol version 1. The number of channels provided
+and current load capacity depend on the individual unit's capabilities.
+Channels are simply numbered starting with 0.
+These units require the following additional field:
+.RS
+.TP
+.BI address= int
+The controller address used for sending commands to a particular
+controller unit. Must be a number in the range
+.RI 0<= address <=15.
+.RE
+.TP
+.B oldlumos
+This is the old Lumos 48-channel SSR controller circuit that I designed for my
 own use.  It can control up to 48 channels with full dimmer capability
 with up to 48 amps of current load capacity (in 6 blocks of 8 circuits, 8A
 per block, no more than 5A on any individual circuit).  Its channels are
@@ -809,6 +856,7 @@ numbered simply
 .RB \*(lq 0 \*(rq
 through
 .RB \*(lq 47 \*(rq.
+This is for legacy controllers which support only Protocol 0.
 These units require one additional field:
 .RS
 .TP
@@ -821,24 +869,29 @@ controller unit.  Must be a number in the range
 .B firegod
 This is a classic do-it-yourself SSR controller whose
 plans are available on hobbyist websites.  Up to four
-Firegod controllers may be plugged into the same 
+Firegod controllers may be plugged into the same
 .B serial
 network, and each controls up to 32 output channels
 numbered 0 to 31.  Some Firegod units can be built
-to output a different number of channels (see below).
-These units require the following additional fields:
+to output a different number of channels, in which case
+an explicit
+.I channels
+value should be specified.
+.B "This uses an experimental device driver since we do not have a FireGod controller to test with."
+These units require the following additional field:
 .RS
 .TP
 .BI address= int
 The controller address for this particular unit.  Must be
 a number in the range
 .RI 1<= address <=4.
-.TP
-.BI num_channels= int
-The number of output circuits provided by this controller.  If
-no
-.B num_channels
-attribute is provided here, this will default to 32.
+If not given, this defaults to 1.
+'\" .TP
+'\" .BI num_channels= int
+'\" The number of output circuits provided by this controller.  If
+'\" no
+'\" .B num_channels
+'\" attribute is provided here, this will default to 32.
 .RE
 .TP
 .B olsen595
@@ -854,14 +907,7 @@ by Lumos by using the
 configuration type here.
 Only one of these units may be plugged into a single
 network at a time, so no unit addressing is used.
-These units require the following additional field:
-.RS
-.TP
-.BI num_channels= int
-The number of output channels supplied by the controller.
-This is an optional field; if not specified, it defaults to
-64.
-.RE
+.B "This uses an experimental device driver since we have none of these units to test with."
 .TP
 .B udmx
 A USB DMX interface such as the Ultra DMX Micro from DMX King (or any similar
@@ -870,20 +916,13 @@ a stream of DMX frames to a universe of up to 512 device
 channels.  In order to use this, install an FTDI virtual
 serial port driver for it, and create a SerialNetwork in
 Lumos configured to the parameters of the virtual serial
-port.  This controller requires the following additional
-fields:
-.RS
-.TP
-.BI num_channels= int
-The number of output channels in this controller's universe.
-This is an optional field; if not specified, it defaults to 512.
-.LP
+port. 
 Note that the channel numbers range from 
 .B 1
 to
 .B 512
 for this device.
-.RE
+.B "This is an experimental feature and has not been confirmed to work well enough for production use."
 .TP
 .B renard
 The Renard DIY SSR controller board is similar in concept
@@ -893,18 +932,13 @@ network interface, and up to 128 units may be plugged into
 the same network together.  These are addressed 0 to 127,
 where 0 is the first Renard unit in the network daisy chain,
 1 is the next one down the line, and so on.
-These units require the following additional fields:
+.B "This uses an experimental device driver, since we have no Renard unit to test with."
+These units require the following additional field:
 .RS
 .TP
 .BI address= int
 The address of this controller.  This must be a number in the range
 .RI 0<= address <=127.
-.TP
-.BI num_channels= int
-The number of output channels supplied by the controller.
-This is an optional field; if not specified, it defaults to
-64.  There are known Renard controllers for 8, 16, 24, 32,
-and 64 output channels, and possibly others as well.
 .RE
 '\".TP
 '\".B spectrum
@@ -989,20 +1023,6 @@ and 64 output channels, and possibly others as well.
 '\".RE
 '\".RE
 .RE
-.TP
-.BI resolution= int
-Any controller capable of dimming may specify this value.  This is the
-number of discrete steps the dimmer can be set to between fully off and
-fully on (inclusive).  For example,
-.RB \*(lq resolution=32 \*(rq
-means that the dimmer can be fully off, fully on, and 30 levels of varying
-brightness inbetween.  If this value is not specified, it will default to
-a typical resolution value for that type of controller.
-Normally, you should
-.I not
-need to supply this value; let the controller driver's built-in defaults
-handle the typical case and only supply this if you have an unusual
-device with a nonstandard resolution.
 .SS "Controller Channels"
 .LP
 Finally, each controller has one or more electrical loads attached
@@ -1023,6 +1043,7 @@ The following fields are expected for channel definitions:
 .TP
 .BI name= text
 A short, descriptive name of the load plugged into this channel.
+If this is not present, a name will be generated automatically.
 .TP
 .BI load= real
 The number of amps this load will consume.
