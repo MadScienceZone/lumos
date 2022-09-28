@@ -92,4 +92,4 @@ class ToggleVirtualChannel (VirtualChannel):
                 self.channel.controller.set_channel_on if new_raw_level else self.channel.controller.set_channel_off, 
                 (self.channel.id, force), 
                 base_priority)]
-
+        return ((), ())  

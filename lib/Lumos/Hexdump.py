@@ -4,25 +4,32 @@
 import sys
 
 def _bin_hexdump(data: bytes, addr=0, output=sys.stdout):
+    o = []
     for idx in range(0, len(data), 16):
-        output.write('{0:04X}:'.format(addr+idx).encode())
+        o.append('{0:04X}:'.format(addr+idx))
         for byte in range(16):
             if idx+byte < len(data):
-                output.write(' {0:02X}'.format(data[idx+byte]).encode())
+                o.append(' {0:02X}'.format(data[idx+byte]))
             else:
-                output.write(b'   ')
+                o.append('   ')
             if byte == 7:
-                output.write(b'   ')
-        output.write(b'   |')
+                o.append('   ')
+        o.append('   |')
+
         for byte in range(16):
             if idx+byte < len(data):
-                output.write((chr(data[idx+byte]) if 32 <= data[idx+byte] <= 126 else '.').encode())
+                o.append(chr(data[idx+byte]) if 32 <= data[idx+byte] <= 126 else '.')
             else:
-                output.write(b' ')
+                o.append(' ')
 
             if byte == 7:
-                output.write(b' ')
-        output.write(b'|\n')
+                o.append(' ')
+        o.append('|\n')
+
+    if 'b' in output.mode:
+        output.write(''.join(o).encode())
+    else:
+        output.write(''.join(o))
 
 def hexdump(data, addr=0, output=sys.stdout):
     # --------------------------------------------------------------------------------
@@ -34,22 +41,28 @@ def hexdump(data, addr=0, output=sys.stdout):
         _bin_hexdump(data, addr, output)
         return
 
+    o = []
     for idx in range(0, len(data), 16):
-        output.write('{0:04X}:'.format(addr+idx).encode())
+        o.append('{0:04X}:'.format(addr+idx))
         for byte in range(16):
             if idx+byte < len(data):
-                output.write(' {0:02X}'.format(ord(data[idx+byte])).encode())
+                o.append(' {0:02X}'.format(ord(data[idx+byte])))
             else:
-                output.write(b'   ')
+                o.append('   ')
             if byte == 7:
-                output.write(b'   ')
-        output.write(b'   |')
+                o.append('   ')
+        o.append('   |')
         for byte in range(16):
             if idx+byte < len(data):
-                output.write((data[idx+byte] if ' ' <= data[idx+byte] <= '~' else '.').encode())
+                o.append(data[idx+byte] if ' ' <= data[idx+byte] <= '~' else '.')
             else:
-                output.write(b' ')
+                o.append(' ')
 
             if byte == 7:
-                output.write(b' ')
-                output.write(b'|\n')
+                o.append(' ')
+                o.append('|\n')
+
+    if 'b' in output.mode:
+        output.write(''.join(o).encode())
+    else:
+        output.write(''.join(o))

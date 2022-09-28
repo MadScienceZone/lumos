@@ -38,7 +38,7 @@ try:
     import serial
 except ImportError:
     class SerialNetwork (NullNetwork):
-        def __init__(self, description=None, port=0, baudrate=9600, bits=8, parity='none', stop=1, xonxoff=False, rtscts=False, duplex='full', txmode='dtr', txlevel=1, txdelay=2, open_device=True):
+        def __init__(self, description=None, port=0, baudrate=9600, bits=8, parity='none', stop=1, xonxoff=False, rtscts=False, duplex='full', txmode='dtr', txlevel=1, txdelay=2, open_device=True, debug_file=None):
             NullNetwork.__init__(self, description, nulltype="Serial")
             self.port=port
             self.baudrate=self._int(baudrate)
@@ -66,7 +66,7 @@ else:
         bytes sent at a particular baud rate and flow control.
         """
         
-        def __init__(self, description=None, port=0, baudrate=9600, bits=8, parity='none', stop=1, xonxoff=False, rtscts=False, duplex='full', txmode='dtr', txlevel=1, txdelay=2, open_device=True):
+        def __init__(self, description=None, port=0, baudrate=9600, bits=8, parity='none', stop=1, xonxoff=False, rtscts=False, duplex='full', txmode='dtr', txlevel=1, txdelay=2, open_device=True, debug_file=None):
             """
             Constructor for the SerialNetwork class.
 
@@ -140,6 +140,9 @@ else:
             self.verbose = None
             self.diversion = None
             self._protocol_debug = None
+
+            if debug_file:
+                self.verbose = open(debug_file, "a")
 
             if txmode not in ('dtr', 'rts'):
                 raise ValueError('{0} is not a valid transmit mode line name'.format(txmode))
