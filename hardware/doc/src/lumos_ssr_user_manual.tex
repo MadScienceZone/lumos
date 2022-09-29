@@ -3809,7 +3809,9 @@ different forms.
 \begin{BF}
 	\bitbox{1}{\z1} & \bitbox{3}{6} & \bitbox{4}{\Var*{addr}}\\
 	\bitbox{1}{\z0} & \bitbox{1}{\Var{\strut a}} & \bitbox{1}{\Var{\strut i}}
-		& \bitbox{1}{\Var{\strut p}} & \bitbox{2}{\color{lightgray}\rule{\width}{\height}}
+		& \bitbox{1}{\Var{\strut p}} 
+		& \bitbox{1}{\Var{\strut s}} 
+		& \bitbox{1}{\color{lightgray}\rule{\width}{\height}}
 		& \bitbox{1}{\z{0}}
 		& \bitbox{1}{\z0}\\
 	\bitbox{1}{\z0} & 
@@ -3821,13 +3823,19 @@ different forms.
 		\bitbox[b]{1}{\z1} &
 		\bitbox[br]{1}{\z0} \\
 \end{BF}
-With \Var*{e}=0, this initiates a button scan. The button states are cleared and
+With \Var*{e}=0, this initiates a button scan. 
+
+If \Var*{s}=0, the button states are cleared and
 the button timer (re-)started. Normally, no reply is given and the results of the 
 button scan may be requested when the scan is stopped (see below). However, if
 \Var*{i}=1, a reply is sent every time any button is pressed. These replies will be
 simple ``ping'' replies if \Var*{p}=1 or full status replies otherwise.
 Additionally, if \Var*{a}=1, periodic ``\acronym{NAK}'' replies will be sent while
 waiting for more button presses.
+
+Otherwise, if \Var*{s}=1, this command merely re-enables the button scanner so that
+it starts looking for lockouts due to early button pushes, but does not perform any
+of the other operations listed above.
 \begin{BF}
 	\bitbox{1}{\z1} & \bitbox{3}{6} & \bitbox{4}{\Var*{addr}}\\
 	\bitbox{1}{\z0} & \bitbox{1}{\z{1}} & \bitbox{1}{\z{1}}
@@ -5105,13 +5113,46 @@ it is not.
 The expected behavior is for one or more of these commands to be received
 when the lockout status is detected, and eventually another which clears
 the status when the lockout period has expired.
+
+\subsection{\z{0x710} Clear Quiz Show Displays}
+\begin{BF}
+	\bitbox{1}{\z1} &
+	\bitbox{3}{7} &
+	\bitbox{4}{\Var*{addr}} \\
+	\bitbox{1}{\z0} &
+	\bitbox{7}{16} \\
+	\bitbox{1}{\z0} & \bitbox{3}{\color{lightgray}\rule{\width}{\height}}&
+	\bitbox{1}{\Var{\strut b}} &
+	\bitbox{1}{\Var{\strut m}} &
+	\bitbox{1}{\Var{\strut d}} &
+	\bitbox{1}{\Var{\strut o}}\\
+	\bitbox{1}{\z0} &
+	\bitbox[tb]{1}{\z0} &
+	\bitbox[tb]{1}{\z1} &
+	\bitbox[tb]{1}{\z1} &
+	\bitbox[tb]{1}{\z1} &
+	\bitbox[tb]{1}{\z1} &
+	\bitbox[tb]{1}{\z0} &
+	\bitbox[tbr]{1}{\z0} &
+\end{BF}
+
+This command clears various parts of the quiz show equipment.
+
+If \Var*{b} is set, the button states are cleared without changing whether the scanner itself
+is enabled or running.
+
+If \Var*{m} is set, the readerboard matrix is cleared to black.
+
+If \Var*{d} is set, the \acronym{LED} display is cleared.
+
+If \Var*{o} is set, all output channels are turned off.
 \end{QS*}
 
 \subsection{Reserved Command Codes}
 Codes \z{0x70a}--\z{0x70d} and \z{0x70f}--\z{0x71d} are reserved for future commands.  \z{0x71e}--\z{0x71f} are currently used
 for response packets from the Lumos controller.
 \begin{QS*}
-	\z{0x70a}--\z{0x70d} and \z{0x70f} are used for QS-specific commands.
+	\z{0x70a}--\z{0x70d} and \z{0x70f}--\z{0x710} are used for QS-specific commands.
 	\z{0x71b}--\z{0x71d} are used for the response packet for QS query commands.
 \end{QS*}
 

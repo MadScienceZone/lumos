@@ -1,5 +1,4 @@
-#!/usr/bin/python
-# vi:set ai sm nu ts=4 sw=4 expandtab:
+#!/usr/bin/python3
 #
 # convert manpages to LaTeX macros
 #
