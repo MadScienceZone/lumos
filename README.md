@@ -13,6 +13,8 @@ you would like to get an early preview of the software and/or assist with
 testing and providing feedback to the developer, feel free to do so, but
 don't expect a solid, finished product yet.  
 
+Coming soon: support for WLED devices.
+
 # Domain Name
 This project was originally created when our domain name was `alchemy.com`. We have
 now moved to `madscience.zone`. Any lingering references in documentation, source code,
